@@ -21,8 +21,8 @@ import {
 import '../../styles/about-modern.css';
 import TeamSection from '@/components/TeamSection';
 import AboutHero from '@/components/AboutHero';
-import EcosystemImpactRoadmap from '@/components/EcosystemImpactRoadmap';
-import '../../styles/ecosystem-roadmap.css';
+import EcosystemImpactRoadmapVertical from '@/components/EcosystemImpactRoadmapVertical';
+import '../../styles/ecosystem-roadmap-vertical.css';
 
 export default function AboutUs() {
   useEffect(() => {
@@ -223,7 +223,7 @@ export default function AboutUs() {
           </div>
         </section>
 
-        <EcosystemImpactRoadmap />
+        <EcosystemImpactRoadmapVertical />
 
         {/* Our Approach - Light */}
         <section className="approach-section">
