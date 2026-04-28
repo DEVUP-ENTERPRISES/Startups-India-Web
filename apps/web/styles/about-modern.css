@@ -477,7 +477,7 @@
   margin-bottom: 60px;
 }
 
-.stand-card {
+.icon-box {
   background: rgba(255, 255, 255, 0.04);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -490,34 +490,14 @@
   overflow: hidden;
 }
 
-.stand-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(
-    circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
-    rgba(229, 57, 53, 0.08),
-    transparent 60%
-  );
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  pointer-events: none;
+.icon-box h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0a0a0a;
+  line-height: 1.4;
+  letter-spacing: -0.3px;
 }
 
-.stand-card:hover::before {
-  opacity: 1;
-}
-
-.stand-card:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(229, 57, 53, 0.3);
-  transform: translateY(-6px);
-  box-shadow:
-    0 20px 40px rgba(0, 0, 0, 0.2),
-    0 0 30px rgba(229, 57, 53, 0.1);
-}
-
-/* Icons - Always visible in RED */
 .stand-icon {
   margin-bottom: 24px;
   display: inline-flex;
@@ -529,19 +509,143 @@
   border-radius: 14px;
 }
 
-/* Remove hover effects - icons stay stable in RED */
-.stand-card:hover .stand-icon {
-  color: #dc143c;
-  transform: none;
-  box-shadow: none;
+/* GLOBAL CARD INTERACTIONS (MOBILE + TABLET ONLY) */
+@media (max-width: 1024px) {
+  .icon-box,
+  .card,
+  .feature-card,
+  .about-card,
+  .what-card,
+  .mission-card,
+  .approach-card,
+  .impact-roadmap-card,
+  .hero-stat-item,
+  .stat-item {
+    position: relative;
+    border-radius: 14px;
+    padding: 20px;
+    background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.04),
+      rgba(255, 255, 255, 0.01)
+    );
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(10px);
+    box-shadow: 
+      0 6px 24px rgba(0, 0, 0, 0.4), 
+      inset 0 0 0 1px rgba(255, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    overflow: hidden;
+  }
+
+  .icon-box:hover,
+  .card:hover,
+  .feature-card:hover,
+  .about-card:hover,
+  .what-card:hover,
+  .mission-card:hover,
+  .approach-card:hover,
+  .impact-roadmap-card:hover,
+  .hero-stat-item:hover,
+  .stat-item:hover,
+  .icon-box.active,
+  .card.active,
+  .feature-card.active,
+  .about-card.active,
+  .what-card.active,
+  .mission-card.active,
+  .approach-card.active,
+  .impact-roadmap-card.active,
+  .hero-stat-item.active,
+  .stat-item.active {
+    transform: translateY(-4px);
+    border-color: rgba(255, 0, 0, 0.35);
+    box-shadow: 
+      0 10px 35px rgba(0, 0, 0, 0.5), 
+      inset 0 0 0 1px rgba(255, 0, 0, 0.2), 
+      0 0 14px rgba(255, 0, 0, 0.25);
+  }
+
+  /* ICON / CONTENT GLOW */
+  .icon-box svg,
+  .card svg,
+  .feature-card svg,
+  .about-card svg,
+  .what-card svg,
+  .mission-card svg,
+  .approach-card svg,
+  .impact-roadmap-card svg {
+    transition: all 0.3s ease;
+  }
+
+  .icon-box:hover svg,
+  .card:hover svg,
+  .feature-card:hover svg,
+  .about-card:hover svg,
+  .what-card:hover svg,
+  .mission-card:hover svg,
+  .approach-card:hover svg,
+  .impact-roadmap-card:hover svg {
+    filter: drop-shadow(0 0 8px rgba(255, 0, 0, 0.6));
+  }
 }
 
-.stand-card h3 {
-  font-size: 18px;
-  font-weight: 700;
-  color: #0a0a0a;
-  line-height: 1.4;
-  letter-spacing: -0.3px;
+/* SPOTLIGHT EFFECT (TABLET ONLY) */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .icon-box::before,
+  .card::before,
+  .feature-card::before,
+  .about-card::before,
+  .what-card::before,
+  .mission-card::before,
+  .approach-card::before,
+  .impact-roadmap-card::before,
+  .hero-stat-item::before,
+  .stat-item::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+      300px circle at var(--x, 50%) var(--y, 50%),
+      rgba(255, 0, 0, 0.15),
+      transparent 60%
+    );
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+
+  .icon-box:hover::before,
+  .card:hover::before,
+  .feature-card:hover::before,
+  .about-card:hover::before,
+  .what-card:hover::before,
+  .mission-card:hover::before,
+  .approach-card:hover::before,
+  .impact-roadmap-card:hover::before,
+  .hero-stat-item:hover::before,
+  .stat-item:hover::before {
+    opacity: 1;
+  }
+}
+
+/* MOBILE TAP FEEDBACK */
+@media (max-width: 767px) {
+  .icon-box:active,
+  .card:active,
+  .feature-card:active,
+  .about-card:active,
+  .what-card:active,
+  .mission-card:active,
+  .approach-card:active,
+  .impact-roadmap-card:active,
+  .hero-stat-item:active,
+  .stat-item:active {
+    transform: scale(0.97);
+    box-shadow: 
+      0 4px 20px rgba(0, 0, 0, 0.4), 
+      0 0 10px rgba(255, 0, 0, 0.3);
+  }
 }
 
 .stand-statement {
@@ -1563,14 +1667,19 @@
 }
 
 .approach-card {
-  background: rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  padding: 44px 32px;
-  border-radius: 20px;
+  border-radius: 14px;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.04),
+    rgba(255, 255, 255, 0.01)
+  );
+  box-shadow: 
+    0 6px 20px rgba(0, 0, 0, 0.35), 
+    inset 0 0 0 1px rgba(255, 0, 0, 0.08);
+  transition: all 0.3s ease;
   text-align: center;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  transition: all 0.35s ease;
   position: relative;
   overflow: hidden;
 }
@@ -1594,12 +1703,11 @@
 }
 
 .approach-card:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(229, 57, 53, 0.2);
-  transform: translateY(-6px);
-  box-shadow:
-    0 20px 40px rgba(0, 0, 0, 0.1),
-    0 0 30px rgba(229, 57, 53, 0.08);
+  transform: translateY(-3px);
+  border-color: rgba(255, 0, 0, 0.3);
+  box-shadow: 
+    0 10px 30px rgba(0, 0, 0, 0.45), 
+    0 0 10px rgba(255, 0, 0, 0.2);
 }
 
 .approach-icon {
@@ -1844,6 +1952,14 @@
   .stand-grid,
   .approach-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Specific Tablet Fix for Our Approach */
+  @media (min-width: 768px) {
+    .approach-section .approach-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
   }
 
   .what-grid,

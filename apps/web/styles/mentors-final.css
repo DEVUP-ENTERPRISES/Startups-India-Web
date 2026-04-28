@@ -1719,3 +1719,31 @@ section[class*="hero"] .stat-number {
     font-size: 13px;
   }
 }
+
+/* ==========================================
+   📱 MENTOR STATS SECTION FIX (iPad & TABLET ONLY)
+   ========================================== */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .mentors-hero .hero-stats,
+  .mentor-stats {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 24px !important;
+    justify-items: center !important;
+    text-align: center !important;
+    padding-left: 40px !important;
+    padding-right: 40px !important;
+  }
+
+  .mentors-hero .hero-stats .stat-card,
+  .mentor-stats .stat-item {
+    width: 100% !important;
+    max-width: 200px !important;
+  }
+  
+  /* Handle odd number of stats (50+ / 500+ / 2000+ is 3 items) */
+  .mentors-hero .hero-stats .stat-card:last-child:nth-child(odd),
+  .mentor-stats .stat-item:last-child:nth-child(odd) {
+    grid-column: span 2;
+  }
+}
