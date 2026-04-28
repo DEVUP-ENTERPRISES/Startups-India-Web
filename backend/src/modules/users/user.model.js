@@ -19,12 +19,7 @@ const userSchema = new mongoose.Schema(
     location: { type: String, trim: true },
     phone: { type: String, trim: true },
     timezone: { type: String, default: 'IST (UTC+5:30)' },
-    socialLinks: {
-      linkedin: { type: String },
-      twitter: { type: String },
-      github: { type: String },
-      website: { type: String }
-    },
+    socialLinks: { type: mongoose.Schema.Types.Mixed, default: [] },
     notificationPrefs: {
       learning: { type: Boolean, default: true },
       assessments: { type: Boolean, default: true },

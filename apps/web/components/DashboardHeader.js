@@ -5,10 +5,11 @@ import { useRouter } from 'next/navigation';
 import Icon from './Icon';
 import Link from 'next/link';
 import { useDashboard } from '@/contexts/DashboardProvider';
+import { signOut } from '@/lib/auth';
 
-export default function DashboardHeader({ user, onOpenMobileMenu }) {
+export default function DashboardHeader({ onOpenMobileMenu }) {
   const router = useRouter();
-  const { courses } = useDashboard();
+  const { courses, user } = useDashboard();
   const [searchQuery, setSearchQuery] = useState('');
   const [results, setResults] = useState([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -19,7 +20,7 @@ export default function DashboardHeader({ user, onOpenMobileMenu }) {
   // Global Page Index for Search
   const dashboardPages = [
     { title: 'Dashboard Home', path: '/dashboard', category: 'Module', icon: 'layout' },
-    { title: 'Explore Programs', path: '/dashboard/explore', category: 'Module', icon: 'search' },
+    { title: 'Explore Programs', path: '/dashboard/explore-courses', category: 'Module', icon: 'search' },
     { title: 'My Learnings', path: '/dashboard/my-learning', category: 'Module', icon: 'book' },
     { title: 'Assessments & Quizzes', path: '/dashboard/assessments', category: 'Module', icon: 'target' },
     { title: 'Certificates & Awards', path: '/dashboard/certificates', category: 'Module', icon: 'award' },
@@ -89,19 +90,25 @@ export default function DashboardHeader({ user, onOpenMobileMenu }) {
     e.preventDefault();
     if (searchQuery.trim()) {
       setIsDropdownOpen(false);
-      router.push(`/dashboard/explore?search=${encodeURIComponent(searchQuery.trim())}`);
+      router.push(`/dashboard/explore-courses?search=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
 
-  const initials = user?.fullName
-    ? user.fullName.split(' ').map(n => n[0]).join('').toUpperCase()
-    : user?.name?.charAt(0).toUpperCase() || 'U';
+  const activeName = user?.fullName || user?.full_name || user?.name || 'Student';
+  const initials = activeName.charAt(0).toUpperCase();
 
   return (
     <header className="dashboard-header">
       <div className="header-left">
-        <button className="mobile-menu-btn" onClick={onOpenMobileMenu}>
-          <Icon name="layout" size={24} />
+        <Link href="/dashboard" className="mobile-logo-link mobile-only">
+          <img
+            src="/assets/images/logo-new.png"
+            alt="Startups India"
+            className="mobile-header-logo"
+          />
+        </Link>
+        <button className="mobile-menu-btn mobile-only" onClick={onOpenMobileMenu}>
+          <Icon name="layout" size={20} />
         </button>
         <div className="header-search" ref={searchRef}>
           <form onSubmit={handleSearch}>
@@ -178,11 +185,15 @@ export default function DashboardHeader({ user, onOpenMobileMenu }) {
               borderRadius: '14px'
             }}
           >
-            <div className="user-avatar">
-              <Icon name="user" size={22} />
+            <div className="user-avatar" style={{ overflow: 'hidden' }}>
+              {user?.avatarUrl ? (
+                <img src={user.avatarUrl} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                initials
+              )}
             </div>
             <div className="user-info hide-mobile">
-              <span className="user-name">{user?.fullName || user?.name || 'Student'}</span>
+              <span className="user-name">{activeName}</span>
               <span className="user-role">Founder</span>
             </div>
           </div>
@@ -190,7 +201,7 @@ export default function DashboardHeader({ user, onOpenMobileMenu }) {
           {isProfileDropdownOpen && (
             <div className="profile-dropdown">
               <div className="profile-dropdown-header">
-                <span className="dropdown-user-name">{user?.fullName || user?.name || 'Student'}</span>
+                <span className="dropdown-user-name">{activeName}</span>
                 <span className="dropdown-user-email">{user?.email || 'founder@startupsindia.in'}</span>
               </div>
               <div className="profile-dropdown-divider" />
@@ -213,9 +224,13 @@ export default function DashboardHeader({ user, onOpenMobileMenu }) {
                 </Link>
               </div>
               <div className="profile-dropdown-divider" />
-              <button className="profile-logout-btn" onClick={() => { /* Handle logout */ setIsProfileDropdownOpen(false); }} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '12px' }}>
+              <button className="profile-logout-btn" onClick={async () => { 
+                setIsProfileDropdownOpen(false); 
+                await signOut();
+                window.location.replace('/login');
+              }} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '12px' }}>
                 <Icon name="logout" size={18} />
-                <span>Sign Out</span>
+                <span>Log Out</span>
               </button>
             </div>
           )}
@@ -223,15 +238,19 @@ export default function DashboardHeader({ user, onOpenMobileMenu }) {
       </div>
 
       <style jsx>{`
-        .header-left { display: flex; align-items: center; gap: 20px; flex: 1; }
-        .mobile-menu-btn { display: none; background: none; border: none; color: #1e293b; cursor: pointer; padding: 8px; border-radius: 10px; }
+        .mobile-only { display: none !important; }
+        .mobile-header-logo { height: 22px; width: auto; object-fit: contain; }
+
+        .header-left { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
+        .mobile-menu-btn { background: none; border: none; color: #1e293b; cursor: pointer; padding: 8px; border-radius: 10px; }
         .mobile-menu-btn:hover { background: #f1f5f9; }
 
-        .header-search { flex: 1; max-width: 600px; position: relative; }
-        .search-input-wrapper { position: relative; display: flex; align-items: center; z-index: 2; }
+        .header-search { flex: 1; max-width: 600px; position: relative; transition: all 0.3s ease; }
+        .search-input-wrapper { position: relative; display: flex; align-items: center; z-index: 2; width: 100%; }
         .search-input-wrapper :global(.search-icon) { position: absolute; left: 18px; color: #94a3b8; pointer-events: none; }
-        .search-input { width: 100%; height: 50px; padding: 0 20px 0 54px; border-radius: 14px; border: 1.5px solid #f1f5f9; background: #f8fafc; font-size: 0.95rem; font-weight: 600; color: #1e293b; transition: all 0.2s; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); }
-        .search-input:focus { outline: none; border-color: #7A1F2B; background: #fff; box-shadow: 0 0 0 4px rgba(122, 31, 43, 0.05), inset 0 2px 4px rgba(0,0,0,0.02); }
+        .search-input { width: 100%; height: 48px; padding: 0 20px 0 52px; border: 1.5px solid #f1f5f9; border-radius: 14px; background: #f8fafc; font-size: 0.95rem; color: #1e293b; outline: none; transition: 0.2s; }
+        .search-input:focus { background: #fff; border-color: #7A1F2B; box-shadow: 0 0 0 4px rgba(122, 31, 43, 0.08); }
+        .search-input::placeholder { color: #94a3b8; font-weight: 500; }
 
         .search-dropdown { position: absolute; top: calc(100% + 8px); left: 0; right: 0; background: #fff; border-radius: 16px; border: 1px solid #f1f5f9; box-shadow: 0 20px 40px rgba(0,0,0,0.08); overflow: hidden; z-index: 100; animation: slideDown 0.2s ease-out; }
         @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
@@ -261,11 +280,11 @@ export default function DashboardHeader({ user, onOpenMobileMenu }) {
         .header-profile-box:hover { background: #f8fafc; border-color: #f1f5f9; }
         
         .profile-dropdown { position: absolute; top: calc(100% + 12px); right: 0; width: 260px; background: #fff; border-radius: 18px; border: 1px solid #f1f5f9; box-shadow: 0 20px 50px rgba(0,0,0,0.12); z-index: 1000; overflow: hidden; animation: slideDown 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
-        .profile-dropdown-header { padding: 20px; display: flex; flex-direction: column; background: #fcfcfd; }
+        .profile-dropdown-header { padding: 12px 20px; display: flex; flex-direction: column; background: #fcfcfd; }
         .dropdown-user-name { font-size: 0.95rem; font-weight: 800; color: #0f172a; margin-bottom: 2px; }
         .dropdown-user-email { font-size: 0.75rem; font-weight: 600; color: #94a3b8; }
         .profile-dropdown-divider { height: 1px; background: #f1f5f9; }
-        .profile-dropdown-links { padding: 8px; display: flex; flex-direction: column; gap: 2px; }
+        .profile-dropdown-links { padding: 8px; display: flex; flex-direction: column; gap: 6px; }
         .profile-link { display: flex !important; flex-direction: row !important; align-items: center !important; gap: 12px !important; padding: 12px 14px; border-radius: 12px; text-decoration: none; color: #475569; font-size: 0.88rem; font-weight: 600; transition: 0.2s; }
         .profile-link:hover { background: #f8fafc; color: #7A1F2B; }
         .profile-link :global(svg) { color: #94a3b8; transition: 0.2s; flex-shrink: 0; }
@@ -280,36 +299,41 @@ export default function DashboardHeader({ user, onOpenMobileMenu }) {
         .header-profile-box:hover .user-avatar { transform: scale(1.04); }
 
         @media (max-width: 1060px) {
-          .mobile-menu-btn { display: flex; }
+          .mobile-only { display: flex !important; }
+          .mobile-logo-link { align-items: center; }
           .hide-mobile { display: none !important; }
-          .header-left { gap: 12px; }
-          .header-search { max-width: 260px; }
-          .search-input { height: 42px; font-size: 0.85rem; padding: 0 12px 0 42px; }
-          .search-input-wrapper :global(.search-icon) { left: 14px; }
-          .user-avatar { width: 40px; height: 40px; font-size: 1rem; }
+          .header-left { gap: 8px; }
+          .header-search { display: none; } 
+          .user-avatar { width: 38px; height: 38px; font-size: 0.9rem; }
         }
 
         @media (max-width: 640px) {
-          .header-left { gap: 10px; }
-          .header-search { max-width: 180px; }
-          .search-input { height: 38px; font-size: 0.8rem; padding: 0 8px 0 36px; border-radius: 10px; }
-          .search-input-wrapper :global(.search-icon) { left: 10px; }
-          .header-actions { gap: 8px !important; }
+          .header-left { gap: 8px; }
+          .mobile-header-logo { height: 24px; }
+          .header-actions { gap: 6px !important; }
           .header-profile-box { padding: 4px !important; gap: 6px !important; }
-          .profile-dropdown { width: min(260px, calc(100vw - 16px)); right: 0; }
+          .profile-dropdown { width: min(280px, calc(100vw - 32px)); right: 0; }
         }
 
         @media (max-width: 480px) {
-          .header-left { gap: 8px; }
-          .header-search { max-width: 140px; }
-          .search-input { height: 36px; font-size: 0.75rem; border-radius: 8px; }
-          .user-avatar { width: 36px; height: 36px; border-radius: 10px; font-size: 0.9rem; }
+          .header-left { gap: 6px; }
+          .mobile-logo-link { display: flex; }
+          .mobile-header-logo { height: 18px; }
+          .mobile-menu-btn { padding: 4px; }
+          .user-avatar { width: 32px; height: 32px; border-radius: 8px; font-size: 0.8rem; }
+          .header-actions { gap: 8px !important; }
+          .header-action-btn { width: 36px; height: 36px; border-radius: 10px; }
           .profile-dropdown { right: -8px; }
         }
 
-        @media (max-width: 360px) {
-          .header-search { max-width: 110px; }
-          .search-input { padding: 0 6px 0 32px; }
+        @media (max-width: 375px) {
+          .header-search { max-width: 100px; }
+          .header-left { gap: 4px; }
+          .mobile-menu-btn { padding: 6px; }
+        }
+
+        @media (max-width: 320px) {
+          .header-search { display: none; }
         }
       `}</style>
     </header>

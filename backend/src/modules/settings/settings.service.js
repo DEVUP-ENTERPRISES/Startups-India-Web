@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 // Fields the user is allowed to update on their profile
 const PROFILE_WHITELIST = [
   'fullName', 'headline', 'missionStatement', 'bio',
-  'location', 'phone', 'timezone', 'socialLinks',
+  'location', 'phone', 'timezone', 'socialLinks', 'avatarUrl'
 ];
 
 // Minimum required password strength (must pass all four checks)

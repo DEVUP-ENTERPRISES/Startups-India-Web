@@ -59,9 +59,9 @@ export const navigationData = [
     id: 'community',
     label: 'COMMUNITY',
     items: [
-      { id: 'discussions', label: 'Discussions', path: '/community/discussions', icon: 'message' },
+      { id: 'discussions', label: 'Discussions', path: '/dashboard/discussions', icon: 'message' },
       { id: 'groups', label: 'Groups', path: '/community/groups', icon: 'userPlus' },
-      { id: 'doubts', label: 'Doubts / Q&A', path: '/community/doubts', icon: 'alertCircle' },
+      { id: 'doubts', label: 'Doubts / Q&A', path: '/dashboard/doubts', icon: 'alertCircle' },
     ],
   },
   {

@@ -25,7 +25,7 @@
 }
 
 .sidebar-header {
-  padding: 24px 20px;
+  padding: 24px 8px;
   background: transparent;
   border-bottom: none;
 }
@@ -33,7 +33,6 @@
 .sidebar-logo {
   display: inline-flex;
   align-items: center;
-  margin-left: 22px; /* Shifting further to the right as requested */
   text-decoration: none;
   transition: transform 0.2s ease;
 }
@@ -45,6 +44,29 @@
 .sidebar-logo-img {
   height: 42px;
   width: auto;
+}
+
+.sidebar-home-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  flex-shrink: 0;
+}
+
+.sidebar-home-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar-home-btn:active {
+  transform: translateY(0);
 }
 
 /* Sidebar Navigation */

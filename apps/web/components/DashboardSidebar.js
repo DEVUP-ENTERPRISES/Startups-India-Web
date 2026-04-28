@@ -3,7 +3,6 @@
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useState } from 'react';
-import { signOut } from '@/lib/auth';
 
 export default function DashboardSidebar({
   user,
@@ -13,7 +12,6 @@ export default function DashboardSidebar({
 }) {
   const pathname = usePathname();
   const [openSectionId, setOpenSectionId] = useState('courses');
-  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const navigation = [
     {
@@ -29,7 +27,7 @@ export default function DashboardSidebar({
       isDropdown: true,
       icon: 'courses',
       items: [
-        { id: 'explore', label: 'Explore Courses', path: '/dashboard/explore', icon: 'explore' },
+        { id: 'explore', label: 'Explore Courses', path: '/dashboard/explore-courses', icon: 'explore' },
         {
           id: 'enrolled',
           label: 'Enrolled Courses',
@@ -156,14 +154,14 @@ export default function DashboardSidebar({
         {
           id: 'discussions',
           label: 'Discussions',
-          path: '/dashboard/community/discussions',
+          path: '/dashboard/discussions',
           icon: 'explore',
         },
         { id: 'groups', label: 'Groups', path: '/dashboard/community/groups', icon: 'courses' },
         {
           id: 'doubts',
           label: 'Doubts / Q&A',
-          path: '/dashboard/community/doubts',
+          path: '/dashboard/doubts',
           icon: 'wishlist',
         },
       ],
@@ -472,8 +470,14 @@ export default function DashboardSidebar({
       <aside className={`premium-sidebar ${isOpen ? 'mobile-open' : ''}`}>
         {/* Logo and Branding */}
         <div className="sidebar-header">
-          <div className="sidebar-header-flex">
-            <Link href="/dashboard" className="sidebar-logo" onClick={onClose}>
+          <div className="sidebar-header-flex" style={{ display: 'flex', alignItems: 'center' }}>
+            <Link href="/" className="sidebar-home-btn" title="Go to home page">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                <polyline points="9 22 9 12 15 12 15 22" />
+              </svg>
+            </Link>
+            <Link href="/dashboard" className="sidebar-logo" onClick={onClose} style={{ marginLeft: '-12px' }}>
               <img
                 src="/assets/images/logo-new.png"
                 alt="Startups India Logo"
@@ -482,8 +486,8 @@ export default function DashboardSidebar({
             </Link>
             
             {/* Mobile Close Button */}
-            <button className="sidebar-close-btn mobile-only" onClick={onClose}>
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+            <button className="sidebar-close-btn mobile-only" onClick={onClose} aria-label="Close sidebar">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <line x1="18" y1="6" x2="6" y2="18" />
                 <line x1="6" y1="6" x2="18" y2="18" />
               </svg>
@@ -576,10 +580,6 @@ export default function DashboardSidebar({
                         key={item.id}
                         className="nav-item action-button-nav"
                         onClick={() => {
-                          if (item.id === 'logout') {
-                            onClose();
-                            setShowLogoutModal(true);
-                          }
                         }}
                         style={{
                           background: 'none',
@@ -613,27 +613,7 @@ export default function DashboardSidebar({
         <div className="sidebar-bottom">
           <div className="bottom-actions">
 
-            <button
-              className="bottom-action"
-              onClick={() => {
-                onClose();
-                setShowLogoutModal(true);
-              }}
-            >
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                <polyline points="16 17 21 12 16 7" />
-                <line x1="21" y1="12" x2="9" y2="12" />
-              </svg>
-              <span>Logout</span>
-            </button>
+
 
             <Link href="/dashboard/contact" className="bottom-action" onClick={onClose}>
               <svg
@@ -653,132 +633,7 @@ export default function DashboardSidebar({
           </div>
         </div>
 
-        {/* Logout Confirmation Modal */}
-        {showLogoutModal && (
-          <div
-            style={{
-              position: 'fixed',
-              inset: 0,
-              zIndex: 9999,
-              background: 'rgba(0,0,0,0.45)',
-              backdropFilter: 'blur(6px)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-            onClick={() => setShowLogoutModal(false)}
-          >
-            <div
-              style={{
-                background: '#fff',
-                borderRadius: 16,
-                padding: '36px 32px 28px',
-                width: 380,
-                maxWidth: '90vw',
-                textAlign: 'center',
-                boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
-                position: 'relative',
-                animation: 'logoutModalIn 0.25s ease-out',
-              }}
-              onClick={e => e.stopPropagation()}
-            >
-              <div
-                style={{
-                  width: 56,
-                  height: 56,
-                  borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #fee2e2, #fecaca)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  margin: '0 auto 20px',
-                }}
-              >
-                <svg
-                  width="28"
-                  height="28"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="#dc2626"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                  <polyline points="16 17 21 12 16 7" />
-                  <line x1="21" y1="12" x2="9" y2="12" />
-                </svg>
-              </div>
-              <h3 style={{ margin: '0 0 8px', fontSize: 20, fontWeight: 700, color: '#111' }}>
-                Sign Out?
-              </h3>
-              <p style={{ margin: '0 0 28px', fontSize: 14, color: '#6b7280', lineHeight: 1.5 }}>
-                Are you sure you want to sign out? You will need to log in again to access your
-                dashboard.
-              </p>
-              <div style={{ display: 'flex', gap: 12 }}>
-                <button
-                  onClick={() => setShowLogoutModal(false)}
-                  style={{
-                    flex: 1,
-                    padding: '12px 0',
-                    borderRadius: 10,
-                    border: '1.5px solid #e5e7eb',
-                    background: '#fff',
-                    fontSize: 14,
-                    fontWeight: 600,
-                    color: '#374151',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
-                  }}
-                  onMouseEnter={e => {
-                    e.target.style.background = '#f9fafb';
-                    e.target.style.borderColor = '#d1d5db';
-                  }}
-                  onMouseLeave={e => {
-                    e.target.style.background = '#fff';
-                    e.target.style.borderColor = '#e5e7eb';
-                  }}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={async () => {
-                    await signOut();
-                    window.location.replace('/login');
-                  }}
-                  style={{
-                    flex: 1,
-                    padding: '12px 0',
-                    borderRadius: 10,
-                    border: 'none',
-                    background: 'linear-gradient(135deg, #7A1F2B, #9B3040)',
-                    fontSize: 14,
-                    fontWeight: 600,
-                    color: '#fff',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
-                    boxShadow: '0 2px 8px rgba(122,31,43,0.3)',
-                  }}
-                  onMouseEnter={e => (e.target.style.opacity = '0.9')}
-                  onMouseLeave={e => (e.target.style.opacity = '1')}
-                >
-                  Yes, Sign Out
-                </button>
-              </div>
-            </div>
-            <style
-              dangerouslySetInnerHTML={{
-                __html: `
-            @keyframes logoutModalIn {
-              from { opacity: 0; transform: scale(0.9) translateY(10px); }
-              to { opacity: 1; transform: scale(1) translateY(0); }
-            }
-          `,
-              }}
-            />
-          </div>
-        )}
+
       </aside>
     </>
   );

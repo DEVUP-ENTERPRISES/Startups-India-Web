@@ -676,21 +676,22 @@ export default function DashboardPage() {
         }
         @media (max-width:768px) {
           .d4col { grid-template-columns: repeat(2, 1fr) !important; gap: 12px !important; }
-          .banner-inner { flex-direction:column !important; text-align:center !important; padding: 1rem !important; }
+          .banner-inner { flex-direction:column !important; text-align:center !important; padding: 0.5rem 0 !important; }
           .banner-right { justify-content:center !important; width: 100% !important; flex-wrap: wrap !important; margin-top: 1.5rem !important; }
           .banner-right > div { flex: 1; min-width: 100px; padding: 12px !important; }
-          h1 { font-size: 1.5rem !important; line-height: 1.2 !important; }
+          h1 { font-size: clamp(1.4rem, 6vw, 1.8rem) !important; line-height: 1.2 !important; }
           .ai-glass { padding: 1.25rem !important; }
           .stats-grid { gap: 12px !important; }
-          .dashboard-main-container { padding: 1rem 0.75rem 2rem !important; }
+          .dashboard-main-container { padding: 0 0.75rem 2rem !important; }
         }
         @media (max-width:480px) {
            .d4col { grid-template-columns: 1fr !important; }
-           .banner-inner { padding: 0.75rem !important; }
+           .banner-inner { padding: 0 !important; }
            .ai-glass { padding: 1rem !important; }
            .ticker-wrap { display: none; }
            .banner-right > div { min-width: 100%; border-right: none !important; border-bottom: 1px solid rgba(255,255,255,0.1) !important; }
            .banner-right > div:last-child { border-bottom: none !important; }
+           .dashboard-main-container { padding: 0 0.5rem 2rem !important; }
         }
         /* Huge PC / Ultra-wide support */
         @media (min-width: 1800px) {
@@ -1648,7 +1649,7 @@ export default function DashboardPage() {
                 Begin your founder journey today
               </p>
               <Link
-                href="/dashboard/explore"
+                href="/dashboard/explore-courses"
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -1890,7 +1891,7 @@ export default function DashboardPage() {
         >
           {[
             {
-              href: '/dashboard/explore',
+              href: '/dashboard/explore-courses',
               label: 'Explore Courses',
               desc: 'Explore catalog',
               Icon: Icons.compass,

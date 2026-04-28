@@ -206,6 +206,7 @@ router.get(
           email: user.email,
           role: user.role,
           full_name: user.fullName,
+          avatarUrl: user.avatarUrl,
           provider: user.provider,
           user_metadata: {
             full_name: user.fullName,

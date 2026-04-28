@@ -646,10 +646,12 @@ html, body {
 
   .dashboard-content {
     padding: 12px 8px !important;
+    padding-top: 65px !important; /* Slightly tighter for small mobile */
   }
   
   .mobile-nav-header {
     padding: 8px 12px;
+    height: 54px;
   }
   
   .mobile-brand-name {

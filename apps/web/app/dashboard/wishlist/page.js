@@ -92,7 +92,7 @@ export default function WishlistPage() {
             Save courses you're interested in for later.
           </p>
           <Link
-            href="/dashboard/explore"
+            href="/dashboard/explore-courses"
             style={{
               display: 'inline-flex',
               alignItems: 'center',

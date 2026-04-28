@@ -61,7 +61,7 @@ export default function SubscriptionsPage() {
     <div className="platform-page">
       
       {/* ── HEADER ── */}
-      <header className="platform-page-header" style={{ marginBottom: '3rem' }}>
+      <header className="platform-page-header" style={{ marginBottom: '1.5rem' }}>
         <div>
           <h1 className="platform-page-title">Subscriptions</h1>
           <p className="platform-page-subtitle">Manage your premium access and billing cycle.</p>
@@ -69,10 +69,10 @@ export default function SubscriptionsPage() {
       </header>
 
       {/* ── PRICING TIERS ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '2rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1rem' }}>
           {tiers.map((tier) => (
             <div key={tier.name} className="glass-card" style={{ 
-                background: 'var(--dashboard-bg)', borderRadius: '40px', padding: '3rem', 
+                background: 'var(--dashboard-bg)', borderRadius: '32px', padding: '2rem', 
                 border: '1.5px solid', borderColor: tier.isPopular ? '#ef4444' : 'rgba(0,0,0,0.06)',
                 display: 'flex', flexDirection: 'column', position: 'relative',
                 boxShadow: tier.isPopular ? '0 25px 60px rgba(239, 68, 68, 0.1)' : '0 10px 30px rgba(0,0,0,0.03)',
@@ -114,10 +114,10 @@ export default function SubscriptionsPage() {
           ))}
       </div>
 
-      <style jsx global>{`
+      <style jsx>{`
         .glass-card:hover { transform: translateY(-5px); border-color: #ef444433; }
-        .platform-page { padding: 2rem 4rem 10rem; }
-        .platform-page-title { font-size: 2.5rem; font-weight: 950; color: #0f172a; margin: 0; letter-spacing: -0.04em; }
+        .platform-page { padding: 2rem; }
+        .platform-page-title { font-size: 2rem; font-weight: 950; color: #0f172a; margin: 0; letter-spacing: -0.04em; }
         .platform-page-subtitle { color: #94a3b8; font-weight: 750; margin-top: 8px; }
       `}</style>
     </div>

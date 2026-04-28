@@ -141,7 +141,7 @@ export default function MyCoursesPage() {
             Ready to learn? Explore our startup curriculum and start building your dream today.
           </p>
           <Link
-            href="/dashboard/explore"
+            href="/dashboard/explore-courses"
             style={{
               background: '#7A1F2B',
               color: '#fff',

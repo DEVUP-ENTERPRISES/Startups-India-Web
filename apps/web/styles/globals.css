@@ -538,3 +538,11 @@ select {
 .dashboard-layout, .dashboard-main, .dashboard-content {
   background-color: #ffffff !important;
 }
+
+/* Fix for empty state icons aligning to the left */
+div[style*="text-align: center"] svg,
+.text-center svg {
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+}
