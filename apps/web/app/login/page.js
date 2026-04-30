@@ -1,27 +1,36 @@
 'use client';
 
-/* ==========================================
-   LOGIN PAGE - Client Component
-   
-   CSS imported here to ensure proper loading on client-side navigation
-   ========================================== */
-
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  Mail, 
+  Lock, 
+  Eye, 
+  EyeOff, 
+  ArrowRight, 
+  Users, 
+  TrendingUp, 
+  Target, 
+  Award, 
+  ShieldCheck,
+  Briefcase,
+  Zap,
+  CheckCircle2
+} from 'lucide-react';
 import { signIn, initGoogleSignIn } from '@/lib/auth';
-import '@/styles/signup.css';
-// import '@/styles/signup-responsive.css';
+import '@/styles/auth-redesign.css';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const router = useRouter();
-  const [currentSlide, setCurrentSlide] = useState(0);
   const googleBtnRef = useRef(null);
 
   // Redirect if already logged in
@@ -31,37 +40,6 @@ export default function LoginPage() {
       router.replace('/dashboard');
     }
   }, [router]);
-
-  // Carousel auto-rotation
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentSlide(prev => (prev + 1) % 4);
-    }, 5000); // Change slide every 5 seconds
-
-    return () => clearInterval(interval);
-  }, []);
-
-  // Update carousel slides and indicators
-  useEffect(() => {
-    const slides = document.querySelectorAll('.carousel-slide');
-    const indicators = document.querySelectorAll('.indicator');
-
-    slides.forEach((slide, index) => {
-      if (index === currentSlide) {
-        slide.classList.add('active');
-      } else {
-        slide.classList.remove('active');
-      }
-    });
-
-    indicators.forEach((indicator, index) => {
-      if (index === currentSlide) {
-        indicator.classList.add('active');
-      } else {
-        indicator.classList.remove('active');
-      }
-    });
-  }, [currentSlide]);
 
   // Render Google Sign-In button
   useEffect(() => {
@@ -95,13 +73,9 @@ export default function LoginPage() {
 
       if (data) {
         setSuccess(true);
-
-        // Activity logging is handled by dashboard layout on SIGNED_IN event
-        // No need to log here to avoid duplicates
-
         setTimeout(() => {
           router.push('/dashboard');
-        }, 3000);
+        }, 2000);
       }
     } catch (err) {
       setError('An unexpected error occurred. Please try again.');
@@ -109,363 +83,266 @@ export default function LoginPage() {
     }
   };
 
+  const dashboardCards = [
+    { icon: <Users size={20} />, label: "Live Seats", value: "2,051", trend: "↑ 24%", trendClass: "" },
+    { icon: <Briefcase size={20} />, label: "Avg Funding", value: "₹50L+", trend: "↑ 12%", trendClass: "" },
+    { icon: <Target size={20} />, label: "Expert Mentors", value: "47+", trend: "↑ 18%", trendClass: "purple" },
+    { icon: <TrendingUp size={20} />, label: "Growth", value: "Growth", isChart: true },
+    { icon: <Award size={20} />, label: "Success Rate", value: "95%", isProgress: true },
+    { icon: <Zap size={20} />, label: "Total Funding", value: "₹110Cr+", trend: "↑ 28%", trendClass: "red" },
+  ];
+
   return (
-    <div className="signup-page">
-      <div className="signup-container">
-        {/* Left Side - Premium Graphics */}
-        <div className="signup-content">
-          {/* Animated Background Grid */}
-          <div className="auth-grid-bg"></div>
-
-          {/* Floating 3D Shapes */}
-          <div className="floating-shapes">
-            <div className="shape-3d shape-cube"></div>
-            <div className="shape-3d shape-sphere"></div>
-            <div className="shape-3d shape-pyramid"></div>
-          </div>
-
-          {/* Logo */}
-          <Link href="/" className="auth-logo">
+    <div className="auth-redesign">
+      {/* Left Panel - Visuals */}
+      <div className="visual-panel">
+        <div className="bg-pattern"></div>
+        
+        {/* Logo */}
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="visual-logo"
+        >
+          <Link href="/">
             <Image
               src="/assets/images/Startupsina logo wight.png"
-              alt="Startup India Incubation"
-              width={220}
-              height={65}
+              alt="Startup India"
+              width={180}
+              height={50}
               priority
-              className="auth-logo-image"
             />
           </Link>
+        </motion.div>
 
-          {/* Floating Graphic Cards */}
-          <div className="auth-graphics-container">
-            {/* Stats Card - Animated */}
-            <div className="auth-card stats-card">
-              <div className="card-glow"></div>
-              <div className="card-header">
-                <span className="card-label">Live Seats</span>
-                <div className="pulse-indicator"></div>
-              </div>
-              <div className="card-value">2,051</div>
-              <div className="card-trend">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <path
-                    d="M2 10L6 6L9 9L14 4"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
-                </svg>
-                <span>↑ 24%</span>
-              </div>
-            </div>
+        <div className="visual-content">
+          <motion.h1 
+            initial={{ opacity: 0, x: -30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="visual-title"
+          >
+            Smart Incubation Dashboard
+          </motion.h1>
+          <motion.p 
+            initial={{ opacity: 0, x: -30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="visual-subtext"
+          >
+            Track your startup growth, access expert mentors, and unlock funding opportunities.
+          </motion.p>
 
-            {/* Success Badge Card */}
-            <div className="auth-card success-card">
-              <div className="card-glow"></div>
-              <div className="success-icon-wrapper">
-                <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-                  <path
-                    d="M20 2L24 14L36 16L27 25L29 38L20 32L11 38L13 25L4 16L16 14L20 2Z"
-                    fill="url(#starGradient)"
-                  />
-                  <defs>
-                    <linearGradient id="starGradient" x1="4" y1="2" x2="36" y2="38">
-                      <stop stopColor="#FFD700" />
-                      <stop offset="1" stopColor="#FFA500" />
-                    </linearGradient>
-                  </defs>
-                </svg>
-              </div>
-              <div className="success-info">
-                <div className="success-number">₹50L+</div>
-                <div className="success-label">Avg Funding</div>
-              </div>
-            </div>
-
-            {/* Mentor Avatars Card */}
-            <div className="auth-card mentors-card">
-              <div className="card-glow"></div>
-              <div className="mentor-avatars-group">
-                <div className="mentor-avatar">👨‍💼</div>
-                <div className="mentor-avatar">👩‍💼</div>
-                <div className="mentor-avatar">👨‍🎓</div>
-                <div className="mentor-avatar-more">+47</div>
-              </div>
-              <div className="mentor-label">Expert Mentors</div>
-            </div>
-
-            {/* Growth Chart Card */}
-            <div className="auth-card chart-card">
-              <div className="card-glow"></div>
-              <div className="chart-header">
-                <span className="chart-label">Growth</span>
-                <span className="chart-period">2025</span>
-              </div>
-              <div className="mini-chart">
-                <div className="chart-bar" style={{ height: '40%' }}></div>
-                <div className="chart-bar" style={{ height: '65%' }}></div>
-                <div className="chart-bar" style={{ height: '45%' }}></div>
-                <div className="chart-bar" style={{ height: '80%' }}></div>
-                <div className="chart-bar" style={{ height: '95%' }}></div>
-              </div>
-            </div>
-
-            {/* Success Rate Card */}
-            <div className="auth-card success-rate-card">
-              <div className="card-glow"></div>
-              <div className="success-rate-circle">
-                <svg className="progress-ring" width="64" height="64">
-                  <circle
-                    className="progress-ring-circle"
-                    stroke="rgba(255, 255, 255, 0.1)"
-                    strokeWidth="5"
-                    fill="transparent"
-                    r="27"
-                    cx="32"
-                    cy="32"
-                  />
-                  <circle
-                    className="progress-ring-circle-animated"
-                    stroke="url(#successGradient2)"
-                    strokeWidth="5"
-                    fill="transparent"
-                    r="27"
-                    cx="32"
-                    cy="32"
-                    strokeDasharray="169.646"
-                    strokeDashoffset="16.965"
-                    strokeLinecap="round"
-                  />
-                  <defs>
-                    <linearGradient id="successGradient2" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor="#10b981" />
-                      <stop offset="100%" stopColor="#059669" />
-                    </linearGradient>
-                  </defs>
-                </svg>
-                <div className="success-rate-text">
-                  <div className="success-rate-number">95%</div>
-                </div>
-              </div>
-              <div className="success-rate-label">Success Rate</div>
-            </div>
-
-            {/* Funding Secured Card */}
-            <div className="auth-card funding-card">
-              <div className="card-glow"></div>
-              <div className="funding-icon">
-                <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-                  <path
-                    d="M16 4L18 12L26 14L20 20L22 28L16 24L10 28L12 20L6 14L14 12L16 4Z"
-                    fill="url(#fundingGradient)"
-                  />
-                  <circle cx="16" cy="16" r="3" fill="#fff" />
-                  <defs>
-                    <linearGradient id="fundingGradient" x1="6" y1="4" x2="26" y2="28">
-                      <stop offset="0%" stopColor="#e63946" />
-                      <stop offset="100%" stopColor="#ff6b9d" />
-                    </linearGradient>
-                  </defs>
-                </svg>
-              </div>
-              <div className="funding-amount">₹110Cr+</div>
-              <div className="funding-label">Total Funding</div>
-            </div>
-          </div>
-
-          {/* Text Carousel Section */}
-          <div className="auth-carousel">
-            <div className="carousel-content">
-              <div className="carousel-slide active">
-                <h3 className="carousel-title">Easy to Use Dashboard</h3>
-                <p className="carousel-description">
-                  Access your personalized dashboard with real-time analytics, course progress, and
-                  mentorship tracking all in one place.
-                </p>
-              </div>
-              <div className="carousel-slide">
-                <h3 className="carousel-title">Learn from Industry Experts</h3>
-                <p className="carousel-description">
-                  Get access to premium courses, workshops, and masterclasses taught by successful
-                  entrepreneurs and industry leaders.
-                </p>
-              </div>
-              <div className="carousel-slide">
-                <h3 className="carousel-title">Secure Funding Opportunities</h3>
-                <p className="carousel-description">
-                  Connect with investors, apply for grants, and access funding programs worth ₹50L+
-                  to scale your startup.
-                </p>
-              </div>
-              <div className="carousel-slide">
-                <h3 className="carousel-title">Network & Collaborate</h3>
-                <p className="carousel-description">
-                  Join a vibrant community of 5,000+ entrepreneurs, find co-founders, and build
-                  valuable partnerships.
-                </p>
-              </div>
-            </div>
-            <div className="carousel-indicators">
-              <span className="indicator active"></span>
-              <span className="indicator"></span>
-              <span className="indicator"></span>
-              <span className="indicator"></span>
-            </div>
-          </div>
-        </div>
-
-        {/* Right Side - Login Form */}
-        <div className="signup-form-container">
-          <div className="form-card">
-            {success ? (
-              <div className="success-message">
-                <div className="success-icon">🎉</div>
-                <h2 className="success-title">Welcome Aboard!</h2>
-                <p className="success-subtitle">
-                  You've successfully signed in. Redirecting to your dashboard...
-                </p>
-                <div className="success-loader">
-                  <div className="loader-bar"></div>
-                </div>
-              </div>
-            ) : (
-              <>
-                <div className="form-header">
-                  <div className="header-badge">
-                    <span>Startup India Incubation</span>
+          <div className="dashboard-grid">
+            {dashboardCards.map((card, index) => (
+              <motion.div 
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.4 + index * 0.1 }}
+                className="dashboard-card"
+              >
+                <div className="card-icon-box">{card.icon}</div>
+                <div className="card-label">{card.label}</div>
+                
+                {card.isChart ? (
+                  <div className="chart-container">
+                    <div className="chart-bar" style={{ height: '30%' }}></div>
+                    <div className="chart-bar" style={{ height: '50%' }}></div>
+                    <div className="chart-bar" style={{ height: '40%' }}></div>
+                    <div className="chart-bar" style={{ height: '70%' }}></div>
+                    <div className="chart-bar" style={{ height: '90%' }}></div>
                   </div>
-                  <h2 className="form-title">Welcome Back</h2>
-                  <p className="form-subtitle">
-                    Sign in to continue your entrepreneurial journey and access your personalized
-                    dashboard with exclusive resources, mentorship sessions, and funding
-                    opportunities.
+                ) : card.isProgress ? (
+                  <div className="success-ring-container">
+                    <svg width="60" height="60" viewBox="0 0 60 60">
+                      <circle cx="30" cy="30" r="26" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="4" />
+                      <circle cx="30" cy="30" r="26" fill="none" stroke="#10b981" strokeWidth="4" 
+                        strokeDasharray="163.36" strokeDashoffset="8.16" strokeLinecap="round" transform="rotate(-90 30 30)" />
+                    </svg>
+                    <span className="success-ring-text">95%</span>
+                  </div>
+                ) : (
+                  <>
+                    <div className="card-value">{card.value}</div>
+                    <div className={`card-trend ${card.trendClass}`}>{card.trend}</div>
+                  </>
+                )}
+              </motion.div>
+            ))}
+          </div>
+
+          <motion.div 
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 1.1 }}
+            className="bottom-info-badge"
+          >
+            <div className="badge-icon-red">
+              <ShieldCheck size={24} />
+            </div>
+            <div className="badge-content">
+              <h4>Secure. Trusted. Reliable.</h4>
+              <p>Your data is protected with enterprise-grade security.</p>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+
+      {/* Right Panel - Auth */}
+      <div className="auth-panel">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5 }}
+          className="auth-card"
+        >
+          <AnimatePresence mode="wait">
+            {success ? (
+              <motion.div 
+                key="success"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="success-view"
+                style={{ textAlign: 'center', padding: '40px 0' }}
+              >
+                <div style={{ marginBottom: '24px', color: '#10b981' }}>
+                  <CheckCircle2 size={80} style={{ margin: '0 auto' }} />
+                </div>
+                <h2 className="auth-title">Welcome <span>Back</span></h2>
+                <p className="auth-subtitle">Redirecting to your dashboard...</p>
+              </motion.div>
+            ) : (
+              <motion.div key="form">
+                <div className="auth-header">
+                  <div className="startup-badge">
+                    Startup India Incubation
+                  </div>
+                  <h2 className="auth-title">Welcome <span>Back</span></h2>
+                  <p className="auth-subtitle">
+                    Sign in to continue your entrepreneurial journey and access your personalized dashboard.
                   </p>
                 </div>
 
                 {error && (
-                  <div className="alert alert-error">
-                    <svg
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                    >
-                      <circle cx="12" cy="12" r="10" />
-                      <line x1="12" y1="8" x2="12" y2="12" />
-                      <line x1="12" y1="16" x2="12.01" y2="16" />
-                    </svg>
+                  <motion.div 
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    style={{ 
+                      padding: '12px', 
+                      background: '#fef2f2', 
+                      border: '1px solid #fee2e2', 
+                      borderRadius: '10px', 
+                      color: '#ef4444', 
+                      fontSize: '13px',
+                      marginBottom: '20px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px'
+                    }}
+                  >
+                    <ShieldCheck size={16} />
                     {error}
-                  </div>
+                  </motion.div>
                 )}
 
-                <form onSubmit={handleSubmit} className="signup-form">
+                <form onSubmit={handleSubmit}>
                   <div className="form-group">
-                    <label htmlFor="email" className="form-label">
-                      Email Address
-                    </label>
-                    <input
-                      id="email"
-                      type="email"
-                      className="form-input"
-                      value={email}
-                      onChange={e => setEmail(e.target.value)}
-                      placeholder="you@example.com"
-                      required
-                      disabled={isLoading}
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <div
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        marginBottom: '6px',
-                      }}
-                    >
-                      <label htmlFor="password" className="form-label" style={{ marginBottom: 0 }}>
-                        Password
-                      </label>
-                      <Link
-                        href="/forgot-password"
-                        className="footer-link"
-                        style={{ fontSize: '12px' }}
-                      >
-                        Forgot?
-                      </Link>
+                    <label className="form-label">Email Address</label>
+                    <div className="input-wrapper">
+                      <Mail className="input-icon-left" size={18} />
+                      <input 
+                        type="email" 
+                        className={`auth-input ${email && 'success'}`}
+                        placeholder="you@example.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                      />
                     </div>
-                    <input
-                      id="password"
-                      type="password"
-                      className="form-input"
-                      value={password}
-                      onChange={e => setPassword(e.target.value)}
-                      placeholder="Enter your password"
-                      required
-                      disabled={isLoading}
-                    />
                   </div>
 
-                  <button type="submit" className="signup-btn" disabled={isLoading}>
-                    {isLoading ? (
-                      <>
-                        <svg
-                          className="spinner"
-                          width="20"
-                          height="20"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <circle cx="12" cy="12" r="10" />
-                        </svg>
-                        Signing in...
-                      </>
-                    ) : (
-                      <>
-                        Sign In
-                        <svg
-                          width="20"
-                          height="20"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <path d="M5 12h14M12 5l7 7-7 7" />
-                        </svg>
-                      </>
-                    )}
+                  <div className="form-group">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <label className="form-label" style={{ marginBottom: 0 }}>Password</label>
+                      <Link href="/forgot-password" size={12} className="forgot-link">Forgot Password?</Link>
+                    </div>
+                    <div className="input-wrapper">
+                      <Lock className="input-icon-left" size={18} />
+                      <input 
+                        type={showPassword ? "text" : "password"} 
+                        className="auth-input"
+                        placeholder="Enter your password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                      />
+                      <button 
+                        type="button" 
+                        className="password-toggle-btn"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <button 
+                    type="submit" 
+                    className="btn-primary"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? "Signing In..." : "Sign In"}
+                    {!isLoading && <ArrowRight size={18} />}
                   </button>
                 </form>
 
-                <div className="form-divider">
-                  <span>or continue with</span>
+                <div className="divider-container">
+                  <div className="divider-line"></div>
+                  <span className="divider-text">or continue with</span>
+                  <div className="divider-line"></div>
                 </div>
 
-                <div className="social-buttons social-buttons-single">
-                  <div
-                    ref={googleBtnRef}
-                    style={{ display: 'flex', justifyContent: 'center' }}
-                  ></div>
-                </div>
+                <div ref={googleBtnRef} className="google-container"></div>
 
-                <div className="form-footer">
-                  <p className="footer-text">
-                    Don't have an account?{' '}
-                    <Link href="/signup" className="footer-link">
-                      Sign up
-                    </Link>
-                  </p>
+                <div className="signup-footer">
+                  <p>Don't have an account? <Link href="/signup" className="signup-action">Sign up</Link></p>
                 </div>
-              </>
+              </motion.div>
             )}
+          </AnimatePresence>
+        </motion.div>
+
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.5 }}
+          className="bottom-features"
+        >
+          <div className="feature-box">
+            <div className="feature-icon-red"><ShieldCheck size={20} /></div>
+            <div className="feature-txt">
+              <h6>Data Security</h6>
+              <p>Enterprise-grade protection</p>
+            </div>
           </div>
-        </div>
+          <div className="feature-box">
+            <div className="feature-icon-red"><Users size={20} /></div>
+            <div className="feature-txt">
+              <h6>Expert Mentors</h6>
+              <p>Connect with industry leaders</p>
+            </div>
+          </div>
+          <div className="feature-box">
+            <div className="feature-icon-red"><Zap size={20} /></div>
+            <div className="feature-txt">
+              <h6>Growth Focused</h6>
+              <p>Resources to scale faster</p>
+            </div>
+          </div>
+        </motion.div>
       </div>
     </div>
   );

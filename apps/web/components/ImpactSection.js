@@ -270,7 +270,7 @@ const MetricCard = ({ metric }) => {
           </div>
 
           {/* Label - 16px, weight 600 */}
-          <h3 className="text-white opacity-90 font-semibold text-base mt-1 tracking-wide">
+          <h3 className="!text-white opacity-90 font-semibold text-base mt-1 tracking-wide">
             {metric.label}
           </h3>
 
@@ -323,7 +323,7 @@ export default function ImpactSection() {
         className="iec-container relative z-10 w-full flex flex-col items-center"
       >
         {/* HEADER */}
-        <div className="text-center mb-24 relative w-full flex flex-col items-center">
+        <div className="text-center mb-16 md:mb-24 relative w-full flex flex-col items-center">
           <motion.div variants={headerVariants}>
             <span className="inline-block text-[11px] font-bold text-[#E53935] uppercase tracking-wider border border-[#E53935]/40 rounded-full px-4 py-1.5 bg-[#E53935]/[0.06] mb-6 z-10 relative">
               Our Impact
@@ -355,7 +355,7 @@ export default function ImpactSection() {
         </div>
 
         {/* GRID */}
-        <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-7 stats-grid">
+        <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-7 stats-grid">
           {impactMetrics.map(metric => (
             <MetricCard key={metric.id} metric={metric} />
           ))}
