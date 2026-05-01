@@ -254,45 +254,107 @@ export default function ExplorePage() {
         @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
         @keyframes pulseGlow { 0%,100% { box-shadow: 0 0 0 0 rgba(59,130,246,0.3); } 50% { box-shadow: 0 0 0 8px rgba(59,130,246,0); } }
         @keyframes float { 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-6px); } }
-        .ex-card { animation: fadeInUp .45s ease-out both; transition: all .35s cubic-bezier(.4,0,.2,1); }
+        .ex-card { animation: fadeInUp .45s ease-out both; transition: all .35s cubic-bezier(.4,0,.2,1); border-radius: 12px !important; }
         .ex-card:hover { transform: translateY(-10px) scale(1.015); box-shadow: 0 30px 60px -15px rgba(0,0,0,.18); }
         .ex-card:hover .ex-thumb-img { transform: scale(1.08); }
-        .cat-pill { transition: all .25s; cursor: pointer; }
+        .cat-pill { transition: all .25s; cursor: pointer; border-radius: 8px !important; }
         .cat-pill:hover { background: #f3f4f6 !important; transform: scale(1.04); }
-        .action-btn { transition: all .2s cubic-bezier(.4,0,.2,1); }
+        .action-btn { transition: all .2s cubic-bezier(.4,0,.2,1); border-radius: 10px !important; }
         .action-btn:hover { filter: brightness(1.08); transform: scale(1.025); }
         .heart-btn { transition: all .2s; }
         .heart-btn:hover { transform: scale(1.25); }
         .search-box:focus-within { border-color: #3b82f6 !important; box-shadow: 0 0 0 4px rgba(59,130,246,0.12) !important; }
+        .search-box { border-radius: 12px !important; }
         .sort-select:focus { border-color: #3b82f6 !important; outline: none; box-shadow: 0 0 0 4px rgba(59,130,246,0.12); }
+        .sort-select { border-radius: 10px !important; }
         .view-btn { transition: all .15s; }
         .view-btn:hover { background: #e5e7eb !important; }
         .stat-card { transition: all .3s; }
         .stat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px -5px rgba(0,0,0,0.1); }
         .ex-thumb-img { transition: transform .6s cubic-bezier(.4,0,.2,1); }
         .price-badge { animation: pulseGlow 2s infinite; }
-        @media (max-width: 768px) {
-          .stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
-          .toolbar-row { 
-            flex-direction: column !important; 
-            align-items: stretch !important;
-            gap: 0.75rem !important;
+          .ex-list-card { transition: all 0.3s ease; border-radius: 12px !important; }
+          .ex-list-card:hover { transform: translateY(-5px); box-shadow: 0 20px 40px -10px rgba(0,0,0,0.12); border-color: #3b82f6 !important; }
+          @media (max-width: 768px) {
+            .ex-list-card { 
+              display: grid !important; 
+              grid-template-columns: 110px 1fr 40px !important; 
+              height: 120px !important; 
+              align-items: stretch !important; 
+              overflow: hidden !important; 
+            }
+            .ex-list-thumb { width: 110px !important; height: 120px !important; flex-shrink: 0 !important; }
+            .ex-list-thumb span { font-size: 0.55rem !important; padding: 0.15rem 0.35rem !important; top: 4px !important; left: 4px !important; z-index: 10; }
+            .ex-list-content { 
+              padding: 0 0.85rem !important; 
+              display: flex !important; 
+              flex-direction: column !important; 
+              justify-content: center !important; 
+              align-items: flex-start !important;
+              min-width: 0 !important; 
+              overflow: hidden !important;
+              text-align: left !important;
+            }
+            .ex-list-content h3 { font-size: 0.8rem !important; margin: 0 0 2px 0 !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; width: 100% !important; text-align: left !important; }
+            .ex-list-content p { display: none !important; }
+            .ex-list-meta { 
+              gap: 4px !important; 
+              margin-top: 2px !important; 
+              display: flex !important; 
+              align-items: center !important; 
+              justify-content: flex-start !important;
+              overflow: hidden !important;
+              white-space: nowrap !important;
+              width: 100% !important;
+            }
+            .ex-list-meta span { font-size: 0.5rem !important; padding: 1px 4px !important; flex-shrink: 0 !important; max-width: 70px; overflow: hidden; text-overflow: ellipsis; }
+            .ex-list-meta svg { width: 9px !important; height: 9px !important; flex-shrink: 0 !important; }
+            .ex-list-actions { 
+              display: flex !important; 
+              width: 100% !important;
+              padding: 0 6px 0 0 !important; 
+              border: none !important; 
+              background: transparent !important;
+              flex-direction: row !important;
+              align-items: center !important;
+              justify-content: center !important;
+              position: static !important;
+            }
+            .ex-list-actions .action-btn { width: 30px !important; height: 30px !important; padding: 0 !important; border-radius: 6px !important; flex-shrink: 0 !important; }
+            .ex-list-actions .action-btn:nth-child(2) { display: none !important; }
+            .heart-btn { top: 4px !important; right: 4px !important; }
+            .heart-btn svg { width: 14px !important; height: 14px !important; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
+            .toolbar-row { 
+              flex-direction: column !important; 
+              align-items: stretch !important;
+              gap: 0.75rem !important;
+            }
+            .search-box { 
+              min-width: 100% !important; 
+              flex: none !important;
+            }
+            .search-box input {
+              padding: 0.7rem 1rem 0.7rem 2.5rem !important;
+              font-size: 0.875rem !important;
+            }
+            .sort-select {
+              padding: 0.7rem 1rem !important;
+              font-size: 0.875rem !important;
+              min-width: 0 !important;
+              flex: 1;
+            }
+            .toolbar-actions {
+              display: flex !important;
+              width: 100%;
+              gap: 0.75rem !important;
+              align-items: center;
+            }
+            .view-toggle-container {
+              flex-shrink: 0;
+            }
+            .explore-grid-view { grid-template-columns: 1fr !important; }
           }
-          .search-box { 
-            min-width: 100% !important; 
-            flex: none !important;
-          }
-          .search-box input {
-            padding: 0.7rem 1rem 0.7rem 2.5rem !important;
-            font-size: 0.875rem !important;
-          }
-          .sort-select {
-            padding: 0.7rem 1rem !important;
-            font-size: 0.875rem !important;
-            min-width: 100% !important;
-          }
-          .explore-grid-view { grid-template-columns: 1fr !important; }
-        }
         @media (max-width: 480px) {
           .stats-grid { grid-template-columns: 1fr !important; }
           .explore-grid-view { padding: 0 !important; }
@@ -340,9 +402,16 @@ export default function ExplorePage() {
             }}
           >
             <svg
-              style={{ marginLeft: '1rem', color: '#9ca3af', flexShrink: 0 }}
-              width="20"
-              height="20"
+              style={{
+                position: 'absolute',
+                left: '14px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                color: '#9ca3af',
+                pointerEvents: 'none',
+              }}
+              width="18"
+              height="18"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -361,7 +430,7 @@ export default function ExplorePage() {
               onChange={e => setSearch(e.target.value)}
               style={{
                 width: '100%',
-                padding: '0.875rem 1rem 0.875rem 2.85rem',
+                padding: '0.875rem 1rem 0.875rem 2.75rem',
                 background: 'transparent',
                 border: 'none',
                 fontSize: '0.95rem',
@@ -394,91 +463,102 @@ export default function ExplorePage() {
             )}
           </div>
 
-          {/* Sort */}
-          <select
-            className="sort-select"
-            value={sortBy}
-            onChange={e => setSortBy(e.target.value)}
-            style={{
-              padding: '0.875rem 1rem',
-              border: '2px solid #e5e7eb',
-              borderRadius: '12px',
-              fontSize: '0.9rem',
-              fontWeight: 600,
-              background: '#fff',
-              color: '#374151',
-              cursor: 'pointer',
-              minWidth: '170px',
-            }}
-          >
-            {SORT_OPTIONS.map(o => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </select>
+          <div className="toolbar-actions" style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+            {/* Sort */}
+            <select
+              className="sort-select"
+              value={sortBy}
+              onChange={e => setSortBy(e.target.value)}
+              style={{
+                padding: '0.875rem 1rem',
+                border: '2px solid #e5e7eb',
+                borderRadius: '12px',
+                fontSize: '0.9rem',
+                fontWeight: 600,
+                background: '#fff',
+                color: '#374151',
+                cursor: 'pointer',
+                minWidth: '170px',
+              }}
+            >
+              {SORT_OPTIONS.map(o => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
 
-          {/* View Toggle */}
-          <div
-            style={{ display: 'flex', background: 'var(--dashboard-bg)', borderRadius: '12px', padding: '4px' }}
-          >
-            <button
-              className="view-btn"
-              onClick={() => setViewMode('grid')}
+            {/* View Toggle */}
+            <div
+              className="view-toggle-container"
               style={{
-                padding: '0.6rem 0.75rem',
-                borderRadius: '8px',
-                border: 'none',
-                background: viewMode === 'grid' ? '#fff' : 'transparent',
-                color: viewMode === 'grid' ? '#111827' : '#9ca3af',
-                cursor: 'pointer',
-                boxShadow: viewMode === 'grid' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
                 display: 'flex',
-                alignItems: 'center',
+                background: 'var(--dashboard-bg)',
+                borderRadius: '12px',
+                padding: '4px',
               }}
             >
-              <svg
-                width="18"
-                height="18"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
+              <button
+                className="view-btn"
+                onClick={() => setViewMode('grid')}
+                style={{
+                  padding: '0.6rem 0.75rem',
+                  borderRadius: '8px',
+                  border: 'none',
+                  background: viewMode === 'grid' ? '#fff' : 'transparent',
+                  color: viewMode === 'grid' ? '#111827' : '#9ca3af',
+                  cursor: 'pointer',
+                  boxShadow: viewMode === 'grid' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                }}
               >
-                <rect x="3" y="3" width="7" height="7" rx="1" />
-                <rect x="14" y="3" width="7" height="7" rx="1" />
-                <rect x="3" y="14" width="7" height="7" rx="1" />
-                <rect x="14" y="14" width="7" height="7" rx="1" />
-              </svg>
-            </button>
-            <button
-              className="view-btn"
-              onClick={() => setViewMode('list')}
-              style={{
-                padding: '0.6rem 0.75rem',
-                borderRadius: '8px',
-                border: 'none',
-                background: viewMode === 'list' ? '#fff' : 'transparent',
-                color: viewMode === 'list' ? '#111827' : '#9ca3af',
-                cursor: 'pointer',
-                boxShadow: viewMode === 'list' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-                display: 'flex',
-                alignItems: 'center',
-              }}
-            >
-              <svg
-                width="18"
-                height="18"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
+                <svg
+                  width="18"
+                  height="18"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                >
+                  <rect x="3" y="3" width="7" height="7" rx="1" />
+                  <rect x="14" y="3" width="7" height="7" rx="1" />
+                  <rect x="3" y="14" width="7" height="7" rx="1" />
+                  <rect x="14" y="14" width="7" height="7" rx="1" />
+                </svg>
+              </button>
+              <button
+                className="view-btn"
+                onClick={() => setViewMode('list')}
+                style={{
+                  padding: '0.6rem 0.75rem',
+                  borderRadius: '8px',
+                  border: 'none',
+                  background: viewMode === 'list' ? '#fff' : 'transparent',
+                  color: viewMode === 'list' ? '#111827' : '#9ca3af',
+                  cursor: 'pointer',
+                  boxShadow: viewMode === 'list' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                }}
               >
-                <line x1="3" y1="6" x2="21" y2="6" />
-                <line x1="3" y1="12" x2="21" y2="12" />
-                <line x1="3" y1="18" x2="21" y2="18" />
-              </svg>
-            </button>
+                <svg
+                  width="18"
+                  height="18"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                >
+                  <line x1="8" y1="6" x2="21" y2="6" />
+                  <line x1="8" y1="12" x2="21" y2="12" />
+                  <line x1="8" y1="18" x2="21" y2="18" />
+                  <line x1="3" y1="6" x2="3.01" y2="6" />
+                  <line x1="3" y1="12" x2="3.01" y2="12" />
+                  <line x1="3" y1="18" x2="3.01" y2="18" />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -1168,7 +1248,7 @@ export default function ExplorePage() {
               return (
                 <div
                   key={course._id}
-                  className="ex-card"
+                  className="ex-list-card"
                   style={{
                     background: 'var(--dashboard-bg)',
                     borderRadius: '20px',
@@ -1181,6 +1261,7 @@ export default function ExplorePage() {
                 >
                   {/* Left Thumbnail */}
                   <div
+                    className="ex-list-thumb"
                     style={{
                       position: 'relative',
                       width: '220px',

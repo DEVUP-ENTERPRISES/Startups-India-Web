@@ -657,6 +657,12 @@ export default function DashboardPage() {
         .ticker-item { color:rgba(255,255,255,0.9); font-size:0.78rem; font-weight:500; font-family:'SF Mono','Fira Code',monospace; padding:10px 0; display:inline-flex; align-items:center; gap:6px; }
         .ticker-dot { color:#C5975B; font-size:0.5rem; margin:0 12px; }
 
+        .d4col { display: grid !important; grid-template-columns: repeat(4, 1fr) !important; gap: 20px !important; width: 100%; }
+        .d2col { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 20px !important; width: 100%; }
+        .metric-card { padding: 1.4rem !important; }
+        .metric-value { font-size: 2rem !important; }
+        .metric-label { font-size: 0.68rem !important; }
+
         .ai-glass { background:linear-gradient(135deg, #fff 0%, #fef7f0 50%, #fff5f5 100%); backdrop-filter:blur(24px); border:1px solid rgba(122,31,43,0.12); border-radius:20px; overflow:hidden; position:relative; box-shadow:0 8px 30px rgba(122,31,43,0.08); transition:all .35s; animation:borderGlow 4s ease-in-out infinite; padding:1.5rem 1.75rem; margin-bottom:24px; }
         .ai-glass:hover { box-shadow:0 14px 40px rgba(122,31,43,0.12); border-color:rgba(122,31,43,0.3); }
         .ai-scan { position:absolute; left:0; width:100%; height:50px; background:linear-gradient(to bottom,transparent,rgba(122,31,43,0.04),transparent); animation:scanline 5s linear infinite; pointer-events:none; z-index:5; }
@@ -670,9 +676,9 @@ export default function DashboardPage() {
         .action-card { transition:all .3s; }
         .action-card:hover { transform:translateY(-5px); box-shadow:0 14px 30px -8px rgba(0,0,0,0.12); }
 
-        @media (max-width:1060px) {
-          .d4col { grid-template-columns: repeat(2, 1fr) !important; }
-          .d2col { grid-template-columns: 1fr !important; }
+        @media (max-width:900px) {
+           .d4col { grid-template-columns: repeat(2, 1fr) !important; gap: 16px !important; }
+           .d2col { grid-template-columns: 1fr !important; }
         }
         @media (max-width:768px) {
           .d4col { grid-template-columns: repeat(2, 1fr) !important; gap: 12px !important; }
@@ -685,13 +691,20 @@ export default function DashboardPage() {
           .dashboard-main-container { padding: 0 0.75rem 2rem !important; }
         }
         @media (max-width:480px) {
-           .d4col { grid-template-columns: 1fr !important; }
+           .d4col { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
+           .course-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
            .banner-inner { padding: 0 !important; }
            .ai-glass { padding: 1rem !important; }
            .ticker-wrap { display: none; }
            .banner-right > div { min-width: 100%; border-right: none !important; border-bottom: 1px solid rgba(255,255,255,0.1) !important; }
            .banner-right > div:last-child { border-bottom: none !important; }
            .dashboard-main-container { padding: 0 0.5rem 2rem !important; }
+           h1 { font-size: 1.6rem !important; text-align: center; }
+           .action-card { padding: 0.75rem 0.5rem !important; }
+           .action-card p { font-size: 0.7rem !important; }
+           .metric-card { padding: 0.75rem !important; }
+           .metric-value { font-size: 1.5rem !important; }
+           .metric-label { font-size: 0.6rem !important; }
         }
         /* Huge PC / Ultra-wide support */
         @media (min-width: 1800px) {
@@ -956,8 +969,6 @@ export default function DashboardPage() {
         className="d4col da"
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(4, 1fr)',
-          gap: 14,
           marginBottom: 24,
         }}
       >
@@ -993,8 +1004,8 @@ export default function DashboardPage() {
         ].map((s, i) => (
           <div
             key={s.label}
-            className={'da dcard da' + (i + 3)}
-            style={{ padding: '1.4rem', borderLeft: '4px solid ' + s.color }}
+            className={'da dcard metric-card da' + (i + 3)}
+            style={{ borderLeft: '4px solid ' + s.color }}
           >
             <div
               style={{
@@ -1022,6 +1033,7 @@ export default function DashboardPage() {
               </div>
             </div>
             <p
+              className="metric-value"
               style={{
                 fontSize: '2rem',
                 fontWeight: 900,
@@ -1033,6 +1045,7 @@ export default function DashboardPage() {
               {s.value}
             </p>
             <p
+              className="metric-label"
               style={{
                 fontSize: '0.68rem',
                 fontWeight: 800,
@@ -1049,7 +1062,7 @@ export default function DashboardPage() {
       </div>
 
       {/* ═══════ COURSE EXPLORER TOGGLES ═══════ */}
-      <div className="da da6" style={{ marginBottom: 24 }}>
+      <div className="da da6 hide-mobile" style={{ marginBottom: 24 }}>
         <div
           style={{
             display: 'flex',
@@ -1111,6 +1124,7 @@ export default function DashboardPage() {
         </div>
 
         <div
+          className="course-grid"
           style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
@@ -1240,7 +1254,7 @@ export default function DashboardPage() {
 
       {/* ═══════ PITCH READINESS + MILESTONE UNLOCKS ═══════ */}
       <div
-        className="d2col da"
+        className="d2col da hide-mobile"
         style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 24 }}
       >
         {/* Pitch Readiness */}
@@ -1384,7 +1398,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Founder Profile Summary */}
-        <div className="da da5 dcard" style={{ padding: '1.75rem' }}>
+        <div className="da da5 dcard hide-mobile" style={{ padding: '1.75rem' }}>
           <div
             style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}
           >
@@ -1467,7 +1481,7 @@ export default function DashboardPage() {
 
         {/* Milestone Unlocks */}
         <div
-          className="da da5 dcard"
+          className="da da5 dcard hide-mobile"
           style={{ padding: '1.75rem', background: 'linear-gradient(180deg, #fff, #faf9f7)' }}
         >
           <div
@@ -1586,7 +1600,7 @@ export default function DashboardPage() {
 
       {/* ═══════ MY COURSES + RECENT ACTIVITY ═══════ */}
       <div
-        className="d2col da"
+        className="d2col da hide-mobile"
         style={{ display: 'grid', gridTemplateColumns: '1.15fr 0.85fr', gap: 16, marginBottom: 24 }}
       >
         {/* My Courses */}
@@ -1887,7 +1901,7 @@ export default function DashboardPage() {
         </h2>
         <div
           className="d4col"
-          style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}
+          style={{ display: 'grid' }}
         >
           {[
             {

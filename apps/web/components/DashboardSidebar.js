@@ -596,7 +596,10 @@ export default function DashboardSidebar({
                           onClose();
                         }}
                       >
-                        <span className="nav-item-label">{item.label}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          {item.icon && renderIcon(item.icon, 16)}
+                          <span className="nav-item-label">{item.label}</span>
+                        </div>
                         {item.badge}
                       </Link>
                     )

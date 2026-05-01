@@ -149,7 +149,7 @@ function ProfileTab({ toast }) {
   const { refresh } = useDashboard();
   const empty = {
     fullName: '', headline: '', missionStatement: '', bio: '', avatarUrl: '',
-    location: '', phone: '', timezone: 'IST (UTC+5:30)',
+    city: '', state: '', phone: '',
     socialLinks: [],
   };
   const [form, setForm] = useState(empty);
@@ -185,9 +185,9 @@ function ProfileTab({ toast }) {
           missionStatement: d.missionStatement || '',
           bio: d.bio || '',
           avatarUrl: d.avatarUrl || '',
-          location: d.location || '',
+          city: d.city || d.location || '',
+          state: d.state || '',
           phone: d.phone || '',
-          timezone: d.timezone || 'IST (UTC+5:30)',
           socialLinks: parsedLinks,
         };
         setForm(JSON.parse(JSON.stringify(formatted)));
@@ -202,6 +202,13 @@ function ProfileTab({ toast }) {
     setForm(f => {
       const newLinks = [...f.socialLinks];
       newLinks[index] = { ...newLinks[index], [key]: val };
+      
+      // Validation check for URL
+      if (key === 'url') {
+        const isValid = val.trim() === '' || val.startsWith('http://') || val.startsWith('https://');
+        newLinks[index].error = isValid ? '' : 'URL must start with http:// or https://';
+      }
+      
       return { ...f, socialLinks: newLinks };
     });
   };
@@ -224,11 +231,36 @@ function ProfileTab({ toast }) {
   const dirty = JSON.stringify(form) !== JSON.stringify(initial);
 
   const handleSave = async () => {
+    // Validation check for social links
+    const invalidLinks = form.socialLinks.filter(link => 
+      link.url && !link.url.startsWith('http://') && !link.url.startsWith('https://')
+    );
+    
+    if (invalidLinks.length > 0) {
+      toast('Please fix the invalid social links (must start with http:// or https://)', 'error');
+      return;
+    }
+
+    // Phone number validation (exactly 10 digits)
+    const phoneDigits = form.phone.replace(/\D/g, '');
+    if (phoneDigits.length !== 10) {
+      toast('Phone number must be exactly 10 digits', 'error');
+      return;
+    }
+
     setSaving(true);
-    const { error } = await apiPatch('/api/v1/settings/profile', form);
+    // Use cleaned phone number and filter out empty social links
+    const finalForm = { 
+      ...form, 
+      phone: phoneDigits,
+      socialLinks: form.socialLinks.filter(link => link.name.trim() !== '' && link.url.trim() !== '')
+    };
+    
+    const { error } = await apiPatch('/api/v1/settings/profile', finalForm);
     setSaving(false);
     if (!error) {
-      setInitial(JSON.parse(JSON.stringify(form)));
+      setInitial(JSON.parse(JSON.stringify(finalForm)));
+      setForm(finalForm);
       if (refresh) await refresh();
       toast('Profile updated successfully', 'success');
     } else {
@@ -268,7 +300,7 @@ function ProfileTab({ toast }) {
           <div className="stg-avatar-meta">
             <p className="stg-avatar-name">{form.fullName || 'Your Name'}</p>
             <p className="stg-avatar-tagline">{form.headline || 'Add a headline below'}</p>
-            <p className="stg-avatar-note">{form.bio || 'Tell the founder community about yourself…'}</p>
+            <p className="stg-avatar-note">{form.city && form.state ? `${form.city}, ${form.state}` : form.city || form.state || 'Add your location below…'}</p>
           </div>
         </div>
 
@@ -340,96 +372,89 @@ function ProfileTab({ toast }) {
         </div>
       )}
 
-      {/* ── Contact details ── */}
-      <Card title="Contact &amp; Location">
+  {/* ── Contact details ── */}
+      <Card title="Contact &amp; Details">
         <div className="stg-grid-3">
-          <FieldGroup label="Location">
+          <FieldGroup label="City">
             <div className="stg-input-icon">
               <Icon name="mapPin" size={15} />
               <input
                 className="stg-input"
-                value={form.location}
-                onChange={e => field('location', e.target.value)}
-                placeholder="City, Country"
+                value={form.city}
+                onChange={e => field('city', e.target.value)}
+                placeholder="e.g. Mumbai"
               />
             </div>
           </FieldGroup>
-          <FieldGroup label="Timezone">
+          <FieldGroup label="State">
             <div className="stg-input-icon">
-              <Icon name="clock" size={15} />
-              <select
+              <Icon name="mapPin" size={15} />
+              <input
                 className="stg-input"
-                value={form.timezone}
-                onChange={e => field('timezone', e.target.value)}
-              >
-                <option>IST (UTC+5:30)</option>
-                <option>EST (UTC-5:00)</option>
-                <option>CST (UTC-6:00)</option>
-                <option>PST (UTC-8:00)</option>
-                <option>GMT (UTC+0:00)</option>
-                <option>CET (UTC+1:00)</option>
-                <option>JST (UTC+9:00)</option>
-                <option>AEST (UTC+10:00)</option>
-              </select>
+                value={form.state}
+                onChange={e => field('state', e.target.value)}
+                placeholder="e.g. Maharashtra"
+              />
             </div>
           </FieldGroup>
-          <FieldGroup label="Phone">
+          <FieldGroup label="Phone Number" hint="Must be exactly 10 digits">
             <div className="stg-input-icon">
               <Icon name="phone" size={15} />
               <input
                 className="stg-input"
                 value={form.phone}
-                onChange={e => field('phone', e.target.value)}
-                placeholder="+91 98765 43210"
+                onChange={e => {
+                  const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                  field('phone', val);
+                }}
+                placeholder="9876543210"
               />
             </div>
           </FieldGroup>
         </div>
       </Card>
 
-      <Card title="Social Links">
-        <div className="stg-social-list">
+      <Card title="Social Links" subtitle="Strictly 2 links per row. URLs must be valid and start with http:// or https://">
+        <div className="stg-social-grid">
           {form.socialLinks.map((link, idx) => (
-            <div key={idx} className="stg-social-item">
-              <div className="stg-social-fields">
-                <div className="stg-social-field">
-                  <label className="stg-radio-label">Link Name</label>
-                  <input
-                    className="stg-input"
-                    value={link.name}
-                    onChange={e => updateSocialLink(idx, 'name', e.target.value)}
-                    placeholder="e.g. LinkedIn"
-                  />
+            <div key={idx} className="stg-social-card">
+              <div className="stg-social-card-header">
+                <div className="stg-social-icon-box">
+                  <Icon name={link.name.toLowerCase().includes('linkedin') ? 'linkedin' : link.name.toLowerCase().includes('twitter') ? 'twitter' : 'link'} size={14} />
                 </div>
-                <div className="stg-social-field-url">
-                  <label className="stg-radio-label">URL</label>
-                  <div className="stg-input-icon">
-                    <Icon name="link" size={15} />
-                    <input
-                      className="stg-input"
-                      type="url"
-                      value={link.url}
-                      onChange={e => updateSocialLink(idx, 'url', e.target.value)}
-                      placeholder="https://"
-                    />
-                  </div>
-                </div>
+                <input
+                  className="stg-social-name-input"
+                  value={link.name}
+                  onChange={e => updateSocialLink(idx, 'name', e.target.value)}
+                  placeholder="Link Name (e.g. LinkedIn)"
+                />
+                <button 
+                  className="stg-social-card-remove"
+                  onClick={() => removeSocialLink(idx)}
+                >
+                  <Icon name="x" size={14} />
+                </button>
               </div>
-              <button 
-                className="stg-social-remove"
-                onClick={() => removeSocialLink(idx)}
-                title="Remove link"
-              >
-                <Icon name="x" size={18} />
-              </button>
+              <div className="stg-social-url-wrap">
+                <input
+                  className={`stg-input stg-social-url-input ${link.error ? 'stg-input-error' : ''}`}
+                  type="url"
+                  value={link.url}
+                  onChange={e => updateSocialLink(idx, 'url', e.target.value)}
+                  placeholder="https://..."
+                />
+                {link.error && <p className="stg-social-error-text">{link.error}</p>}
+              </div>
             </div>
           ))}
           <button 
-            className="stg-btn stg-btn-ghost" 
-            onClick={addSocialLink} 
-            style={{ alignSelf: 'flex-start', marginTop: '8px' }}
+            className="stg-social-add-card" 
+            onClick={addSocialLink}
           >
-            <Icon name="plus" size={16} /> Add Custom Link
+            <div className="stg-social-add-icon">
+              <Icon name="plus" size={20} />
+            </div>
+            <span>Add New Link</span>
           </button>
         </div>
       </Card>
@@ -1254,13 +1279,127 @@ function SettingsContent() {
         .stg-links-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 
         /* ── Password strength ── */
-        .stg-social-list { display: flex; flexDirection: column; gap: 16px; }
-        .stg-social-item { display: flex; gap: 12px; align-items: flex-start; background: #f8fafc; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0; position: relative; }
-        .stg-social-fields { display: flex; gap: 12px; flex: 1; }
-        .stg-social-field { flex: 1; }
-        .stg-social-field-url { flex: 2; }
-        .stg-social-remove { background: none; border: none; color: #ef4444; cursor: pointer; margin-top: 24px; padding: 8px; opacity: 0.7; transition: 0.2s; display: flex; align-items: center; justify-content: center; border-radius: 8px; }
-        .stg-social-remove:hover { opacity: 1; background: #fee2e2; }
+        /* ── Social Links Grid (Strictly 2 per row) ── */
+        .stg-social-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 16px;
+          width: 100%;
+        }
+        .stg-social-card {
+          background: #fafafa;
+          border: 1.5px solid #f1f5f9;
+          border-radius: 16px;
+          padding: 16px;
+          transition: all 0.2s;
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+        .stg-social-card:hover {
+          border-color: #cbd5e1;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+        }
+        .stg-social-card-header {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+        .stg-social-icon-box {
+          width: 32px;
+          height: 32px;
+          background: #fff;
+          border: 1px solid #e2e8f0;
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #64748b;
+        }
+        .stg-social-name-input {
+          flex: 1;
+          background: transparent;
+          border: none;
+          font-size: 0.85rem;
+          font-weight: 700;
+          color: #0f172a;
+          outline: none;
+          padding: 4px 0;
+        }
+        .stg-social-name-input::placeholder { color: #94a3b8; font-weight: 500; }
+        .stg-social-card-remove {
+          background: none;
+          border: none;
+          color: #94a3b8;
+          cursor: pointer;
+          padding: 4px;
+          border-radius: 6px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s;
+        }
+        .stg-social-card-remove:hover {
+          background: #fee2e2;
+          color: #ef4444;
+        }
+        .stg-social-url-wrap {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+        .stg-social-url-input {
+          height: 40px !important;
+          font-size: 0.8rem !important;
+          background: #fff !important;
+        }
+        .stg-input-error {
+          border-color: #ef4444 !important;
+          background: #fff5f5 !important;
+        }
+        .stg-social-error-text {
+          font-size: 0.65rem;
+          color: #ef4444;
+          font-weight: 600;
+          margin: 0;
+        }
+        .stg-social-add-card {
+          border: 2px dashed #e2e8f0;
+          background: #fff;
+          border-radius: 16px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          cursor: pointer;
+          transition: all 0.2s;
+          padding: 24px;
+          color: #64748b;
+        }
+        .stg-social-add-card:hover {
+          border-color: #7A1F2B;
+          color: #7A1F2B;
+          background: #fdf2f2;
+        }
+        .stg-social-add-icon {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          background: #f1f5f9;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s;
+        }
+        .stg-social-add-card:hover .stg-social-add-icon {
+          background: #7A1F2B;
+          color: #fff;
+        }
+        .stg-social-add-card span {
+          font-size: 0.85rem;
+          font-weight: 700;
+        }
 
         .stg-pw-strength {
           display: flex;
@@ -1762,8 +1901,8 @@ function SettingsContent() {
           .stg-privacy-grid { grid-template-columns: 1fr; }
           .stg-danger-inner { flex-direction: column; gap: 1rem; }
           .stg-top-nav { top: 60px; border-radius: 14px; margin-bottom: 1rem; }
-          .stg-top-tab-item span { display: none; }
-          .stg-top-tab-item { padding: 10px; border-radius: 10px; }
+          .stg-top-tab-item { padding: 10px 14px; border-radius: 10px; display: flex; align-items: center; gap: 8px; }
+          .stg-top-tab-item span { display: block; font-size: 0.8rem; }
         }
 
         @media (max-width: 480px) {
@@ -1780,9 +1919,10 @@ function SettingsContent() {
           .stg-modal-content { padding: 20px; width: 95%; }
           .stg-avatar-grid { grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 12px; }
           .stg-avatar-option { width: 60px; height: 60px; }
-          .stg-top-nav-inner { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
-          .stg-top-tab-item { flex-direction: column; gap: 4px; padding: 8px 4px; font-size: 0.65rem; }
-          .stg-top-tab-item span { display: block; font-size: 0.6rem; text-align: center; }
+          .stg-top-nav-inner { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+          .stg-top-nav-inner::-webkit-scrollbar { display: none; }
+          .stg-top-tab-item { flex-direction: row; gap: 6px; padding: 8px 12px; font-size: 0.75rem; min-width: max-content; }
+          .stg-top-tab-item span { display: block; font-size: 0.75rem; text-align: left; }
           .stg-savebar { bottom: 12px; padding: 10px 16px; width: calc(100% - 32px); justify-content: space-between; gap: 12px; border-radius: 12px; }
           .stg-savebar-text { font-size: 0.75rem; }
           .stg-social-fields { flex-direction: column; gap: 8px; }

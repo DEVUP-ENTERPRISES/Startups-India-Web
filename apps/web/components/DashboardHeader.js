@@ -99,12 +99,10 @@ export default function DashboardHeader({ onOpenMobileMenu }) {
 
   return (
     <header className="dashboard-header">
+      {/* ── Left Side: Logo ── */}
       <div className="header-left">
-
-        <button className="mobile-menu-btn mobile-only" onClick={onOpenMobileMenu}>
-          <Icon name="layout" size={20} />
-        </button>
-        <div className="header-search" ref={searchRef}>
+        {/* Desktop Search (Hidden on Mobile) */}
+        <div className="header-search hide-mobile" ref={searchRef}>
           <form onSubmit={handleSearch}>
             <div className="search-input-wrapper">
               <Icon name="search" size={18} className="search-icon" />
@@ -119,7 +117,6 @@ export default function DashboardHeader({ onOpenMobileMenu }) {
             </div>
           </form>
 
-          {/* Search Results Dropdown */}
           {isDropdownOpen && results.length > 0 && (
             <div className="search-dropdown">
               <div className="dropdown-header">Top Results</div>
@@ -155,33 +152,41 @@ export default function DashboardHeader({ onOpenMobileMenu }) {
             </div>
           )}
         </div>
+
+        {/* Mobile Logo (Visible on Mobile) */}
+        <div className="mobile-header-logo-wrapper mobile-only">
+          <Link href="/dashboard" className="mobile-logo-link">
+            <img
+              src="/assets/images/logo.png"
+              alt="Startups India"
+              className="mobile-header-logo"
+            />
+          </Link>
+        </div>
       </div>
 
+      {/* ── Right Side: Actions ── */}
       <div className="header-actions">
-        {/* 1. Notification (Visual Left of the group) */}
-        <button className="header-action-btn" title="Notifications">
+        {/* Notifications (Desktop only) */}
+        <button className="header-action-btn hide-mobile" title="Notifications">
           <Icon name="bell" size={20} />
           <span className="notification-badge">3</span>
         </button>
 
-        {/* 2. Profile Box: Icon then Name (Name is rightmost) */}
+        {/* Mobile Menu Toggle */}
+        <button className="mobile-menu-btn mobile-only" onClick={onOpenMobileMenu} title="Open Menu">
+          <Icon name="list" size={24} />
+        </button>
+
+        {/* Profile Dropdown */}
         <div className="header-profile-container" ref={profileRef}>
           <div 
             className="header-profile-box" 
             onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
-            style={{ 
-              display: 'flex', 
-              flexDirection: 'row', 
-              alignItems: 'center', 
-              gap: '10px', 
-              cursor: 'pointer',
-              padding: '4px 8px 4px 12px',
-              borderRadius: '14px'
-            }}
           >
-            <div className="user-avatar" style={{ overflow: 'hidden' }}>
+            <div className="user-avatar">
               {user?.avatarUrl ? (
-                <img src={user.avatarUrl} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <img src={user.avatarUrl} alt="Avatar" />
               ) : (
                 initials
               )}
@@ -200,21 +205,29 @@ export default function DashboardHeader({ onOpenMobileMenu }) {
               </div>
               <div className="profile-dropdown-divider" />
               <div className="profile-dropdown-links">
-                <Link href="/dashboard/settings?tab=profile" className="profile-link" onClick={() => setIsProfileDropdownOpen(false)} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '12px' }}>
-                  <Icon name="user" size={18} />
-                  <span>My Profile</span>
+                <Link href="/dashboard/settings?tab=profile" className="header-profile-link" onClick={() => setIsProfileDropdownOpen(false)}>
+                  <div className="link-content">
+                    <Icon name="user" size={18} className="link-icon" />
+                    <span>My Profile</span>
+                  </div>
                 </Link>
-                <Link href="/dashboard/settings?tab=account" className="profile-link" onClick={() => setIsProfileDropdownOpen(false)} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '12px' }}>
-                  <Icon name="settings" size={18} />
-                  <span>Account Settings</span>
+                <Link href="/dashboard/settings?tab=account" className="header-profile-link" onClick={() => setIsProfileDropdownOpen(false)}>
+                  <div className="link-content">
+                    <Icon name="settings" size={18} className="link-icon" />
+                    <span>Account Settings</span>
+                  </div>
                 </Link>
-                <Link href="/dashboard/settings?tab=notifications" className="profile-link" onClick={() => setIsProfileDropdownOpen(false)} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '12px' }}>
-                  <Icon name="bell" size={18} />
-                  <span>Notifications</span>
+                <Link href="/dashboard/settings?tab=notifications" className="header-profile-link" onClick={() => setIsProfileDropdownOpen(false)}>
+                  <div className="link-content">
+                    <Icon name="bell" size={18} className="link-icon" />
+                    <span>Notifications</span>
+                  </div>
                 </Link>
-                <Link href="/dashboard/settings?tab=privacy" className="profile-link" onClick={() => setIsProfileDropdownOpen(false)} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '12px' }}>
-                  <Icon name="lock" size={18} />
-                  <span>Privacy & Security</span>
+                <Link href="/dashboard/settings?tab=privacy" className="header-profile-link" onClick={() => setIsProfileDropdownOpen(false)}>
+                  <div className="link-content">
+                    <Icon name="lock" size={18} className="link-icon" />
+                    <span>Privacy & Security</span>
+                  </div>
                 </Link>
               </div>
               <div className="profile-dropdown-divider" />
@@ -222,9 +235,11 @@ export default function DashboardHeader({ onOpenMobileMenu }) {
                 setIsProfileDropdownOpen(false); 
                 await signOut();
                 window.location.replace('/login');
-              }} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '12px' }}>
-                <Icon name="logout" size={18} />
-                <span>Log Out</span>
+              }}>
+                <div className="link-content">
+                  <Icon name="logout" size={18} />
+                  <span>Log Out</span>
+                </div>
               </button>
             </div>
           )}
@@ -232,102 +247,154 @@ export default function DashboardHeader({ onOpenMobileMenu }) {
       </div>
 
       <style jsx>{`
+        /* Desktop Defaults */
+        .dashboard-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 0 40px;
+          height: 80px;
+          background: rgba(255, 255, 255, 0.9);
+          backdrop-filter: blur(10px);
+          border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+          position: fixed;
+          top: 0;
+          left: 260px;
+          right: 0;
+          z-index: 1000;
+          transition: all 0.3s ease;
+        }
+
         .mobile-only { display: none !important; }
-        .mobile-header-logo { height: 22px; width: auto; object-fit: contain; }
-
-        .header-left { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
-        .mobile-menu-btn { background: none; border: none; color: #1e293b; cursor: pointer; padding: 8px; border-radius: 10px; }
-        .mobile-menu-btn:hover { background: #f1f5f9; }
-
-        .header-search { flex: 1; max-width: 600px; position: relative; transition: all 0.3s ease; }
-        .search-input-wrapper { position: relative; display: flex; align-items: center; z-index: 2; width: 100%; }
-        .search-input-wrapper :global(.search-icon) { position: absolute; left: 18px; color: #94a3b8; pointer-events: none; }
-        .search-input { width: 100%; height: 48px; padding: 0 20px 0 52px; border: 1.5px solid #f1f5f9; border-radius: 14px; background: #f8fafc; font-size: 0.95rem; color: #1e293b; outline: none; transition: 0.2s; }
-        .search-input:focus { background: #fff; border-color: #7A1F2B; box-shadow: 0 0 0 4px rgba(122, 31, 43, 0.08); }
-        .search-input::placeholder { color: #94a3b8; font-weight: 500; }
-
-        .search-dropdown { position: absolute; top: calc(100% + 8px); left: 0; right: 0; background: #fff; border-radius: 16px; border: 1px solid #f1f5f9; box-shadow: 0 20px 40px rgba(0,0,0,0.08); overflow: hidden; z-index: 100; animation: slideDown 0.2s ease-out; }
-        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .header-left { display: flex; align-items: center; gap: 24px; }
+        .header-actions { display: flex; align-items: center; gap: 16px; }
         
-        .dropdown-header { padding: 12px 16px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.05em; background: #fcfcfd; border-bottom: 1px solid #f8fafc; }
-        .dropdown-item { display: flex; align-items: center; gap: 12px; padding: 10px 16px; text-decoration: none; transition: 0.2s; border-bottom: 1px solid #f8fafc; }
-        .dropdown-item:hover { background: #f8fafc; }
-        .item-thumb { width: 40px; height: 40px; border-radius: 8px; overflow: hidden; flex-shrink: 0; background: #f1f5f9; display: flex; align-items: center; justify-content: center; }
-        .item-icon-box { color: #7A1F2B; display: flex; align-items: center; justify-content: center; }
-        .item-thumb img { width: 100%; height: 100%; object-fit: cover; }
-        .item-info { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-        .item-title { font-size: 0.85rem; font-weight: 700; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .item-meta { font-size: 0.7rem; font-weight: 600; color: #94a3b8; }
-        .item-arrow { color: #cbd5e1; transition: 0.2s; }
-        .dropdown-item:hover .item-arrow { color: #7A1F2B; transform: translateX(2px); }
-        .dropdown-footer { padding: 12px; text-align: center; font-size: 0.8rem; font-weight: 700; color: #7A1F2B; cursor: pointer; transition: 0.2s; }
-        .dropdown-footer:hover { background: #fef2f2; }
+        .header-search { width: 400px; position: relative; }
+        .search-input-wrapper { position: relative; display: flex; align-items: center; }
+        .search-input-wrapper :global(.search-icon) { position: absolute; left: 16px; color: #94a3b8; }
+        .search-input { width: 100%; height: 44px; padding: 0 16px 0 48px; border: 1.5px solid #f1f5f9; border-radius: 12px; background: #f8fafc; font-size: 0.9rem; outline: none; transition: 0.2s; }
+        .search-input:focus { background: #fff; border-color: #7A1F2B; box-shadow: 0 0 0 4px rgba(122, 31, 43, 0.05); }
 
-        /* HEADER ACTIONS - CRITICAL LAYOUT */
-        .header-actions { display: flex !important; flex-direction: row !important; align-items: center !important; gap: 16px !important; margin-left: auto !important; padding-right: 0 !important; }
-        .header-action-btn { width: 44px; height: 44px; border-radius: 12px; border: none; background: #f8fafc; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; position: relative; color: #64748b; flex-shrink: 0; }
-        .header-action-btn:hover { color: #7A1F2B; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        .notification-badge { position: absolute; top: -2px; right: -2px; background: #7A1F2B; color: white; font-size: 9px; font-weight: 900; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid #fff; }
+        .header-action-btn { width: 40px; height: 40px; border-radius: 10px; border: none; background: #f8fafc; display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; color: #64748b; transition: 0.2s; }
+        .header-action-btn:hover { background: #f1f5f9; color: #7A1F2B; }
+        .notification-badge { position: absolute; top: -2px; right: -2px; background: #7A1F2B; color: white; font-size: 9px; font-weight: 800; width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid #fff; }
 
-        .header-profile-container { position: relative; }
-        .header-profile-box { display: flex !important; flex-direction: row !important; align-items: center !important; gap: 10px !important; padding: 4px 8px 4px 12px !important; border-radius: 14px; transition: 0.2s; text-decoration: none; border: 1px solid transparent; flex-shrink: 0 !important; }
+        .header-profile-box { display: flex; align-items: center; gap: 14px; padding: 8px 16px; border-radius: 10px; cursor: pointer; transition: 0.2s; border: 1px solid transparent; }
         .header-profile-box:hover { background: #f8fafc; border-color: #f1f5f9; }
-        
-        .profile-dropdown { position: absolute; top: calc(100% + 12px); right: 0; width: 260px; background: #fff; border-radius: 18px; border: 1px solid #f1f5f9; box-shadow: 0 20px 50px rgba(0,0,0,0.12); z-index: 1000; overflow: hidden; animation: slideDown 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
-        .profile-dropdown-header { padding: 12px 20px; display: flex; flex-direction: column; background: #fcfcfd; }
-        .dropdown-user-name { font-size: 0.95rem; font-weight: 800; color: #0f172a; margin-bottom: 2px; }
-        .dropdown-user-email { font-size: 0.75rem; font-weight: 600; color: #94a3b8; }
-        .profile-dropdown-divider { height: 1px; background: #f1f5f9; }
-        .profile-dropdown-links { padding: 8px; display: flex; flex-direction: column; gap: 6px; }
-        .profile-link { display: flex !important; flex-direction: row !important; align-items: center !important; gap: 12px !important; padding: 12px 14px; border-radius: 12px; text-decoration: none; color: #475569; font-size: 0.88rem; font-weight: 600; transition: 0.2s; }
-        .profile-link:hover { background: #f8fafc; color: #7A1F2B; }
-        .profile-link :global(svg) { color: #94a3b8; transition: 0.2s; flex-shrink: 0; }
-        .profile-link:hover :global(svg) { color: #7A1F2B; }
-        .profile-logout-btn { width: 100%; display: flex !important; flex-direction: row !important; align-items: center !important; gap: 12px !important; padding: 14px 22px; border: none; background: none; color: #ef4444; font-size: 0.88rem; font-weight: 700; cursor: pointer; transition: 0.2s; text-align: left; }
-        .profile-logout-btn:hover { background: #fef2f2; }
-        
-        .user-info { display: flex !important; flex-direction: column !important; align-items: flex-start !important; justify-content: center !important; line-height: 1.2 !important; min-width: 0 !important; }
-        .user-name { font-size: 0.9rem; font-weight: 800; color: #0f172a; margin-bottom: 1px; white-space: nowrap; }
-        .user-role { font-size: 0.65rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; }
-        .user-avatar { width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg, #7A1F2B, #ef4444); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 900; font-size: 1.05rem; box-shadow: 0 4px 12px rgba(122, 31, 43, 0.2); flex-shrink: 0 !important; }
-        .header-profile-box:hover .user-avatar { transform: scale(1.04); }
+        .user-avatar { width: 44px; height: 44px; border-radius: 8px; background: #7A1F2B; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; overflow: hidden; }
+        .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .user-info { display: flex; flex-direction: column; line-height: 1.3; }
+        .user-name { font-size: 0.95rem; font-weight: 700; color: #1e293b; }
+        .user-role { font-size: 0.75rem; font-weight: 600; color: #94a3b8; text-transform: uppercase; }
 
-        @media (max-width: 1060px) {
+        .profile-dropdown { position: absolute; top: calc(100% + 12px); right: 0; width: 360px; background: #fff; border-radius: 12px; border: 1px solid #f1f5f9; box-shadow: 0 15px 50px rgba(0,0,0,0.15); overflow: hidden; z-index: 1000; padding: 12px; }
+        .profile-dropdown-header { padding: 16px; background: #fcfcfd; display: flex; flex-direction: column; }
+        .dropdown-user-name { font-size: 0.9rem; font-weight: 700; color: #0f172a; }
+        .dropdown-user-email { font-size: 0.75rem; color: #94a3b8; }
+        .profile-dropdown-links { display: flex; flex-direction: column; gap: 8px; }
+        .header-profile-link { display: block; padding: 14px 20px; color: #475569; text-decoration: none; font-size: 1rem; font-weight: 600; transition: 0.2s; border-radius: 8px; }
+        .header-profile-link:hover { background: #f8fafc; color: #7A1F2B; }
+        .link-content { display: flex; align-items: center; gap: 16px; width: 100%; }
+        .profile-logout-btn { width: 100%; display: block; padding: 14px 20px; border: none; background: none; color: #ef4444; font-size: 1rem; font-weight: 600; cursor: pointer; transition: 0.2s; text-align: left; border-radius: 8px; margin-top: 8px; }
+        .profile-logout-btn:hover { background: #fef2f2; }
+
+        /* ── MOBILE HEADER OVERRIDE (MAX-WIDTH: 768PX) ── */
+        @media (max-width: 768px) {
+          .dashboard-header {
+            height: 60px;
+            padding: 0 16px;
+            left: 0 !important;
+            background: #fff;
+            border-bottom: 1px solid #f1f5f9;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+            justify-content: space-between;
+          }
+
           .mobile-only { display: flex !important; }
           .hide-mobile { display: none !important; }
-          .header-left { gap: 8px; }
-          .header-search { display: none; } 
-          .user-avatar { width: 38px; height: 38px; font-size: 0.9rem; }
+
+          .header-left { gap: 0; display: flex; align-items: center; }
+          .mobile-logo-link { display: flex !important; align-items: center; padding-left: 2px; }
+          .mobile-header-logo { 
+            height: 38px !important; 
+            width: auto !important; 
+            max-width: 180px !important;
+            object-fit: contain !important;
+          }
+
+          .header-actions { 
+            gap: 10px !important; 
+            flex-direction: row !important;
+          }
+
+          .mobile-menu-btn {
+            background: none;
+            border: none;
+            color: #374151;
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+
+          .header-profile-container {
+            position: relative;
+          }
+
+          .user-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+          }
+
+          .profile-dropdown {
+            position: absolute;
+            top: calc(100% + 10px) !important;
+            right: 0 !important;
+            width: 260px !important;
+            background: #fff !important;
+            border-radius: 16px !important;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15) !important;
+            z-index: 2000 !important;
+            overflow: hidden !important;
+            display: flex;
+            flex-direction: column;
+          }
+
+          .header-profile-link {
+            display: block !important;
+            padding: 14px 20px !important;
+            text-align: left !important;
+            width: 100%;
+            color: #374151;
+            text-decoration: none;
+            transition: background 0.2s;
+          }
+          .header-profile-link:hover { background: #f8fafc; }
+
+          .profile-logout-btn {
+            display: block !important;
+            width: 100%;
+            padding: 14px 20px !important;
+            text-align: left !important;
+            border: none;
+            background: none;
+            color: #ef4444;
+            font-weight: 600;
+            cursor: pointer;
+          }
         }
 
-        @media (max-width: 640px) {
-          .header-left { gap: 8px; }
-          .mobile-header-logo { height: 24px; }
-          .header-actions { gap: 6px !important; }
-          .header-profile-box { padding: 4px !important; gap: 6px !important; }
-          .profile-dropdown { width: min(280px, calc(100vw - 32px)); right: 0; }
-        }
-
-        @media (max-width: 480px) {
-          .header-left { gap: 6px; }
-          .mobile-logo-link { display: flex; }
-          .mobile-header-logo { height: 18px; }
-          .mobile-menu-btn { padding: 4px; }
-          .user-avatar { width: 32px; height: 32px; border-radius: 8px; font-size: 0.8rem; }
-          .header-actions { gap: 8px !important; }
-          .header-action-btn { width: 36px; height: 36px; border-radius: 10px; }
-          .profile-dropdown { right: -8px; }
-        }
-
-        @media (max-width: 375px) {
-          .header-search { max-width: 100px; }
-          .header-left { gap: 4px; }
-          .mobile-menu-btn { padding: 6px; }
-        }
-
-        @media (max-width: 320px) {
-          .header-search { display: none; }
-        }
+        /* Search Dropdown styles */
+        .search-dropdown { position: absolute; top: 100%; left: 0; right: 0; background: #fff; border-radius: 12px; border: 1px solid #f1f5f9; box-shadow: 0 10px 25px rgba(0,0,0,0.1); z-index: 100; max-height: 400px; overflow-y: auto; }
+        .dropdown-header { padding: 12px 16px; font-size: 0.75rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; background: #fcfcfd; }
+        .dropdown-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; text-decoration: none; border-bottom: 1px solid #f8fafc; }
+        .dropdown-item:hover { background: #f8fafc; }
+        .item-thumb { width: 36px; height: 36px; border-radius: 8px; overflow: hidden; background: #f1f5f9; display: flex; align-items: center; justify-content: center; }
+        .item-info { flex: 1; display: flex; flex-direction: column; }
+        .item-title { font-size: 0.85rem; font-weight: 600; color: #1e293b; }
+        .item-meta { font-size: 0.7rem; color: #94a3b8; }
+        .dropdown-footer { padding: 12px; text-align: center; font-size: 0.8rem; color: #7A1F2B; font-weight: 600; cursor: pointer; }
       `}</style>
     </header>
   );

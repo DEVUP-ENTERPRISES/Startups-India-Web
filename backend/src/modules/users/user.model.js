@@ -16,9 +16,9 @@ const userSchema = new mongoose.Schema(
     headline: { type: String, trim: true },
     missionStatement: { type: String, trim: true },
     bio: { type: String, trim: true },
-    location: { type: String, trim: true },
+    city: { type: String, trim: true },
     phone: { type: String, trim: true },
-    timezone: { type: String, default: 'IST (UTC+5:30)' },
+    state: { type: String, trim: true },
     socialLinks: { type: mongoose.Schema.Types.Mixed, default: [] },
     notificationPrefs: {
       learning: { type: Boolean, default: true },
