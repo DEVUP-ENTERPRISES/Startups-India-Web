@@ -223,8 +223,7 @@ export default function Footer() {
               </div>
             </motion.div>
 
-            {/* Links Sections */}
-            <div className="footer-links">
+            {/* Links Sections (Direct children of footer-grid) */}
               <motion.div
                 className="footer-links-column"
                 initial={{ opacity: 0, y: 20 }}
@@ -292,7 +291,6 @@ export default function Footer() {
                   ))}
                 </ul>
               </motion.div>
-            </div>
           </div>
         </div>
       </div>

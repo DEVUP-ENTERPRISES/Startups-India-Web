@@ -2,7 +2,8 @@
 
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { signOut } from '@/lib/auth';
 
 export default function DashboardSidebar({
   user,
@@ -11,7 +12,7 @@ export default function DashboardSidebar({
   onClose = () => {},
 }) {
   const pathname = usePathname();
-  const [openSectionId, setOpenSectionId] = useState('courses');
+  const [openSectionId, setOpenSectionId] = useState(null);
 
   const navigation = [
     {
@@ -73,17 +74,17 @@ export default function DashboardSidebar({
         {
           id: 'quizzes',
           label: 'Quizzes',
-          path: '/dashboard/assessments/quizzes',
+          path: '/dashboard/assessment/quiz',
           icon: 'explore',
         },
         {
           id: 'assignments',
-          label: 'Assignments',
-          path: '/dashboard/assessments/assignments',
+          label: 'Assessments',
+          path: '/dashboard/assessment/assessment',
           icon: 'courses',
         },
-        { id: 'exams', label: 'Exams', path: '/dashboard/assessments/exams', icon: 'award' },
-        { id: 'results', label: 'Results', path: '/dashboard/assessments/results', icon: 'streak' },
+        { id: 'exams', label: 'Exams', path: '/dashboard/assessment/exam', icon: 'award' },
+        { id: 'results', label: 'Results', path: '/dashboard/assessment/results', icon: 'streak' },
       ],
     },
     {
@@ -148,14 +149,14 @@ export default function DashboardSidebar({
         {
           id: 'discussions',
           label: 'Discussions',
-          path: '/dashboard/discussions',
+          path: '/dashboard/community/discussions',
           icon: 'explore',
         },
         { id: 'groups', label: 'Groups', path: '/dashboard/community/groups', icon: 'courses' },
         {
           id: 'doubts',
           label: 'Doubts / Q&A',
-          path: '/dashboard/doubts',
+          path: '/dashboard/community/doubts',
           icon: 'wishlist',
         },
       ],
@@ -192,6 +193,23 @@ export default function DashboardSidebar({
     if (path === '/dashboard') return pathname === '/dashboard';
     return pathname === path || pathname.startsWith(path + '/');
   };
+
+  useEffect(() => {
+    const activeSection = navigation.find(section =>
+      section.isDropdown &&
+      Array.isArray(section.items) &&
+      section.items.some(item => pathname === item.path || pathname.startsWith(item.path + '/'))
+    );
+
+    if (activeSection) {
+      setOpenSectionId(activeSection.id);
+      return;
+    }
+
+    if (pathname === '/dashboard') {
+      setOpenSectionId(null);
+    }
+  }, [pathname]);
 
   const renderIcon = (icon, size = 18, isOpen = false) => {
     const icons = {
@@ -464,14 +482,12 @@ export default function DashboardSidebar({
       <aside className={`premium-sidebar ${isOpen ? 'mobile-open' : ''}`}>
         {/* Logo and Branding */}
         <div className="sidebar-header">
-          <div className="sidebar-header-flex" style={{ display: 'flex', alignItems: 'center' }}>
-            <Link href="/" className="sidebar-home-btn" title="Go to home page">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                <polyline points="9 22 9 12 15 12 15 22" />
-              </svg>
+          <div className="sidebar-header-flex">
+            <Link href="/" className="sidebar-home-btn" title="Back to Home" onClick={onClose}>
+              {renderIcon('home', 20)}
             </Link>
-            <Link href="/dashboard" className="sidebar-logo" onClick={onClose} style={{ marginLeft: '-12px' }}>
+
+            <Link href="/dashboard" className="sidebar-logo" onClick={onClose}>
               <img
                 src="/assets/images/logo-new.png"
                 alt="Startups India Logo"
@@ -480,8 +496,8 @@ export default function DashboardSidebar({
             </Link>
             
             {/* Mobile Close Button */}
-            <button className="sidebar-close-btn mobile-only" onClick={onClose} aria-label="Close sidebar">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <button className="sidebar-close-btn mobile-only" onClick={onClose}>
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
                 <line x1="18" y1="6" x2="6" y2="18" />
                 <line x1="6" y1="6" x2="18" y2="18" />
               </svg>
@@ -551,7 +567,7 @@ export default function DashboardSidebar({
                           </svg>
                         </span>
                       )}
-                      {isDropdown && renderIcon('chevron', isSectionOpen)}
+                      {isDropdown && renderIcon('chevron', 16, isSectionOpen)}
                     </div>
                   )
                 )}
@@ -569,29 +585,16 @@ export default function DashboardSidebar({
                   }
                 >
                   {section.items.map(item =>
-                    item.isAction ? (
-                      <button
-                        key={item.id}
-                        className="nav-item action-button-nav"
-                        onClick={() => {
-                        }}
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          width: 'calc(100% - 24px)',
-                          textAlign: 'left',
-                          fontFamily: 'inherit',
-                        }}
-                      >
-                        <span className="nav-item-label">{item.label}</span>
-                      </button>
-                    ) : (
+                    (
                       <Link
                         key={item.id}
                         href={item.path}
                         className={`nav-item ${isActive(item.path) ? 'active' : ''}`}
                         prefetch={true}
-                        onClick={onClose}
+                        onClick={() => {
+                          setOpenSectionId(section.id);
+                          onClose();
+                        }}
                       >
                         <span className="nav-item-label">{item.label}</span>
                         {item.badge}
@@ -606,8 +609,6 @@ export default function DashboardSidebar({
 
         <div className="sidebar-bottom">
           <div className="bottom-actions">
-
-
 
             <Link href="/dashboard/contact" className="bottom-action" onClick={onClose}>
               <svg
@@ -626,7 +627,6 @@ export default function DashboardSidebar({
             </Link>
           </div>
         </div>
-
 
       </aside>
     </>

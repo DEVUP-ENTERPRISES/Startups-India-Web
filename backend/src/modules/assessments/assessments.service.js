@@ -58,10 +58,14 @@ class AssessmentService {
 
     // Auto-grading for quizzes/exams
     let score = 0;
+    let totalPoints = 0;
+    
     const gradedAnswers = answers.map(ans => {
       const question = assessment.questions.id(ans.questionId);
       if (!question) return { ...ans, isCorrect: false };
 
+      totalPoints += question.points;
+      
       const correctIndices = question.options
         .map((opt, i) => opt.isCorrect ? i : null)
         .filter(i => i !== null);
@@ -69,16 +73,29 @@ class AssessmentService {
       const isCorrect = JSON.stringify(correctIndices.sort()) === JSON.stringify(ans.selectedOptions.sort());
       if (isCorrect) score += question.points;
 
-      return { ...ans, isCorrect };
+      return { 
+        questionId: ans.questionId,
+        selectedOptions: ans.selectedOptions,
+        isCorrect,
+        // Enriched data for high-fidelity review
+        qText: question.text,
+        options: question.options.map(o => o.text),
+        correctIndex: correctIndices[0], // Simplified for single-choice MCQ UI
+        explanation: question.explanation
+      };
     });
 
+    const percentage = (score / totalPoints) * 100;
+    
     submission.answers = gradedAnswers;
-    submission.score = score;
-    submission.status = 'submitted';
+    submission.score = Math.round(percentage);
+    submission.totalPoints = totalPoints;
+    submission.status = percentage >= 80 ? 'graded' : 'submitted'; // Mark graded if pass, or just submitted for review
     submission.submittedAt = new Date();
     submission.timeTaken = (submission.submittedAt - submission.startedAt) / 1000;
 
     return await submission.save();
+
   }
 
   async submitAssignment(userId, assessmentId, data) {

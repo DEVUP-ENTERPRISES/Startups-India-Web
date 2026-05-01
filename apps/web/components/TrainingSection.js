@@ -125,7 +125,7 @@ export default function TrainingSection() {
     <section className="training-section">
       <div className="training-container">
         <div className="training-header">
-          <span className="training-badge">FREE DEMO CLASSES</span>
+          <span className="section-label-premium">FREE DEMO CLASSES</span>
           <h2>
             Experience Our <span className="highlight-red">World-Class</span> Training
           </h2>

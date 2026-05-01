@@ -172,7 +172,7 @@ export default function Header() {
                   <button className="mobile-btn mobile-btn-secondary">Sign in</button>
                 </Link>
                 <Link href="/signup" onClick={closeMobileMenu}>
-                  <button className="mobile-btn mobile-btn-primary">Apply Now</button>
+                  <button className="mobile-btn mobile-btn-primary">Sign up</button>
                 </Link>
               </>
             )}

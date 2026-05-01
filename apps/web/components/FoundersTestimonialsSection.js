@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Rocket, Target, Users } from 'lucide-react';
 import '../styles/founders-testimonials.css';
@@ -52,6 +52,14 @@ export default function FoundersTestimonialsSection() {
 
   const next = () => setCurrent(c => (c + 1) % founders.length);
   const prev = () => setCurrent(c => (c - 1 + founders.length) % founders.length);
+
+  // Auto-play Carousel (8 seconds)
+  useEffect(() => {
+    const timer = setInterval(() => {
+      next();
+    }, 8000);
+    return () => clearInterval(timer);
+  }, [current]);
 
   return (
     <section className="founders-section-light">
@@ -118,18 +126,18 @@ export default function FoundersTestimonialsSection() {
                   </svg>
                 </div>
 
-                <h3 className="main-testimonial-text">
+                <h3 className="main-testimonial-text !text-white drop-shadow-md">
                   {founders[current].quote}
-                  <span className="text-highlight-red">{founders[current].highlight}</span>
+                  <span className="text-highlight-red !text-[#e53935]">{founders[current].highlight}</span>
                 </h3>
 
                 <div className="founder-stats-pills">
-                  <div className="stat-pill-glass">
-                    <Rocket size={14} className="accent-red-icon" />
+                  <div className="stat-pill-glass !text-white">
+                    <Rocket size={14} className="accent-red-icon !text-[#e53935]" />
                     <span>{founders[current].stat1}</span>
                   </div>
-                  <div className="stat-pill-glass">
-                    <Target size={14} className="accent-red-icon" />
+                  <div className="stat-pill-glass !text-white">
+                    <Target size={14} className="accent-red-icon !text-[#e53935]" />
                     <span>{founders[current].stat2}</span>
                   </div>
                 </div>
@@ -137,10 +145,10 @@ export default function FoundersTestimonialsSection() {
                 <div className="founder-profile-info">
                   <div className="author-line-red"></div>
                   <div className="profile-text">
-                    <h4 className="profile-name">{founders[current].name}</h4>
-                    <p className="profile-meta">
+                    <h4 className="profile-name !text-white">{founders[current].name}</h4>
+                    <p className="profile-meta !text-gray-300">
                       {founders[current].role},{' '}
-                      <span className="company-name-red">{founders[current].company}</span>
+                      <span className="company-name-red !text-[#e53935]">{founders[current].company}</span>
                     </p>
                   </div>
                 </div>

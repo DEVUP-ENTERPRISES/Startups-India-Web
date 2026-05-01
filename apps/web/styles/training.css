@@ -1,7 +1,7 @@
 /* Base Section Styles */
 .training-section {
   background: linear-gradient(180deg, #ffffff 0%, #f9fafb 100%);
-  padding: 8rem 2rem;
+  padding: 4rem 2rem;
   font-family: inherit;
 }
 
@@ -13,7 +13,7 @@
 /* Header */
 .training-header {
   text-align: center;
-  margin-bottom: 4rem;
+  margin-bottom: 3rem;
 }
 
 .training-badge {

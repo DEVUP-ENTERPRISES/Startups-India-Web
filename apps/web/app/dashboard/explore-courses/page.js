@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useDashboard } from '@/contexts/DashboardProvider';
@@ -70,7 +70,6 @@ const SORT_OPTIONS = [
 ];
 
 
-
 function SkeletonCard() {
   return (
     <div
@@ -114,10 +113,9 @@ function SkeletonCard() {
 
 export default function ExplorePage() {
   const searchParams = useSearchParams();
-  const router = useRouter();
   const initialSearch = searchParams.get('search') || '';
 
-  const { courses, enrolledCourses, wishlist, setWishlist, certificates, isLoading, refresh, toggleLocalWishlist } =
+  const { courses, enrolledCourses, wishlist, setWishlist, certificates, isLoading, refresh } =
     useDashboard();
   const [search, setSearch] = useState(initialSearch);
 
@@ -129,24 +127,14 @@ export default function ExplorePage() {
   const [sortBy, setSortBy] = useState('default');
   const [viewMode, setViewMode] = useState('grid');
   const [previewId, setPreviewId] = useState(null);
-  const [enrollingId, setEnrollingId] = useState(null);
-  const [errorMsg, setErrorMsg] = useState(null);
   const catScrollRef = useRef(null);
-
-  const handleEnroll = (courseId) => {
-    router.push(`/checkout?courseId=${courseId}`);
-  };
 
   const wishlistSet = useMemo(() => new Set(wishlist.map(w => w._id || w.id)), [wishlist]);
 
-  const toggleWishlist = async course => {
-    if (course._id.startsWith('dummy-')) {
-      toggleLocalWishlist(course);
-      return;
-    }
+  const toggleWishlist = async id => {
     const { apiPost } = await import('@/lib/api');
-    const res = await apiPost(`/api/v1/courses/${course._id}/wishlist`, {});
-    if (res.success) {
+    const res = await apiPost(`/api/v1/courses/${id}/wishlist`, {});
+    if (!res.error) {
       refresh(); // Sync everything
     }
   };
@@ -162,13 +150,13 @@ export default function ExplorePage() {
   );
 
   const categories = useMemo(() => {
-    const allCourses = [...(courses || [])];
+    const allCourses = courses || [];
     const cats = new Set(allCourses.map(c => c.category).filter(Boolean));
     return ['All', ...Array.from(cats)];
   }, [courses]);
 
   const filtered = useMemo(() => {
-    const allCourses = [...(courses || [])];
+    const allCourses = courses || [];
     let result = allCourses.filter(c => {
       const q = search.toLowerCase();
       const matchesSearch =
@@ -210,7 +198,7 @@ export default function ExplorePage() {
 
   const totalEnrolled = enrolledCourses?.length || 0;
   const totalCerts = certificates?.length || 0;
-  const allCourses = [...(courses || [])];
+  const allCourses = [...(courses || []), ...DUMMY_COURSES];
   const freeCount = allCourses.filter(c => !(c.priceInr || c.price)).length || 0;
 
   if (isLoading) {
@@ -266,8 +254,6 @@ export default function ExplorePage() {
         @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
         @keyframes pulseGlow { 0%,100% { box-shadow: 0 0 0 0 rgba(59,130,246,0.3); } 50% { box-shadow: 0 0 0 8px rgba(59,130,246,0); } }
         @keyframes float { 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-6px); } }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .animate-spin { animation: spin 1s linear infinite; }
         .ex-card { animation: fadeInUp .45s ease-out both; transition: all .35s cubic-bezier(.4,0,.2,1); }
         .ex-card:hover { transform: translateY(-10px) scale(1.015); box-shadow: 0 30px 60px -15px rgba(0,0,0,.18); }
         .ex-card:hover .ex-thumb-img { transform: scale(1.08); }
@@ -510,7 +496,7 @@ export default function ExplorePage() {
         >
           {categories.map(cat => {
             const isActive = activeCategory === cat;
-            const allCourses = [...(courses || [])];
+            const allCourses = courses || [];
             const count =
               cat === 'All'
                 ? allCourses.length
@@ -566,7 +552,7 @@ export default function ExplorePage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
             <span style={{ fontSize: '0.9rem', color: '#6b7280', fontWeight: 600 }}>
               Showing <span style={{ color: '#111827', fontWeight: 800 }}>{filtered.length}</span>{' '}
-              of {[...(courses || [])].length} courses
+              of {[...(courses || []), ...DUMMY_COURSES].length} courses
             </span>
             {(search || activeCategory !== 'All' || sortBy !== 'default') && (
               <button
@@ -593,30 +579,6 @@ export default function ExplorePage() {
               </button>
             )}
           </div>
-          {wishlist?.length > 0 && (
-            <div
-              style={{
-                fontSize: '0.85rem',
-                color: '#e11d48',
-                fontWeight: 700,
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.35rem',
-              }}
-            >
-              <svg
-                width="16"
-                height="16"
-                fill="#e11d48"
-                stroke="#e11d48"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-              >
-                <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
-              </svg>{' '}
-              {wishlist.length} wishlisted
-            </div>
-          )}
         </div>
 
         {/* Empty State */}
@@ -801,7 +763,7 @@ export default function ExplorePage() {
                         className="heart-btn"
                         onClick={e => {
                           e.preventDefault();
-                          toggleWishlist(course);
+                          toggleWishlist(course._id);
                         }}
                         style={{
                           width: '36px',
@@ -1148,60 +1110,44 @@ export default function ExplorePage() {
                         </button>
                       </Link>
                     ) : (
-                      <button
-                        className="action-btn"
-                        onClick={() => handleEnroll(course._id, price)}
-                        disabled={enrollingId === course._id}
-                        style={{
-                          width: '100%',
-                          padding: '0.8rem',
-                          background: 'linear-gradient(135deg, #e11d48, #be123c)',
-                          color: '#fff',
-                          border: 'none',
-                          borderRadius: '14px',
-                          fontSize: '0.95rem',
-                          fontWeight: 700,
-                          cursor: enrollingId === course._id ? 'not-allowed' : 'pointer',
-                          display: 'flex',
-                          justifyContent: 'center',
-                          alignItems: 'center',
-                          gap: '0.5rem',
-                          opacity: enrollingId === course._id ? 0.7 : 1,
-                        }}
+                      <Link
+                        href={`/checkout?courseId=${course._id}`}
+                        style={{ textDecoration: 'none' }}
                       >
-                        {enrollingId === course._id ? (
-                          <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <line x1="12" y1="2" x2="12" y2="6"></line>
-                              <line x1="12" y1="18" x2="12" y2="22"></line>
-                              <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line>
-                              <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line>
-                              <line x1="2" y1="12" x2="6" y2="12"></line>
-                              <line x1="18" y1="12" x2="22" y2="12"></line>
-                              <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
-                              <line x1="16.24" y1="4.93" x2="19.07" y2="7.76"></line>
-                            </svg>
-                            Enrolling...
-                          </span>
-                        ) : (
-                          <>
-                            Enroll Now
-                            <svg
-                              width="16"
-                              height="16"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2.5"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              viewBox="0 0 24 24"
-                            >
-                              <path d="M5 12h14" />
-                              <path d="m12 5 7 7-7 7" />
-                            </svg>
-                          </>
-                        )}
-                      </button>
+                        <button
+                          className="action-btn"
+                          style={{
+                            width: '100%',
+                            padding: '0.8rem',
+                            background: 'linear-gradient(135deg, #e11d48, #be123c)',
+                            color: '#fff',
+                            border: 'none',
+                            borderRadius: '14px',
+                            fontSize: '0.95rem',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                          }}
+                        >
+                          Enroll Now
+                          <svg
+                            width="16"
+                            height="16"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            viewBox="0 0 24 24"
+                          >
+                            <path d="M5 12h14" />
+                            <path d="m12 5 7 7-7 7" />
+                          </svg>
+                        </button>
+                      </Link>
                     )}
                   </div>
                 </div>
@@ -1478,7 +1424,7 @@ export default function ExplorePage() {
                       >
                         <button
                           className="heart-btn"
-                          onClick={() => toggleWishlist(course)}
+                          onClick={() => toggleWishlist(course._id)}
                           style={{
                             background: 'none',
                             border: 'none',
@@ -1534,44 +1480,27 @@ export default function ExplorePage() {
                             </button>
                           </Link>
                         ) : (
-                          <button
-                            className="action-btn"
-                            onClick={() => handleEnroll(course._id, price)}
-                            disabled={enrollingId === course._id}
-                            style={{
-                              padding: '0.6rem 1.25rem',
-                              background: '#e11d48',
-                              color: '#fff',
-                              border: 'none',
-                              borderRadius: '10px',
-                              fontSize: '0.85rem',
-                              fontWeight: 700,
-                              cursor: enrollingId === course._id ? 'not-allowed' : 'pointer',
-                              whiteSpace: 'nowrap',
-                              opacity: enrollingId === course._id ? 0.7 : 1,
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '0.4rem',
-                            }}
+                          <Link
+                            href={'/courses/' + (course.slug || course._id)}
+                            style={{ textDecoration: 'none' }}
                           >
-                            {enrollingId === course._id ? (
-                              <>
-                                <svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                  <line x1="12" y1="2" x2="12" y2="6"></line>
-                                  <line x1="12" y1="18" x2="12" y2="22"></line>
-                                  <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line>
-                                  <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line>
-                                  <line x1="2" y1="12" x2="6" y2="12"></line>
-                                  <line x1="18" y1="12" x2="22" y2="12"></line>
-                                  <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
-                                  <line x1="16.24" y1="4.93" x2="19.07" y2="7.76"></line>
-                                </svg>
-                                Enrolling
-                              </>
-                            ) : (
-                              'Enroll Now'
-                            )}
-                          </button>
+                            <button
+                              className="action-btn"
+                              style={{
+                                padding: '0.6rem 1.25rem',
+                                background: '#e11d48',
+                                color: '#fff',
+                                border: 'none',
+                                borderRadius: '10px',
+                                fontSize: '0.85rem',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                whiteSpace: 'nowrap',
+                              }}
+                            >
+                              Enroll Now
+                            </button>
+                          </Link>
                         )}
                       </div>
                     </div>

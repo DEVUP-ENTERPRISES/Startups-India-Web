@@ -2,7 +2,7 @@
 export const eventsData = [
   {
     id: 1,
-    title: 'Startup Funding Masterclass 2025',
+    title: 'Startup Funding Masterclass 2026',
     category: 'workshops',
     image: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800',
     images: [

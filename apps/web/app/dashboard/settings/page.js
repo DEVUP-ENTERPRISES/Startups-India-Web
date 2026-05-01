@@ -599,6 +599,27 @@ function AccountTab({ toast }) {
         </form>
       </Card>
 
+      {/* ── Session ── */}
+      <Card title="Session" subtitle="Manage your current session.">
+        <div className="stg-session-row">
+          <div className="stg-session-text">
+            <p className="stg-session-desc">You are currently logged in as {email}. Sign out to end your session securely.</p>
+          </div>
+          <button
+            className="stg-btn stg-btn-danger-outline"
+            onClick={async () => {
+              const { signOut } = await import('@/lib/auth');
+              await signOut();
+              window.location.replace('/login');
+            }}
+            style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+          >
+            <Icon name="logout" size={18} />
+            Sign Out
+          </button>
+        </div>
+      </Card>
+
       {/* ── Danger zone ── */}
       <Card title="Danger Zone" danger>
         <div className="stg-danger-inner">
@@ -1523,6 +1544,24 @@ function SettingsContent() {
           font-size: 0.75rem;
           color: #94a3b8;
           font-weight: 500;
+        }
+
+        /* ── Session Row ── */
+        .stg-session-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 20px;
+          padding: 12px 0;
+        }
+        .stg-session-text {
+          flex: 1;
+        }
+        .stg-session-desc {
+          font-size: 0.875rem;
+          color: #64748b;
+          margin: 0;
+          line-height: 1.5;
         }
 
         /* ── Buttons ── */
