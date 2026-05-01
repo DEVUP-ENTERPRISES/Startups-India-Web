@@ -14,6 +14,11 @@ exports.getBadges = asyncHandler(async (req, res) => {
   res.json({ success: true, data });
 });
 
+exports.getAllBadges = asyncHandler(async (req, res) => {
+  const data = await achievementsService.getAllBadges();
+  res.json({ success: true, data });
+});
+
 exports.getLeaderboard = asyncHandler(async (req, res) => {
   const { scope } = req.params;
   const data = await achievementsService.getLeaderboard(scope);

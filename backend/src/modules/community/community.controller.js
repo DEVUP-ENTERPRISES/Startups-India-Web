@@ -37,6 +37,11 @@ exports.joinGroup = asyncHandler(async (req, res) => {
   res.json({ success: true, data });
 });
 
+exports.getJoinedGroups = asyncHandler(async (req, res) => {
+  const data = await communityService.getJoinedGroups(req.user.userId);
+  res.json({ success: true, data });
+});
+
 /**
  * Q&A
  */

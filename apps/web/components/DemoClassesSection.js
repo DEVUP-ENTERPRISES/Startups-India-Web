@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { useState, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { Rocket, BarChart3, IndianRupee, GraduationCap } from 'lucide-react';
-const VideoPlayerModal = dynamic(() => import('./VideoPlayerModal'), { ssr: false });
+import VideoPlayerModal from './VideoPlayerModal';
 
 export default function DemoClassesSection() {
   const [activeVideo, setActiveVideo] = useState(null);

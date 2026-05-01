@@ -64,7 +64,7 @@ export default function CompletedCoursesPage() {
           style={{
             textAlign: 'center',
             padding: '5rem 2rem',
-            background: '#fff',
+            background: 'var(--dashboard-bg)',
             borderRadius: '24px',
             border: '2px dashed #e5e7eb',
           }}
@@ -112,7 +112,7 @@ export default function CompletedCoursesPage() {
               key={e._id}
               className="completed-item-card"
               style={{
-                background: '#fff',
+                background: 'var(--dashboard-bg)',
                 borderRadius: 20,
                 overflow: 'hidden',
                 border: '1px solid #e5e7eb',

@@ -5,7 +5,7 @@
 /* ── Section shell ───────────────────────────────────────────────────────── */
 .collab-section {
   position: relative;
-  padding: 110px 0 100px;
+  padding: 60px 0 0;
   /* 
    * Dark gradient is REQUIRED for backdropFilter blur to be visible.
    * Without a contrasting background the glass panels look like plain white boxes.
@@ -52,7 +52,7 @@
 .collab-header {
   text-align: center;
   max-width: 680px;
-  margin: 0 auto 72px;
+  margin: 0 auto 40px;
 }
 
 /* Label pill — glass treatment */

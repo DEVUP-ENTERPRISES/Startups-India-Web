@@ -5,9 +5,11 @@ class CommunityService {
    * Discussions
    */
   async getDiscussions(filters = {}) {
-    return await Discussion.find({ parentId: null, ...filters })
+    // If we're looking at a group, we want all messages (chat style)
+    const query = filters.groupId ? { ...filters } : { parentId: null, ...filters };
+    return await Discussion.find(query)
       .populate('authorId', 'fullName avatarUrl')
-      .sort({ isPinned: -1, createdAt: -1 });
+      .sort({ createdAt: 1 }); // Chat should be chronological
   }
 
   async createDiscussion(data) {
@@ -35,6 +37,15 @@ class CommunityService {
 
   async joinGroup(groupId, userId) {
     return await GroupMember.create({ groupId, userId });
+  }
+
+  async getJoinedGroups(userId) {
+    const memberships = await GroupMember.find({ userId, status: 'active' }).populate('groupId');
+    return memberships.map(m => m.groupId);
+  }
+
+  async getGroupDetails(id) {
+    return await Group.findById(id);
   }
 
   /**

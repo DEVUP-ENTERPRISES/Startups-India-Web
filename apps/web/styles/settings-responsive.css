@@ -1,0 +1,135 @@
+/* ==========================================
+   SETTINGS RESPONSIVE DESIGN SYSTEM
+   ========================================== */
+
+.settings-container {
+  padding: 1.5rem 2.5rem;
+  background: #f8fafc;
+  min-height: 100vh;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.settings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2.5rem;
+  width: 100%;
+}
+
+.settings-grid {
+  display: grid; 
+  grid-template-columns: repeat(12, 1fr); 
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.settings-2col-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+/* Mobile Adjustments (Below 1060px) */
+@media (max-width: 1060px) {
+  .settings-container {
+    padding: 6.5rem 1.25rem 8rem !important;
+  }
+  
+  .settings-header {
+    flex-direction: column !important;
+    gap: 1.5rem !important;
+    margin-bottom: 2.5rem !important;
+    text-align: left !important;
+  }
+
+  .settings-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 1.5rem !important;
+  }
+  
+  .settings-grid > div {
+    grid-column: span 12 !important;
+    width: 100% !important;
+  }
+
+  .settings-2col-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .profile-info-row {
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+    gap: 1.5rem !important;
+  }
+  
+  .profile-inputs-grid {
+    grid-template-columns: 1fr !important;
+    width: 100% !important;
+  }
+  
+  .settings-card {
+    padding: 1.5rem 1.25rem !important;
+    border-radius: 20px !important;
+  }
+
+  .links-row {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+  }
+  
+  .links-row > div:nth-child(2) {
+    width: 100% !important;
+  }
+
+  .personal-signals-item {
+     flex-direction: column !important;
+     align-items: flex-start !important;
+     gap: 0.5rem !important;
+  }
+}
+
+/* Tiny Screens (Below 480px) */
+@media (max-width: 480px) {
+  .settings-header h1 {
+    font-size: 1.8rem !important;
+    line-height: 1.1 !important;
+  }
+  
+  .settings-header p {
+    font-size: 0.95rem !important;
+  }
+  
+  .header-actions {
+    width: 100% !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+  
+  .header-actions button {
+    width: 100% !important;
+    padding: 12px !important;
+  }
+
+  .settings-input, 
+  input, 
+  select, 
+  textarea {
+    font-size: 16px !important; 
+    border-radius: 12px !important;
+  }
+  
+  .settings-input:focus {
+    box-shadow: 0 0 0 4px rgba(235, 35, 39, 0.15), 0 0 20px rgba(235, 35, 39, 0.1) !important;
+    border-color: #eb2327 !important;
+  }
+
+  .settings-card {
+    border: 1px solid #f1f5f9 !important;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.02) !important;
+  }
+}

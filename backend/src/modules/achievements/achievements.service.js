@@ -18,10 +18,23 @@ class AchievementsService {
     }));
   }
 
+  async getAllBadges() {
+    return await Badge.find({});
+  }
+
   async getLeaderboard(scope = 'global') {
+    const matchStage = { status: 'graded' };
+    
+    if (scope === 'monthly') {
+      const startOfMonth = new Date();
+      startOfMonth.setDate(1);
+      startOfMonth.setHours(0, 0, 0, 0);
+      matchStage.createdAt = { $gte: startOfMonth };
+    }
+
     // Ranking criteria: Total scores / total possible * weight + certificates * weight
     return await Submission.aggregate([
-      { $match: { status: 'graded' } },
+      { $match: matchStage },
       {
         $group: {
           _id: '$userId',

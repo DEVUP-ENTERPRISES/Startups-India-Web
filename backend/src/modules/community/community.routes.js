@@ -11,6 +11,7 @@ router.get('/discussions/:id', authRequired, controller.getDiscussionById);
 
 // Groups
 router.get('/groups', authRequired, controller.getGroups);
+router.get('/groups/joined', authRequired, controller.getJoinedGroups);
 router.post('/groups', authRequired, controller.createGroup);
 router.post('/groups/:id/join', authRequired, controller.joinGroup);
 

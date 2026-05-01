@@ -8,6 +8,7 @@ router.get('/certificates', authRequired, controller.getCertificates);
 router.get('/certificates/verify/:code', controller.verifyCertificate);
 
 router.get('/badges', authRequired, controller.getBadges);
+router.get('/badges/catalog', authRequired, controller.getAllBadges);
 router.get('/badges/:userId', authRequired, controller.getBadges);
 
 router.get('/leaderboard', authRequired, controller.getLeaderboard);

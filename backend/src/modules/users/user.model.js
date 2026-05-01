@@ -13,21 +13,31 @@ const userSchema = new mongoose.Schema(
     },
     authProviders: { type: [String], default: ['email'] },
     role: { type: String, enum: ['admin', 'user', 'mentor', 'investor'], default: 'user' },
+    headline: { type: String, trim: true },
+    missionStatement: { type: String, trim: true },
     bio: { type: String, trim: true },
+    location: { type: String, trim: true },
+    phone: { type: String, trim: true },
+    timezone: { type: String, default: 'IST (UTC+5:30)' },
     socialLinks: {
       linkedin: { type: String },
       twitter: { type: String },
-      github: { type: String }
+      github: { type: String },
+      website: { type: String }
     },
     notificationPrefs: {
       learning: { type: Boolean, default: true },
       assessments: { type: Boolean, default: true },
       community: { type: Boolean, default: true },
-      payments: { type: Boolean, default: true }
+      payments: { type: Boolean, default: true },
+      marketing: { type: Boolean, default: true }
     },
     privacySettings: {
-      profileVisibility: { type: String, enum: ['public', 'private'], default: 'public' },
-      activityVisibility: { type: String, enum: ['public', 'private'], default: 'public' }
+      profileVisibility: { type: String, enum: ['public', 'private', 'users'], default: 'public' },
+      activityVisibility: { type: String, enum: ['public', 'private', 'users'], default: 'public' },
+      showBio: { type: Boolean, default: true },
+      showStats: { type: Boolean, default: true },
+      showGoals: { type: Boolean, default: true }
     },
     isActive: { type: Boolean, default: true },
     wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Course' }],

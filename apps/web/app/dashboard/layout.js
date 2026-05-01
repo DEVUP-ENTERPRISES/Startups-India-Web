@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import DashboardSidebar from '@/components/DashboardSidebar';
+import DashboardHeader from '@/components/DashboardHeader';
 import { DashboardProvider } from '@/contexts/DashboardProvider';
 import { getCurrentUser } from '@/lib/auth';
 import '../../styles/design-system.css';
@@ -14,7 +15,7 @@ import '../../styles/navbar-fix.css';
 import '../../styles/dashboard-navbar-fix.css';
 import '../../styles/sidebar-responsive.css';
 import '../../styles/dashboard-navbar-premium.css';
-import '../../styles/dashboard-content-spacing.css';
+import '../../styles/dashboard-responsive-v2.css';
 
 export default function DashboardLayout({ children }) {
   const pathname = usePathname();
@@ -87,37 +88,14 @@ export default function DashboardLayout({ children }) {
 
         {/* Main Content Area */}
         <div className="dashboard-main">
-          {/* Mobile Navigation Header */}
-          <div className="mobile-nav-header">
-            <div className="mobile-nav-left">
-              <button 
-                className="hamburger-menu-btn" 
-                onClick={() => setIsMobileMenuOpen(true)}
-              >
-                <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <line x1="3" y1="6" x2="21" y2="6" />
-                  <line x1="3" y1="12" x2="21" y2="12" />
-                  <line x1="3" y1="18" x2="21" y2="18" />
-                </svg>
-              </button>
-              <Link href="/dashboard" className="mobile-nav-brand">
-                <img 
-                  src="/assets/images/logo.png" 
-                  alt="Logo" 
-                  className="mobile-nav-logo"
-                />
-              </Link>
-            </div>
-          </div>
+          {/* Global Header */}
+          <DashboardHeader 
+            user={user} 
+            onOpenMobileMenu={() => setIsMobileMenuOpen(true)} 
+          />
 
           {/* Dynamic Content */}
-          <div 
-            className="dashboard-content" 
-            style={{ 
-              paddingLeft: 'max(1rem, env(safe-area-inset-left))', 
-              paddingRight: 'max(1rem, env(safe-area-inset-right))' 
-            }}
-          >
+          <div className="dashboard-content">
             {children}
           </div>
         </div>

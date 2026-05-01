@@ -1,88 +1,157 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
+import Icon from '@/components/Icon';
+import { motion, AnimatePresence } from 'framer-motion';
+import '@/styles/assessments-v2.css';
 
 export default function ExamsPage() {
   const [exams, setExams] = useState([]);
+  const [results, setResults] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('upcoming'); // upcoming | history
 
   useEffect(() => {
-    async function fetchExams() {
+    async function fetchData() {
       try {
-        const res = await fetch('/api/v1/exams?type=exam');
-        const json = await res.json();
-        if (json.success) setExams(json.data);
+        const [examRes, resultRes] = await Promise.all([
+          fetch('/api/v1/assessments?type=exam'),
+          fetch('/api/v1/assessments/results/all')
+        ]);
+        
+        const examJson = await examRes.json();
+        const resultJson = await resultRes.json();
+        
+        if (examJson.success) setExams(examJson.data);
+        if (resultJson.success) setResults(resultJson.data);
       } catch (err) {
-        console.error('Failed to fetch exams:', err);
+        console.error('Failed to fetch data:', err);
       } finally {
         setIsLoading(false);
       }
     }
-    fetchExams();
+    fetchData();
   }, []);
 
-  return (
-    <div style={{ maxWidth: 1600, margin: '0 auto', padding: '2.5rem 3.5rem 5rem', fontFamily: "'Inter', sans-serif" }}>
-      <style dangerouslySetInnerHTML={{ __html: `
-        @keyframes fadeUp { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:translateY(0); } }
-        .da { animation: fadeUp .5s cubic-bezier(0.16,1,0.3,1) both; }
-        .dcard { background:#fff; border-radius:24px; border:1px solid rgba(0,0,0,0.05); box-shadow:0 4px 15px rgba(0,0,0,0.02); transition:all .4s; }
-        .dcard:hover { transform:translateY(-8px); box-shadow:0 25px 50px -12px rgba(0,0,0,0.1); border-color:rgba(122,31,43,0.15); }
-        .exam-btn { background: linear-gradient(135deg, #7A1F2B, #9B3040); color: white; border: none; padding: 12px 24px; border-radius: 12px; font-weight: 800; font-size: 0.85rem; cursor: pointer; transition: all 0.3s; width: 100%; letter-spacing: 0.1em; }
-        .exam-btn:hover { opacity: 0.9; transform: scale(1.02); }
-      `}} />
+  const examsWithStatus = useMemo(() => {
+    return exams.map(exam => {
+      const submission = results.find(r => r.assessmentId?._id === exam._id || r.assessmentId === exam._id);
+      return {
+        ...exam,
+        submissionStatus: submission ? submission.status : 'Pending',
+        score: submission ? submission.score : null,
+        submittedAt: submission ? submission.submittedAt : null
+      };
+    });
+  }, [exams, results]);
 
-      <header style={{ marginBottom: '3.5rem', textAlign: 'center' }}>
-        <h1 className="da da1" style={{ fontSize: '3rem', fontWeight: 900, color: '#111', letterSpacing: '-0.05em', marginBottom: '12px' }}>Final Certification Exams</h1>
-        <p className="da da1" style={{ fontSize: '1.2rem', color: '#666', fontWeight: 500, maxWidth: '700px', margin: '0 auto' }}>Strict evaluation protocols to validate your readiness for the global startup ecosystem.</p>
+  const filteredExams = useMemo(() => {
+    if (activeTab === 'upcoming') {
+      return examsWithStatus.filter(e => e.submissionStatus === 'Pending' || e.submissionStatus === 'in-progress');
+    }
+    return examsWithStatus.filter(e => e.submissionStatus === 'submitted' || e.submissionStatus === 'graded');
+  }, [examsWithStatus, activeTab]);
+
+  return (
+    <div className="platform-page" style={{ padding: '2.5rem' }}>
+      <header className="platform-page-header">
+        <h1 className="platform-page-title">Exams Hall</h1>
+        <p className="platform-page-subtitle">Strict evaluation protocols to validate your readiness for the global startup ecosystem.</p>
       </header>
 
-      {isLoading ? (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', gap: '32px' }}>
-          {[1, 2].map(i => (
-            <div key={i} style={{ height: 350, background: '#fafafa', borderRadius: 24 }} className="animate-pulse" />
-          ))}
-        </div>
-      ) : exams.length > 0 ? (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', gap: '32px' }}>
-          {exams.map((exam, idx) => (
-            <div key={exam._id} className={`da da${idx+2} dcard`} style={{ padding: '3rem', position: 'relative', overflow: 'hidden' }}>
-              <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '4px', background: '#7A1F2B' }} />
-              
-              <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-                <span style={{ fontSize: '0.75rem', fontWeight: 900, color: '#C5975B', letterSpacing: '0.2em', textTransform: 'uppercase' }}>High Stakes Evaluation</span>
-                <h3 style={{ fontSize: '1.8rem', fontWeight: 900, color: '#111', marginTop: '16px', marginBottom: '8px' }}>{exam.title}</h3>
-                <p style={{ fontSize: '1rem', color: '#666' }}>{exam.courseId?.title || 'Advanced Founder Track'}</p>
-              </div>
+      <div style={{ display: 'flex', gap: '2rem', marginBottom: '3rem', borderBottom: '1.5px solid #F1F5F9' }}>
+         <button 
+           onClick={() => setActiveTab('upcoming')}
+           style={{ padding: '1rem 0', background: 'none', border: 'none', color: activeTab === 'upcoming' ? '#7A1F2B' : '#94A3B8', fontWeight: 800, fontSize: '0.95rem', cursor: 'pointer', borderBottom: activeTab === 'upcoming' ? '3px solid #7A1F2B' : '3px solid transparent', transition: '0.2s' }}
+         >
+           Upcoming Sessions
+         </button>
+         <button 
+           onClick={() => setActiveTab('history')}
+           style={{ padding: '1rem 0', background: 'none', border: 'none', color: activeTab === 'history' ? '#7A1F2B' : '#94A3B8', fontWeight: 800, fontSize: '0.95rem', cursor: 'pointer', borderBottom: activeTab === 'history' ? '3px solid #7A1F2B' : '3px solid transparent', transition: '0.2s' }}
+         >
+           Attempt History
+         </button>
+      </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '32px' }}>
-                <div style={{ background: '#f8f8f8', padding: '16px', borderRadius: '16px', textAlign: 'center' }}>
-                  <div style={{ fontSize: '0.7rem', fontWeight: 800, color: '#999', textTransform: 'uppercase', marginBottom: '4px' }}>Duration</div>
-                  <div style={{ fontSize: '1.1rem', fontWeight: 900, color: '#111' }}>{exam.timeLimit || 0}m</div>
-                </div>
-                <div style={{ background: '#f8f8f8', padding: '16px', borderRadius: '16px', textAlign: 'center' }}>
-                  <div style={{ fontSize: '0.7rem', fontWeight: 800, color: '#999', textTransform: 'uppercase', marginBottom: '4px' }}>Questions</div>
-                  <div style={{ fontSize: '1.1rem', fontWeight: 900, color: '#111' }}>{exam.questions?.length || 0}</div>
-                </div>
-              </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        {isLoading ? (
+          [1, 2].map(i => (
+            <div key={i} style={{ height: 100, background: '#F9FAFB', borderRadius: 20 }} className="animate-pulse" />
+          ))
+        ) : filteredExams.length > 0 ? (
+          <AnimatePresence mode="popLayout">
+            {filteredExams.map((exam) => (
+              <ExamRow key={exam._id} exam={exam} />
+            ))}
+          </AnimatePresence>
+        ) : (
+          <div style={{ textAlign: 'center', padding: '6rem 2rem', background: '#F9FAFB', borderRadius: '24px', border: '2px dashed #E5E7EB' }}>
+            <Icon name="shield" size={48} color="#cbd5e1" style={{ marginBottom: '1rem' }} />
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#64748B' }}>No exams found</h3>
+            <p style={{ color: '#94A3B8' }}>{activeTab === 'upcoming' ? 'No scheduled exams at this time.' : 'You haven\'t attempted any exams yet.'}</p>
+          </div>
+        )}
+      </div>
 
-              <Link href={`/dashboard/assessments/exams/${exam._id}`}>
-                <button className="exam-btn">START SECURE SESSION</button>
-              </Link>
-              
-              <p style={{ textAlign: 'center', marginTop: '20px', fontSize: '0.75rem', color: '#aaa', fontWeight: 600 }}>
-                 Note: Tab switching will be monitored and may void the attempt.
-              </p>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div style={{ textAlign: 'center', padding: '5rem 0', background: '#fafafa', borderRadius: 24, border: '2px dashed #eee' }}>
-            <p style={{ color: '#bbb', fontWeight: 600 }}>No exams currently scheduled for your phase.</p>
-        </div>
-      )}
+      <p style={{ marginTop: '3rem', textAlign: 'center', fontSize: '0.8rem', color: '#94A3B8', fontWeight: 600 }}>
+        <Icon name="info" size={14} style={{ marginRight: '6px' }} /> Note: Tab switching will be monitored and may void the attempt. Ensure a stable connection.
+      </p>
     </div>
+  );
+}
+
+function ExamRow({ exam }) {
+  const status = exam.submissionStatus;
+  
+  return (
+    <motion.div 
+      layout
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: 20 }}
+      style={{
+        display: 'flex', alignItems: 'center', gap: '2rem', padding: '1.5rem 2rem',
+        background: 'var(--dashboard-bg)', borderRadius: '20px', border: '1px solid #F1F5F9',
+        boxShadow: '0 4px 6px rgba(0,0,0,0.02)', transition: '0.3s'
+      }}
+    >
+      <div style={{ width: 50, height: 50, background: '#F8FAFC', color: '#7A1F2B', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <Icon name="fileText" size={24} />
+      </div>
+
+      <div style={{ flex: 1 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '4px' }}>
+          <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#111' }}>{exam.title}</h3>
+          <span className={`status-badge ${status === 'Pending' ? 'pending' : 'graded'}`} style={{ fontSize: '0.6rem' }}>
+            {status === 'Pending' ? 'Scheduled' : 'Completed'}
+          </span>
+        </div>
+        <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
+          <span style={{ fontSize: '0.85rem', color: '#64748B', fontWeight: 600 }}>High Stakes Evaluation</span>
+          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', borderLeft: '1.5px solid #F1F5F9', paddingLeft: '1.5rem' }}>
+            <span style={{ fontSize: '0.75rem', color: '#94A3B8', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <Icon name="helpCircle" size={14} /> {exam.questions?.length || 0} Qs
+            </span>
+            <span style={{ fontSize: '0.75rem', color: '#94A3B8', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <Icon name="clock" size={14} /> {exam.timeLimit || 0}m
+            </span>
+          </div>
+          {exam.score !== null && (
+            <span style={{ fontSize: '0.85rem', color: '#22C55E', fontWeight: 800, marginLeft: 'auto' }}>
+              Score: {exam.score}% — PASSED
+            </span>
+          )}
+        </div>
+      </div>
+
+      <Link href={`/dashboard/assessments/exams/${exam._id}`} style={{ textDecoration: 'none' }}>
+        <button className={status === 'Pending' ? 'btn-brand-primary' : 'btn-brand-outline'} style={{ minWidth: '160px', padding: '12px 24px' }}>
+          {status === 'Pending' ? 'ENTER HALL' : 'REVIEW PAPER'}
+        </button>
+      </Link>
+    </motion.div>
   );
 }
 

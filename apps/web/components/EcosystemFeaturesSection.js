@@ -483,7 +483,7 @@ export default function EcosystemFeaturesSection() {
           viewport={{ once: true, margin: '-50px' }}
           transition={{ duration: 0.6, ease: 'easeOut' }}
         >
-          <div className="ecosystem-badge">Our Ecosystem</div>
+          <div className="section-label-premium">Our Ecosystem</div>
           <h2 className="ecosystem-title">
             Everything You Need to <span className="ecosystem-highlight">Succeed</span>
           </h2>

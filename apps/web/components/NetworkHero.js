@@ -209,7 +209,7 @@ export default function NetworkHero() {
             >
               <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
             </svg>
-            Grants & Funding Support
+             Expert Mentors Network
           </div>
           <div className="hero-pill">
             <svg
@@ -225,7 +225,8 @@ export default function NetworkHero() {
               <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
               <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
             </svg>
-            Expert Mentors Network
+           
+            Grants & Funding Support
           </div>
         </div>
 

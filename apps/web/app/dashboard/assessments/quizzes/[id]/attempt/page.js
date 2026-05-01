@@ -100,7 +100,7 @@ export default function QuizAttemptPage({ params }) {
         </div>
       </header>
 
-      <div style={{ background: '#fff', borderRadius: '24px', padding: '3rem', border: '1px solid rgba(0,0,0,0.05)', boxShadow: '0 10px 40px rgba(0,0,0,0.03)' }}>
+      <div style={{ background: 'var(--dashboard-bg)', borderRadius: '24px', padding: '3rem', border: '1px solid rgba(0,0,0,0.05)', boxShadow: '0 10px 40px rgba(0,0,0,0.03)' }}>
         <h3 style={{ fontSize: '1.6rem', fontWeight: 800, color: '#111', marginBottom: '40px', lineHeight: 1.4 }}>{currentQ.text}</h3>
         
         <div style={{ display: 'grid', gap: '16px' }}>
@@ -135,7 +135,7 @@ export default function QuizAttemptPage({ params }) {
       <footer style={{ display: 'flex', justifyContent: 'space-between', marginTop: '40px' }}>
         <button 
           onClick={() => setCurrentIdx(prev => Math.max(0, prev - 1))}
-          style={{ padding: '12px 24px', borderRadius: '12px', border: '1px solid #ddd', background: '#fff', fontWeight: 800, cursor: 'pointer' }}
+          style={{ padding: '12px 24px', borderRadius: '12px', border: '1px solid #ddd', background: 'var(--dashboard-bg)', fontWeight: 800, cursor: 'pointer' }}
           disabled={currentIdx === 0}
         >PREVIOUS</button>
         

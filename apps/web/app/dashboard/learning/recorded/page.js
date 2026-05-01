@@ -1,11 +1,93 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
+import Icon from '@/components/Icon';
+import { motion, AnimatePresence } from 'framer-motion';
+import '@/styles/learning-experience.css';
+
+function RecordedCard({ cls, layout = 'grid' }) {
+  const isList = layout === 'list';
+  const isWatched = cls.progress === 100;
+
+  return (
+    <Link href={`/dashboard/learning/continue?courseId=${cls._id}`} style={{ textDecoration: 'none' }}>
+      <div className={`platform-card-v ${isList ? 'layout-list' : ''}`} style={{
+        height: '100%',
+        display: 'flex',
+        flexDirection: isList ? 'row' : 'column',
+        overflow: 'hidden',
+        background: 'var(--dashboard-bg)',
+        transition: 'all 0.3s ease'
+      }}>
+        {/* Thumbnail */}
+        <div style={{
+          position: 'relative',
+          height: isList ? '180px' : '200px',
+          width: isList ? '280px' : '100%',
+          overflow: 'hidden',
+          flexShrink: 0
+        }}>
+          {cls.thumbnailUrl ? (
+            <img src={cls.thumbnailUrl} alt={cls.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          ) : (
+            <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #7A1F2B, #3d0e16)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Icon name="recorded" size={40} color="rgba(255,255,255,0.2)" />
+            </div>
+          )}
+          <div className="play-btn-overlay" style={{ background: 'rgba(0,0,0,0.3)', position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0, transition: 'opacity 0.2s' }}>
+            <div style={{ width: '50px', height: '50px', background: '#7A1F2B', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+              <Icon name="play" size={20} fill="currentColor" />
+            </div>
+          </div>
+          <div style={{ position: 'absolute', top: '15px', left: '15px', zIndex: 6 }}>
+            <span style={{ background:'rgba(0,0,0,0.7)', color:'#fff', backdropFilter:'blur(4px)', padding:'4px 10px', borderRadius:'6px', fontSize:'0.65rem', fontWeight:800 }}>{cls.category || 'Course'}</span>
+          </div>
+        </div>
+
+        {/* Body */}
+        <div style={{ padding: '1.25rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
+          <h3 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '8px', color: '#111', lineHeight: 1.3 }}>{cls.title}</h3>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1rem' }}>
+            <div style={{ width: 24, height: 24, borderRadius: '50%', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Icon name="user" size={12} color="#94A3B8" />
+            </div>
+            <span style={{ fontSize: '0.8rem', color: '#64748B', fontWeight: 700 }}>{cls.instructorName || 'Founder Mentor'}</span>
+          </div>
+
+          <div style={{ display: 'flex', gap: '12px', marginTop: 'auto', paddingTop: '10px', borderTop: '1px solid #f8fafc' }}>
+            <span style={{ fontSize: '0.75rem', color: '#94A3B8', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <Icon name="play" size={12} color="#cbd5e1" /> {cls.enrolledCount?.toLocaleString() || 0} learners
+            </span>
+            <span style={{ fontSize: '0.75rem', color: '#94A3B8', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <Icon name="clock" size={12} color="#cbd5e1" /> {cls.durationWeeks || 0} weeks
+            </span>
+          </div>
+
+          {cls.progress > 0 && (
+             <div style={{ marginTop: '12px' }}>
+                <div style={{ fontSize: '0.65rem', fontWeight: 800, color: isWatched ? '#10b981' : '#7A1F2B', marginBottom: '4px', textTransform: 'uppercase' }}>
+                   {isWatched ? 'Completed' : `${cls.progress}% Watched`}
+                </div>
+                <div style={{ height: '4px', background: '#f1f5f9', borderRadius: '10px', overflow: 'hidden' }}>
+                  <div style={{ width: `${cls.progress}%`, height: '100%', background: isWatched ? '#10b981' : '#7A1F2B' }} />
+                </div>
+             </div>
+          )}
+        </div>
+      </div>
+    </Link>
+  );
+}
 
 export default function RecordedClassesPage() {
   const [courses, setCourses] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [filter, setFilter] = useState('all');
+  const [layout, setLayout] = useState('grid');
+  const [categoryFilter, setCategoryFilter] = useState('All Categories');
 
   useEffect(() => {
     async function fetchCourses() {
@@ -22,74 +104,120 @@ export default function RecordedClassesPage() {
     fetchCourses();
   }, []);
 
-  return (
-    <div style={{ maxWidth: 1600, margin: '0 auto', padding: '2.5rem 3.5rem 5rem', fontFamily: "'Inter', system-ui, -apple-system, sans-serif", color: '#111' }}>
-      <style dangerouslySetInnerHTML={{ __html: `
-        @keyframes fadeUp { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:translateY(0); } }
-        .da { animation: fadeUp .5s cubic-bezier(0.16,1,0.3,1) both; }
-        
-        .course-card { background:#fff; border-radius:28px; overflow:hidden; border:1px solid rgba(0,0,0,0.05); transition:all .4s cubic-bezier(0.4, 0, 0.2, 1); cursor:pointer; position:relative; }
-        .course-card:hover { transform:translateY(-8px); box-shadow:0 30px 60px -12px rgba(0,0,0,0.12); border-color:rgba(197,151,91,0.3); }
-        
-        .thumb-wrapper { aspect-ratio: 16/10; position:relative; overflow:hidden; background:#f8f8f8; }
-        .course-card:hover .thumb-img { transform: scale(1.08); }
-        .thumb-img { width:100%; height:100%; object-fit:cover; transition:transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
-        
-        .badge-premium { position:absolute; top:20px; left:20px; background:rgba(122,31,43,0.9); color:white; padding:6px 14px; border-radius:10px; font-size:0.65rem; font-weight:900; letter-spacing:0.1em; text-transform:uppercase; z-index:2; backdrop-filter:blur(8px); border: 1px solid rgba(255,255,255,0.1); }
-        .meta-badge { background:rgba(197,151,91,0.06); color:#C5975B; padding:6px 12px; border-radius:8px; font-size:0.7rem; font-weight:800; letter-spacing:0.02em; text-transform: uppercase; }
-        
-        .accent-bar { width:40px; height:4px; background:#C5975B; border-radius:2px; margin-bottom:20px; }
-        .course-card::after { content:''; position:absolute; bottom:0; left:0; width:100%; height:4px; background:#7A1F2B; transform: scaleX(0); transition: transform 0.4s; transform-origin: left; }
-        .course-card:hover::after { transform: scaleX(1); }
-      `}} />
+  const categories = useMemo(() => {
+    return ['All Categories', ...Array.from(new Set(courses.map(c => c.category).filter(Boolean)))];
+  }, [courses]);
 
-      <header style={{ marginBottom: '4rem' }}>
-        <div className="da da1 accent-bar" />
-        <h1 className="da da1" style={{ fontSize: '2.8rem', fontWeight: 900, color: '#111', letterSpacing: '-0.04em', marginBottom: '12px' }}>Knowledge Vault</h1>
-        <p className="da da1" style={{ fontSize: '1.2rem', color: '#666', fontWeight: 500, maxWidth: '600px', lineHeight: 1.6 }}>Accelerate your venture with high-fidelity, on-demand curriculum from the world's most successful startups.</p>
+  const filtered = useMemo(() => {
+    return courses.filter(c => {
+      const q = search.toLowerCase();
+      const matchesSearch = !q || c.title.toLowerCase().includes(q) || (c.category && c.category.toLowerCase().includes(q));
+      const matchesCategory = categoryFilter === 'All Categories' || c.category === categoryFilter;
+      const matchesTab = filter === 'all' || (filter === 'watched' && c.progress === 100) || (filter === 'in-progress' && c.progress > 0 && c.progress < 100);
+      
+      return matchesSearch && matchesCategory && matchesTab;
+    });
+  }, [courses, search, categoryFilter, filter]);
+
+  return (
+    <div className="platform-page" style={{ padding: '2.5rem' }}>
+      <header style={{ display: 'flex', flexWrap: 'wrap', gap: '2rem', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2.5rem' }}>
+        <div>
+          <h1 style={{ fontSize: '2.5rem', fontWeight: 900, color: '#111', marginBottom: '0.5rem', letterSpacing: '-0.03em' }}>Knowledge Vault</h1>
+          <p style={{ color: '#64748B', fontSize: '1.1rem', fontWeight: 500 }}>Access high-fidelity curriculum from the world's most successful founders.</p>
+        </div>
+
+        <div style={{ position: 'relative', width: '400px' }}>
+          <input
+            type="text"
+            placeholder="Search by topic or title..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{ width: '100%', border: '1.5px solid #f1f5f9', padding: '12px 16px 12px 42px', borderRadius: '12px', fontSize: '0.95rem', outline: 'none', background: 'var(--dashboard-bg)' }}
+          />
+          <div style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', opacity: 0.4 }}>
+            <Icon name="search" size={18} />
+          </div>
+        </div>
       </header>
 
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center', marginBottom: '2rem', padding: '0.75rem', background: 'var(--dashboard-bg)', borderRadius: '16px', border: '1px solid #f1f5f9' }}>
+        <div style={{ display: 'flex', gap: '6px' }}>
+          {['all', 'in-progress', 'watched'].map(f => (
+            <button
+               key={f}
+               onClick={() => setFilter(f)}
+               style={{ 
+                  padding: '10px 20px', 
+                  borderRadius: '10px', 
+                  border: 'none', 
+                  background: filter === f ? '#7A1F2B' : 'transparent',
+                  color: filter === f ? '#fff' : '#64748B',
+                  fontWeight: 700,
+                  fontSize: '0.9rem',
+                  cursor: 'pointer',
+                  textTransform: 'capitalize'
+               }}
+            >
+              {f.replace('-', ' ')}
+            </button>
+          ))}
+        </div>
+
+        <select 
+          value={categoryFilter} 
+          onChange={(e) => setCategoryFilter(e.target.value)}
+          style={{ padding: '10px 16px', borderRadius: '10px', border: '1.5px solid #f1f5f9', background: 'var(--dashboard-bg)', fontSize: '0.9rem', fontWeight: 700, color: '#111', outline: 'none', cursor: 'pointer' }}
+        >
+           {categories.map(s => <option key={s} value={s}>{s}</option>)}
+        </select>
+
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px', background: '#f8fafc', padding: '4px', borderRadius: '12px' }}>
+          <button
+            onClick={() => setLayout('grid')}
+            style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: layout === 'grid' ? '#fff' : 'transparent', boxShadow: layout === 'grid' ? '0 2px 8px rgba(0,0,0,0.05)' : 'none', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', fontWeight: 800, color: layout === 'grid' ? '#7A1F2B' : '#94A3B8' }}
+          >
+            <Icon name="dashboard" size={14} /> GRID
+          </button>
+          <button
+            onClick={() => setLayout('list')}
+            style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: layout === 'list' ? '#fff' : 'transparent', boxShadow: layout === 'list' ? '0 2px 8px rgba(0,0,0,0.05)' : 'none', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', fontWeight: 800, color: layout === 'list' ? '#7A1F2B' : '#94A3B8' }}
+          >
+            <Icon name="recorded" size={14} /> LIST
+          </button>
+        </div>
+      </div>
+
       {isLoading ? (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '32px' }}>
-          {[1, 2, 3, 4, 5, 6].map(i => (
-            <div key={i} style={{ height: 320, background: '#fafafa', borderRadius: 28 }} className="animate-pulse" />
+        <div className="platform-grid">
+          {[1, 2, 3, 4].map(i => (
+            <div key={i} style={{ height: 350, background: '#f8fafc', borderRadius: 20, animation: 'pulse 2s infinite' }} />
           ))}
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '40px' }}>
-          {courses.map((course, idx) => (
-            <Link key={course._id} href={`/learn/${course._id}`} style={{ textDecoration: 'none' }}>
-              <div className={`da da${idx+2} course-card`}>
-                <div className="thumb-wrapper">
-                  <div className="badge-premium">{course.level || 'Foundational'}</div>
-                  {course.thumbnailUrl ? (
-                    <img src={course.thumbnailUrl} alt={course.title} className="thumb-img" />
-                  ) : (
-                    <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', background:'linear-gradient(135deg, #7A1F2B, #3d0e16)' }}>
-                       <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="1.5">
-                         <circle cx="12" cy="12" r="10" />
-                         <path d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" fill="rgba(255,255,255,0.2)" />
-                       </svg>
-                    </div>
-                  )}
-                </div>
-                
-                <div style={{ padding:'28px' }}>
-                   <div style={{ display:'flex', gap:'10px', marginBottom:'20px' }}>
-                      <span className="meta-badge">{course.category || 'Incubation'}</span>
-                      <span style={{ fontSize: '0.7rem', fontWeight: 900, color: '#aaa', alignSelf: 'center' }}>•</span>
-                      <span style={{ fontSize: '0.7rem', fontWeight: 900, color: '#666', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{course.totalModules || 0} Modules</span>
-                   </div>
-                   <h3 style={{ fontSize:'1.4rem', fontWeight:900, color:'#111', lineHeight:1.3, marginBottom:'16px', letterSpacing: '-0.02em' }}>{course.title}</h3>
-                   <div style={{ fontSize:'0.85rem', color:'#999', fontWeight:600, display:'flex', alignItems:'center', gap:'8px' }}>
-                      <span style={{ color: '#7A1F2B' }}>Founder Track</span>
-                      <span style={{ color:'#C5975B', opacity: 0.5 }}>●</span>
-                      <span>Level {course.levelRank || 1}</span>
-                   </div>
-                </div>
-              </div>
-            </Link>
-          ))}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={filter + layout + search + categoryFilter}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className={layout === 'grid' ? 'platform-grid' : ''}
+            style={{ display: layout === 'list' ? 'flex' : 'grid', flexDirection: 'column', gap: '1.5rem' }}
+          >
+            {filtered.map((cls) => (
+              <motion.div key={cls._id} layout>
+                <RecordedCard cls={cls} layout={layout} />
+              </motion.div>
+            ))}
+          </motion.div>
+        </AnimatePresence>
+      )}
+
+      {!isLoading && filtered.length === 0 && (
+        <div style={{ textAlign: 'center', padding: '6rem 2rem', background: '#f8fafc', borderRadius: 24, border: '2px dashed #e2e8f0' }}>
+           <Icon name="search" size={48} color="#cbd5e1" />
+           <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#64748B', marginTop: '1.5rem' }}>No recordings found</h2>
+           <p style={{ color: '#94A3B8' }}>Try adjusting your filters or search query.</p>
         </div>
       )}
     </div>

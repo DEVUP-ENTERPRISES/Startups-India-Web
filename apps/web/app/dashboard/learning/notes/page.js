@@ -1,11 +1,19 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import Icon from '@/components/Icon';
+import { motion, AnimatePresence } from 'framer-motion';
+import '@/styles/learning-experience.css';
 
 export default function NotesPage() {
+  const [activeTab, setActiveTab] = useState('notes');
   const [notes, setNotes] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [search, setSearch] = useState('');
+  const [showForm, setShowForm] = useState(false);
+  const [currentNote, setCurrentNote] = useState({ title: '', content: '', class: '' });
+  const [editingId, setEditingId] = useState(null);
+  const editorRef = useRef(null);
 
   useEffect(() => {
     async function fetchNotes() {
@@ -22,8 +30,6 @@ export default function NotesPage() {
     fetchNotes();
   }, []);
 
-  const filteredNotes = notes.filter(n => n.content.toLowerCase().includes(searchTerm.toLowerCase()));
-
   const deleteNote = async (id) => {
     if (!confirm('Archive this startup insight?')) return;
     try {
@@ -35,85 +41,183 @@ export default function NotesPage() {
     }
   };
 
-  return (
-    <div style={{ maxWidth: 1600, margin: '0 auto', padding: '2.5rem 3.5rem 5rem', fontFamily: "'Inter', system-ui, -apple-system, sans-serif", color: '#111' }}>
-      <style dangerouslySetInnerHTML={{ __html: `
-        @keyframes fadeUp { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:translateY(0); } }
-        .da { animation: fadeUp .5s cubic-bezier(0.16,1,0.3,1) both; }
-        
-        .search-container { position:relative; margin-bottom:48px; }
-        .search-input { width:100%; padding:22px 24px 22px 64px; border-radius:20px; border:2px solid #f3f4f6; background:#fff; outline:none; font-size:1.1rem; font-weight:500; transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .search-input:focus { border-color:#C5975B; box-shadow:0 12px 40px rgba(197,151,91,0.1); transform: translateY(-2px); }
-        .search-icon { position:absolute; left:26px; top:50%; transform:translateY(-50%); color:#C5975B; }
-        
-        .note-card { background:#fff; border-radius:28px; padding:36px; border:1px solid rgba(0,0,0,0.05); box-shadow:0 10px 30px rgba(0,0,0,0.02); transition:all 0.4s cubic-bezier(0.4, 0, 0.2, 1); position:relative; margin-bottom:28px; }
-        .note-card:hover { transform:translateX(10px); border-color:rgba(122,31,43,0.1); box-shadow:0 20px 50px rgba(0,0,0,0.04); }
-        
-        .timestamp-badge { background:rgba(122,31,43,0.08); color:#7A1F2B; padding:6px 14px; border-radius:10px; font-size:0.75rem; font-weight:900; font-family:'Inter', sans-serif; letter-spacing: 0.05em; }
-        .insight-tag { color:#C5975B; font-size:0.7rem; font-weight:800; letter-spacing:0.1em; text-transform:uppercase; }
-        
-        .delete-btn { background:none; border:none; color:#e5e7eb; cursor:pointer; padding:10px; border-radius:12px; transition:all 0.3s; }
-        .delete-btn:hover { color:#ef4444; background: #fee2e2; }
-        .accent-bar { width:40px; height:4px; background:#C5975B; border-radius:2px; margin-bottom:20px; }
-      `}} />
+  const handleSaveNote = async () => {
+    const content = editorRef.current ? editorRef.current.innerHTML : currentNote.content;
+    if (!content || content === '<br>') return;
+    
+    try {
+      const method = editingId ? 'PATCH' : 'POST';
+      const url = editingId ? `/api/v1/learning/notes/${editingId}` : '/api/v1/learning/notes';
+      
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content, title: currentNote.title })
+      });
+      const json = await res.json();
+      
+      if (json.success) {
+        if (editingId) {
+          setNotes(notes.map(n => n._id === editingId ? json.data : n));
+        } else {
+          setNotes([json.data, ...notes]);
+        }
+        setShowForm(false);
+        setCurrentNote({ title: '', content: '', class: '' });
+        setEditingId(null);
+      }
+    } catch (err) {
+      alert('Failed to save note.');
+    }
+  };
 
-      <header style={{ marginBottom: '4rem' }}>
-        <div className="da da1 accent-bar" />
-        <h1 className="da da1" style={{ fontSize: '2.8rem', fontWeight: 900, color: '#111', letterSpacing: '-0.04em', marginBottom: '12px' }}>Insight Repository</h1>
-        <p className="da da1" style={{ fontSize: '1.2rem', color: '#666', fontWeight: 500, maxWidth: '600px', lineHeight: 1.6 }}>Your curated collection of timestamped strategic breakthroughs and high-signal observations.</p>
+  const filteredNotes = useMemo(() => {
+    return notes.filter(n => 
+      n.content.toLowerCase().includes(search.toLowerCase()) || 
+      (n.title && n.title.toLowerCase().includes(search.toLowerCase()))
+    );
+  }, [notes, search]);
+
+  return (
+    <div className="platform-page" style={{ padding: '2.5rem' }}>
+      <header style={{ display: 'flex', flexWrap: 'wrap', gap: '2rem', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '3rem' }}>
+        <div>
+          <h1 style={{ fontSize: '2.5rem', fontWeight: 900, color: '#111', marginBottom: '0.5rem', letterSpacing: '-0.03em' }}>Insight Repository</h1>
+          <p style={{ color: '#64748B', fontSize: '1.1rem', fontWeight: 500 }}>Your private hub for high-signal observations and strategic breakthroughs.</p>
+        </div>
+
+        <div style={{ position: 'relative', width: '350px' }}>
+          <input
+            type="text"
+            placeholder="Query your insights..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{ width: '100%', border: '1.5px solid #f1f5f9', padding: '12px 16px 12px 42px', borderRadius: '12px', fontSize: '0.95rem', outline: 'none', background: 'var(--dashboard-bg)' }}
+          />
+          <div style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', opacity: 0.4 }}>
+            <Icon name="search" size={18} />
+          </div>
+        </div>
       </header>
 
-      <div className="da da2 search-container">
-        <svg className="search-icon" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-          <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-        </svg>
-        <input 
-          className="search-input"
-          type="text" 
-          placeholder="Query your intellectual property assets..." 
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #f1f5f9', marginBottom: '2.5rem' }}>
+        <div style={{ display: 'flex', gap: '2.5rem' }}>
+          {['notes', 'bookmarks'].map(tab => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              style={{
+                padding: '12px 0',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: '1rem',
+                fontWeight: activeTab === tab ? 800 : 600,
+                color: activeTab === tab ? '#111' : '#94A3B8',
+                borderBottom: activeTab === tab ? '3px solid #7A1F2B' : '3px solid transparent',
+                textTransform: 'capitalize',
+                transition: '0.2s'
+              }}
+            >
+              My {tab}
+            </button>
+          ))}
+        </div>
+
+        {activeTab === 'notes' && (
+          <button
+            onClick={() => { setShowForm(!showForm); setEditingId(null); setCurrentNote({ title: '', content: '', class: '' }); }}
+            style={{ background: '#111', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '10px', fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}
+          >
+            <Icon name="plus" size={16} /> New Insight
+          </button>
+        )}
       </div>
 
-      {isLoading ? (
-        <div style={{ display: 'grid', gap: '24px' }}>
-          {[1, 2, 3].map(i => (
-            <div key={i} style={{ height: 160, background: '#fafafa', borderRadius: 28 }} className="animate-pulse" />
-          ))}
-        </div>
-      ) : filteredNotes.length > 0 ? (
-        <div style={{ display: 'grid' }}>
-          {filteredNotes.map((note, idx) => (
-            <div key={note._id} className={`da da${idx+3} note-card`}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                  <span className="timestamp-badge">
-                    {Math.floor(note.timestamp / 60)}:{(note.timestamp % 60).toString().padStart(2, '0')}
-                  </span>
-                  <span className="insight-tag">Strategic Intellectual Asset</span>
+      <AnimatePresence mode="wait">
+        {activeTab === 'notes' ? (
+          <motion.div key="notes" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            {showForm && (
+              <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} style={{ overflow: 'hidden', marginBottom: '2.5rem' }}>
+                <div style={{ background: 'var(--dashboard-bg)', padding: '2rem', borderRadius: '20px', border: '1px solid #f1f5f9', boxShadow: '0 10px 30px rgba(0,0,0,0.02)' }}>
+                   <div style={{ display:'flex', flexDirection:'column', gap:'1.5rem' }}>
+                      <input 
+                        type="text" 
+                        placeholder="Insight Title (e.g. Unit Economics)" 
+                        value={currentNote.title}
+                        onChange={e => setCurrentNote({...currentNote, title: e.target.value})}
+                        style={{ width:'100%', border:'1px solid #f1f5f9', padding:'12px 16px', borderRadius:'10px', fontSize:'1rem', fontWeight:600, outline:'none' }}
+                      />
+                      <div style={{ border:'1px solid #f1f5f9', borderRadius:'10px', overflow:'hidden' }}>
+                        <div 
+                          ref={editorRef}
+                          contentEditable
+                          style={{ minHeight:'120px', padding:'16px', outline:'none', fontSize:'1rem', color:'#333', lineHeight:1.6 }}
+                          dangerouslySetInnerHTML={{ __html: currentNote.content }}
+                        />
+                      </div>
+                      <div style={{ display:'flex', gap:'12px' }}>
+                        <button onClick={() => setShowForm(false)} style={{ padding:'10px 20px', borderRadius:'10px', border:'1px solid #f1f5f9', background:'var(--dashboard-bg)', fontWeight:700, cursor:'pointer' }}>Cancel</button>
+                        <button onClick={handleSaveNote} style={{ padding:'10px 24px', borderRadius:'10px', border:'none', background:'#7A1F2B', color:'#fff', fontWeight:700, cursor:'pointer' }}>Save Insight</button>
+                      </div>
+                   </div>
                 </div>
-                <button 
-                  onClick={() => deleteNote(note._id)}
-                  className="delete-btn"
-                  title="Archive Insight"
-                >
-                  <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                    <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                </button>
-              </div>
-              <p style={{ fontSize: '1.2rem', color: '#333', lineHeight: 1.7, margin: 0, fontWeight: 500, letterSpacing: '-0.01em' }}>
-                {note.content}
-              </p>
+              </motion.div>
+            )}
+
+            <div className="platform-grid">
+              {filteredNotes.map((note) => (
+                <div key={note._id} className="platform-card-v" style={{ padding: '2rem', display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <span style={{ background: 'rgba(122, 31, 43, 0.08)', color: '#7A1F2B', padding: '4px 10px', borderRadius: '8px', fontSize: '0.7rem', fontWeight: 800 }}>
+                        {note.timestamp ? `${Math.floor(note.timestamp / 60)}:${(note.timestamp % 60).toString().padStart(2, '0')}` : 'GENERAL'}
+                      </span>
+                      <span style={{ color: '#94A3B8', fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase' }}>Strategic Insight</span>
+                    </div>
+                    <button onClick={() => deleteNote(note._id)} style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.3 }} title="Archive">
+                      <Icon name="trash" size={16} />
+                    </button>
+                  </div>
+                  <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#111', marginBottom: '1rem' }}>{note.title || 'Untitled Insight'}</h3>
+                  <div style={{ fontSize: '0.95rem', color: '#444', lineHeight: 1.7, flex: 1, marginBottom: '1.5rem' }} dangerouslySetInnerHTML={{ __html: note.content }} />
+                  <div style={{ paddingTop: '1rem', borderTop: '1px solid #f8fafc', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                     <span style={{ fontSize: '0.8rem', color: '#94A3B8', fontWeight: 600 }}>{new Date(note.createdAt).toLocaleDateString()}</span>
+                     <button onClick={() => { setEditingId(note._id); setCurrentNote(note); setShowForm(true); }} style={{ background:'none', border:'none', color:'#7A1F2B', fontWeight:800, fontSize:'0.85rem', cursor:'pointer' }}>Edit</button>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      ) : (
-        <div style={{ textAlign: 'center', padding: '6rem 0', background:'#fdfdfd', borderRadius:28, border:'2px dashed #f0f0f0' }}>
-           <p style={{ color: '#aaa', fontSize: '1.1rem', fontWeight:600 }}>No matching insights found in repository.</p>
-        </div>
-      )}
+            
+            {!isLoading && filteredNotes.length === 0 && (
+              <div style={{ textAlign: 'center', padding: '6rem 2rem', background: '#f8fafc', borderRadius: 24, border: '2px dashed #e2e8f0' }}>
+                 <Icon name="fileText" size={48} color="#cbd5e1" />
+                 <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#64748B', marginTop: '1.5rem' }}>No insights found</h2>
+                 <p style={{ color: '#94A3B8' }}>Start capturing strategic observations from your learning journey.</p>
+              </div>
+            )}
+          </motion.div>
+        ) : (
+          <motion.div key="bookmarks" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {notes.filter(n => n.timestamp).map((b) => (
+                  <div key={b._id} style={{ padding: '1.5rem 2rem', borderRadius: '16px', background: 'var(--dashboard-bg)', border: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+                       <div style={{ width: 44, height: 44, borderRadius: '12px', background: '#fff5f5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <Icon name="recorded" size={20} color="#7A1F2B" />
+                       </div>
+                       <div>
+                          <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 800, color: '#111' }}>{b.title || 'Timestamped Bookmark'}</h4>
+                          <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#94A3B8' }}>Timestamp: {Math.floor(b.timestamp / 60)}:{(b.timestamp % 60).toString().padStart(2, '0')}</span>
+                       </div>
+                    </div>
+                    <button style={{ background: 'var(--dashboard-bg)', border: '1px solid #f1f5f9', padding: '8px 20px', borderRadius: '10px', fontSize: '0.85rem', fontWeight: 800, color: '#111', cursor: 'pointer' }}>View</button>
+                  </div>
+                ))}
+             </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

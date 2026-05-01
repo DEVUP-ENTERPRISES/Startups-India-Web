@@ -223,74 +223,74 @@ export default function Footer() {
               </div>
             </motion.div>
 
-            {/* Links Sections */}
-            <motion.div
-              className="footer-links-column"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-            >
-              <h3 className="footer-column-title">Explore</h3>
-              <ul className="footer-links-list">
-                {footerLinks.explore.map((link, index) => (
-                  <li key={index}>
-                    <Link href={link.href}>{link.name}</Link>
-                  </li>
-                ))}
-              </ul>
-            </motion.div>
+            {/* Links Sections (Direct children of footer-grid) */}
+              <motion.div
+                className="footer-links-column"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+              >
+                <h3 className="footer-column-title">Explore</h3>
+                <ul className="footer-links-list">
+                  {footerLinks.explore.map((link, index) => (
+                    <li key={index}>
+                      <Link href={link.href}>{link.name}</Link>
+                    </li>
+                  ))}
+                </ul>
+              </motion.div>
 
-            <motion.div
-              className="footer-links-column"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-            >
-              <h3 className="footer-column-title">Community</h3>
-              <ul className="footer-links-list">
-                {footerLinks.community.map((link, index) => (
-                  <li key={index}>
-                    <Link href={link.href}>{link.name}</Link>
-                  </li>
-                ))}
-              </ul>
-            </motion.div>
+              <motion.div
+                className="footer-links-column"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+              >
+                <h3 className="footer-column-title">Community</h3>
+                <ul className="footer-links-list">
+                  {footerLinks.community.map((link, index) => (
+                    <li key={index}>
+                      <Link href={link.href}>{link.name}</Link>
+                    </li>
+                  ))}
+                </ul>
+              </motion.div>
 
-            <motion.div
-              className="footer-links-column"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-            >
-              <h3 className="footer-column-title">Resources</h3>
-              <ul className="footer-links-list">
-                {footerLinks.resources.map((link, index) => (
-                  <li key={index}>
-                    <Link href={link.href}>{link.name}</Link>
-                  </li>
-                ))}
-              </ul>
-            </motion.div>
+              <motion.div
+                className="footer-links-column"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+              >
+                <h3 className="footer-column-title">Resources</h3>
+                <ul className="footer-links-list">
+                  {footerLinks.resources.map((link, index) => (
+                    <li key={index}>
+                      <Link href={link.href}>{link.name}</Link>
+                    </li>
+                  ))}
+                </ul>
+              </motion.div>
 
-            <motion.div
-              className="footer-links-column"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.4 }}
-            >
-              <h3 className="footer-column-title">Company</h3>
-              <ul className="footer-links-list">
-                {footerLinks.company.map((link, index) => (
-                  <li key={index}>
-                    <Link href={link.href}>{link.name}</Link>
-                  </li>
-                ))}
-              </ul>
-            </motion.div>
+              <motion.div
+                className="footer-links-column"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.4 }}
+              >
+                <h3 className="footer-column-title">Company</h3>
+                <ul className="footer-links-list">
+                  {footerLinks.company.map((link, index) => (
+                    <li key={index}>
+                      <Link href={link.href}>{link.name}</Link>
+                    </li>
+                  ))}
+                </ul>
+              </motion.div>
           </div>
         </div>
       </div>

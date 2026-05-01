@@ -1479,8 +1479,8 @@ export default function CourseLearnPage() {
     .module-item { transition: all 0.3s ease; }
     .module-item:hover:not(.locked) { background: #fdfaf7 !important; }
     
-    .video-container { position: relative; border-radius: 24px; overflow: hidden; background: #000; box-shadow: 0 20px 50px rgba(0,0,0,0.15); border: 1px solid rgba(197,151,91,0.2); }
-    .premium-card { background: #fff; border-radius: 24px; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 10px 30px rgba(0,0,0,0.02); }
+    .video-container { position: relative; border-radius: 24px; overflow: hidden; background: #000; box-shadow: 0 20px 50px rgba(0,0,0,0.15); border: 1px solid rgba(122,31,43,0.1); }
+    .premium-card { background: #fff; border-radius: 24px; border: 1px solid #f0f0f0; box-shadow: 0 10px 30px rgba(0,0,0,0.02); }
     
     .quiz-opt { transition: all 0.2s; cursor: pointer; border: 1px solid #f0f0f0; border-radius: 16px; padding: 16px 20px; background: #fff; }
     .quiz-opt:hover { border-color: #C5975B; background: rgba(197,151,91,0.04); }
@@ -1499,7 +1499,7 @@ export default function CourseLearnPage() {
       <div
         style={{
           minHeight: '100vh',
-          background: '#faf8f5',
+          background: '#ffffff',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -1541,7 +1541,7 @@ export default function CourseLearnPage() {
       <div
         style={{
           minHeight: '100vh',
-          background: '#faf8f5',
+          background: '#ffffff',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -1603,7 +1603,7 @@ export default function CourseLearnPage() {
       <div
         style={{
           minHeight: '100vh',
-          background: '#faf8f5',
+          background: '#ffffff',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -2081,7 +2081,7 @@ export default function CourseLearnPage() {
       style={{
         display: 'flex',
         minHeight: '100vh',
-        background: '#faf8f5',
+        background: '#ffffff',
         fontFamily: "'Inter',system-ui,sans-serif",
       }}
     >

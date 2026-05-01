@@ -1,0 +1,594 @@
+/* ============================================================
+   DASHBOARD RESPONSIVE V2 & THEME SYNC
+   Global responsive overrides and theme consistency
+   ============================================================ */
+
+/* 0. Global Theme Overrides */
+.platform-page {
+  background: #ffffff !important;
+  min-height: 100vh !important;
+  font-family: 'Poppins', var(--font-primary) !important;
+  color: var(--color-gray-900, #111827) !important;
+}
+
+.platform-page-title,
+.page-standard-title {
+  color: var(--color-brand-maroon, #7A1F2B) !important;
+  font-family: 'Poppins', sans-serif !important;
+}
+
+.platform-page-subtitle,
+.page-standard-subtitle {
+  color: var(--color-gray-500, #64748b) !important;
+  font-family: 'Poppins', sans-serif !important;
+}
+
+
+/* 1. Base Layout & Content Scaling */
+@media (max-width: 1060px) {
+  .platform-page {
+    padding: 1.5rem !important;
+  }
+  
+  .platform-page-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 1.5rem !important;
+    margin-bottom: 2rem !important;
+  }
+  
+  .platform-page-title {
+    font-size: 2rem !important;
+  }
+  
+  .platform-page-subtitle {
+    font-size: 1rem !important;
+  }
+}
+
+/* 2. Grid & Column Systems */
+@media (max-width: 1024px) {
+  /* Generic grid stacker */
+  [style*="display: grid"][style*="grid-template-columns"] {
+    grid-template-columns: 1fr !important;
+    gap: 1.5rem !important;
+  }
+  
+  /* Specific Analytics Grid */
+  .analytics-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1.5rem !important;
+  }
+  
+  .analytics-grid > .col-8,
+  .analytics-grid > .col-4,
+  .analytics-grid > .col-6 {
+    grid-column: span 12 !important;
+  }
+  
+  /* Results/Assessments Grid */
+  .assessments-results-grid,
+  [style*="grid-template-columns: repeat(3, 1fr)"],
+  [style*="grid-template-columns: repeat(auto-fill, minmax(450px, 1fr))"] {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* 3. Card & Inner Component Adjustments */
+@media (max-width: 768px) {
+  /* Padding reductions for cards */
+  .glass-card-v2,
+  .settings-card,
+  .platform-card-v,
+  [style*="padding: 4rem"],
+  [style*="padding: 3.5rem"],
+  [style*="padding: 3rem"] {
+    padding: 1.5rem !important;
+  }
+  
+  /* Flex containers that should stack */
+  .flex-stack-mobile,
+  [style*="display: flex"][style*="gap: 4rem"],
+  [style*="display: flex"][style*="gap: 5rem"],
+  [style*="display: flex"][style*="gap: 3.5rem"] {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 1.5rem !important;
+  }
+  
+  /* Circle Charts / Progress Bars */
+  [style*="width: 260px"][style*="height: 260px"] {
+    width: 200px !important;
+    height: 200px !important;
+    margin: 0 auto;
+  }
+  
+  [style*="width: 260px"] svg {
+    width: 200px !important;
+    height: 200px !important;
+  }
+  
+  /* Bar Charts (Horizontal scrolling on small screens if too many bars) */
+  .bar-chart-container {
+    overflow-x: auto;
+    padding-bottom: 1rem;
+  }
+  
+  /* Form groups */
+  .input-group-row,
+  [style*="display: grid"][style*="grid-template-columns: 1fr 2fr"],
+  [style*="display: grid"][style*="grid-template-columns: 1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+  
+  /* Hide heavy decorative elements on mobile */
+  .mobile-hide {
+    display: none !important;
+  }
+}
+
+/* 4. Special Page Overrides */
+
+/* Learning Time Page Specifics */
+@media (max-width: 768px) {
+  .weekly-velocity-chart {
+    height: auto !important;
+    overflow-x: auto !important;
+    padding-bottom: 1rem !important;
+  }
+  
+  .weekly-velocity-chart > div {
+    min-width: 40px !important;
+  }
+  
+  [style*="grid-template-columns: 1.2fr 1fr"] {
+    grid-template-columns: 1fr !important;
+    gap: 2rem !important;
+  }
+}
+
+/* Result Card Responsive */
+@media (max-width: 480px) {
+  [style*="display: flex"][style*="gap: 2rem"] {
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center;
+  }
+  
+  .result-card-header {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+}
+
+/* 5. Utility Classes for Fluidity */
+.responsive-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--card-gap, 1.5rem);
+}
+
+.responsive-flex {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+@media (max-width: 640px) {
+  .responsive-flex {
+    flex-direction: column;
+  }
+}
+
+/* ============================================================
+   SECTION 6: Platform Page Components (Payments, Leaderboard, etc.)
+   ============================================================ */
+
+/* Platform stats grid — responsive 4→2→1 columns */
+.platform-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.platform-stat-card {
+  border-radius: 16px;
+  padding: 1.25rem;
+  border: 1.5px solid;
+  transition: box-shadow 0.2s ease;
+}
+
+.platform-stat-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #64748b;
+  margin-bottom: 0.5rem;
+}
+
+.platform-stat-value {
+  font-size: 1.6rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+/* Payments hero header */
+.payments-hero-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.payments-hero-header .header-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.header-title-main {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--color-brand-maroon, #7A1F2B);
+  margin: 0 0 0.4rem;
+  line-height: 1.2;
+}
+
+.header-subtitle-main {
+  font-size: 0.95rem;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Secondary button that goes full-width on mobile */
+.settings-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 10px;
+  border: 1.5px solid #e5e7eb;
+  background: #fff;
+  color: #374151;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.settings-btn-secondary:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+}
+
+/* Tables — horizontal scroll wrapper */
+.table-scroll-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+.table-scroll-wrapper table {
+  min-width: 600px;
+  width: 100%;
+}
+
+/* Settings sections */
+.settings-section-grid {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+.settings-field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+/* Filter tabs scrollable */
+.filter-tabs-scroll {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 4px;
+  background: #f9fafb;
+  border-radius: 10px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.filter-tabs-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.filter-tabs-scroll .filter-tab {
+  flex-shrink: 0;
+}
+
+/* Quiz / Assessment card grids */
+.quiz-grid,
+.assessment-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.25rem;
+}
+
+/* Community page grids */
+.community-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
+/* Achievement badges grid */
+.badges-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1.25rem;
+}
+
+/* Leaderboard table row */
+.leaderboard-row {
+  display: grid;
+  grid-template-columns: 48px 1fr auto;
+  align-items: center;
+  gap: 1rem;
+  padding: 12px 16px;
+  border-radius: 12px;
+  transition: background 0.15s;
+}
+
+/* ============================================================
+   SECTION 7: Tablet Breakpoint (max-width: 1024px)
+   ============================================================ */
+@media (max-width: 1024px) {
+  .platform-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .settings-section-grid {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  .quiz-grid,
+  .assessment-grid {
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  }
+}
+
+/* ============================================================
+   SECTION 8: Mobile Breakpoint (max-width: 768px)
+   ============================================================ */
+@media (max-width: 768px) {
+  /* Platform stats → 2 columns on mobile */
+  .platform-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+
+  /* Hero header stacks vertically */
+  .payments-hero-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .header-title-main {
+    font-size: 1.6rem;
+  }
+
+  .header-subtitle-main {
+    font-size: 0.875rem;
+  }
+
+  /* Full-width button on mobile */
+  .mobile-full-width {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
+  /* Settings field rows stack */
+  .settings-field-row {
+    grid-template-columns: 1fr;
+  }
+
+  /* Platform page padding */
+  .platform-page {
+    padding: 1.25rem 1rem !important;
+  }
+
+  .platform-page-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 1rem !important;
+  }
+
+  .platform-page-title {
+    font-size: 1.75rem !important;
+  }
+
+  /* All tables get scrollable on mobile */
+  table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+    white-space: nowrap;
+  }
+
+  /* Exception: tables inside explicit scroll wrappers */
+  .table-scroll-wrapper table {
+    display: table;
+    white-space: normal;
+  }
+
+  /* Quiz / Assessment grids */
+  .quiz-grid,
+  .assessment-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Community grids */
+  .community-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Badges → 3 columns on mobile */
+  .badges-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  /* Page-level section padding */
+  .page-section {
+    padding: 1.25rem 1rem;
+  }
+}
+
+/* ============================================================
+   SECTION 9: Small Mobile (max-width: 480px)
+   ============================================================ */
+@media (max-width: 480px) {
+  /* Platform stats → 1 column on very small screens */
+  .platform-stats-grid {
+    grid-template-columns: 1fr;
+    gap: 0.625rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .platform-stat-card {
+    padding: 1rem;
+    border-radius: 12px;
+  }
+
+  .platform-stat-value {
+    font-size: 1.3rem;
+  }
+
+  .header-title-main {
+    font-size: 1.375rem;
+  }
+
+  /* Settings card padding */
+  .settings-card {
+    padding: 1rem !important;
+    border-radius: 16px !important;
+  }
+
+  /* Badges → 2 columns */
+  .badges-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+
+  /* Leaderboard row more compact */
+  .leaderboard-row {
+    padding: 10px 12px;
+    gap: 0.75rem;
+  }
+
+  /* Platform page */
+  .platform-page {
+    padding: 1rem 0.75rem !important;
+  }
+
+  .platform-page-title {
+    font-size: 1.5rem !important;
+  }
+
+  /* Ensure all clickable elements meet 44px minimum tap target */
+  button,
+  a[role="button"],
+  .nav-item,
+  .bottom-action,
+  .filter-tab,
+  .category-filter-btn,
+  .category-btn {
+    min-height: 44px;
+  }
+}
+
+/* ============================================================
+   SECTION 10: Extra Small (max-width: 360px)
+   ============================================================ */
+@media (max-width: 360px) {
+  .platform-stats-grid {
+    gap: 0.5rem;
+  }
+
+  .platform-stat-card {
+    padding: 0.875rem;
+  }
+
+  .platform-stat-value {
+    font-size: 1.2rem;
+  }
+
+  .header-title-main {
+    font-size: 1.25rem;
+  }
+
+  .badges-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+
+  .platform-page {
+    padding: 0.75rem 0.5rem !important;
+  }
+}
+
+/* ============================================================
+   SECTION 11: Global Overflow & Touch Fixes
+   ============================================================ */
+
+/* Prevent any image from overflowing its container */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Prevent pre/code blocks from breaking layout */
+pre, code {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+/* Smooth scrolling for horizontal scroll containers */
+.category-filters,
+.filter-tabs,
+.filter-tabs-scroll {
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x proximity;
+}
+
+/* Ensure modals/dropdowns don't overflow viewport */
+[class*="-dropdown"],
+[class*="-modal"] {
+  max-width: min(100vw, 480px);
+}
+
+/* ============================================================
+   SECTION 12: Print & Accessibility
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

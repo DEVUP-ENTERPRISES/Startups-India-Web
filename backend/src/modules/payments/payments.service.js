@@ -13,7 +13,22 @@ const razorpay =
     : null;
 
 jobQueue.register('payment.succeeded', async payload => {
-  // Placeholder for side effects (email, analytics, fulfillment hooks)
+  // Ensure consistent enrollment across all providers (Stripe/Razorpay)
+  const enrollmentsService = require('../enrollments/enrollments.service');
+  const { Payment } = require('./payment.model');
+
+  const payment = await Payment.findById(payload.paymentId).lean();
+  if (payment && payment.status === 'succeeded' && payment.courseId && payment.userId) {
+    await enrollmentsService.upsertEnrollment(payment.userId, {
+      courseId: String(payment.courseId),
+      paymentVerified: true,
+      paymentStatus: 'completed',
+      paymentId: String(payment._id),
+      stripePaymentId: payment.paymentIntentId || payment.paymentId || null,
+      paymentMethod: payment.provider,
+      amountPaid: payment.amount,
+    });
+  }
   return payload;
 });
 

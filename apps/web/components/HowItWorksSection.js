@@ -114,7 +114,7 @@ export default function HowItWorksSection() {
       <div className="iec-container">
         {/* Header */}
         <div className="roadmap-header">
-          <span className="sub-tag">THE INSTITUTIONAL PATHWAY</span>
+          <span className="section-label-premium">THE INSTITUTIONAL PATHWAY</span>
           <h2>A Strategic Trajectory for Founders</h2>
           <p>From visionary concept to global market leader, our structured roadmap ensures every milestone is an engine for growth.</p>
         </div>

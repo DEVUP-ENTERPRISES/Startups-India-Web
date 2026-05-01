@@ -1,37 +1,10 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-
-/* ──── Icons (Matching DashboardPage.js) ──── */
-const Icons = {
-  rocket: props => (
-    <svg width={props.size || 20} height={props.size || 20} fill="none" stroke={props.color || 'currentColor'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-      <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 00-2.91-.09z" />
-      <path d="M12 15l-3-3a22 22 0 012-3.95A12.88 12.88 0 0122 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 01-4 2z" />
-      <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0" />
-      <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5" />
-    </svg>
-  ),
-  play: props => (
-    <svg width={props.size || 20} height={props.size || 20} fill="none" stroke={props.color || 'currentColor'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-      <polygon points="5 3 19 12 5 21 5 3" />
-    </svg>
-  ),
-  target: props => (
-    <svg width={props.size || 20} height={props.size || 20} fill="none" stroke={props.color || 'currentColor'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-      <circle cx="12" cy="12" r="10" />
-      <circle cx="12" cy="12" r="6" />
-      <circle cx="12" cy="12" r="2" />
-    </svg>
-  ),
-  clock: props => (
-    <svg width={props.size || 20} height={props.size || 20} fill="none" stroke={props.color || 'currentColor'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-      <circle cx="12" cy="12" r="10" />
-      <polyline points="12 6 12 12 16 14" />
-    </svg>
-  ),
-};
+import Icon from '@/components/Icon';
+import { motion } from 'framer-motion';
+import '@/styles/learning-experience.css';
 
 export default function ContinueLearningPage() {
   const [continueData, setContinueData] = useState(null);
@@ -52,116 +25,127 @@ export default function ContinueLearningPage() {
     fetchContinueData();
   }, []);
 
+  const current = continueData?.current;
+  const next = continueData?.next;
+
   if (isLoading) {
     return (
-      <div style={{ maxWidth: 1600, margin: '0 auto', padding: '2rem 1.5rem' }}>
-        <div style={{ height: 160, background: '#fafafa', borderRadius: 24, marginBottom: 24 }} className="animate-pulse" />
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-           <div style={{ height: 300, background: '#fafafa', borderRadius: 20 }} className="animate-pulse" />
-           <div style={{ height: 300, background: '#fafafa', borderRadius: 20 }} className="animate-pulse" />
+      <div className="platform-page" style={{ padding: '2.5rem' }}>
+        <div style={{ height: 200, background: '#f8fafc', borderRadius: 24, marginBottom: '2rem', animation: 'pulse 2s infinite' }} />
+        <div className="platform-grid">
+           <div style={{ height: 300, background: '#f8fafc', borderRadius: 20, animation: 'pulse 2s infinite' }} />
+           <div style={{ height: 300, background: '#f8fafc', borderRadius: 20, animation: 'pulse 2s infinite' }} />
         </div>
       </div>
     );
   }
 
-  const current = continueData?.current;
-  const next = continueData?.next;
-
   return (
-    <div style={{ 
-      maxWidth: 1600, 
-      margin: '0 auto', 
-      padding: '2.5rem 3.5rem 5rem',
-      fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
-      color: '#111'
-    }}>
-      <style dangerouslySetInnerHTML={{ __html: `
-        @keyframes fadeUp { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:translateY(0); } }
-        @keyframes glowPulse { 0% { box-shadow:0 0 0 0 rgba(122,31,43,0.5); } 70% { box-shadow:0 0 0 18px rgba(122,31,43,0); } 100% { box-shadow:0 0 0 0 rgba(122,31,43,0); } }
-        @keyframes redPulse { 0%,100% { opacity:0.6; } 50% { opacity:1; } }
-        
-        .da { animation: fadeUp .5s cubic-bezier(0.16,1,0.3,1) both; }
-        .dcard { background:#fff; border-radius:20px; border:1px solid rgba(0,0,0,0.05); box-shadow:0 2px 8px rgba(0,0,0,0.03); transition:all .3s cubic-bezier(.4,0,.2,1); }
-        .dcard:hover { box-shadow:0 14px 35px -10px rgba(0,0,0,0.1); transform:translateY(-4px); border-color:rgba(197,151,91,0.25); }
-        
-        .ai-banner { background: linear-gradient(135deg, #7A1F2B 0%, #922538 30%, #5c1520 70%, #3d0e16 100%); border-radius: 24px; padding: 2.5rem; position: relative; overflow: hidden; color: #fff; margin-bottom: 24px; }
-        .ai-banner::before { content: ''; position: absolute; inset: 0; background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px); background-size: 28px 28px; }
-        
-        .premium-btn { background: #C5975B; color: #fff; border: none; padding: 1rem 2rem; border-radius: 12px; font-weight: 800; font-size: 0.9rem; letter-spacing: 0.05em; text-transform: uppercase; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(197,151,91,0.3); }
-        .premium-btn:hover { background: #d4a76a; transform: translateY(-2px); box-shadow: 0 8px 25px rgba(197,151,91,0.4); }
-      `}} />
-
-      {/* ═══════ AI STATUS BANNER ═══════ */}
-      <div className="da da1 ai-banner">
-        <div style={{ position: 'relative', zIndex: 1 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-            <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981', boxShadow: '0 0 12px #10b981', animation: 'glowPulse 2s infinite' }} />
-            <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#C5975B', letterSpacing: '0.15em', textTransform: 'uppercase' }}>Founder Velocity Tracking</span>
-          </div>
-          <h1 style={{ fontSize: '2.2rem', fontWeight: 900, marginBottom: '0.5rem', letterSpacing: '-0.02em' }}>Continue Your Incubation</h1>
-          <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '1rem', fontWeight: 500 }}>Pick up exactly where you left off. Your next breakthrough is just one lesson away.</p>
-        </div>
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
-        {/* CURRENT LESSON CARD */}
-        <div className="da da2 dcard" style={{ padding: '2rem', position: 'relative' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
-            <div style={{ width: 40, height: 40, borderRadius: '12px', background: 'rgba(122,31,43,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Icons.play size={20} color="#7A1F2B" />
+    <div className="platform-page" style={{ padding: '2.5rem' }}>
+      <header style={{ marginBottom: '3rem' }}>
+        <div style={{ 
+          background: 'linear-gradient(135deg, #7A1F2B 0%, #4A0F18 100%)', 
+          padding: '3rem', 
+          borderRadius: '24px', 
+          color: '#fff', 
+          position: 'relative', 
+          overflow: 'hidden',
+          boxShadow: '0 20px 40px rgba(122, 31, 43, 0.15)'
+        }}>
+          <div style={{ position: 'relative', zIndex: 2 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1rem' }}>
+              <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981', boxShadow: '0 0 12px #10b981' }} />
+              <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#C5975B', letterSpacing: '0.15em', textTransform: 'uppercase' }}>Founder Velocity Active</span>
             </div>
-            <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#666', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Active Milestone</span>
+            <h1 style={{ fontSize: '2.5rem', fontWeight: 900, marginBottom: '0.5rem', letterSpacing: '-0.02em' }}>Resume Your Journey</h1>
+            <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '1.1rem', fontWeight: 500 }}>Pick up exactly where you left off. Your next breakthrough is waiting.</p>
+          </div>
+          <div style={{ position: 'absolute', right: '-50px', bottom: '-50px', opacity: 0.1 }}>
+             <Icon name="rocket" size={250} color="#fff" />
+          </div>
+        </div>
+      </header>
+
+      <div className="platform-grid">
+        {/* Current Active Milestone */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="platform-card-v" 
+          style={{ padding: '2.5rem', display: 'flex', flexDirection: 'column', border: '1px solid #f1f5f9' }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '2rem' }}>
+            <div style={{ width: 44, height: 44, borderRadius: '12px', background: 'rgba(122,31,43,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Icon name="play" size={20} color="#7A1F2B" fill="#7A1F2B" />
+            </div>
+            <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#94A3B8', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Current Milestone</span>
           </div>
 
           {current ? (
             <>
-              <h3 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#111', marginBottom: '12px', lineHeight: 1.3 }}>{current.videoId?.title || 'Untitled Lesson'}</h3>
-              <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: '24px', lineHeight: 1.6 }}>Founder level: {current.completed ? 'Advanced' : 'Core'}. Continue to increase your Pitch Readiness Score.</p>
+              <h3 style={{ fontSize: '1.5rem', fontWeight: 900, color: '#111', marginBottom: '1rem', lineHeight: 1.3 }}>{current.videoId?.title || 'Untitled Lesson'}</h3>
+              <p style={{ fontSize: '1rem', color: '#64748B', marginBottom: '2.5rem', lineHeight: 1.6 }}>Continue this module to increase your Startup Readiness Score.</p>
               
-              <div style={{ marginBottom: '32px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.75rem', fontWeight: 700, color: '#111' }}>
+              <div style={{ marginTop: 'auto', marginBottom: '2.5rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '0.8rem', fontWeight: 800, color: '#111' }}>
                   <span>{Math.round((current.watchedSeconds / (current.videoId?.durationSeconds || 300)) * 100)}% COMPLETE</span>
-                  <span style={{ color: '#C5975B' }}>{Math.floor(current.watchedSeconds / 60)}m WATCHED</span>
+                  <span style={{ color: '#7A1F2B' }}>{Math.floor(current.watchedSeconds / 60)}m WATCHED</span>
                 </div>
-                <div style={{ height: 6, background: '#f0f0f0', borderRadius: 3, overflow: 'hidden' }}>
-                  <div style={{ height: '100%', background: '#7A1F2B', width: `${Math.min(100, (current.watchedSeconds / (current.videoId?.durationSeconds || 300)) * 100)}%`, transition: 'width 1s' }} />
+                <div style={{ height: 8, background: '#f1f5f9', borderRadius: 4, overflow: 'hidden' }}>
+                  <motion.div 
+                    initial={{ width: 0 }}
+                    animate={{ width: `${Math.min(100, (current.watchedSeconds / (current.videoId?.durationSeconds || 300)) * 100)}%` }}
+                    transition={{ duration: 1, ease: "easeOut" }}
+                    style={{ height: '100%', background: '#7A1F2B' }} 
+                  />
                 </div>
               </div>
 
-              <Link href={`/learn/${current.videoId?.courseId}`}>
-                <button className="premium-btn" style={{ width: '100%' }}>Resume Now</button>
+              <Link href={`/learn/${current.videoId?.courseId}`} style={{ textDecoration: 'none' }}>
+                <button style={{ width: '100%', background: '#7A1F2B', color: '#fff', border: 'none', padding: '1.2rem', borderRadius: '14px', fontWeight: 800, fontSize: '1rem', cursor: 'pointer', transition: '0.3s', boxShadow: '0 10px 20px rgba(122, 31, 43, 0.2)' }}>
+                  Resume Lesson
+                </button>
               </Link>
             </>
           ) : (
-            <div style={{ textAlign: 'center', padding: '2rem 0' }}>
-              <p style={{ color: '#9ca3af', marginBottom: '20px' }}>No active milestones found in your trajectory.</p>
-              <Link href="/dashboard/explore" style={{ color: '#C5975B', fontWeight: 800, fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.1em', textDecoration: 'none' }}>Initialize Curriculum &rarr;</Link>
+            <div style={{ textAlign: 'center', padding: '3rem 0' }}>
+               <Icon name="recorded" size={48} color="#cbd5e1" />
+               <p style={{ color: '#94A3B8', marginTop: '1.5rem', fontWeight: 600 }}>No active lessons found.</p>
+               <Link href="/dashboard/learning/recorded" style={{ color: '#7A1F2B', fontWeight: 800, fontSize: '0.9rem', textDecoration: 'none', display: 'block', marginTop: '1rem' }}>Browse Curriculum &rarr;</Link>
             </div>
           )}
-        </div>
+        </motion.div>
 
-        {/* UP NEXT CARD */}
-        <div className="da da3 dcard" style={{ padding: '2rem', background: '#fafafa', borderStyle: 'dashed' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
-            <div style={{ width: 40, height: 40, borderRadius: '12px', background: 'rgba(197,151,91,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Icons.rocket size={20} color="#C5975B" />
+        {/* Next Phase Preview */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="platform-card-v" 
+          style={{ padding: '2.5rem', background: '#f8fafc', border: '2px dashed #e2e8f0', display: 'flex', flexDirection: 'column' }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '2rem' }}>
+            <div style={{ width: 44, height: 44, borderRadius: '12px', background: 'rgba(197,151,91,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Icon name="rocket" size={20} color="#C5975B" />
             </div>
-            <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#999', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Next Phase</span>
+            <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#94A3B8', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Next Phase</span>
           </div>
 
           {next ? (
             <>
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#888', marginBottom: '12px' }}>{next.title}</h3>
-              <p style={{ fontSize: '0.85rem', color: '#aaa', lineHeight: 1.6, marginBottom: '24px' }}>This content is currently locked. Complete your active milestone to unlock the next series of startup insights.</p>
-              <button disabled style={{ width: '100%', padding: '1rem', borderRadius: '12px', border: '1px solid #eee', background: 'transparent', color: '#ccc', fontWeight: 700, cursor: 'not-allowed' }}>Unlocks Automatically</button>
+              <h3 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#94A3B8', marginBottom: '1rem' }}>{next.title}</h3>
+              <p style={{ fontSize: '0.95rem', color: '#cbd5e1', lineHeight: 1.6, marginBottom: '2.5rem' }}>This phase is currently locked. Complete your active milestone to unlock the next level of insights.</p>
+              <div style={{ marginTop: 'auto', background: '#fff', border: '1px solid #f1f5f9', padding: '1rem', borderRadius: '12px', textAlign: 'center', color: '#cbd5e1', fontWeight: 800, fontSize: '0.85rem' }}>
+                 Unlocks on Completion
+              </div>
             </>
           ) : (
-            <div style={{ textAlign: 'center', padding: '2rem 0' }}>
-              <Icons.target size={40} color="#eee" />
-              <p style={{ color: '#ccc', marginTop: '12px' }}>Curriculum synchronized.</p>
+            <div style={{ textAlign: 'center', padding: '3rem 0', margin: 'auto' }}>
+               <Icon name="checkCircle" size={48} color="#10b981" opacity={0.5} />
+               <p style={{ color: '#94A3B8', marginTop: '1.5rem', fontWeight: 600 }}>All phases complete.</p>
             </div>
           )}
-        </div>
+        </motion.div>
       </div>
     </div>
   );

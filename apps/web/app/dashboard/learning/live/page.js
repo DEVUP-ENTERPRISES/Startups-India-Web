@@ -1,26 +1,103 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import Icon from '@/components/Icon';
+import { motion, AnimatePresence } from 'framer-motion';
+import '@/styles/learning-experience.css';
 
-const Icons = {
-  live: props => (
-    <svg width={props.size || 20} height={props.size || 20} fill="none" stroke={props.color || 'currentColor'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-      <path d="M5 12h14M12 5l7 7-7 7" />
-    </svg>
-  ),
-  users: props => (
-    <svg width={props.size || 20} height={props.size || 20} fill="none" stroke={props.color || 'currentColor'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-      <circle cx="9" cy="7" r="4" />
-      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-    </svg>
-  ),
-};
+function LiveClassCard({ cls, onJoin }) {
+  const isLive = cls.status === 'live';
+  const isCompleted = cls.status === 'completed';
+  const startTime = new Date(cls.startTime);
+  const duration = cls.endTime ? Math.round((new Date(cls.endTime) - startTime) / 60000) : 60;
+
+  return (
+    <div className="platform-card-v" style={{ 
+      height: '100%', 
+      display: 'flex',
+      flexDirection: 'column',
+      background: 'var(--dashboard-bg)',
+    }}>
+      {/* Thumbnail Placeholder */}
+      <div style={{ 
+        position: 'relative', 
+        height: '200px', 
+        width: '100%',
+        overflow: 'hidden',
+        background: 'linear-gradient(135deg, #7A1F2B 0%, #4A0F18 100%)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        <Icon name="live" size={48} color="rgba(255,255,255,0.2)" />
+        <div style={{ position: 'absolute', top: '15px', left: '15px', display: 'flex', gap: '8px', zIndex: 6 }}>
+          {isLive && (
+            <span style={{ background:'#ef4444', color:'#fff', borderRadius:'20px', padding:'4px 10px', fontSize:'0.7rem', fontWeight:800, display:'flex', alignItems:'center', gap:6, boxShadow:'0 2px 6px rgba(239,68,68,0.4)' }}>
+              <span style={{ width:6, height:6, borderRadius:'50%', background:'#fff', animation:'pulse 1.5s infinite' }} />
+              LIVE
+            </span>
+          )}
+          <span style={{ background:'rgba(0,0,0,0.6)', color:'#fff', backdropFilter:'blur(4px)', padding:'4px 10px', borderRadius:'12px', fontSize:'0.7rem', fontWeight:600 }}>
+            {cls.category || 'Masterclass'}
+          </span>
+        </div>
+      </div>
+
+      {/* Body */}
+      <div style={{ padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <h3 style={{ fontSize: '1.2rem', fontWeight: 800, marginBottom: '12px', color: '#111', lineHeight: 1.3 }}>{cls.title}</h3>
+        <p style={{ color: '#666', fontSize: '0.9rem', lineHeight: 1.5, marginBottom: '20px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+          {cls.description}
+        </p>
+        
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', marginTop: 'auto' }}>
+          <span style={{ fontSize: '0.8rem', color: '#666', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <Icon name="user" size={14} color="#94A3B8" /> {cls.instructorId?.name || 'Top Mentor'}
+          </span>
+          <span style={{ fontSize: '0.8rem', color: isLive ? '#ef4444' : '#666', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <Icon name="clock" size={14} color={isLive ? "#ef4444" : "#94A3B8"} /> 
+            {isLive ? 'Started' : startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} ({duration} min)
+          </span>
+        </div>
+        
+        {/* Footer actions */}
+        <div style={{ marginTop: '20px', paddingTop: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid #f1f5f9' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <Icon name="users" size={14} color="#94A3B8" />
+            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#94A3B8' }}>{cls.attendees?.length || 0} JOINED</span>
+          </div>
+
+          {isLive ? (
+            <button 
+              onClick={() => onJoin(cls._id)} 
+              style={{ background: '#7A1F2B', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '10px', fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer', transition: '0.2s', boxShadow: '0 4px 12px rgba(122, 31, 43, 0.2)' }}
+            >
+              JOIN NOW
+            </button>
+          ) : isCompleted ? (
+             <span style={{ color: '#94A3B8', fontSize: '0.85rem', fontWeight: 700 }}>COMPLETED</span>
+          ) : (
+            <button 
+              onClick={() => alert('Reminder set!')} 
+              style={{ background: 'transparent', color: '#111', border: '1.5px solid #e2e8f0', padding: '8px 18px', borderRadius: '10px', fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer' }}
+            >
+              REMIND ME
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function LiveClassesPage() {
+  const router = useRouter();
   const [liveClasses, setLiveClasses] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [filter, setFilter] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [joinCode, setJoinCode] = useState('');
 
   useEffect(() => {
     async function fetchLiveClasses() {
@@ -42,85 +119,121 @@ export default function LiveClassesPage() {
       const res = await fetch(`/api/v1/learning/live/${id}/join`, { method: 'POST' });
       const json = await res.json();
       if (json.success) {
-        window.open(json.data.meetingLink, '_blank');
+        window.open(json.data.meetingLink || json.data.meetingUrl, '_blank');
       }
     } catch (err) {
       alert('Failed to join session.');
     }
   };
 
-  return (
-    <div style={{ maxWidth: 1600, margin: '0 auto', padding: '2.5rem 3.5rem 5rem', fontFamily: "'Inter', sans-serif" }}>
-      <style dangerouslySetInnerHTML={{ __html: `
-        @keyframes pulseLive { 0% { box-shadow:0 0 0 0 rgba(220,38,38,0.4); } 70% { box-shadow:0 0 0 12px rgba(220,38,38,0); } 100% { box-shadow:0 0 0 0 rgba(220,38,38,0); } }
-        .da { animation: fadeUp .5s cubic-bezier(0.16,1,0.3,1) both; }
-        @keyframes fadeUp { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:translateY(0); } }
-        
-        .dcard { background:#fff; border-radius:24px; border:1px solid rgba(0,0,0,0.05); box-shadow:0 4px 15px rgba(0,0,0,0.02); transition:all .4s; }
-        .dcard:hover { transform:translateY(-8px); box-shadow:0 25px 50px -12px rgba(0,0,0,0.1); border-color:rgba(122,31,43,0.15); }
-        
-        .ticker-header { background: linear-gradient(90deg, #7A1F2B, #922538); color:#fff; padding:12px 24px; border-radius:16px; margin-bottom:32px; display:flex; align-items:center; gap:12px; font-weight:800; font-size:0.75rem; letter-spacing:0.1em; }
-        
-        .premium-pill { background:rgba(122,31,43,0.08); color:#7A1F2B; padding:6px 14px; border-radius:20px; font-size:0.65rem; font-weight:800; letter-spacing:0.08em; text-transform:uppercase; }
-        .join-btn { background: #7A1F2B; color:white; border:none; padding:12px 24px; border-radius:14px; font-weight:800; font-size:0.85rem; cursor:pointer; transition:all 0.3s; box-shadow:0 6px 20px rgba(122,31,43,0.2); }
-        .join-btn:hover { background: #922538; transform:scale(1.05); }
-        .join-btn:disabled { background:#f3f4f6; color:#9ca3af; cursor:not-allowed; box-shadow:none; }
-      `}} />
+  const handleJoinByCode = (e) => {
+    e.preventDefault();
+    if (!joinCode.trim()) return;
+    // Assuming join code maps to an ID or a specific room
+    router.push(`/dashboard/learning/live/${joinCode.trim()}`);
+  };
 
-      <div className="da da1 ticker-header">
-        <span style={{ display:'block', width:10, height:10, background:'#ef4444', borderRadius:'50%', animation:'pulseLive 2s infinite' }} />
-        LIVE INCUBATION HUB
+  const filteredClasses = liveClasses.filter(cls => {
+    const matchesSearch = cls.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                         cls.description.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    if (filter === 'live') return matchesSearch && cls.status === 'live';
+    if (filter === 'upcoming') return matchesSearch && cls.status === 'scheduled';
+    if (filter === 'all') return matchesSearch && cls.status !== 'cancelled';
+    return matchesSearch;
+  });
+
+  return (
+    <div className="platform-page" style={{ padding: '2.5rem' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2rem', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '3rem' }}>
+        <div>
+          <h1 style={{ fontSize: '2.5rem', fontWeight: 900, color: '#111', marginBottom: '0.5rem', letterSpacing: '-0.03em' }}>Live Experience</h1>
+          <p style={{ color: '#64748B', fontSize: '1.1rem', fontWeight: 500 }}>Join interactive live sessions with Top Mentors & Founders.</p>
+        </div>
+        
+        <form onSubmit={handleJoinByCode} style={{ background: 'var(--dashboard-bg)', padding: '1rem', borderRadius: '16px', boxShadow: '0 8px 30px rgba(0,0,0,0.04)', border: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', gap: '12px', minWidth: '350px' }}>
+            <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 800, color: '#94A3B8', textTransform: 'uppercase', marginBottom: '6px' }}>Join with Code</label>
+              <input 
+                type="text" 
+                placeholder="e.g. xyz-123-abc"
+                value={joinCode}
+                onChange={e => setJoinCode(e.target.value)}
+                style={{ width: '100%', border: 'none', background: '#f8fafc', padding: '10px 14px', borderRadius: '8px', fontSize: '0.9rem', fontWeight: 600, outline: 'none' }}
+              />
+            </div>
+            <button 
+              type="submit"
+              style={{ marginTop: 'auto', background: '#111', color: '#fff', border: 'none', padding: '12px 24px', borderRadius: '10px', fontSize: '0.9rem', fontWeight: 700, cursor: 'pointer', height: '42px' }}
+            >
+              Join
+            </button>
+        </form>
       </div>
 
-      <header style={{ marginBottom: '3rem' }}>
-        <h1 style={{ fontSize: '2.5rem', fontWeight: 900, color: '#111', letterSpacing: '-0.03em', marginBottom: '12px' }}>Interactive Masterclasses</h1>
-        <p style={{ fontSize: '1.1rem', color: '#666', fontWeight: 500 }}>Join real-time sessions with the top 1% of founders and investors.</p>
-      </header>
-
-      {isLoading ? (
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(400px, 1fr))', gap:'24px' }}>
-           <div style={{ height:300, background:'#fafafa', borderRadius:24 }} className="animate-pulse" />
-           <div style={{ height:300, background:'#fafafa', borderRadius:24 }} className="animate-pulse" />
-        </div>
-      ) : liveClasses.length > 0 ? (
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(400px, 1fr))', gap:'28px' }}>
-          {liveClasses.map((cls, idx) => (
-            <div key={cls._id} className={`da da${idx+2} dcard`} style={{ padding:'2.5rem' }}>
-              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'24px' }}>
-                 <div>
-                   <div className="premium-pill" style={{ marginBottom:'12px', display:'inline-block' }}>{cls.category || 'Masterclass'}</div>
-                   <h3 style={{ fontSize:'1.5rem', fontWeight:900, color:'#111', lineHeight:1.2 }}>{cls.title}</h3>
-                 </div>
-                 <div style={{ textAlign:'right' }}>
-                    <div style={{ fontSize:'0.9rem', fontWeight:800, color:'#111' }}>{new Date(cls.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-                    <div style={{ fontSize:'0.7rem', color:'#999', fontWeight:700 }}>{new Date(cls.startTime).toLocaleDateString([], { month: 'short', day: 'numeric' })}</div>
-                 </div>
-              </div>
-
-              <p style={{ color:'#666', fontSize:'0.95rem', lineHeight:1.6, marginBottom:'32px' }}>{cls.description}</p>
-
-              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', paddingTop:'24px', borderTop:'1px solid #f8f8f8' }}>
-                <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
-                   <Icons.users size={18} color="#C5975B" />
-                   <span style={{ fontSize:'0.75rem', fontWeight:800, color:'#999' }}>{cls.attendees?.length || 0} FOUNDERS JOINED</span>
-                </div>
-
-                <button 
-                  onClick={() => joinClass(cls._id)}
-                  className="join-btn"
-                  disabled={cls.status !== 'live'}
-                >
-                  {cls.status === 'live' ? 'JOIN SESSION' : 'SET REMINDER'}
-                </button>
-              </div>
-            </div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem', background: 'var(--dashboard-bg)', padding: '0.75rem', borderRadius: '16px', border: '1px solid #f1f5f9' }}>
+        <div style={{ display: 'flex', gap: '6px' }}>
+          {['all', 'live', 'upcoming'].map(f => (
+            <button 
+              key={f} 
+              onClick={() => setFilter(f)}
+              style={{ 
+                padding: '10px 20px', 
+                borderRadius: '10px', 
+                border: 'none', 
+                background: filter === f ? '#7A1F2B' : 'transparent',
+                color: filter === f ? '#fff' : '#64748B',
+                fontWeight: 700,
+                fontSize: '0.9rem',
+                cursor: 'pointer',
+                transition: '0.2s',
+                textTransform: 'capitalize'
+              }}
+            >
+              {f}
+            </button>
           ))}
         </div>
+
+        <div style={{ position: 'relative', width: '300px' }}>
+          <input 
+            type="text" 
+            placeholder="Search sessions..."
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            style={{ width: '100%', border: '1.5px solid #f1f5f9', padding: '10px 16px 10px 40px', borderRadius: '12px', fontSize: '0.9rem', outline: 'none', transition: 'all 0.2s' }}
+          />
+          <div style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', opacity: 0.4 }}>
+            <Icon name="search" size={16} />
+          </div>
+        </div>
+      </div>
+
+      {isLoading ? (
+        <div className="platform-grid">
+           {[1, 2, 3].map(i => <div key={i} style={{ height: 400, background: '#f8fafc', borderRadius: 16, animation: 'pulse 2s infinite' }} />)}
+        </div>
+      ) : filteredClasses.length > 0 ? (
+        <AnimatePresence mode="wait">
+          <motion.div 
+            layout
+            className="platform-grid"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+          >
+            {filteredClasses.map((cls) => (
+              <motion.div key={cls._id} layout>
+                <LiveClassCard cls={cls} onJoin={joinClass} />
+              </motion.div>
+            ))}
+          </motion.div>
+        </AnimatePresence>
       ) : (
-        <div style={{ background: '#fafafa', borderRadius: 24, padding: '5rem 2rem', textAlign: 'center', border: '2px dashed #eee' }}>
-            <Icons.live size={40} color="#ddd" />
-            <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#999', marginTop: '1rem' }}>No sessions currently broadcasting</h3>
-            <p style={{ color: '#bbb', fontSize:'0.9rem' }}>Check the schedule for upcoming founder sprints.</p>
+        <div style={{ background: '#f8fafc', borderRadius: 24, padding: '6rem 2rem', textAlign: 'center', border: '2px dashed #e2e8f0' }}>
+            <Icon name="live" size={48} color="#cbd5e1" />
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#64748B', marginTop: '1.5rem' }}>No sessions found</h3>
+            <p style={{ color: '#94A3B8', fontSize:'1rem' }}>Try adjusting your search or filters to find upcoming sessions.</p>
         </div>
       )}
     </div>

@@ -52,7 +52,7 @@ export default function ApplyDarkSection() {
     <section className="apply-dark-section">
       <div className="apply-section-header">
         <motion.h2 
-          className="apply-main-title"
+          className="apply-main-title !text-white drop-shadow-lg"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -61,7 +61,7 @@ export default function ApplyDarkSection() {
           Let's Build Something Big
         </motion.h2>
         <motion.p 
-          className="apply-main-subtitle"
+          className="apply-main-subtitle !text-gray-300"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -81,13 +81,13 @@ export default function ApplyDarkSection() {
         >
           {/* LEFT COLUMN: Values + Contact + Stats */}
           <div className="apply-left-col">
-            <h3 className="apply-panel-title">Apply to Join the Ecosystem</h3>
+            <h3 className="apply-panel-title !text-white">Apply to Join the Ecosystem</h3>
             
             <ul className="apply-feature-list">
-              <li><span className="red-dot"></span>Expert mentorship access</li>
-              <li><span className="red-dot"></span>Institutional funding opportunities</li>
-              <li><span className="red-dot"></span>Structured startup programs</li>
-              <li><span className="red-dot"></span>Strategic corporate partnerships</li>
+              <li className="!text-gray-200"><span className="red-dot"></span>Expert mentorship access</li>
+              <li className="!text-gray-200"><span className="red-dot"></span>Institutional funding opportunities</li>
+              <li className="!text-gray-200"><span className="red-dot"></span>Structured startup programs</li>
+              <li className="!text-gray-200"><span className="red-dot"></span>Strategic corporate partnerships</li>
             </ul>
 
             <div className="apply-contact-cards">
@@ -95,14 +95,14 @@ export default function ApplyDarkSection() {
                 <div className="contact-card-icon"><Mail size={18} /></div>
                 <div className="contact-card-data">
                   <span className="contact-label">EMAIL</span>
-                  <span className="contact-value">info@iecindia.org.in</span>
+                  <span className="contact-value">info@startupsindia.in</span>
                 </div>
               </div>
               <div className="contact-card-glass">
                 <div className="contact-card-icon"><Phone size={18} /></div>
                 <div className="contact-card-data">
                   <span className="contact-label">PHONE</span>
-                  <span className="contact-value">+91 9963189366</span>
+                  <span className="contact-value">+91 9014878887</span>
                 </div>
               </div>
               <div className="contact-card-glass">
@@ -121,7 +121,7 @@ export default function ApplyDarkSection() {
               </div>
             </div>
 
-            <div className="apply-stats-horizontal">
+            {/* <div className="apply-stats-horizontal">
               <div className="apply-stat-box">
                 <span className="stat-number">500+</span>
                 <span className="stat-label">STARTUPS</span>
@@ -130,7 +130,7 @@ export default function ApplyDarkSection() {
                 <span className="stat-number">200+</span>
                 <span className="stat-label">MENTORS</span>
               </div>
-            </div>
+            </div> */}
           </div>
 
           {/* RIGHT COLUMN: Form */}

@@ -89,14 +89,23 @@ export default function AchievementsSection() {
     setActiveIndex(prev => (prev - 1 + achievementsData.length) % achievementsData.length);
   };
 
+  // Auto-play Carousel (8 seconds)
+  useEffect(() => {
+    const timer = setInterval(() => {
+      handleNext();
+    }, 8000);
+    return () => clearInterval(timer);
+  }, [activeIndex]);
+
   const activeItem = achievementsData[activeIndex];
 
   return (
-    <section className="achievements-section overflow-hidden">
+    <section className="achievements-section overflow-hidden !pb-0">
       <div className="iec-container relative z-10">
-        <div className="achievements-header text-center mb-16">
+        {/* Adjusted gap between header and content */}
+        <div className="achievements-header text-center" style={{ marginBottom: '64px' }}>
           <motion.span 
-            className="section-label-premium"
+            className="section-label-premium mb-6"
             initial={{ opacity: 0, y: 10 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -104,7 +113,7 @@ export default function AchievementsSection() {
             Our Journey
           </motion.span>
           <motion.h2 
-            className="text-4xl md:text-5xl font-bold mb-6 !text-white"
+            className="text-4xl md:text-5xl font-bold mb-6 !text-white mt-6"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -113,7 +122,7 @@ export default function AchievementsSection() {
             Celebrating <span className="text-[#e53935]">Achievements</span> & Milestones
           </motion.h2>
           <motion.p 
-            className="text-[#9ca3af] max-w-2xl mx-auto"
+            className="text-[#9ca3af] max-w-2xl mx-auto mt-6"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -132,31 +141,29 @@ export default function AchievementsSection() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: direction > 0 ? -50 : 50 }}
               transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
-              className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center"
+              className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24 items-center"
             >
               {/* Image side */}
-              <div className="lg:col-span-7">
+              <div className="lg:col-span-7 relative z-10">
                 <div className="relative group">
-                  <div className="absolute -inset-4 bg-[#e53935]/20 blur-2xl rounded-[32px] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-                  <div className="relative rounded-[24px] overflow-hidden border border-white/10 shadow-2xl aspect-[16/9]">
+                  <div className="absolute -inset-4 bg-gradient-to-r from-[#e53935]/40 to-red-900/40 blur-[50px] rounded-[32px] opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+                  <div className="relative rounded-[32px] overflow-hidden border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] aspect-[16/9] bg-[#0a0a0a]">
                     <motion.img
                       src={activeItem.image}
                       alt={activeItem.title}
-                      className="w-full h-full object-cover"
-                      initial={{ scale: 1.1 }}
-                      animate={{ scale: 1 }}
-                      transition={{ duration: 0.8 }}
+                      className="w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#000000] via-[#000000]/40 to-transparent opacity-90 pointer-events-none" />
                     
-                    <div className="absolute bottom-8 left-8 flex gap-4">
-                      <div className="flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-full">
+                    <div className="absolute bottom-8 left-8 flex flex-wrap gap-3 z-20">
+                      {/* Clean High-Contrast Solid Badges */}
+                      <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-xl hover:scale-105 transition-transform cursor-default">
                         <Calendar size={14} className="text-[#e53935]" />
-                        <span className="text-sm font-bold text-white">{activeItem.year}</span>
+                        <span className="text-[13px] font-bold text-black tracking-widest uppercase">{activeItem.year}</span>
                       </div>
-                      <div className="flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-full">
+                      <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-xl hover:scale-105 transition-transform cursor-default">
                         <Award size={14} className="text-[#e53935]" />
-                        <span className="text-sm font-bold text-white">{activeItem.category}</span>
+                        <span className="text-[13px] font-bold text-black tracking-widest uppercase">{activeItem.category}</span>
                       </div>
                     </div>
                   </div>
@@ -164,46 +171,69 @@ export default function AchievementsSection() {
               </div>
 
               {/* Text side */}
-              <div className="lg:col-span-5 flex flex-col gap-6">
-                <span className="text-6xl font-black text-white/5 font-mono">{activeItem.index}</span>
-                <h3 className="text-3xl font-bold text-white leading-tight">{activeItem.title}</h3>
-                <p className="text-lg text-[#9ca3af] leading-relaxed">{activeItem.description}</p>
-                
-                <div className="flex items-center gap-6 mt-4">
-                  <button className="flex items-center gap-2 text-white font-bold group">
-                    Explore Event 
-                    <ExternalLink size={18} className="text-[#e53935] group-hover:translate-x-1 transition-transform" />
-                  </button>
+              <div className="lg:col-span-5 flex flex-col h-full justify-center relative z-10">
+                {/* Massive Index Background Number */}
+                <div className="absolute -top-20 -left-10 md:-left-16 text-[180px] md:text-[220px] font-black leading-none text-transparent bg-clip-text bg-gradient-to-b from-white/[0.08] to-transparent select-none z-0 pointer-events-none tracking-tighter">
+                  {activeItem.index}
                 </div>
+                
+                {/* Single Master Block: Text, Button, and Controls perfectly left-aligned */}
+                <div 
+                  className="relative z-10 flex flex-col gap-8"
+                  style={{ paddingLeft: '32px', borderLeft: '4px solid #e53935' }}
+                >
+                  <motion.div
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    key={`title-${activeItem.id}`}
+                    className="flex flex-col gap-5"
+                  >
+                    <h3 className="text-4xl md:text-5xl font-black !text-white leading-[1.15] tracking-tight">
+                      {activeItem.title}
+                    </h3>
+                    <p className="text-lg md:text-xl font-medium !text-[#a1a1aa] leading-relaxed max-w-lg">
+                      {activeItem.description}
+                    </p>
+                  </motion.div>
 
-                <div className="flex items-center gap-6 mt-8">
-                  <div className="flex gap-2">
-                    <button 
-                      onClick={handlePrev}
-                      className="w-12 h-12 flex items-center justify-center rounded-full border border-white/10 hover:border-[#e53935]/50 transition-colors bg-white/5"
-                    >
-                      <ChevronLeft size={20} className="text-white" />
-                    </button>
-                    <button 
-                      onClick={handleNext}
-                      className="w-12 h-12 flex items-center justify-center rounded-full border border-white/10 hover:border-[#e53935]/50 transition-colors bg-white/5"
-                    >
-                      <ChevronRight size={20} className="text-white" />
+                  {/* Smaller, sleeker Explore button */}
+                  <div className="flex items-center">
+                    <button className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#e53935] hover:bg-white text-white hover:text-black border border-[#e53935] hover:border-white rounded-full text-sm font-bold group transition-all duration-300 w-fit shadow-lg">
+                      Explore Event 
+                      <ExternalLink size={16} className="text-white group-hover:text-[#e53935] group-hover:translate-x-1 transition-all" />
                     </button>
                   </div>
-                  
-                  <div className="flex-1 h-[2px] bg-white/5 relative overflow-hidden rounded-full">
-                    <motion.div 
-                      className="absolute inset-y-0 left-0 bg-[#e53935]"
-                      initial={{ width: 0 }}
-                      animate={{ width: `${((activeIndex + 1) / achievementsData.length) * 100}%` }}
-                      transition={{ duration: 0.5 }}
-                    />
+
+                  {/* Controls */}
+                  <div className="flex items-center gap-6 mt-4">
+                    <div className="flex gap-3">
+                      <button 
+                        onClick={handlePrev}
+                        className="w-12 h-12 flex items-center justify-center rounded-full border border-white/10 hover:border-[#e53935] hover:bg-[#e53935]/20 transition-all duration-300 bg-white/[0.05] shadow-lg group"
+                      >
+                        <ChevronLeft size={20} className="!text-white group-hover:scale-110 transition-transform" />
+                      </button>
+                      <button 
+                        onClick={handleNext}
+                        className="w-12 h-12 flex items-center justify-center rounded-full border border-white/10 hover:border-[#e53935] hover:bg-[#e53935]/20 transition-all duration-300 bg-white/[0.05] shadow-lg group"
+                      >
+                        <ChevronRight size={20} className="!text-white group-hover:scale-110 transition-transform" />
+                      </button>
+                    </div>
+                    
+                    <div className="flex-1 h-[4px] bg-white/10 relative overflow-hidden rounded-full max-w-[200px]">
+                      <motion.div 
+                        className="absolute inset-y-0 left-0 bg-gradient-to-r from-[#e53935] to-[#ff7b72] shadow-[0_0_10px_#e53935]"
+                        initial={{ width: 0 }}
+                        animate={{ width: `${((activeIndex + 1) / achievementsData.length) * 100}%` }}
+                        transition={{ duration: 0.6, ease: "easeOut" }}
+                      />
+                    </div>
+                    
+                    <span className="!text-white/80 font-mono text-sm font-bold tracking-widest">
+                      {activeItem.index} <span className="!text-white/30">/</span> 0{achievementsData.length}
+                    </span>
                   </div>
-                  
-                  <span className="text-white/40 font-mono text-sm">
-                    {activeIndex + 1} / {achievementsData.length}
-                  </span>
                 </div>
               </div>
             </motion.div>

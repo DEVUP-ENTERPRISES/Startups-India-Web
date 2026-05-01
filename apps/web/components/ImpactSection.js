@@ -158,35 +158,10 @@ const itemVariants = {
   show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' } },
 };
 
-const MetricCard = ({ metric }) => {
+const MetricCard = ({ metric, index }) => {
   const cardRef = useRef(null);
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-  const [tilt, setTilt] = useState({ x: 0, y: 0 });
   const [isHovered, setIsHovered] = useState(false);
-
-  // Use Framer Motion's useInView to trigger individual card animations optimally
   const isInView = useInView(cardRef, { once: true, amount: 0.3 });
-
-  const handleMouseMove = e => {
-    if (!cardRef.current) return;
-    const rect = cardRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    setMousePos({ x, y });
-
-    // 3D Tilt calculation (Subtle: max ~4 degrees)
-    const centerX = rect.width / 2;
-    const centerY = rect.height / 2;
-    const rotateX = ((y - centerY) / centerY) * -4;
-    const rotateY = ((x - centerX) / centerX) * 4;
-    setTilt({ x: rotateX, y: rotateY });
-  };
-
-  const handleMouseLeave = () => {
-    setIsHovered(false);
-    setTilt({ x: 0, y: 0 }); // Reset to flat
-  };
 
   const Icon = metric.icon;
 
@@ -194,91 +169,56 @@ const MetricCard = ({ metric }) => {
     <motion.div
       variants={itemVariants}
       ref={cardRef}
-      onMouseMove={handleMouseMove}
       onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={handleMouseLeave}
-      className="relative group transition-all duration-300 ease-out"
-      style={{
-        transformStyle: 'preserve-3d',
-        // Smooth tilt only applies on desktop when hovered
-        transform: isHovered
-          ? `perspective(1000px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg) translateY(-6px)`
-          : 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0px)',
-      }}
+      onMouseLeave={() => setIsHovered(false)}
+      className="relative group h-full"
+      style={{ borderRadius: '24px' }}
     >
-      {/* CARD OUTER WRAPPER - Glass effect with hover glow */}
-      <div className="absolute inset-0 bg-white/[0.04] border border-white/[0.08] backdrop-blur-[16px] rounded-[18px] transition-all duration-300 group-hover:border-[#E53935]/40 group-hover:shadow-[0_0_20px_rgba(229,57,53,0.15),0_15px_40px_rgba(0,0,0,0.5)] group-hover:-translate-y-1 shadow-[0_10px_30px_rgba(0,0,0,0.3)] -z-10" />
-
-      {/* Inner Highlight Layer - Glass effect */}
-      <div
-        className="absolute inset-0 rounded-[18px] pointer-events-none -z-10"
-        style={{
-          background:
-            'linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0) 100%)',
-          boxShadow: 'inset 0 1px 0 0 rgba(255,255,255,0.12)',
-        }}
-        aria-hidden="true"
-      />
-
-      {/* Soft Tint - Icon Color Match */}
-      <div
-        className={`absolute inset-0 bg-gradient-to-br ${metric.gradient} opacity-[0.03] group-hover:opacity-[0.08] transition-opacity duration-300 pointer-events-none rounded-[18px] -z-10`}
-        aria-hidden="true"
-      />
-
-      {/* Interactive Cursor Glow */}
-      <div
-        className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 ease-out group-hover:opacity-100 hidden md:block rounded-[18px]"
-        style={{
-          background: `radial-gradient(350px circle at ${mousePos.x}px ${mousePos.y}px, rgba(229,57,53,0.15), transparent 60%)`,
-        }}
-        aria-hidden="true"
-      />
-
-      {/* Content Container - Centered alignment */}
-      <div
-        className="relative z-10 flex flex-col items-center text-center"
-        style={{
-          transform: 'translateZ(30px)',
-          minHeight: '240px',
-          padding: '24px 20px',
-          justifyContent: 'space-between',
-        }}
+      {/* Background card with strict inline padding to avoid CSS overrides */}
+      <div 
+        className="relative h-full flex flex-col transition-all duration-500 bg-[#121212] hover:bg-[#1a1a1a] border border-white/10 hover:border-white/20 group-hover:-translate-y-2 group-hover:shadow-[0_20px_40px_-15px_rgba(229,57,53,0.3)]"
+        style={{ borderRadius: '24px', padding: '32px' }}
       >
-        {/* Gradient Icon - Centered with container */}
-        <div className="flex-shrink-0">
-          <div
-            className={`relative w-[44px] h-[44px] rounded-[12px] bg-gradient-to-br ${metric.gradient} flex items-center justify-center transition-all duration-300 ease-out group-hover:scale-105 group-hover:rotate-[3deg] shadow-[0_4px_12px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.3)]`}
-          >
-            <Icon className="w-5 h-5 text-white drop-shadow-md" strokeWidth={2.5} />
+        
+        {/* Top: Icon - pushes bottom content down evenly across all cards */}
+        <div className="flex justify-between items-start mb-auto relative z-10">
+          <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${metric.gradient} p-[1px] shadow-lg`}>
+            <div className="w-full h-full rounded-2xl bg-[#000000] flex items-center justify-center relative overflow-hidden">
+              <div className={`absolute inset-0 bg-gradient-to-br ${metric.gradient} opacity-20`} />
+              <Icon className="w-6 h-6 !text-white relative z-10" />
+            </div>
+          </div>
+          <div className="!text-[#444444] font-mono text-xl font-bold opacity-50 group-hover:opacity-100 transition-opacity">
+            0{index + 1}
           </div>
         </div>
 
-        {/* Text Details - Centered */}
-        <div className="flex flex-col items-center gap-1">
-          {/* Stat Number - Larger, bolder */}
-          <div className="flex items-baseline justify-center text-white drop-shadow-sm">
+        {/* Bottom: Content - Tightly grouped to prevent unequal gaps */}
+        <div className="relative z-10 mt-8 flex flex-col">
+          {/* Numbers */}
+          <div className="flex items-baseline flex-wrap gap-x-1 mb-4">
             {metric.prefix && (
-              <span className="text-[24px] font-bold mr-1 opacity-90">{metric.prefix}</span>
+              <span className="text-3xl font-bold !text-white/70">{metric.prefix}</span>
             )}
-            <span className="text-[38px] leading-none font-bold tracking-tight">
+            <span className="text-5xl font-black !text-white tracking-tighter leading-none">
               <AnimatedCounter value={metric.value} trigger={isInView} duration={1600} />
             </span>
             {metric.suffix && (
-              <span className="text-[24px] font-bold ml-1 opacity-90">{metric.suffix}</span>
+              <span className="text-3xl font-bold !text-[#e53935]">{metric.suffix}</span>
             )}
           </div>
-
-          {/* Label - 16px, weight 600 */}
-          <h3 className="text-white opacity-90 font-semibold text-base mt-1 tracking-wide">
+          
+          {/* Title */}
+          <h3 className="text-sm md:text-base font-bold !text-white tracking-widest uppercase mt-0 mb-2">
             {metric.label}
           </h3>
-
-          {/* Description - 13-14px, #9CA3AF, max-width 85% */}
-          <p className="text-[#9CA3AF] text-[13px] leading-relaxed mt-1 max-w-[85%]">
+          
+          {/* Subtitle */}
+          <p className="text-sm leading-relaxed font-medium !text-[#9ca3af] m-0">
             {metric.sub}
           </p>
         </div>
+        
       </div>
     </motion.div>
   );
@@ -286,32 +226,23 @@ const MetricCard = ({ metric }) => {
 
 export default function ImpactSection() {
   return (
-    <section id="impact" className="iec-section !pt-12 relative bg-[#050505] overflow-hidden">
+    <section id="impact" className="iec-section !pt-20 !pb-24 relative bg-[#000000] overflow-hidden">
       {/* --- LAYERED BACKGROUND DEPTH --- */}
 
       {/* 1. Base Gradient */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[#0A0A0A] to-[#111111] -z-20" />
+      <div className="absolute inset-0 bg-gradient-to-b from-[#000000] via-[#0a0a0a] to-[#050505] -z-20" />
 
-      {/* 2. Ultra-subtle Noise Texture Overlay */}
-      <div
-        className="absolute inset-0 opacity-[0.03] -z-10 mix-blend-overlay pointer-events-none"
-        style={{
-          backgroundImage:
-            'url("data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.85%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E")',
-        }}
-      />
+      {/* 2. Grid (Opacity Reduced) */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:60px_60px] pointer-events-none -z-10" />
 
-      {/* 3. Grid (Opacity Reduced) */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none -z-10" />
-
-      {/* 4. Animated Red Glow behind Heading */}
+      {/* 3. Animated Red Glow behind Heading */}
       <motion.div
-        className="absolute top-[20%] left-[50%] -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-[#E53935] blur-[150px] rounded-[100%] pointer-events-none -z-10"
+        className="absolute top-[10%] left-[50%] -translate-x-1/2 w-[1000px] h-[600px] bg-[#E53935] blur-[200px] rounded-[100%] pointer-events-none -z-10"
         animate={{
-          scale: [1, 1.05, 1],
-          opacity: [0.03, 0.05, 0.03],
+          scale: [1, 1.1, 1],
+          opacity: [0.08, 0.12, 0.08],
         }}
-        transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
+        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
       />
 
       {/* MAIN CONTENT CONTAINER */}
@@ -323,41 +254,33 @@ export default function ImpactSection() {
         className="iec-container relative z-10 w-full flex flex-col items-center"
       >
         {/* HEADER */}
-        <div className="text-center mb-24 relative w-full flex flex-col items-center">
+        <div className="text-center relative w-full flex flex-col items-center" style={{ marginBottom: '80px' }}>
           <motion.div variants={headerVariants}>
-            <span className="inline-block text-[11px] font-bold text-[#E53935] uppercase tracking-wider border border-[#E53935]/40 rounded-full px-4 py-1.5 bg-[#E53935]/[0.06] mb-6 z-10 relative">
+            <span className="section-label-premium mb-8">
               Our Impact
             </span>
           </motion.div>
 
           <motion.div variants={headerVariants}>
-            <h2 className="font-display text-4xl md:text-[44px] font-bold tracking-tight leading-tight !text-white max-w-3xl z-10 relative">
-              Our Impact on The{' '}
-              <span className="relative inline-block">
-                <span className="relative z-10 text-[#E53935] drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)] filter">
-                  Innovation Ecosystem
-                </span>
-                {/* Micro-Interaction: Soft red pulse strictly under highlight text */}
-                <span
-                  className="absolute inset-x-0 bottom-0 top-[20%] bg-[#E53935] blur-[20px] opacity-20"
-                  aria-hidden="true"
-                />
+            <h2 className="font-display text-5xl md:text-6xl font-black tracking-tight leading-[1.1] !text-white max-w-4xl z-10 relative mb-6">
+              Empowering The Next Era of{' '}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#e53935] to-[#ff7b72]">
+                Innovation
               </span>
             </h2>
           </motion.div>
 
           <motion.div variants={headerVariants}>
-            <p className="mt-5 text-[#A1A1AA] max-w-[600px] text-lg mx-auto leading-relaxed z-10">
-              Driving transformation across the startup landscape with measurable results and
-              lasting partnerships.
+            <p className="text-[#a1a1aa] max-w-[700px] text-xl mx-auto leading-relaxed z-10 font-medium">
+              Driving transformational growth across the startup landscape with measurable results, capital infusion, and lasting partnerships.
             </p>
           </motion.div>
         </div>
 
         {/* GRID */}
-        <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-7 stats-grid">
-          {impactMetrics.map(metric => (
-            <MetricCard key={metric.id} metric={metric} />
+        <div className="w-full grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8">
+          {impactMetrics.map((metric, index) => (
+            <MetricCard key={metric.id} metric={metric} index={index} />
           ))}
         </div>
       </motion.div>

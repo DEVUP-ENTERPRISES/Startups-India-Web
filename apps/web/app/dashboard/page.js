@@ -50,6 +50,21 @@ const Icons = {
       <polyline points="22 4 12 14.01 9 11.01" />
     </svg>
   ),
+  user: props => (
+    <svg
+      width={props.size || 20}
+      height={props.size || 20}
+      fill="none"
+      stroke={props.color || 'currentColor'}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      viewBox="0 0 24 24"
+    >
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+      <circle cx="12" cy="7" r="4" />
+    </svg>
+  ),
   award: props => (
     <svg
       width={props.size || 20}
@@ -628,7 +643,7 @@ export default function DashboardPage() {
         @keyframes redPulse { 0%,100% { opacity:0.6; } 50% { opacity:1; } }
         @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
 
-        .dashboard-main-container { max-width: 1160px; padding: 1.5rem 1rem 3rem; transition: all 0.3s ease; }
+        .dashboard-main-container { max-width: 1160px; padding: 0 1rem 3rem; transition: all 0.3s ease; }
         .da { animation: fadeUp .5s cubic-bezier(0.16,1,0.3,1) both; }
         .da1 { animation-delay:0.05s; } .da2 { animation-delay:0.12s; } .da3 { animation-delay:0.18s; } .da4 { animation-delay:0.24s; } .da5 { animation-delay:0.3s; } .da6 { animation-delay:0.36s; }
 
@@ -1376,20 +1391,16 @@ export default function DashboardPage() {
               style={{
                 width: 60,
                 height: 60,
-                borderRadius: '50%',
-                background: '#f3f4f6',
+                borderRadius: '16px',
+                background: '#fef2f2',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                border: '2px solid #7A1F2B',
-                padding: '3px',
+                border: '2.5px solid #7A1F2B',
+                boxShadow: '0 4px 12px rgba(122, 31, 43, 0.1)',
               }}
             >
-              <img
-                src={user?.avatar || '/assets/images/default-avatar.png'}
-                alt="Founder"
-                style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }}
-              />
+              <Icons.user size={32} color="#7A1F2B" />
             </div>
             <div>
               <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 900, color: '#111' }}>
@@ -1429,7 +1440,7 @@ export default function DashboardPage() {
             </div>
           </div>
           <Link
-            href="/profile"
+            href="/dashboard/settings?tab=profile"
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -1903,7 +1914,7 @@ export default function DashboardPage() {
               bg: 'rgba(217,119,6,0.06)',
             },
             {
-              href: '/profile',
+              href: '/dashboard/settings?tab=profile',
               label: 'Edit Profile',
               desc: 'Update your info',
               Icon: Icons.user,

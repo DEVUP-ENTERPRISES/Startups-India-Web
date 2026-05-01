@@ -1,76 +1,188 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { motion } from 'framer-motion';
+import Icon from '@/components/Icon';
+import '@/styles/analytics-v2.css';
 
 export default function SkillGraphPage() {
-  const [skills, setSkills] = useState([]);
+  const [data, setData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchSkills() {
+    async function fetchData() {
       try {
         const res = await fetch('/api/v1/analytics/skills');
         const json = await res.json();
-        if (json.success) setSkills(json.data);
+        if (json.success) setData(json.data);
       } catch (err) {
-        console.error('Failed to fetch skills data:', err);
+        console.error('Failed to fetch skill data:', err);
       } finally {
         setIsLoading(false);
       }
     }
-    fetchSkills();
+    fetchData();
   }, []);
 
-  if (isLoading) return <div className="p-10 text-center">Mapping Cognitive Proficiencies...</div>;
+  const radarData = useMemo(() => {
+    if (!data?.radar) return [
+      { label: 'Problem Solving', score: 0 },
+      { label: 'Concept Mastery', score: 0 },
+      { label: 'Speed', score: 0 },
+      { label: 'Accuracy', score: 0 },
+      { label: 'Memory Retention', score: 0 },
+    ];
+    return data.radar;
+  }, [data]);
+
+  const totalPoints = radarData.length;
+  const radius = 120;
+  const cx = 150;
+  const cy = 150;
+  
+  const getPoint = (score, index) => {
+    const angle = (Math.PI * 2 * index) / totalPoints - Math.PI / 2;
+    const r = (radius * score) / 100;
+    return {
+      x: cx + r * Math.cos(angle),
+      y: cy + r * Math.sin(angle)
+    };
+  };
+
+  const radarPath = radarData.map((s, i) => {
+    const p = getPoint(s.score, i);
+    return `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`;
+  }).join(' ') + ' Z';
+
+  if (isLoading) return <div className="p-10 text-center">Rendering Cognitive Skillscape...</div>;
 
   return (
-    <div style={{ maxWidth: 1600, margin: '0 auto', padding: '2.5rem 3.5rem 5rem', fontFamily: "'Inter', system-ui, -apple-system, sans-serif", color: '#111' }}>
-      <style dangerouslySetInnerHTML={{ __html: `
-        @keyframes fadeUp { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:translateY(0); } }
-        .da { animation: fadeUp .5s cubic-bezier(0.16,1,0.3,1) both; }
-        .dcard { background:#fff; border-radius:24px; border:1px solid rgba(0,0,0,0.05); box-shadow:0 10px 30px rgba(0,0,0,0.02); transition:all .4s cubic-bezier(0.4, 0, 0.2, 1); }
-        .dcard:hover { transform:translateY(-5px); box-shadow:0 20px 40px rgba(0,0,0,0.06); border-color:rgba(197,151,91,0.2); }
-        .skill-ring { width: 100px; height: 100px; border-radius: 50%; border: 8px solid #f3f4f6; display: flex; alignItems: center; justifyContent: center; position: relative; margin: 0 auto 20px; }
-        .skill-progress { position: absolute; top: -8px; left: -8px; width: 100px; height: 100px; border-radius: 50%; border: 8px solid transparent; border-top-color: #7A1F2B; transform: rotate(-45deg); }
-        .accent-bar { width: 40px; height: 4px; background: #C5975B; border-radius: 2px; marginBottom: 20px; }
-      `}} />
-
-      <header style={{ marginBottom: '4rem' }}>
-        <div className="da da1 accent-bar" />
-        <h1 className="da da1" style={{ fontSize: '2.8rem', fontWeight: 900, color: '#111', letterSpacing: '-0.04em', marginBottom: '12px' }}>Skill Mastery Graph</h1>
-        <p className="da da1" style={{ fontSize: '1.2rem', color: '#666', fontWeight: 500, maxWidth: '600px', lineHeight: 1.6 }}>Dynamic visualization of your core competencies and mastery levels across global startup domains.</p>
+    <div className="analytics-page">
+      <header className="analytics-header">
+        <h1 className="analytics-title">
+          Skill <span className="red-glow-text">Graph</span>
+        </h1>
+        <p className="analytics-subtitle">
+          Visual intelligence showing your cognitive strengths and learning velocity.
+        </p>
       </header>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '24px' }}>
-        {skills.map((s, idx) => (
-          <div key={idx} className={`da da${idx+2} dcard`} style={{ padding: '3rem', textAlign: 'center' }}>
-             <div className="skill-ring">
-                <div className="skill-progress" style={{ transform: `rotate(${(s.level * 3.6) - 45}deg)`, borderTopColor: s.level > 70 ? '#10b981' : '#7A1F2B' }} />
-                <span style={{ fontSize: '1.2rem', fontWeight: 900, color: '#111' }}>{Math.round(s.level)}%</span>
-             </div>
-             <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#111', marginBottom: '8px' }}>{s.skill}</h3>
-             <div style={{ fontSize: '0.7rem', fontWeight: 800, color: '#C5975B', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                {s.level > 80 ? 'Mastery' : s.level > 50 ? 'Proficient' : 'Developing'}
-             </div>
-             <div style={{ marginTop: '16px', fontSize: '0.75rem', color: '#999', fontWeight: 600 }}>
-                {s.strength} EVALUATIONS LOGGED
-             </div>
-          </div>
-        ))}
-      </div>
+      <div className="analytics-grid">
+        {/* Visual Intelligence Radar Chart */}
+        <div className="col-6">
+           <div className="glass-card-v2" style={{ padding: '3.5rem', textAlign: 'center' }}>
+              <h3 style={{ fontSize: '1.5rem', fontWeight: 950, color: '#0f172a', width: '100%', marginBottom: '4rem', textAlign: 'left' }}>Visual Intelligence</h3>
+              
+              <div style={{ position: 'relative', width: '320px', height: '320px', margin: '0 auto' }}>
+                 <svg width="320" height="320" viewBox="0 0 300 300" style={{ overflow: 'visible' }}>
+                    {[20, 40, 60, 80, 100].map((level) => (
+                       <path 
+                          key={level}
+                          d={radarData.map((_, i) => {
+                             const p = getPoint(level, i);
+                             return `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`;
+                          }).join(' ') + ' Z'}
+                          fill="none" stroke="#f1f5f9" strokeWidth="1.5"
+                       />
+                    ))}
+                    {radarData.map((_, i) => {
+                       const p = getPoint(100, i);
+                       return <line key={i} x1={cx} y1={cy} x2={p.x} y2={p.y} stroke="#f1f5f9" strokeWidth="1.5" />;
+                    })}
+                    <motion.path 
+                       initial={{ pathLength: 0, opacity: 0 }} animate={{ pathLength: 1, opacity: 1 }} transition={{ duration: 2 }}
+                       d={radarPath} fill="rgba(122, 31, 43, 0.1)" stroke="var(--brand-red)" strokeWidth="4"
+                    />
+                    {radarData.map((s, i) => {
+                       const p = getPoint(s.score, i);
+                       return <circle key={i} cx={p.x} cy={p.y} r="6" fill="var(--brand-red)" stroke="#fff" strokeWidth="2.5" />;
+                    })}
+                 </svg>
 
-      <div className="da da6 dcard" style={{ marginTop: '48px', padding: '3rem', background: 'linear-gradient(135deg, #7A1F2B, #3d0e16)', color: '#fff' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <h3 style={{ fontSize: '1.5rem', fontWeight: 900, marginBottom: '8px' }}>Incubation Readiness Score</h3>
-            <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.95rem' }}>Your current aggregate competency across all assessed startup modules.</p>
-          </div>
-          <div style={{ fontSize: '3.5rem', fontWeight: 900, color: '#C5975B' }}>
-            {Math.round(skills.reduce((acc, curr) => acc + curr.level, 0) / (skills.length || 1))}
-          </div>
+                 {radarData.map((s, i) => {
+                    const p = getPoint(140, i);
+                    return (
+                       <div key={i} style={{ 
+                          position: 'absolute', top: p.y, left: p.x, transform: 'translate(-50%, -50%)',
+                          fontSize: '0.75rem', fontWeight: 950, color: '#94a3b8', width: '90px', textAlign: 'center'
+                       }}>
+                          <div style={{ color: '#0f172a' }}>{s.label.toUpperCase()}</div>
+                          <div style={{ color: 'var(--brand-red)' }}>{s.score}%</div>
+                       </div>
+                    );
+                 })}
+              </div>
+           </div>
+        </div>
+
+        {/* Proficiency Levels breakdown */}
+        <div className="col-6">
+           <div className="glass-card-v2" style={{ padding: '3.5rem' }}>
+              <h3 style={{ fontSize: '1.5rem', fontWeight: 950, color: '#0f172a', marginBottom: '3.5rem' }}>Proficiency Levels</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '3rem' }}>
+                 {(data?.proficiency || []).map((s, i) => (
+                    <div key={i}>
+                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', alignItems: 'flex-end' }}>
+                          <div>
+                             <span style={{ fontSize: '1.1rem', fontWeight: 950, color: '#0f172a', display: 'block' }}>{s.name}</span>
+                             <span style={{ fontSize: '0.75rem', fontWeight: 950, color: 'var(--brand-gold)', letterSpacing: '0.1em' }}>{s.score > 80 ? 'ADVANCED' : s.score > 50 ? 'INTERMEDIATE' : 'BEGINNER'}</span>
+                          </div>
+                          <span style={{ fontSize: '1.1rem', fontWeight: 950, color: 'var(--brand-red)' }}>{s.score}%</span>
+                       </div>
+                       <div style={{ height: '10px', background: '#f8fafc', borderRadius: '12px', overflow: 'hidden', border: '1.5px solid #f1f5f9' }}>
+                          <motion.div initial={{ width: 0 }} animate={{ width: `${s.score}%` }} transition={{ duration: 1.5 }} style={{ height: '100%', background: 'var(--brand-red)', borderRadius: '12px' }} />
+                       </div>
+                    </div>
+                 ))}
+              </div>
+           </div>
+        </div>
+
+        {/* Growth Predictor & AI Suggestions */}
+        <div className="col-12">
+           <div className="glass-card-v2" style={{ padding: '4rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '5rem', alignItems: 'center' }}>
+              <div>
+                 <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', marginBottom: '2.5rem' }}>
+                    <div style={{ width: 64, height: 64, borderRadius: '20px', background: '#0f172a', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 20px 40px rgba(15, 23, 42, 0.2)' }}>
+                       <Icon name="zap" size={28} color="var(--brand-gold)" />
+                    </div>
+                    <h3 style={{ fontSize: '2.25rem', fontWeight: 950, color: '#0f172a', margin: 0, letterSpacing: '-0.03em' }}>Growth Predictor</h3>
+                 </div>
+                 <p style={{ fontSize: '1.15rem', fontWeight: 600, color: '#64748b', lineHeight: 1.8, maxWidth: '550px' }}>
+                    Based on your linear progress, you are scheduled to reach <span style={{ color: 'var(--brand-red)', fontWeight: 950 }}>Expert Proficiency</span> in core domains by Dec 2026.
+                 </p>
+                 <div style={{ display: 'flex', gap: '4rem', marginTop: '3.5rem' }}>
+                    <div>
+                       <div style={{ fontSize: '2rem', fontWeight: 950, color: '#0f172a' }}>+14%</div>
+                       <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#94a3b8', letterSpacing: '0.05em' }}>WEEKLY GAIN</div>
+                    </div>
+                    <div>
+                       <div style={{ fontSize: '2rem', fontWeight: 950, color: '#0f172a' }}>Level 12</div>
+                       <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#94a3b8', letterSpacing: '0.05em' }}>GLOBAL RANK</div>
+                    </div>
+                 </div>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                 <h4 style={{ fontSize: '0.85rem', fontWeight: 950, color: '#94a3b8', letterSpacing: '0.15em', marginBottom: '0.5rem' }}>AI FOCUS SUGGESTIONS</h4>
+                 {[
+                   { title: 'Speed Drill', desc: 'Attempt 3 quickfire quizzes to improve your response rate.', type: 'Quizzes' },
+                   { title: 'Memory Refresher', desc: 'Revise Unit Economics concepts from last week.', type: 'Notes' }
+                 ].map((a, i) => (
+                    <div key={i} style={{ display: 'flex', gap: '2rem', padding: '2rem', background: '#f8fafc', borderRadius: '32px', border: '1.5px solid #f1f5f9' }}>
+                       <div style={{ width: 48, height: 48, borderRadius: '14px', background: 'var(--dashboard-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1.5px solid #f1f5f9' }}>
+                          <Icon name={a.type === 'Quizzes' ? 'zap' : 'fileText'} size={22} color="var(--brand-red)" />
+                       </div>
+                       <div>
+                          <div style={{ fontSize: '1.15rem', fontWeight: 950, color: '#0f172a' }}>{a.title}</div>
+                          <p style={{ margin: '6px 0 0', fontSize: '0.9rem', color: '#64748b', fontWeight: 650, lineHeight: 1.5 }}>{a.desc}</p>
+                       </div>
+                    </div>
+                 ))}
+              </div>
+           </div>
         </div>
       </div>
     </div>
   );
 }
-

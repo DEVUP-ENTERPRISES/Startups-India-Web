@@ -12,6 +12,11 @@
   --color-primary-dark: #d62839;
   --color-primary-light: #ff4757;
   --color-primary-rgb: 230, 57, 70;
+
+  /* Brand Theme Colors */
+  --color-brand-maroon: #7A1F2B;
+  --color-brand-gold: #C5975B;
+  --color-dashboard-bg: #ffffff;
   
   /* Neutral Palette */
   --color-white: #ffffff;

@@ -123,7 +123,7 @@ export default function CompletedCoursesPage() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '2rem' }}>
           {displayItems.map((item, i) => (
             <div key={item._id} className="completed-card" style={{
-              background: '#fff',
+              background: 'var(--dashboard-bg)',
               borderRadius: '24px',
               border: '1px solid #f3f4f6',
               overflow: 'hidden',
