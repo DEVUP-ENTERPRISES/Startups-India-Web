@@ -31,14 +31,17 @@ export default function AboutUs() {
 
     const handleMouseMove = e => {
       const cards = document.querySelectorAll(
-        '.stand-card, .what-card, .mission-card, .approach-card'
+        '.icon-box, .card, .feature-card, .about-card, .mission-card, .approach-card, .what-card, .impact-roadmap-card, .hero-stat-item, .stat-item'
       );
       cards.forEach(card => {
         const rect = card.getBoundingClientRect();
-        const x = ((e.clientX - rect.left) / rect.width) * 100;
-        const y = ((e.clientY - rect.top) / rect.height) * 100;
-        card.style.setProperty('--mouse-x', `${x}%`);
-        card.style.setProperty('--mouse-y', `${y}%`);
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        card.style.setProperty('--x', `${x}px`);
+        card.style.setProperty('--y', `${y}px`);
+        // Keep old vars for other card types if needed
+        card.style.setProperty('--mouse-x', `${(x / rect.width) * 100}%`);
+        card.style.setProperty('--mouse-y', `${(y / rect.height) * 100}%`);
       });
     };
 
@@ -98,25 +101,25 @@ export default function AboutUs() {
               </div>
 
               <div className="stand-grid">
-                <div className="stand-card">
+                <div className="icon-box">
                   <div className="stand-icon">
                     <Lightbulb size={24} />
                   </div>
                   <h3>Ideas are Encouraged</h3>
                 </div>
-                <div className="stand-card">
+                <div className="icon-box">
                   <div className="stand-icon">
                     <Sprout size={24} />
                   </div>
                   <h3>Innovation is Nurtured</h3>
                 </div>
-                <div className="stand-card">
+                <div className="icon-box">
                   <div className="stand-icon">
                     <Handshake size={24} />
                   </div>
                   <h3>Founders are Supported</h3>
                 </div>
-                <div className="stand-card">
+                <div className="icon-box">
                   <div className="stand-icon">
                     <Rocket size={24} />
                   </div>

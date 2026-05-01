@@ -260,28 +260,125 @@
   transform: scale(1.02);
 }
 
-/* Responsive */
-@media (max-width: 1024px) {
-  .training-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+/* Carousel Wrapper */
+.carousel-wrapper {
+  position: relative;
+  width: 100%;
 }
 
-@media (max-width: 640px) {
-  .training-section {
-    padding: 5rem 1rem;
-  }
+.carousel-arrow {
+  display: none; /* Hidden on Desktop */
+}
 
-  .training-header h2 {
-    font-size: 2rem;
-  }
+.carousel-dots {
+  display: none; /* Hidden on Desktop */
+}
 
+/* TABLET & MOBILE CAROUSEL */
+@media (max-width: 1024px) {
   .training-grid {
-    grid-template-columns: 1fr;
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    gap: 20px;
+    padding: 1rem 0;
+    margin: 0 -1rem; /* Negative margin to allow cards to reach edges */
+    padding-left: 1rem;
+    padding-right: 1rem;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox */
+  }
+
+  .training-grid::-webkit-scrollbar {
+    display: none; /* Chrome/Safari */
   }
 
   .training-card {
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    flex: 0 0 auto;
+    scroll-snap-align: center;
+    width: 45%; /* Tablet default */
+  }
+
+  .carousel-arrow {
+    display: flex;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    color: #1e293b;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  }
+
+  .carousel-arrow:hover {
+    background: rgba(255, 255, 255, 0.4);
+    transform: translateY(-50%) scale(1.1);
+  }
+
+  .carousel-arrow.left {
+    left: -20px;
+  }
+
+  .carousel-arrow.right {
+    right: -20px;
+  }
+
+  .carousel-dots {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 2rem;
+  }
+
+  .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #e2e8f0;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 0;
+  }
+
+  .dot.active {
+    background: #e53935;
+    width: 28px;
+    border-radius: 6px;
+  }
+}
+
+/* MOBILE SPECIFIC */
+@media (max-width: 767px) {
+  .training-grid {
+    gap: 16px;
+  }
+
+  .training-card {
+    width: 85%;
+  }
+
+  .carousel-arrow {
+    width: 40px;
+    height: 40px;
+  }
+
+  .carousel-arrow.left {
+    left: -10px;
+  }
+
+  .carousel-arrow.right {
+    right: -10px;
   }
 }
