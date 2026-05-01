@@ -11,7 +11,7 @@ function RecordedCard({ cls, layout = 'grid' }) {
   const isWatched = cls.progress === 100;
 
   return (
-    <Link href={`/dashboard/learning/continue?courseId=${cls._id}`} style={{ textDecoration: 'none' }}>
+    <Link href={`/learn/${cls._id}`} style={{ textDecoration: 'none' }}>
       <div className={`platform-card-v ${isList ? 'layout-list' : ''}`} style={{
         height: '100%',
         display: 'flex',

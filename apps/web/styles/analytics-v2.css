@@ -1,21 +1,25 @@
-/* Analytics V2 Design System */
+/* Analytics V2 Design System - Enhanced Premium Theme */
 :root {
   --brand-red: #7A1F2B;
+  --brand-red-light: #9e3347;
   --brand-gold: #C5975B;
-  --brand-black: #111827;
-  --brand-font: 'Poppins', var(--font-poppins), sans-serif;
+  --brand-black: #0F172A;
+  --brand-font: 'Inter', var(--font-inter), 'Poppins', sans-serif;
   --slate-50: #F8FAFC;
   --slate-100: #F1F5F9;
   --slate-200: #E2E8F0;
+  --slate-300: #CBD5E1;
   --slate-400: #94A3B8;
   --slate-500: #64748B;
   --slate-800: #1E293B;
   --slate-900: #0F172A;
+  --card-bg: #ffffff;
+  --glass-bg: rgba(255, 255, 255, 0.7);
 }
 
 .analytics-page {
-  padding: 3rem;
-  background: #ffffff;
+  padding: 2.5rem 3rem;
+  background: #fcfcfd;
   min-height: 100vh;
   font-family: var(--brand-font);
 }
@@ -48,18 +52,19 @@
 }
 
 .glass-card-v2 {
-  background: #ffffff;
-  border-radius: 40px;
-  border: 1.5px solid var(--slate-100);
-  box-shadow: 0 10px 30px rgba(122, 31, 43, 0.01);
-  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  background: var(--card-bg);
+  border-radius: 32px;
+  border: 1px solid rgba(241, 245, 249, 0.8);
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   overflow: hidden;
+  position: relative;
 }
 
 .glass-card-v2:hover {
-  transform: translateY(-10px);
-  border-color: var(--brand-red);
-  box-shadow: 0 30px 60px rgba(122, 31, 43, 0.08);
+  transform: translateY(-8px);
+  border-color: rgba(122, 31, 43, 0.15);
+  box-shadow: 0 30px 60px rgba(122, 31, 43, 0.1);
 }
 
 .stat-box {

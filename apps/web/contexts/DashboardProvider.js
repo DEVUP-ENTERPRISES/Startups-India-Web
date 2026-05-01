@@ -51,6 +51,16 @@ export function DashboardProvider({ children, authUser }) {
     isLoading,
     refresh,
     setWishlist,
+    toggleLocalWishlist: (course) => {
+      setWishlist(prev => {
+        const exists = prev.find(w => w._id === course._id);
+        if (exists) {
+          return prev.filter(w => w._id !== course._id);
+        } else {
+          return [...prev, course];
+        }
+      });
+    }
   };
 
   return <DashboardContext.Provider value={value}>{children}</DashboardContext.Provider>;

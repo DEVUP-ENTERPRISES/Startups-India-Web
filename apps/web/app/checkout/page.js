@@ -5,80 +5,6 @@ import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { apiGet, apiPost } from '@/lib/api';
 
-const MOCK_COURSES = [
-  {
-    _id: 'dummy-1',
-    title: 'GenAI & DeepTech: 2025 Roadmap',
-    description: 'Master the fundamentals of Generative AI and build scalable DeepTech solutions for the Indian ecosystem.',
-    category: 'Technology',
-    priceInr: 4999,
-    level: 'Intermediate',
-    rating: 4.9,
-    enrolledCount: 1240,
-    instructor: 'Dr. Arpit Jain',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&q=80&w=800',
-  },
-  {
-    _id: 'dummy-2',
-    title: 'VC Funding: The Pitch Deck Masterclass',
-    description: 'Learn how to raise capital from top VCs in India. Includes templates for Series A and Seed rounds.',
-    category: 'Finance',
-    priceInr: 2999,
-    level: 'Advanced',
-    rating: 4.8,
-    enrolledCount: 850,
-    instructor: 'Sneha Kapoor (Founder, CapitalX)',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1553729459-efe14ef6055d?auto=format&fit=crop&q=80&w=800',
-  },
-  {
-    _id: 'dummy-3',
-    title: 'Startup India: DPIIT & Govt Schemes',
-    description: 'Navigate the benefits of DPIIT recognition, tax exemptions, and government procurement portals.',
-    category: 'Government',
-    priceInr: 0,
-    level: 'Beginner',
-    rating: 4.7,
-    enrolledCount: 3200,
-    instructor: 'Ministry of Commerce',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1532375810709-75b1da00537c?auto=format&fit=crop&q=80&w=800',
-  },
-  {
-    _id: 'dummy-4',
-    title: 'Scaling Operations in Tier-2 Markets',
-    description: 'Strategies for expansion into Bharat. Logistics, talent acquisition, and regional marketing.',
-    category: 'Operations',
-    priceInr: 1499,
-    level: 'Intermediate',
-    rating: 4.6,
-    enrolledCount: 420,
-    instructor: 'Rahul Verma',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=800',
-  },
-  {
-    _id: 'dummy-5',
-    title: 'Product Management for SaaS Founders',
-    description: 'Build products that customers love. Metrics, user research, and agile execution for early-stage teams.',
-    category: 'Product',
-    priceInr: 3499,
-    level: 'Beginner',
-    rating: 4.9,
-    enrolledCount: 2100,
-    instructor: 'Ananya S.',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&q=80&w=800',
-  },
-  {
-    _id: 'dummy-6',
-    title: 'Legal & Intellectual Property Foundations',
-    description: 'Protect your innovation. Everything you need to know about patents, trademarks, and founder agreements.',
-    category: 'Legal',
-    priceInr: 1999,
-    level: 'Beginner',
-    rating: 4.5,
-    enrolledCount: 680,
-    instructor: 'Adv. Rohan Mehra',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&q=80&w=800',
-  }
-];
 
 export default function CheckoutPage() {
   return (
@@ -121,18 +47,6 @@ function CheckoutContent() {
       return;
     }
 
-    // Check for mock courses first
-    if (courseId.startsWith('dummy-')) {
-      const mock = MOCK_COURSES.find(c => c._id === courseId);
-      if (mock) {
-        setCourse(mock);
-        setLoading(false);
-      } else {
-        setError('Course not found in catalog.');
-        setLoading(false);
-      }
-      return;
-    }
 
     setLoading(true);
     apiGet(`/api/v1/courses/${courseId}`)
@@ -164,14 +78,6 @@ function CheckoutContent() {
   async function handlePay() {
     if (!course) return;
     
-    // For mock courses, simulate success
-    if (course._id.startsWith('dummy-')) {
-      setProcessing(true);
-      setTimeout(() => {
-        router.push(`/dashboard/learning/continue`);
-      }, 1500);
-      return;
-    }
 
     setProcessing(true);
     setError('');
@@ -208,7 +114,7 @@ function CheckoutContent() {
               setError('Payment verification failed. Please contact support.');
               setProcessing(false);
             } else {
-              router.push(`/dashboard/learning/continue`);
+              router.push(`/learn/${course._id}`);
             }
           } catch (err) {
             setError('An unexpected error occurred during verification.');
@@ -249,7 +155,7 @@ function CheckoutContent() {
         setError(res.error.message);
         setProcessing(false);
       } else {
-        router.push(`/dashboard/learning/continue`);
+        router.push(`/learn/${course._id}`);
       }
     } catch (err) {
       setError('Manual enrollment failed.');
@@ -318,7 +224,7 @@ function CheckoutContent() {
           </Link>
           <div className="hero-content">
             <span className="hero-badge">Official Enrollment Portal</span>
-              <h1 className="hero-title">Secure Your Spot in the Cohort</h1>
+              <h1 className="hero-title">Secure Your Spot in {course.title}</h1>
               <p className="hero-subtitle">Join the elite tribe of founders building the next generation of Indian startups.</p>
             </div>
           </div>
@@ -711,7 +617,9 @@ function CheckoutContent() {
           .faq-grid { grid-template-columns: 1fr; }
         }
         @media (max-width: 768px) {
-          .hero-title { font-size: 2.25rem; }
+          .checkout-hero { padding: 3rem 1.5rem 6rem; }
+          .hero-title { font-size: 2rem; }
+          .hero-back { margin-bottom: 1.5rem; font-size: 0.8rem; }
           .value-props { grid-template-columns: 1fr; }
           .cta-grid { grid-template-columns: 1fr; gap: 2rem; }
           .premium-thumb { width: 100%; height: 200px; }

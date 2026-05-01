@@ -100,13 +100,7 @@ export default function DashboardHeader({ onOpenMobileMenu }) {
   return (
     <header className="dashboard-header">
       <div className="header-left">
-        <Link href="/dashboard" className="mobile-logo-link mobile-only">
-          <img
-            src="/assets/images/logo-new.png"
-            alt="Startups India"
-            className="mobile-header-logo"
-          />
-        </Link>
+
         <button className="mobile-menu-btn mobile-only" onClick={onOpenMobileMenu}>
           <Icon name="layout" size={20} />
         </button>
@@ -165,7 +159,7 @@ export default function DashboardHeader({ onOpenMobileMenu }) {
 
       <div className="header-actions">
         {/* 1. Notification (Visual Left of the group) */}
-        <button className="header-action-btn hide-mobile" title="Notifications">
+        <button className="header-action-btn" title="Notifications">
           <Icon name="bell" size={20} />
           <span className="notification-badge">3</span>
         </button>
@@ -300,7 +294,6 @@ export default function DashboardHeader({ onOpenMobileMenu }) {
 
         @media (max-width: 1060px) {
           .mobile-only { display: flex !important; }
-          .mobile-logo-link { align-items: center; }
           .hide-mobile { display: none !important; }
           .header-left { gap: 8px; }
           .header-search { display: none; } 

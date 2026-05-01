@@ -69,80 +69,7 @@ const SORT_OPTIONS = [
   { value: 'price-high', label: 'Price: High to Low' },
 ];
 
-const DUMMY_COURSES = [
-  {
-    _id: 'dummy-1',
-    title: 'GenAI & DeepTech: 2025 Roadmap',
-    description: 'Master the fundamentals of Generative AI and build scalable DeepTech solutions for the Indian ecosystem.',
-    category: 'Technology',
-    priceInr: 4999,
-    level: 'Intermediate',
-    rating: 4.9,
-    enrolledCount: 1240,
-    instructor: 'Dr. Arpit Jain',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&q=80&w=800',
-  },
-  {
-    _id: 'dummy-2',
-    title: 'VC Funding: The Pitch Deck Masterclass',
-    description: 'Learn how to raise capital from top VCs in India. Includes templates for Series A and Seed rounds.',
-    category: 'Finance',
-    priceInr: 2999,
-    level: 'Advanced',
-    rating: 4.8,
-    enrolledCount: 850,
-    instructor: 'Sneha Kapoor (Founder, CapitalX)',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1553729459-efe14ef6055d?auto=format&fit=crop&q=80&w=800',
-  },
-  {
-    _id: 'dummy-3',
-    title: 'Startup India: DPIIT & Govt Schemes',
-    description: 'Navigate the benefits of DPIIT recognition, tax exemptions, and government procurement portals.',
-    category: 'Government',
-    priceInr: 0,
-    level: 'Beginner',
-    rating: 4.7,
-    enrolledCount: 3200,
-    instructor: 'Ministry of Commerce',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1532375810709-75b1da00537c?auto=format&fit=crop&q=80&w=800',
-  },
-  {
-    _id: 'dummy-4',
-    title: 'Scaling Operations in Tier-2 Markets',
-    description: 'Strategies for expansion into Bharat. Logistics, talent acquisition, and regional marketing.',
-    category: 'Operations',
-    priceInr: 1499,
-    level: 'Intermediate',
-    rating: 4.6,
-    enrolledCount: 420,
-    instructor: 'Rahul Verma',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=800',
-  },
-  {
-    _id: 'dummy-5',
-    title: 'Product Management for SaaS Founders',
-    description: 'Build products that customers love. Metrics, user research, and agile execution for early-stage teams.',
-    category: 'Product',
-    priceInr: 3499,
-    level: 'Beginner',
-    rating: 4.9,
-    enrolledCount: 2100,
-    instructor: 'Ananya S.',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&q=80&w=800',
-  },
-  {
-    _id: 'dummy-6',
-    title: 'Legal & Intellectual Property Foundations',
-    description: 'Protect your innovation. Everything you need to know about patents, trademarks, and founder agreements.',
-    category: 'Legal',
-    priceInr: 1999,
-    level: 'Beginner',
-    rating: 4.5,
-    enrolledCount: 680,
-    instructor: 'Adv. Rohan Mehra',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&q=80&w=800',
-  }
-];
+
 
 function SkeletonCard() {
   return (
@@ -190,7 +117,7 @@ export default function ExplorePage() {
   const router = useRouter();
   const initialSearch = searchParams.get('search') || '';
 
-  const { courses, enrolledCourses, wishlist, setWishlist, certificates, isLoading, refresh } =
+  const { courses, enrolledCourses, wishlist, setWishlist, certificates, isLoading, refresh, toggleLocalWishlist } =
     useDashboard();
   const [search, setSearch] = useState(initialSearch);
 
@@ -212,9 +139,13 @@ export default function ExplorePage() {
 
   const wishlistSet = useMemo(() => new Set(wishlist.map(w => w._id || w.id)), [wishlist]);
 
-  const toggleWishlist = async id => {
+  const toggleWishlist = async course => {
+    if (course._id.startsWith('dummy-')) {
+      toggleLocalWishlist(course);
+      return;
+    }
     const { apiPost } = await import('@/lib/api');
-    const res = await apiPost(`/api/v1/courses/${id}/wishlist`, {});
+    const res = await apiPost(`/api/v1/courses/${course._id}/wishlist`, {});
     if (res.success) {
       refresh(); // Sync everything
     }
@@ -231,13 +162,13 @@ export default function ExplorePage() {
   );
 
   const categories = useMemo(() => {
-    const allCourses = [...(courses || []), ...DUMMY_COURSES];
+    const allCourses = [...(courses || [])];
     const cats = new Set(allCourses.map(c => c.category).filter(Boolean));
     return ['All', ...Array.from(cats)];
   }, [courses]);
 
   const filtered = useMemo(() => {
-    const allCourses = [...(courses || []), ...DUMMY_COURSES];
+    const allCourses = [...(courses || [])];
     let result = allCourses.filter(c => {
       const q = search.toLowerCase();
       const matchesSearch =
@@ -279,7 +210,7 @@ export default function ExplorePage() {
 
   const totalEnrolled = enrolledCourses?.length || 0;
   const totalCerts = certificates?.length || 0;
-  const allCourses = [...(courses || []), ...DUMMY_COURSES];
+  const allCourses = [...(courses || [])];
   const freeCount = allCourses.filter(c => !(c.priceInr || c.price)).length || 0;
 
   if (isLoading) {
@@ -579,7 +510,7 @@ export default function ExplorePage() {
         >
           {categories.map(cat => {
             const isActive = activeCategory === cat;
-            const allCourses = [...(courses || []), ...DUMMY_COURSES];
+            const allCourses = [...(courses || [])];
             const count =
               cat === 'All'
                 ? allCourses.length
@@ -635,7 +566,7 @@ export default function ExplorePage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
             <span style={{ fontSize: '0.9rem', color: '#6b7280', fontWeight: 600 }}>
               Showing <span style={{ color: '#111827', fontWeight: 800 }}>{filtered.length}</span>{' '}
-              of {[...(courses || []), ...DUMMY_COURSES].length} courses
+              of {[...(courses || [])].length} courses
             </span>
             {(search || activeCategory !== 'All' || sortBy !== 'default') && (
               <button
@@ -870,7 +801,7 @@ export default function ExplorePage() {
                         className="heart-btn"
                         onClick={e => {
                           e.preventDefault();
-                          toggleWishlist(course._id);
+                          toggleWishlist(course);
                         }}
                         style={{
                           width: '36px',
@@ -1547,7 +1478,7 @@ export default function ExplorePage() {
                       >
                         <button
                           className="heart-btn"
-                          onClick={() => toggleWishlist(course._id)}
+                          onClick={() => toggleWishlist(course)}
                           style={{
                             background: 'none',
                             border: 'none',

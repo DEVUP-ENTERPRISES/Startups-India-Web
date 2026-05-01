@@ -47,11 +47,30 @@ export default function LearningTimePage() {
     return Math.max(...hours, 1);
   }, [weeklyData]);
 
-  if (isLoading) return <div className="p-10 text-center">Syncing Chronological Logs...</div>;
+  if (isLoading) return (
+    <div className="analytics-page" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ textAlign: 'center' }}>
+        <div className="spinner" style={{ width: 40, height: 40, border: '4px solid #f1f5f9', borderTop: '4px solid var(--brand-red)', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 1.5rem' }} />
+        <p style={{ fontSize: '1.1rem', fontWeight: 700, color: '#64748b' }}>Syncing chronological logs...</p>
+      </div>
+      <style jsx>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
+      `}</style>
+    </div>
+  );
 
   return (
     <div className="analytics-page">
-      <header className="analytics-header">
+      {/* Decorative Background Elements */}
+      <div style={{ position: 'fixed', top: '-10%', right: '-5%', width: '40%', height: '40%', background: 'radial-gradient(circle, rgba(122, 31, 43, 0.03) 0%, transparent 70%)', zIndex: 0, pointerEvents: 'none' }} />
+      <div style={{ position: 'fixed', bottom: '-5%', left: '-5%', width: '30%', height: '30%', background: 'radial-gradient(circle, rgba(197, 151, 91, 0.03) 0%, transparent 70%)', zIndex: 0, pointerEvents: 'none' }} />
+
+      <header className="analytics-header" style={{ position: 'relative', zIndex: 1 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '1rem' }}>
+          <span style={{ padding: '6px 12px', background: 'rgba(122, 31, 43, 0.08)', color: 'var(--brand-red)', borderRadius: '99px', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            Behavioral Analytics
+          </span>
+        </div>
         <h1 className="analytics-title">
           Learning <span className="red-glow-text">Time</span>
         </h1>
@@ -60,134 +79,101 @@ export default function LearningTimePage() {
         </p>
       </header>
 
-      <div className="analytics-grid">
+      <div className="analytics-grid" style={{ position: 'relative', zIndex: 1 }}>
         {/* Weekly Study Velocity Chart */}
-        <div className="col-8">
-           <div className="glass-card-v2" style={{ padding: '3.5rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4rem' }}>
-                 <h3 style={{ fontSize: '1.5rem', fontWeight: 950, color: '#0f172a', margin: 0 }}>Weekly Study Velocity</h3>
-                 <div style={{ padding: '12px 28px', borderRadius: '16px', background: 'var(--brand-red)', color: '#fff', fontSize: '0.9rem', fontWeight: 950, boxShadow: '0 10px 20px rgba(122, 31, 43, 0.2)' }}>
-                    TOTAL: {data?.totalHours || 0} hrs
+        <div className="col-12">
+           <div className="glass-card-v2" style={{ padding: '3rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4rem' }}>
+                 <div>
+                   <h3 style={{ fontSize: '1.6rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>Study Velocity</h3>
+                   <p style={{ fontSize: '1rem', color: '#64748b', marginTop: '8px', fontWeight: 500 }}>Active learning hours over the last 7 days</p>
+                 </div>
+                 <div style={{ padding: '16px 32px', borderRadius: '20px', background: '#0f172a', color: '#fff', textAlign: 'right', boxShadow: '0 15px 30px rgba(0, 0, 0, 0.12)' }}>
+                    <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)', fontWeight: 800, textTransform: 'uppercase', marginBottom: '4px', letterSpacing: '0.05em' }}>Total Weekly</div>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 950 }}>{data?.totalHours || 0} <span style={{ fontSize: '0.9rem', opacity: 0.7 }}>hrs</span></div>
                  </div>
               </div>
 
-               <div className="bar-chart-container" style={{ height: '300px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: '1.5rem', paddingBottom: '2.5rem' }}>
-                  {weeklyData.map((d, i) => (
-                     <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2rem', minWidth: '40px' }}>
-                        <div style={{ position: 'relative', width: '100%', height: '220px', display: 'flex', flexDirection: 'column-reverse' }}>
+               <div className="bar-chart-container" style={{ height: '320px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: '1.5rem', paddingBottom: '1.5rem' }}>
+                  {weeklyData.map((d, i) => {
+                    const isWeekend = d.day === 'Sat' || d.day === 'Sun';
+                    return (
+                      <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5rem', minWidth: '40px' }}>
+                        <div style={{ position: 'relative', width: '100%', height: '240px', display: 'flex', flexDirection: 'column-reverse' }}>
                            <motion.div 
-                              initial={{ height: 0 }}
-                              animate={{ height: `${(parseFloat(d.hours) / maxHours) * 100}%` }}
-                              transition={{ duration: 1.2, delay: i * 0.1, ease: 'circOut' }}
-                              style={{ 
-                                 background: d.day === 'Sat' || d.day === 'Sun' ? 'var(--brand-red)' : '#0f172a', 
-                                 borderRadius: '16px', width: '100%',
-                                 boxShadow: d.day === 'Sat' || d.day === 'Sun' ? '0 10px 20px rgba(122, 31, 43, 0.15)' : 'none'
-                              }}
-                           />
-                           <div style={{ position: 'absolute', top: '-35px', width: '100%', textAlign: 'center', fontSize: '0.85rem', fontWeight: 950, color: '#0f172a' }}>
-                              {d.hours}h
-                           </div>
+                               initial={{ height: 0 }}
+                               animate={{ height: `${(parseFloat(d.hours) / maxHours) * 100}%` }}
+                               transition={{ duration: 1.5, delay: i * 0.1, ease: [0.16, 1, 0.3, 1] }}
+                               style={{ 
+                                  background: isWeekend ? 'linear-gradient(180deg, var(--brand-red-light) 0%, var(--brand-red) 100%)' : 'linear-gradient(180deg, #334155 0%, #0f172a 100%)', 
+                                  borderRadius: '16px', width: '100%',
+                                  boxShadow: isWeekend ? '0 10px 25px rgba(122, 31, 43, 0.15)' : 'none',
+                                  position: 'relative'
+                               }}
+                           >
+                             {parseFloat(d.hours) > 0 && (
+                               <div style={{ position: 'absolute', top: '-35px', width: '100%', textAlign: 'center', fontSize: '0.9rem', fontWeight: 900, color: isWeekend ? 'var(--brand-red)' : '#0f172a' }}>
+                                 {d.hours}h
+                               </div>
+                             )}
+                           </motion.div>
                         </div>
-                        <span style={{ fontSize: '0.85rem', fontWeight: 950, color: '#94a3b8' }}>{d.day.toUpperCase()}</span>
-                     </div>
-                  ))}
+                        <span style={{ fontSize: '0.85rem', fontWeight: 800, color: isWeekend ? 'var(--brand-red)' : '#94a3b8', letterSpacing: '0.05em' }}>{d.day.toUpperCase()}</span>
+                      </div>
+                    );
+                  })}
                </div>
             </div>
          </div>
 
-         {/* Sidebar: Peak Focus & Consistency */}
-         <div className="col-4">
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
-               <div className="glass-card-v2" style={{ padding: '2.5rem', borderRadius: '40px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', marginBottom: '2.5rem' }}>
-                     <div style={{ width: 54, height: 54, borderRadius: '18px', background: 'var(--brand-red)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 15px 30px rgba(122, 31, 43, 0.2)', flexShrink: 0 }}>
-                        <Icon name="zap" size={24} color="#fff" />
-                     </div>
-                     <div>
-                        <div style={{ fontSize: '0.85rem', fontWeight: 950, color: '#94a3b8', marginBottom: '4px', textTransform: 'uppercase' }}>Peak Focus Hour</div>
-                        <div style={{ fontSize: '1.2rem', fontWeight: 950, color: 'var(--brand-red)' }}>{data?.peakHours || '09:00 PM - 11:00 PM'}</div>
-                     </div>
+         {/* Consistency & Impact Row */}
+         <div className="col-6">
+            <div className="glass-card-v2" style={{ padding: '2.5rem', height: '100%', background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)', color: '#fff', border: 'none' }}>
+               <h3 style={{ fontSize: '1.25rem', fontWeight: 900, color: '#fff', marginBottom: '2.5rem', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                 <Icon name="streak" size={20} color="var(--brand-gold)" /> Consistency Metric
+               </h3>
+               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '1.25rem', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+                     <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Average Daily Session</span>
+                     <span style={{ fontSize: '1.2rem', fontWeight: 900 }}>1.8 <span style={{ fontSize: '0.8rem', opacity: 0.6 }}>hrs</span></span>
                   </div>
-                  <p style={{ fontSize: '0.9rem', color: '#64748b', fontWeight: 700, margin: 0, lineHeight: 1.8 }}>
-                     Your productivity is <span style={{ color: '#0f172a', fontWeight: 950 }}>24% higher</span> during this window.
-                  </p>
-               </div>
-
-               <div className="glass-card-v2" style={{ padding: '2.5rem', borderRadius: '40px', background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)', color: '#fff', border: 'none' }}>
-                  <h3 style={{ fontSize: '1.2rem', fontWeight: 950, color: '#fff', marginBottom: '2.5rem' }}>Consistency Stats</h3>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'rgba(255,255,255,0.4)', letterSpacing: '0.05em' }}>AVG SESSION</span>
-                        <span style={{ fontSize: '1.1rem', fontWeight: 950 }}>1.8 hrs</span>
-                     </div>
-                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.25rem', background: 'rgba(122, 31, 43, 0.2)', borderRadius: '20px', border: '1.5px solid rgba(122, 31, 43, 0.3)' }}>
-                        <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--brand-gold)', letterSpacing: '0.05em' }}>STREAK</span>
-                        <span style={{ fontSize: '1.1rem', fontWeight: 950, color: 'var(--brand-gold)' }}>{data?.streak || 8} Days</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.5rem', background: 'rgba(197, 151, 91, 0.12)', borderRadius: '20px', border: '1px solid rgba(197, 151, 91, 0.25)' }}>
+                     <span style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--brand-gold)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Active Learning Streak</span>
+                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                       <span style={{ fontSize: '1.5rem', fontWeight: 950, color: 'var(--brand-gold)' }}>{data?.streak || 0}</span>
+                       <span style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--brand-gold)' }}>DAYS</span>
                      </div>
                   </div>
                </div>
             </div>
          </div>
 
-         {/* Time Distribution & Daily Mission */}
-         <div className="col-12">
-            <div className="glass-card-v2 flex-stack-mobile" style={{ padding: '3.5rem', display: 'flex', gap: '4rem', alignItems: 'center' }}>
-               <div style={{ flex: 1, display: 'flex', flexWrap: 'wrap', gap: '3rem', alignItems: 'center', justifyContent: 'center' }}>
-                  <div style={{ width: '220px', height: '220px', position: 'relative', flexShrink: 0 }}>
-                     <svg width="220" height="220" viewBox="0 0 100 100">
-                        <circle cx="50" cy="50" r="42" fill="none" stroke="#f8fafc" strokeWidth="12" />
-                        <motion.circle 
-                           cx="50" cy="50" r="42" fill="none" stroke="var(--brand-red)" strokeWidth="12" 
-                           strokeDasharray="263.89" strokeDashoffset="158" strokeLinecap="round" transform="rotate(-90 50 50)" 
-                        />
-                     </svg>
-                     <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center' }}>
-                        <div style={{ fontSize: '2.5rem', fontWeight: 950, color: '#0f172a', lineHeight: 1 }}>{Math.round(data?.totalHours || 0)}</div>
-                        <div style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 950, marginTop: '4px' }}>TOTAL HOURS</div>
-                     </div>
+         <div className="col-6">
+            <div className="glass-card-v2" style={{ padding: '2.5rem', height: '100%' }}>
+               <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', marginBottom: '2rem' }}>
+                  <div style={{ width: 52, height: 52, borderRadius: '16px', background: 'var(--brand-red)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 12px 24px rgba(122, 31, 43, 0.2)', flexShrink: 0 }}>
+                     <Icon name="zap" size={24} color="#fff" />
                   </div>
-                  <div style={{ flex: 1, minWidth: '280px' }}>
-                     <h3 style={{ fontSize: '1.4rem', fontWeight: 950, color: '#0f172a', marginBottom: '1.5rem' }}>Time Distribution</h3>
-                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                        {[
-                          { name: 'Live Sessions', value: 40, color: 'var(--brand-red)' },
-                          { name: 'Assessments', value: 35, color: '#0f172a' },
-                          { name: 'Notes & Reading', value: 25, color: 'var(--brand-gold)' }
-                        ].map((d, i) => (
-                          <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '0.75rem', borderBottom: '1.5px solid #f8fafc' }}>
-                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                <div style={{ width: 12, height: 12, borderRadius: 4, background: d.color }} />
-                                <span style={{ fontSize: '0.9rem', fontWeight: 900, color: '#0f172a' }}>{d.name}</span>
-                             </div>
-                             <span style={{ fontSize: '0.9rem', fontWeight: 950, color: '#64748b' }}>{d.value}%</span>
-                          </div>
-                        ))}
-                     </div>
+                  <div>
+                     <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#94a3b8', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Peak Engagement</div>
+                     <div style={{ fontSize: '1.2rem', fontWeight: 950, color: '#0f172a' }}>{data?.peakHours || 'Analyzing patterns...'}</div>
                   </div>
                </div>
-
-               <div style={{ flex: 1, width: '100%', background: '#f8fafc', padding: '2.5rem', borderRadius: '40px', border: '1.5px solid #f1f5f9' }}>
-                  <h3 style={{ fontSize: '1.3rem', fontWeight: 950, color: '#0f172a', marginBottom: '8px' }}>Daily Mission</h3>
-                  <p style={{ fontSize: '1rem', color: '#64748b', fontWeight: 700, marginBottom: '2.5rem' }}>Target: 2 hrs / day focused study</p>
-                  
-                  <div style={{ marginBottom: '2rem' }}>
-                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-                        <span style={{ fontSize: '0.8rem', fontWeight: 950, color: 'var(--brand-red)' }}>PROGRESS: 82%</span>
-                        <span style={{ fontSize: '0.8rem', fontWeight: 950, color: '#94a3b8' }}>1.64h / 2.0h</span>
-                     </div>
-                     <div style={{ height: '14px', background: 'var(--dashboard-bg)', borderRadius: '20px', border: '1.5px solid #f1f5f9', overflow: 'hidden' }}>
-                        <motion.div initial={{ width: 0 }} animate={{ width: '82%' }} transition={{ duration: 2 }} style={{ height: '100%', background: 'var(--brand-red)', borderRadius: '20px' }} />
-                     </div>
-                  </div>
-                  
-                  <div style={{ padding: '1.25rem', background: 'var(--dashboard-bg)', border: '1.5px solid rgba(122, 31, 43, 0.1)', borderRadius: '24px', textAlign: 'center', boxShadow: '0 10px 30px rgba(122, 31, 43, 0.05)' }}>
-                     <p style={{ fontSize: '0.9rem', fontWeight: 900, color: 'var(--brand-red)', margin: 0 }}>You are only 22 mins away from your goal!</p>
-                  </div>
+               <div style={{ background: '#f8fafc', padding: '1.5rem', borderRadius: '20px', border: '1px solid #f1f5f9' }}>
+                 <p style={{ fontSize: '0.95rem', color: '#64748b', fontWeight: 600, margin: 0, lineHeight: 1.7 }}>
+                    Your productivity peak is identified based on lesson completion density and assessment activity timestamps. Maintain your focus during this window for optimal results.
+                 </p>
                </div>
             </div>
          </div>
       </div>
+
+      <style jsx>{`
+        .red-glow-text {
+          color: var(--brand-red);
+          text-shadow: 0 0 40px rgba(122, 31, 43, 0.15);
+        }
+      `}</style>
     </div>
   );
 }

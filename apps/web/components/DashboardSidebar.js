@@ -49,12 +49,6 @@ export default function DashboardSidebar({
       isDropdown: true,
       icon: 'explore',
       items: [
-        {
-          id: 'continue',
-          label: 'Continue Learning',
-          path: '/dashboard/learning/continue',
-          icon: 'dashboard',
-        },
         { id: 'live', label: 'Live Classes', path: '/dashboard/learning/live', icon: 'explore' },
         {
           id: 'recorded',

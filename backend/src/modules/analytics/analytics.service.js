@@ -146,8 +146,8 @@ class AnalyticsService {
         date: d._id,
         minutes: Math.round(d.seconds / 60)
       })),
-      streak: 8, // Mock for now, would need a complex aggregation for real streaks
-      peakHours: '09:00 PM - 11:00 PM'
+      streak: 0, // Set to 0 until real calculation logic is implemented
+      peakHours: 'Analyzing patterns...'
     };
   }
 

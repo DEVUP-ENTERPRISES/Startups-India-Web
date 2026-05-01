@@ -275,7 +275,7 @@ export default function CourseDetailPage() {
       setError(res.error.message);
     } else {
       setEnrolled(true);
-      router.push(`/dashboard/learning/continue`);
+      router.push(`/learn/${course._id}`);
     }
     setEnrolling(false);
   }
