@@ -5,6 +5,8 @@ import { apiFetch } from './api';
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
 
+let googleSignInInitialized = false;
+
 // --- Auth Functions ---
 
 export async function signIn(email, password) {
@@ -46,20 +48,23 @@ export function initGoogleSignIn(containerElement, onResult) {
 
   loadGoogleScript()
     .then(() => {
-      window.google.accounts.id.initialize({
-        client_id: GOOGLE_CLIENT_ID,
-        callback: async response => {
-          const result = await apiFetch('/api/v1/auth/oauth/google', {
-            method: 'POST',
-            body: JSON.stringify({ idToken: response.credential }),
-          });
-          if (result.data?.session?.access_token) {
-            localStorage.setItem('access_token', result.data.session.access_token);
-          }
-          onResult(result);
-        },
-        ux_mode: 'popup',
-      });
+      if (!googleSignInInitialized) {
+        googleSignInInitialized = true;
+        window.google.accounts.id.initialize({
+          client_id: GOOGLE_CLIENT_ID,
+          callback: async response => {
+            const result = await apiFetch('/api/v1/auth/oauth/google', {
+              method: 'POST',
+              body: JSON.stringify({ idToken: response.credential }),
+            });
+            if (result.data?.session?.access_token) {
+              localStorage.setItem('access_token', result.data.session.access_token);
+            }
+            onResult(result);
+          },
+          ux_mode: 'popup',
+        });
+      }
 
       window.google.accounts.id.renderButton(containerElement, {
         theme: 'outline',

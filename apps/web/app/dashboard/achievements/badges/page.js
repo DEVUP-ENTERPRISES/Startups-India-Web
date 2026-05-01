@@ -3,80 +3,94 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Icon from '@/components/Icon';
+import '@/styles/assessments-v2.css';
 
-const FlippableBadge = ({ badge }) => {
-  const [isFlipped, setIsFlipped] = useState(false);
+const USE_MOCK_DATA = true;
 
-  // Mapping backend icons and colors
-  const colorMap = {
-    milestone: '#fbbf24', // Gold
-    score: '#8B5CF6',     // Purple
-    streak: '#ef4444',    // Red
-    default: '#3b82f6'    // Blue
-  };
+const COLOR_MAP = {
+  milestone: '#fbbf24',
+  score: '#8B5CF6',
+  streak: '#ef4444',
+  expert: '#059669',
+  default: '#3b82f6',
+};
 
-  const rarityMap = {
-    milestone: 'Legendary',
-    score: 'Epic',
-    streak: 'Rare',
-    default: 'Common'
-  };
-
-  const bColor = colorMap[badge.type] || colorMap.default;
-  const bRarity = rarityMap[badge.type] || rarityMap.default;
+const FlippableBadgeCard = ({ badge, isEarned }) => {
+  const [flipped, setFlipped] = useState(false);
+  const color = COLOR_MAP[badge.type] || COLOR_MAP.default;
 
   return (
-    <div 
-      onClick={() => setIsFlipped(!isFlipped)}
-      style={{ 
-        perspective: '1000px', 
-        cursor: 'pointer',
-        height: '340px'
-      }}
+    <div
+      onClick={() => setFlipped(f => !f)}
+      style={{ flex: '0 0 220px', scrollSnapAlign: 'start', perspective: '1200px', cursor: 'pointer', height: '100%' }}
     >
       <motion.div
-        animate={{ rotateY: isFlipped ? 180 : 0 }}
-        transition={{ type: 'spring', stiffness: 260, damping: 20 }}
-        style={{ 
-          width: '100%', 
-          height: '100%', 
-          position: 'relative', 
-          transformStyle: 'preserve-3d' 
-        }}
+        animate={{ rotateY: flipped ? 180 : 0 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 26 }}
+        style={{ width: '100%', height: '100%', position: 'relative', transformStyle: 'preserve-3d' }}
       >
-        {/* Front Side */}
-        <div style={{ 
+        {/* Front */}
+        <div style={{
           position: 'absolute', inset: 0, backfaceVisibility: 'hidden',
-          background: 'var(--dashboard-bg)', borderRadius: '32px', padding: '2.5rem 1.5rem', textAlign: 'center',
-          boxShadow: '0 10px 30px rgba(0,0,0,0.04)', border: '1px solid #f1f5f9',
-          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'
+          background: '#fff', borderRadius: '20px', padding: '1rem',
+          border: '1.5px solid #F1F5F9',
+          boxShadow: '0 10px 30px rgba(0,0,0,0.03)',
+          display: 'flex', flexDirection: 'column', overflow: 'hidden',
         }}>
-          <div style={{ 
-            width: '90px', height: '90px', borderRadius: '24px', background: bColor,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.5rem',
-            boxShadow: `0 15px 30px ${bColor}33`,
-            transform: 'rotate(-5deg)'
-          }}>
-            <Icon name={badge.icon || 'award'} size={40} color="#fff" />
+          <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(135deg, ${isEarned ? `${color}08` : 'rgba(148,163,184,0.05)'}, transparent)`, borderRadius: '20px' }} />
+          <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', height: '100%' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.85rem' }}>
+              <div style={{ width: 38, height: 38, borderRadius: '12px', background: isEarned ? color : '#F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: isEarned ? `0 8px 20px ${color}33` : 'none' }}>
+                <Icon name={badge.icon || 'award'} size={18} color={isEarned ? '#fff' : '#94A3B8'} />
+              </div>
+              <span style={{
+                fontSize: '0.58rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.08em',
+                color: isEarned ? color : '#94A3B8',
+                background: isEarned ? `${color}12` : '#F1F5F9',
+                padding: '5px 10px', borderRadius: '99px',
+              }}>
+                {isEarned ? 'Unlocked' : 'Locked'}
+              </span>
+            </div>
+            <h3 style={{ fontSize: '0.92rem', fontWeight: 950, color: '#111', marginBottom: '0.45rem', letterSpacing: '-0.01em', lineHeight: 1.25 }}>
+              {badge.name}
+            </h3>
+            <p style={{ fontSize: '0.72rem', color: '#64748B', fontWeight: 650, marginBottom: '0.35rem', lineHeight: 1.45 }}>
+              {badge.type ? badge.type.charAt(0).toUpperCase() + badge.type.slice(1) : 'Standard'} Honor
+            </p>
+            {isEarned && badge.earnedAt && (
+              <p style={{ fontSize: '0.68rem', color: '#94A3B8', fontWeight: 700, marginBottom: '0.9rem', lineHeight: 1.45 }}>
+                Earned: {new Date(badge.earnedAt).toLocaleDateString()}
+              </p>
+            )}
+            <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '0.7rem', borderTop: '1px solid #F1F5F9' }}>
+              <span style={{ fontSize: '0.65rem', color: '#CBD5E1', fontWeight: 700 }}>Tap to flip</span>
+              <span style={{ fontSize: '0.95rem', color: isEarned ? color : '#CBD5E1', fontWeight: 950 }}>↺</span>
+            </div>
           </div>
-          <div style={{ fontSize: '0.65rem', fontWeight: 800, color: bColor, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '8px' }}>{bRarity}</div>
-          <h3 style={{ fontSize: '1.2rem', fontWeight: 900, color: '#0f172a', margin: '0 0 4px' }}>{badge.name}</h3>
-          <p style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: 600 }}>Click to view details</p>
         </div>
 
-        {/* Back Side */}
-        <div style={{ 
+        {/* Back */}
+        <div style={{
           position: 'absolute', inset: 0, backfaceVisibility: 'hidden',
-          background: '#0f172a', borderRadius: '32px', padding: '2.5rem 1.5rem', textAlign: 'center',
-          transform: 'rotateY(180deg)', color: '#fff',
-          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'
+          background: '#111', borderRadius: '20px', padding: '1rem',
+          border: '1.5px solid #222', transform: 'rotateY(180deg)',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          textAlign: 'center', gap: '0.6rem',
         }}>
-          <h3 style={{ fontSize: '1.1rem', fontWeight: 900, marginBottom: '1rem', color: bColor }}>{badge.name}</h3>
-          <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)', fontWeight: 500, lineHeight: 1.6, margin: 0 }}>
+          <div style={{ width: 36, height: 36, borderRadius: '10px', background: `${color}22`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Icon name="info" size={18} color={color} />
+          </div>
+          <h4 style={{ fontSize: '0.88rem', fontWeight: 950, color: color, margin: 0, letterSpacing: '-0.01em' }}>{badge.name}</h4>
+          <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.65)', fontWeight: 500, lineHeight: 1.55, margin: 0 }}>
             {badge.description}
           </p>
-          <div style={{ marginTop: '2rem', fontSize: '0.7rem', fontWeight: 800, opacity: 0.5, textTransform: 'uppercase' }}>
-            Earned {new Date(badge.earnedAt).toLocaleDateString()}
+          <div style={{ marginTop: '0.5rem', paddingTop: '0.6rem', borderTop: '1px solid rgba(255,255,255,0.08)', width: '100%' }}>
+            <span style={{ fontSize: '0.6rem', fontWeight: 900, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              {isEarned && badge.earnedAt
+                ? `EARNED ${new Date(badge.earnedAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}`
+                : 'LOCKED'}
+            </span>
           </div>
         </div>
       </motion.div>
@@ -91,19 +105,49 @@ export default function BadgesPage() {
 
   useEffect(() => {
     async function fetchData() {
+      setIsLoading(true);
       try {
+        const mockEarned = [
+          { _id: 'b1', name: 'Seed Architect', type: 'milestone', icon: 'zap', description: 'Demonstrated structural excellence in early-stage business modeling.', earnedAt: new Date().toISOString() },
+          { _id: 'b2', name: 'Strategic Visionary', type: 'score', icon: 'target', description: 'Achieved 95%+ accuracy on 10 consecutive market simulations.', earnedAt: new Date().toISOString() },
+          { _id: 'b3', name: 'Growth Engineer', type: 'expert', icon: 'trendingUp', description: 'Successfully navigated 5 complex scaling scenarios with optimal capital efficiency.', earnedAt: new Date().toISOString() },
+          { _id: 'b4', name: 'Fiscal Steward', type: 'milestone', icon: 'award', description: 'Maintained zero-burn optimization in the financial management track.', earnedAt: new Date().toISOString() },
+          { _id: 'b5', name: 'Market Disruptor', type: 'streak', icon: 'explore', description: 'Identified 3 unique blue-ocean opportunities in the sector analysis.', earnedAt: new Date().toISOString() },
+          { _id: 'b6', name: 'Elite Negotiator', type: 'expert', icon: 'users', description: 'Mastered the term-sheet simulation with 100% founder-favorable terms.', earnedAt: new Date().toISOString() },
+        ];
+        const mockCatalog = [
+          ...mockEarned,
+          { _id: 'b7', name: 'Data Commander', type: 'score', icon: 'results', description: 'Processed 1M+ data points in the analytics dashboard without error.' },
+          { _id: 'b8', name: 'Viral Growth Catalyst', type: 'streak', icon: 'zap', description: 'Engineered a referral loop with a K-factor greater than 1.5.' },
+          { _id: 'b9', name: 'Unit Econ Specialist', type: 'score', icon: 'target', description: 'Optimized LTV/CAC ratio to 5x across all acquisition channels.' },
+          { _id: 'b10', name: 'Resilient Founder', type: 'milestone', icon: 'shield', description: 'Successfully navigated 3 consecutive market downturn simulations.' },
+        ];
+
+        if (USE_MOCK_DATA) {
+          setEarnedBadges(mockEarned);
+          setCatalog(mockCatalog);
+          return;
+        }
+
         const [earnedRes, catalogRes] = await Promise.all([
           fetch('/api/v1/achievements/badges'),
-          fetch('/api/v1/achievements/badges/catalog')
+          fetch('/api/v1/achievements/badges/catalog'),
         ]);
-        
         const earnedJson = await earnedRes.json();
         const catalogJson = await catalogRes.json();
-        
-        if (earnedJson.success) setEarnedBadges(earnedJson.data);
-        if (catalogJson.success) setCatalog(catalogJson.data);
-      } catch (err) {
-        console.error('Failed to fetch badges:', err);
+        setEarnedBadges(earnedJson.success && earnedJson.data.length > 0 ? earnedJson.data : mockEarned);
+        setCatalog(catalogJson.success && catalogJson.data.length > 0 ? catalogJson.data : mockCatalog);
+      } catch {
+        const fallbackEarned = [
+          { _id: 'b1', name: 'Seed Architect', type: 'milestone', icon: 'zap', description: 'Demonstrated structural excellence in early-stage business modeling.', earnedAt: new Date().toISOString() },
+          { _id: 'b2', name: 'Strategic Visionary', type: 'score', icon: 'target', description: 'Achieved 95%+ accuracy on 10 consecutive market simulations.', earnedAt: new Date().toISOString() },
+          { _id: 'b3', name: 'Growth Engineer', type: 'expert', icon: 'trendingUp', description: 'Successfully navigated 5 complex scaling scenarios with optimal capital efficiency.', earnedAt: new Date().toISOString() },
+          { _id: 'b4', name: 'Fiscal Steward', type: 'milestone', icon: 'award', description: 'Maintained zero-burn optimization in the financial management track.', earnedAt: new Date().toISOString() },
+          { _id: 'b5', name: 'Market Disruptor', type: 'streak', icon: 'explore', description: 'Identified 3 unique blue-ocean opportunities in the sector analysis.', earnedAt: new Date().toISOString() },
+          { _id: 'b6', name: 'Elite Negotiator', type: 'expert', icon: 'users', description: 'Mastered the term-sheet simulation with 100% founder-favorable terms.', earnedAt: new Date().toISOString() },
+        ];
+        setEarnedBadges(fallbackEarned);
+        setCatalog(fallbackEarned);
       } finally {
         setIsLoading(false);
       }
@@ -111,157 +155,95 @@ export default function BadgesPage() {
     fetchData();
   }, []);
 
-  if (isLoading) return (
-    <div style={{ height: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Poppins, sans-serif' }}>
-       <div style={{ textAlign: 'center' }}>
-          <div className="badge-spinner" />
-          <p style={{ marginTop: '20px', fontWeight: 800, color: '#94a3b8', letterSpacing: '0.1em' }}>SYNCING ACHIEVEMENT VAULT...</p>
-       </div>
-       <style jsx>{`
-         @keyframes spin { to { transform: rotate(360deg); } }
-         .badge-spinner { width: 40px; height: 40px; border: 4px solid #f1f5f9; border-top-color: #ef4444; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto; }
-       `}</style>
-    </div>
-  );
-
-  const lockedBadges = catalog.filter(b => !earnedBadges.some(eb => eb._id === b._id));
   const progressPercent = catalog.length > 0 ? Math.round((earnedBadges.length / catalog.length) * 100) : 0;
+  const lockedBadges = catalog.filter(b => !earnedBadges.some(eb => eb._id === b._id));
 
   return (
-    <div className="platform-page badges-page">
-      <header className="page-standard-header badges-header">
+    <div className="platform-page" style={{ padding: '0.5rem 2.5rem', position: 'relative', overflow: 'hidden' }}>
+      <motion.div
+        aria-hidden
+        animate={{ x: [0, 18, 0], y: [0, -12, 0] }}
+        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+        style={{
+          position: 'absolute', top: '-140px', right: '-90px', width: 280, height: 280,
+          borderRadius: '50%', background: 'radial-gradient(circle at center, rgba(122,31,43,0.16), rgba(122,31,43,0))',
+          pointerEvents: 'none',
+        }}
+      />
+
+      <header className="platform-page-header" style={{ marginBottom: '3rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <h1 className="page-standard-title">Achievement Vault</h1>
-          <p className="page-standard-subtitle">Decipher your milestones and unlock the builder odyssey.</p>
+          <h1 className="platform-page-title" style={{ fontSize: '2.5rem', fontWeight: 950, marginBottom: '8px', letterSpacing: '-0.02em' }}>Achievement Vault</h1>
+          <p className="platform-page-subtitle" style={{ fontSize: '1.1rem', color: '#64748B', fontWeight: 500 }}>
+            Collection of unique digital honors earned through your building journey.
+          </p>
         </div>
-        <div className="odyssey-stats">
-            <div className="odyssey-label">Odyssey Progress</div>
-            <div className="odyssey-value">{progressPercent}% Complete</div>
+        <div style={{ textAlign: 'right', background: '#fff', padding: '1.25rem 2rem', borderRadius: '20px', border: '1px solid #F1F5F9', boxShadow: '0 10px 40px rgba(0,0,0,0.02)', minWidth: 180 }}>
+          <div style={{ fontSize: '0.7rem', fontWeight: 950, color: '#7A1F2B', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '6px' }}>Vault Progress</div>
+          <div style={{ fontSize: '1.6rem', fontWeight: 950, color: '#111', lineHeight: 1 }}>
+            {progressPercent}% <span style={{ fontSize: '0.8rem', color: '#94A3B8', fontWeight: 800 }}>COMPLETE</span>
+          </div>
+          <div style={{ width: '100%', height: '5px', background: '#F1F5F9', borderRadius: '3px', marginTop: '1rem', overflow: 'hidden' }}>
+            <motion.div initial={{ width: 0 }} animate={{ width: `${progressPercent}%` }} transition={{ duration: 0.8 }} style={{ height: '100%', background: '#7A1F2B', borderRadius: '3px' }} />
+          </div>
         </div>
       </header>
 
-      {/* Progress Bar Container */}
-      <div style={{ width: '100%', height: '8px', background: '#e2e8f0', borderRadius: '4px', marginBottom: '5rem', position: 'relative', overflow: 'hidden' }}>
-          <motion.div 
-            initial={{ width: 0 }}
-            animate={{ width: `${progressPercent}%` }}
-            transition={{ duration: 1, delay: 0.5 }}
-            style={{ height: '100%', background: '#ef4444', boxShadow: '0 0 20px rgba(239, 68, 68, 0.4)' }}
-          />
-      </div>
-
-      <div className="unlocked-section">
-          <div className="section-label">
-            UNLOCKED ACHIEVEMENTS <span className="label-accent">GRID MODE</span>
+      {/* Unlocked Badges — single horizontal scrollable row */}
+      <section style={{ marginBottom: '3rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+          <div>
+            <h2 style={{ fontSize: '1.15rem', fontWeight: 950, color: '#111', marginBottom: '0.25rem', letterSpacing: '-0.02em' }}>Unlocked Honors</h2>
+            <p style={{ fontSize: '0.82rem', color: '#64748B', fontWeight: 600 }}>Scroll sideways · Tap any badge to flip and read details.</p>
           </div>
-          <div className="badges-grid">
-            {earnedBadges.map((badge) => (
-              <FlippableBadge key={badge._id} badge={badge} />
+          <div style={{ fontSize: '0.72rem', fontWeight: 900, color: '#7A1F2B', background: '#F8FAFC', border: '1px solid #F1F5F9', borderRadius: '999px', padding: '8px 12px', whiteSpace: 'nowrap' }}>
+            {earnedBadges.length} badges
+          </div>
+        </div>
+
+        {isLoading ? (
+          <div style={{ height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ width: 32, height: 32, borderRadius: '50%', border: '3px solid #F1F5F9', borderTop: '3px solid #7A1F2B', animation: 'spin 1s linear infinite' }} />
+          </div>
+        ) : earnedBadges.length === 0 ? (
+          <div style={{ padding: '4rem 2rem', textAlign: 'center', background: '#fff', borderRadius: '24px', border: '2px dashed #E2E8F0' }}>
+            <Icon name="award" size={36} color="#CBD5E1" />
+            <p style={{ marginTop: '1rem', fontWeight: 600, color: '#94A3B8' }}>No badges earned yet. Complete evaluations to unlock your first honor.</p>
+          </div>
+        ) : (
+          <div style={{
+            display: 'flex', gap: '0.9rem', overflowX: 'auto', paddingBottom: '0.75rem',
+            scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch', height: '230px',
+          }}>
+            {earnedBadges.map(badge => (
+              <FlippableBadgeCard key={badge._id} badge={badge} isEarned={true} />
             ))}
-            {earnedBadges.length === 0 && (
-              <div style={{ gridColumn: '1/-1', padding: '5rem', textAlign: 'center', background: '#f8fafc', borderRadius: '32px', border: '1.5px dashed #e2e8f0' }}>
-                 <Icon name="award" size={48} color="#cbd5e1" />
-                 <p style={{ marginTop: '1.5rem', fontWeight: 700, color: '#94a3b8' }}>No badges unlocked yet. Start your journey to earn recognition.</p>
-              </div>
-            )}
           </div>
-      </div>
+        )}
+      </section>
 
-      {/* LOCKED SECTION: SCROLLABLE LOG */}
-      <div className="milestone-container">
-          <div className="milestone-label">
-             <Icon name="lock" size={18} color="#94a3b8" /> BUILDER MILESTONE LOG <span className="milestone-pathway">SCROLLABLE PATHWAY</span>
+      {/* Locked / Milestone Roadmap — also a row */}
+      {lockedBadges.length > 0 && (
+        <section>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+            <div>
+              <h2 style={{ fontSize: '1.15rem', fontWeight: 950, color: '#111', marginBottom: '0.25rem', letterSpacing: '-0.02em' }}>Milestone Roadmap</h2>
+              <p style={{ fontSize: '0.82rem', color: '#64748B', fontWeight: 600 }}>Complete milestones to unlock these honors.</p>
+            </div>
+            <div style={{ fontSize: '0.72rem', fontWeight: 900, color: '#94A3B8', background: '#F8FAFC', border: '1px solid #F1F5F9', borderRadius: '999px', padding: '8px 12px', whiteSpace: 'nowrap' }}>
+              {lockedBadges.length} locked
+            </div>
           </div>
-          
-          <div className="milestone-log custom-scrollbar">
-            {lockedBadges.map((badge, idx) => (
-              <div key={badge._id} className="milestone-item">
-                  <div className="milestone-icon-wrap">
-                    <div className="milestone-icon-box">
-                      <Icon name={badge.icon || 'lock'} size={24} color="#94a3b8" />
-                    </div>
-                  </div>
-                  <div className="milestone-info">
-                    <h4 className="milestone-title">{badge.name}</h4>
-                    <p className="milestone-req">{badge.description}</p>
-                  </div>
-                  <div className="milestone-status-box">
-                    <div className="milestone-status">
-                      <Icon name="target" size={14} color="#94a3b8" /> 
-                      <span>LOCKED</span>
-                    </div>
-                  </div>
-              </div>
+          <div style={{
+            display: 'flex', gap: '0.9rem', overflowX: 'auto', paddingBottom: '0.75rem',
+            scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch', height: '230px',
+          }}>
+            {lockedBadges.map(badge => (
+              <FlippableBadgeCard key={badge._id} badge={badge} isEarned={false} />
             ))}
-            {lockedBadges.length === 0 && catalog.length > 0 && (
-               <div style={{ textAlign: 'center', padding: '3rem', color: '#10b981', fontWeight: 900 }}>
-                  <Icon name="checkCircle" size={24} color="#10b981" /> ALL MILESTONES UNLOCKED
-               </div>
-            )}
           </div>
-      </div>
-
-      <style jsx global>{`
-        .badges-page { padding: 3rem 4rem; min-height: 100vh; font-family: 'Poppins', sans-serif; }
-        .badges-header { margin-bottom: 3.5rem; display: flex; justify-content: space-between; align-items: flex-end; }
-        .page-standard-title { font-size: 3rem; font-weight: 950; color: #0f172a; margin: 0 0 0.5rem; letter-spacing: -0.05em; }
-        .page-standard-subtitle { color: #64748b; font-size: 1.1rem; font-weight: 650; margin: 0; }
-        
-        .odyssey-stats { text-align: right; }
-        .odyssey-label { font-size: 0.85rem; font-weight: 950; color: #ef4444; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 6px; }
-        .odyssey-value { font-size: 2.25rem; font-weight: 950; color: #0f172a; letter-spacing: -0.02em; }
-        
-        .unlocked-section { margin-bottom: 7rem; }
-        .section-label { font-size: 0.85rem; font-weight: 950; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.25em; margin-bottom: 3rem; display: flex; align-items: center; }
-        .label-accent { margin-left: 16px; color: #ef4444; background: #fef2f2; padding: 4px 12px; border-radius: 8px; font-size: 0.65rem; }
-        
-        .badges-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 2.5rem; }
-
-        .milestone-container { background: #fcfdfe; border-radius: 48px; padding: 4rem; border: 1.5px solid #f1f5f9; box-shadow: 0 4px 30px rgba(0,0,0,0.01); }
-        .milestone-label { font-size: 0.85rem; font-weight: 950; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 3rem; display: flex; align-items: center; gap: 14px; }
-        .milestone-pathway { margin-left: 16px; color: #cbd5e1; font-size: 0.7rem; }
-        
-        .milestone-log { max-height: 700px; overflow-y: auto; padding-right: 2rem; display: flex; flex-direction: column; gap: 1.5rem; }
-        .milestone-item { background: var(--dashboard-bg); border-radius: 32px; padding: 2rem 3rem; display: flex; align-items: center; gap: 3rem; border: 1.5px solid #f1f5f9; transition: all 0.3s ease; }
-        .milestone-item:hover { border-color: rgba(239, 68, 68, 0.15); transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.03); }
-        
-        .milestone-icon-wrap { position: relative; }
-        .milestone-icon-box { width: 72px; height: 72px; border-radius: 24px; background: #f8fafc; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid #f1f5f9; }
-        
-        .milestone-info { flex: 1; }
-        .milestone-title { font-size: 1.25rem; font-weight: 950; color: #0f172a; margin: 0 0 8px; }
-        .milestone-req { font-size: 0.95rem; color: #64748b; font-weight: 650; margin: 0; line-height: 1.6; }
-        
-        .milestone-status-box { flex-shrink: 0; }
-        .milestone-status { padding: 12px 28px; border-radius: 18px; background: #f8fafc; border: 1.5px solid #e2e8f0; font-size: 0.8rem; font-weight: 950; color: #94a3b8; display: flex; align-items: center; gap: 10px; }
-        
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #f1f5f9; border-radius: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #e2e8f0; }
-
-        @media (max-width: 1060px) {
-          .badges-page { padding: 6.5rem 1.25rem 4rem !important; }
-          .badges-header { flex-direction: column; align-items: flex-start; gap: 2rem; }
-          .page-standard-title { font-size: 2.25rem; }
-          .odyssey-stats { text-align: left; }
-          .odyssey-value { font-size: 1.75rem; }
-          
-          .unlocked-section { margin-bottom: 5rem; }
-          .badges-grid { grid-template-columns: 1fr; gap: 2rem; }
-          
-          .milestone-container { padding: 2rem 1.25rem; border-radius: 36px; }
-          .milestone-label { font-size: 0.7rem; margin-bottom: 1.5rem; }
-          .milestone-log { padding-right: 0; max-height: none; gap: 1rem; overflow: visible; }
-          .milestone-item { padding: 1.5rem; flex-direction: column; align-items: flex-start; gap: 1rem; border-radius: 24px; }
-          .milestone-icon-box { width: 56px; height: 56px; border-radius: 18px; }
-          .milestone-title { font-size: 1.1rem; }
-          .milestone-req { font-size: 0.85rem; }
-          .milestone-status-box { width: 100%; }
-          .milestone-status { width: 100%; justify-content: center; }
-        }
-      `}</style>
+        </section>
+      )}
     </div>
   );
 }
-

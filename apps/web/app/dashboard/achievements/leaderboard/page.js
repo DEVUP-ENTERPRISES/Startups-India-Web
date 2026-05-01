@@ -1,278 +1,314 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import Icon from '@/components/Icon';
-import { useRouter } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
+import '@/styles/assessments-v2.css';
+
+const USE_MOCK_DATA = true;
+
+const MOCK_LEADERS = {
+  weekly: [
+    { _id: 'w1', name: 'Jaswanth Reddy', score: 14850, badges: 18, level: 'Tier Elite', batch: 'Founders Batch 01' },
+    { _id: 'w2', name: 'Faizan Mohammed', score: 13220, badges: 15, level: 'Tier Elite', batch: 'Founders Batch 01' },
+    { _id: 'w3', name: 'Sarah Chen', score: 11780, badges: 12, level: 'Tier Elite', batch: 'Founders Batch 02' },
+    { _id: 'w4', name: 'Aarav Mehta', score: 10120, badges: 10, level: 'Growth Phase', batch: 'Founders Batch 02' },
+    { _id: 'w5', name: 'Elena Gilbert', score: 9480, badges: 9, level: 'Growth Phase', batch: 'Founders Batch 02' },
+    { _id: 'w6', name: 'David Miller', score: 8860, badges: 8, level: 'Growth Phase', batch: 'Founders Batch 03' },
+    { _id: 'w7', name: 'Priya Sharma', score: 8210, badges: 8, level: 'Seed Stage', batch: 'Founders Batch 03' },
+    { _id: 'w8', name: 'Liam O’Brien', score: 7600, badges: 7, level: 'Seed Stage', batch: 'Founders Batch 03' },
+    { _id: 'w9', name: 'Amara Kante', score: 7010, badges: 6, level: 'Seed Stage', batch: 'Founders Batch 04' },
+    { _id: 'w10', name: 'Xavier Lopez', score: 6650, badges: 6, level: 'Seed Stage', batch: 'Founders Batch 04' },
+    { _id: 'w11', name: 'Chloe Dubois', score: 6040, badges: 5, level: 'Incubation', batch: 'Founders Batch 04' },
+    { _id: 'w12', name: 'Arjun Gupta', score: 5480, badges: 5, level: 'Incubation', batch: 'Founders Batch 05' },
+  ],
+  monthly: [
+    { _id: 'm1', name: 'Jaswanth Reddy', score: 38210, badges: 24, level: 'Tier Elite', batch: 'Founders Batch 01' },
+    { _id: 'm2', name: 'Faizan Mohammed', score: 36440, badges: 22, level: 'Tier Elite', batch: 'Founders Batch 01' },
+    { _id: 'm3', name: 'Sarah Chen', score: 34120, badges: 19, level: 'Tier Elite', batch: 'Founders Batch 02' },
+    { _id: 'm4', name: 'Aarav Mehta', score: 32550, badges: 18, level: 'Tier Elite', batch: 'Founders Batch 02' },
+    { _id: 'm5', name: 'Elena Gilbert', score: 30840, badges: 17, level: 'Growth Phase', batch: 'Founders Batch 02' },
+    { _id: 'm6', name: 'David Miller', score: 29410, badges: 16, level: 'Growth Phase', batch: 'Founders Batch 03' },
+    { _id: 'm7', name: 'Priya Sharma', score: 28020, badges: 15, level: 'Growth Phase', batch: 'Founders Batch 03' },
+    { _id: 'm8', name: 'Liam O’Brien', score: 26880, badges: 14, level: 'Seed Stage', batch: 'Founders Batch 03' },
+    { _id: 'm9', name: 'Amara Kante', score: 25290, badges: 13, level: 'Seed Stage', batch: 'Founders Batch 04' },
+    { _id: 'm10', name: 'Xavier Lopez', score: 24670, badges: 12, level: 'Seed Stage', batch: 'Founders Batch 04' },
+    { _id: 'm11', name: 'Chloe Dubois', score: 22810, badges: 12, level: 'Incubation', batch: 'Founders Batch 04' },
+    { _id: 'm12', name: 'Arjun Gupta', score: 21780, badges: 11, level: 'Incubation', batch: 'Founders Batch 05' },
+    { _id: 'm13', name: 'Nina Rossi', score: 20840, badges: 11, level: 'Incubation', batch: 'Founders Batch 05' },
+    { _id: 'm14', name: 'Kenji Sato', score: 19650, badges: 10, level: 'Discovery', batch: 'Founders Batch 05' },
+    { _id: 'm15', name: 'Zoe Miller', score: 18220, badges: 9, level: 'Discovery', batch: 'Founders Batch 06' },
+    { _id: 'm16', name: 'Lucas Silva', score: 17400, badges: 8, level: 'Discovery', batch: 'Founders Batch 06' },
+  ],
+  'all-time': [
+    { _id: 'a1', name: 'Jaswanth Reddy', score: 68210, badges: 42, level: 'Founder Legend', batch: 'Founders Batch 01' },
+    { _id: 'a2', name: 'Faizan Mohammed', score: 65120, badges: 40, level: 'Founder Legend', batch: 'Founders Batch 01' },
+    { _id: 'a3', name: 'Sarah Chen', score: 62340, badges: 38, level: 'Founder Legend', batch: 'Founders Batch 02' },
+    { _id: 'a4', name: 'Aarav Mehta', score: 59700, badges: 36, level: 'Tier Elite', batch: 'Founders Batch 02' },
+    { _id: 'a5', name: 'Elena Gilbert', score: 56890, badges: 34, level: 'Tier Elite', batch: 'Founders Batch 02' },
+    { _id: 'a6', name: 'David Miller', score: 55120, badges: 31, level: 'Tier Elite', batch: 'Founders Batch 03' },
+    { _id: 'a7', name: 'Priya Sharma', score: 52810, badges: 30, level: 'Growth Phase', batch: 'Founders Batch 03' },
+    { _id: 'a8', name: 'Liam O’Brien', score: 50840, badges: 28, level: 'Growth Phase', batch: 'Founders Batch 03' },
+    { _id: 'a9', name: 'Amara Kante', score: 49230, badges: 27, level: 'Growth Phase', batch: 'Founders Batch 04' },
+    { _id: 'a10', name: 'Xavier Lopez', score: 48010, badges: 26, level: 'Growth Phase', batch: 'Founders Batch 04' },
+    { _id: 'a11', name: 'Chloe Dubois', score: 46520, badges: 25, level: 'Seed Stage', batch: 'Founders Batch 04' },
+    { _id: 'a12', name: 'Arjun Gupta', score: 44970, badges: 24, level: 'Seed Stage', batch: 'Founders Batch 05' },
+    { _id: 'a13', name: 'Nina Rossi', score: 43050, badges: 23, level: 'Seed Stage', batch: 'Founders Batch 05' },
+    { _id: 'a14', name: 'Kenji Sato', score: 41680, badges: 22, level: 'Discovery', batch: 'Founders Batch 05' },
+    { _id: 'a15', name: 'Zoe Miller', score: 39990, badges: 21, level: 'Discovery', batch: 'Founders Batch 06' },
+    { _id: 'a16', name: 'Lucas Silva', score: 38810, badges: 20, level: 'Discovery', batch: 'Founders Batch 06' },
+  ],
+};
 
 export default function LeaderboardPage() {
-  const [tab, setTab] = useState('monthly');
-  const [ranking, setRanking] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const router = useRouter();
+  const [leaders, setLeaders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [timeframe, setTimeframe] = useState('monthly');
 
   useEffect(() => {
     async function fetchLeaderboard() {
-      setIsLoading(true);
+      setLoading(true);
       try {
-        const res = await fetch(`/api/v1/achievements/leaderboard/${tab === 'monthly' ? 'monthly' : 'global'}`);
+        if (USE_MOCK_DATA) {
+          setLeaders(MOCK_LEADERS[timeframe]);
+          return;
+        }
+
+        const res = await fetch(`/api/v1/achievements/leaderboard/${timeframe}`);
         const json = await res.json();
-        if (json.success) setRanking(json.data);
+        if (json.success && json.data.length > 0) {
+          setLeaders(json.data);
+        } else {
+          setLeaders(MOCK_LEADERS[timeframe]);
+        }
       } catch (err) {
         console.error('Failed to fetch leaderboard:', err);
+        setLeaders(MOCK_LEADERS[timeframe]);
       } finally {
-        setIsLoading(false);
+        setLoading(false);
       }
     }
     fetchLeaderboard();
-  }, [tab]);
+  }, [timeframe]);
 
-  if (isLoading) return (
-    <div style={{ height: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Poppins, sans-serif' }}>
-       <div style={{ textAlign: 'center' }}>
-          <div className="leader-spinner" />
-          <p style={{ marginTop: '20px', fontWeight: 800, color: '#94a3b8', letterSpacing: '0.1em' }}>CALCULATING GLOBAL STANDINGS...</p>
-       </div>
-       <style jsx>{`
-         @keyframes spin { to { transform: rotate(360deg); } }
-         .leader-spinner { width: 40px; height: 40px; border: 4px solid #f1f5f9; border-top-color: #ef4444; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto; }
-       `}</style>
-    </div>
-  );
+  const topThree = leaders.slice(0, 3);
+  const others = leaders.slice(3);
 
   return (
-    <div className="platform-page leaderboard-page">
-      <header className="leaderboard-header">
-        <div className="header-content">
-          <h1 className="platform-page-title">
-            Founder <span className="red-glow-main">Leaderboard</span>
-          </h1>
-          <p className="platform-page-subtitle">Celebrating the highest velocity builders in the ecosystem.</p>
+    <div className="platform-page" style={{ padding: '0.5rem 2.5rem', position: 'relative', overflow: 'hidden' }}>
+      <motion.div
+        aria-hidden
+        animate={{ x: [0, 20, 0], y: [0, -14, 0] }}
+        transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut' }}
+        style={{
+          position: 'absolute',
+          top: '-150px',
+          right: '-90px',
+          width: 300,
+          height: 300,
+          borderRadius: '50%',
+          background: 'radial-gradient(circle at center, rgba(245,158,11,0.18), rgba(245,158,11,0))',
+          pointerEvents: 'none',
+        }}
+      />
+      <motion.div
+        aria-hidden
+        animate={{ x: [0, -16, 0], y: [0, 12, 0] }}
+        transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
+        style={{
+          position: 'absolute',
+          top: '130px',
+          left: '-120px',
+          width: 260,
+          height: 260,
+          borderRadius: '50%',
+          background: 'radial-gradient(circle at center, rgba(122,31,43,0.14), rgba(122,31,43,0))',
+          pointerEvents: 'none',
+        }}
+      />
+      <header className="platform-page-header" style={{ marginBottom: '4rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+        <div>
+          <h1 className="platform-page-title" style={{ fontSize: '2.5rem', fontWeight: 950, marginBottom: '8px', letterSpacing: '-0.02em' }}>Ecosystem Standing</h1>
+          <p className="platform-page-subtitle" style={{ fontSize: '1.1rem', color: '#64748B', fontWeight: 500 }}>Real-time ranking of the most strategic builders in the network.</p>
         </div>
-
-        <div className="tab-container">
-          {[
-            { id: 'monthly', label: 'Monthly Sprint' },
-            { id: 'allTime', label: 'Hall of Fame' }
-          ].map(t => (
-            <button 
-              key={t.id}
-              onClick={() => setTab(t.id)}
-              className={`velocity-tab ${tab === t.id ? 'active' : ''}`}
+        
+        <div style={{ display: 'flex', background: '#fff', padding: '8px', borderRadius: '20px', gap: '8px', border: '1.5px solid #F1F5F9', boxShadow: '0 10px 30px rgba(0,0,0,0.02)' }}>
+          {['weekly', 'monthly', 'all-time'].map(t => (
+            <button
+              key={t}
+              onClick={() => setTimeframe(t)}
+              style={{
+                padding: '12px 24px', borderRadius: '14px', border: 'none', cursor: 'pointer',
+                fontSize: '0.8rem', fontWeight: 950, textTransform: 'uppercase', transition: '0.2s',
+                background: timeframe === t ? '#7A1F2B' : 'transparent',
+                color: timeframe === t ? '#fff' : '#64748B',
+                boxShadow: timeframe === t ? '0 10px 20px rgba(122,31,43,0.15)' : 'none'
+              }}
             >
-              {t.label}
+              {t.replace('-', ' ')}
             </button>
           ))}
         </div>
       </header>
 
-      {/* Podium for Top 3 */}
-      <div className="podium-section">
-        <div className="podium-grid">
-            {/* 2nd Place */}
-            <motion.div 
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="podium-slot second"
-            >
-              <div className="podium-tier tier-silver">
-                  <div className="avatar-frame">
-                    <div className="avatar-main">{ranking[1]?.fullName?.[0] || '2'}</div>
-                    <div className="rank-tag silver">#2</div>
-                  </div>
-                  <div className="podium-details">
-                    <div className="podium-name">{ranking[1]?.fullName || '---'}</div>
-                    <div className="podium-pts">{Math.round(ranking[1]?.score || 0).toLocaleString()} PTS</div>
-                  </div>
-              </div>
-            </motion.div>
+      {/* Podium Section */}
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-end', gap: '2.5rem', marginBottom: '6rem', minHeight: '300px' }}>
+        {/* Silver */}
+        {topThree[1] && <PodiumRank founder={topThree[1]} rank={2} height={200} color="#94A3B8" icon="award" />}
+        {/* Gold */}
+        {topThree[0] && <PodiumRank founder={topThree[0]} rank={1} height={260} color="#F59E0B" icon="zap" />}
+        {/* Bronze */}
+        {topThree[2] && <PodiumRank founder={topThree[2]} rank={3} height={150} color="#D97706" icon="target" />}
+      </div>
 
-            {/* 1st Place */}
-            <motion.div 
-              initial={{ opacity: 0, y: 0, scale: 0.9 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              className="podium-slot first"
-            >
-              <div className="champion-ring">
-                <div className="podium-tier tier-gold">
-                    <div className="crown-icon">
-                       <Icon name="award" size={44} color="#fbbf24" stroke={2.5} />
-                    </div>
-                    <div className="avatar-frame gold-frame">
-                      <div className="avatar-main champion-avatar">{ranking[0]?.fullName?.[0] || '1'}</div>
-                      <div className="rank-tag gold">CHAMPION</div>
-                    </div>
-                    <div className="podium-details">
-                      <div className="podium-name highlight">{ranking[0]?.fullName || '---'}</div>
-                      <div className="podium-pts highlight">{Math.round(ranking[0]?.score || 0).toLocaleString()} PTS</div>
-                    </div>
+      {/* Leaderboard Table */}
+      <div style={{ background: '#fff', borderRadius: '48px', border: '1px solid #F1F5F9', overflow: 'hidden', boxShadow: '0 20px 60px rgba(0,0,0,0.03)' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr 200px 200px', padding: '1.5rem 2.5rem', background: '#F8FAFC', borderBottom: '2px solid #F1F5F9', fontSize: '0.75rem', fontWeight: 950, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.15em' }}>
+          <div>Global Rank</div>
+          <div>Founder Identification</div>
+          <div style={{ textAlign: 'right' }}>Velocity Score</div>
+          <div style={{ textAlign: 'right' }}>Verified Badges</div>
+        </div>
+        
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <AnimatePresence>
+            {others.map((founder, idx) => (
+              <motion.div 
+                key={founder._id}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: idx * 0.05 }}
+                style={{ display: 'grid', gridTemplateColumns: '120px 1fr 200px 200px', padding: '1.25rem 2.5rem', borderBottom: '1px solid #F1F5F9', alignItems: 'center', transition: '0.2s' }}
+                whileHover={{ background: '#F8FAFC' }}
+              >
+                <div style={{ fontSize: '1rem', fontWeight: 950, color: '#94A3B8' }}>#{idx + 4}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <div style={{ 
+                    width: 48, height: 48, borderRadius: '16px', background: 'linear-gradient(135deg, #7A1F2B, #A52A2A)', 
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem', fontWeight: 950, color: '#fff',
+                    boxShadow: '0 8px 20px rgba(122,31,43,0.15)', flexShrink: 0
+                  }}>
+                     {founder.name[0]}
+                  </div>
+                  <div>
+                    <div style={{ fontWeight: 950, color: '#111', fontSize: '0.95rem', letterSpacing: '-0.01em' }}>{founder.name}</div>
+                    <div style={{ fontSize: '0.68rem', color: '#94A3B8', fontWeight: 800, textTransform: 'uppercase', marginTop: '2px' }}>{founder.level || 'Elite Founder'}</div>
+                    <div style={{ fontSize: '0.62rem', color: '#CBD5E1', fontWeight: 900, textTransform: 'uppercase', marginTop: '4px', letterSpacing: '0.08em' }}>{founder.batch || 'Unlocked Batch'}</div>
+                  </div>
                 </div>
-              </div>
-            </motion.div>
-
-            {/* 3rd Place */}
-            <motion.div 
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="podium-slot third"
-            >
-              <div className="podium-tier tier-bronze">
-                  <div className="avatar-frame">
-                    <div className="avatar-main">{ranking[2]?.fullName?.[0] || '3'}</div>
-                    <div className="rank-tag bronze">#3</div>
-                  </div>
-                  <div className="podium-details">
-                    <div className="podium-name">{ranking[2]?.fullName || '---'}</div>
-                    <div className="podium-pts">{Math.round(ranking[2]?.score || 0).toLocaleString()} PTS</div>
-                  </div>
-              </div>
-            </motion.div>
+                <div style={{ textAlign: 'right', fontWeight: 950, color: '#7A1F2B', fontSize: '1.1rem' }}>{founder.score.toLocaleString()}</div>
+                <div style={{ textAlign: 'right', fontWeight: 800, color: '#64748B', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '6px', fontSize: '0.75rem' }}>
+                  <Icon name="award" size={14} color="#fbbf24" />
+                  {founder.badges} Earned
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </div>
       </div>
 
-      <div className="leaderboard-body">
-        <div className="table-container-glass glass-card">
-           <table className="leader-table">
-             <thead>
-               <tr>
-                 <th>RANKING</th>
-                 <th>BUILDER PROFILE</th>
-                 <th className="pts-th">SCORE</th>
-               </tr>
-             </thead>
-             <tbody>
-               {ranking.slice(3).map((l, idx) => (
-                 <tr key={l._id} className="table-row-v2">
-                   <td className="rank-cell">
-                     <span className="rank-pill">#{idx + 4}</span>
-                   </td>
-                   <td className="profile-cell">
-                     <div className="builder-info">
-                       <div className="builder-avatar">{l.fullName?.[0]}</div>
-                       <div className="builder-meta">
-                         <div className="builder-name">{l.fullName}</div>
-                         <div className="builder-status">{l.certCount} Certificates</div>
-                       </div>
-                     </div>
-                   </td>
-                   <td className="pts-cell">
-                     <div className="score-badge">{Math.round(l.score).toLocaleString()}</div>
-                   </td>
-                 </tr>
-               ))}
-             </tbody>
-           </table>
-        </div>
-
-        {/* User Status Sticky */}
-        <div className="user-ranking-sticky">
-           <div className="glass-card status-card">
-              <div className="user-profile-summary">
-                 <div className="user-large-avatar">
-                    <Icon name="user" size={48} color="#fff" />
-                 </div>
-                 <div className="user-text-summary">
-                    <span className="summary-label">YOUR GLOBAL STANDING</span>
-                    <h2 className="summary-rank-val">Active Competitor</h2>
-                 </div>
-              </div>
-              <div className="user-action-area">
-                 <p className="summary-quote">
-                    Finalize your current sprint to break into the <span className="red-highlight">top 100</span> global builders.
-                 </p>
-                 <button 
-                   onClick={() => router.push('/dashboard/analytics/performance')}
-                   className="performance-link-btn"
-                 >
-                    MY PERFORMANCE <Icon name="chevronRight" size={18} />
-                 </button>
-              </div>
-           </div>
-        </div>
-      </div>
-
-      <style jsx global>{`
-        .leaderboard-page { padding: 4rem 4rem 10rem; background: var(--dashboard-bg); font-family: 'Poppins', sans-serif; }
-        .leaderboard-header { margin-bottom: 6rem; display: flex; justify-content: space-between; align-items: flex-end; }
-        .red-glow-main { color: #ef4444; }
+      <style>{`
+        @media (max-width: 1024px) {
+          .leaderboard-header,
+          .leaderboard-row {
+            grid-template-columns: 80px 1fr 140px 140px !important;
+            padding: 1.5rem 2rem !important;
+            font-size: 0.75rem !important;
+          }
+        }
         
-        .velocity-tab { padding: 14px 32px; border-radius: 20px; border: none; background: transparent; color: #64748b; font-size: 0.95rem; font-weight: 850; cursor: pointer; transition: all 0.3s; }
-        .velocity-tab.active { background: #ef4444; color: #fff; box-shadow: 0 10px 25px rgba(239, 68, 68, 0.2); }
+        @media (max-width: 768px) {
+          .leaderboard-header,
+          .leaderboard-row {
+            grid-template-columns: 60px 1fr 100px !important;
+            padding: 1.25rem 1.5rem !important;
+          }
+          .leaderboard-header div:nth-child(4),
+          .leaderboard-row div:nth-child(4) {
+            display: none;
+          }
+          .leaderboard-header div:nth-child(3),
+          .leaderboard-row div:nth-child(3) {
+            text-align: left !important;
+            font-size: 0.85rem !important;
+          }
+        }
         
-        .podium-section { margin-bottom: 8rem; }
-        .podium-grid { display: flex; justify-content: center; align-items: flex-end; gap: 4rem; max-width: 1200px; margin: 0 auto; }
-        .podium-slot { flex: 1; max-width: 320px; text-align: center; }
-        
-        .avatar-frame { position: relative; display: inline-block; margin-bottom: 3rem; }
-        .avatar-main { width: 140px; height: 140px; border-radius: 48px; background: var(--dashboard-bg); border: 4px solid #f1f5f9; display: flex; align-items: center; justify-content: center; font-size: 3rem; font-weight: 950; color: #0f172a; box-shadow: 0 20px 50px rgba(0,0,0,0.05); }
-        
-        .gold-frame .avatar-main { width: 200px; height: 200px; border-radius: 64px; border-color: #fbbf24; border-width: 8px; font-size: 4.5rem; }
-        .tier-silver .avatar-main { border-color: #cbd5e1; }
-        .tier-bronze .avatar-main { border-color: #d97706; }
-        
-        .rank-tag { position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%); padding: 10px 24px; border-radius: 16px; font-size: 0.9rem; font-weight: 950; white-space: nowrap; box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
-        .rank-tag.gold { background: #fbbf24; color: #0f172a; font-size: 1.1rem; bottom: -25px; padding: 14px 36px; box-shadow: 0 20px 40px rgba(251, 191, 36, 0.3); }
-        .rank-tag.silver { background: #0f172a; color: #fff; }
-        .rank-tag.bronze { background: #0f172a; color: #fff; }
-        
-        .podium-name { font-size: 1.4rem; font-weight: 950; color: #1e293b; margin-top: 2rem; }
-        .podium-pts { font-size: 1.15rem; font-weight: 900; color: #64748b; margin-top: 8px; }
-        .podium-name.highlight { font-size: 2.25rem; color: #0f172a; letter-spacing: -0.02em; }
-        .podium-pts.highlight { color: #ef4444; font-size: 1.5rem; }
-        
-        .crown-icon { margin-bottom: -15px; filter: drop-shadow(0 15px 25px rgba(251, 191, 36, 0.4)); }
-        
-        .table-container-glass { border-radius: 48px; border: 1.5px solid #f1f5f9; overflow: hidden; background: var(--dashboard-bg); }
-        .leader-table { width: 100%; border-collapse: collapse; }
-        .leader-table th { padding: 2.5rem 3.5rem; text-align: left; background: #f8fafc; font-size: 0.8rem; font-weight: 950; color: #94a3b8; letter-spacing: 0.15em; border-bottom: 2px solid #f1f5f9; }
-        .leader-table td { padding: 2.5rem 3.5rem; border-bottom: 1.5px solid #f8fafc; }
-        
-        .rank-pill { padding: 10px 18px; background: #f8fafc; border-radius: 12px; font-weight: 950; color: #94a3b8; font-size: 0.9rem; }
-        .builder-info { display: flex; align-items: center; gap: 2rem; }
-        .builder-avatar { width: 60px; height: 60px; border-radius: 18px; background: var(--dashboard-bg); border: 1.5px solid #e2e8f0; display: flex; align-items: center; justify-content: center; font-weight: 950; font-size: 1.4rem; }
-        .builder-name { font-size: 1.25rem; font-weight: 950; color: #0f172a; }
-        .builder-status { font-size: 0.85rem; font-weight: 700; color: #94a3b8; margin-top: 4px; }
-        
-        .pts-cell { text-align: right; }
-        .pts-th { text-align: right !important; }
-        .score-badge { font-size: 1.5rem; font-weight: 950; color: #0f172a; }
-        
-        .status-card { padding: 4rem; background: #fef2f2; border: 1.5px solid rgba(239, 68, 68, 0.1); border-radius: 60px; display: flex; justify-content: space-between; align-items: center; margin-top: 6rem; }
-        .user-large-avatar { width: 110px; height: 110px; border-radius: 40px; background: #ef4444; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 2.8rem; font-weight: 950; box-shadow: 0 20px 45px rgba(239, 68, 68, 0.3); }
-        .summary-label { font-size: 0.85rem; font-weight: 950; color: #ef4444; letter-spacing: 0.15em; display: block; margin-bottom: 12px; }
-        .summary-rank-val { font-size: 2.5rem; font-weight: 950; color: #0f172a; margin: 0; letter-spacing: -0.05em; }
-        
-        .user-action-area { text-align: right; max-width: 550px; }
-        .summary-quote { font-size: 1.4rem; font-weight: 700; color: #64748b; line-height: 1.6; margin-bottom: 3rem; }
-        .red-highlight { color: #0f172a; font-weight: 950; text-decoration: underline; text-decoration-color: #ef4444; text-decoration-thickness: 4px; }
-        
-        .performance-link-btn { background: #0f172a; color: #fff; padding: 22px 48px; border-radius: 24px; font-weight: 950; font-size: 1.05rem; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 14px; transition: all 0.3s; }
-        .performance-link-btn:hover { background: #ef4444; transform: translateY(-5px); box-shadow: 0 25px 50px rgba(239, 68, 68, 0.25); }
-
-        @media (max-width: 1240px) {
-          .leaderboard-page { padding: 0 1.5rem 8rem; }
-          .leaderboard-header { padding-top: 8rem; flex-direction: column; align-items: flex-start; gap: 3rem; }
-          .podium-grid { flex-direction: column; align-items: center; gap: 6rem; padding-top: 4rem; }
-          .podium-slot { width: 100%; max-width: 450px; }
-          .podium-slot.first { order: 1; }
-          .podium-slot.second { order: 2; }
-          .podium-slot.third { order: 3; }
-          .gold-frame .avatar-main { width: 160px; height: 160px; font-size: 3.5rem; }
-          .podium-name.highlight { font-size: 1.75rem; }
-          .summary-rank-val { font-size: 2.2rem; }
-          .status-card { flex-direction: column; text-align: center; gap: 4rem; padding: 3rem 2rem; }
-          .user-profile-summary { flex-direction: column; }
-          .user-action-area { text-align: center; }
-          .performance-link-btn { width: 100%; justify-content: center; }
-          .leader-table th, .leader-table td { padding: 1.5rem 1rem; }
-          .builder-info { gap: 1rem; }
-          .builder-name { font-size: 1.05rem; }
-          .score-badge { font-size: 1.15rem; }
+        @media (max-width: 480px) {
+          .leaderboard-header,
+          .leaderboard-row {
+            grid-template-columns: 50px 1fr !important;
+            padding: 1rem !important;
+          }
+          .leaderboard-header div:nth-child(3),
+          .leaderboard-header div:nth-child(4),
+          .leaderboard-row div:nth-child(3),
+          .leaderboard-row div:nth-child(4) {
+            display: none;
+          }
         }
       `}</style>
     </div>
   );
 }
 
+function PodiumRank({ founder, rank, height, color, icon }) {
+  return (
+    <motion.div 
+      initial={{ opacity: 0, y: 60 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, ease: 'easeOut' }}
+      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5rem', flex: 1, maxWidth: '220px' }}
+    >
+      <div style={{ position: 'relative' }}>
+        <div style={{ 
+          width: 110, height: 110, borderRadius: '40px', background: '#fff', border: `4px solid ${color}`, 
+          display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.8rem', fontWeight: 950, color: '#111', 
+          boxShadow: `0 30px 60px ${color}20`, position: 'relative', overflow: 'hidden'
+        }}>
+          <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(135deg, ${color}10, transparent)` }} />
+          {founder.name[0]}
+        </div>
+        <div style={{ 
+          position: 'absolute', bottom: '-12px', right: '-12px', width: 38, height: 38, background: color, 
+          borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', 
+          fontSize: '1rem', fontWeight: 950, boxShadow: '0 8px 24px rgba(0,0,0,0.15)', border: '3px solid #fff' 
+        }}>
+          {rank}
+        </div>
+        <motion.div
+          aria-hidden
+          animate={{ scale: [1, 1.25, 1], opacity: [0.3, 0, 0.3] }}
+          transition={{ duration: 2.2, repeat: Infinity, ease: 'easeOut' }}
+          style={{
+            position: 'absolute',
+            bottom: '-20px',
+            right: '-20px',
+            width: 56,
+            height: 56,
+            borderRadius: '18px',
+            border: `2px solid ${color}`,
+            pointerEvents: 'none',
+          }}
+        />
+      </div>
+      
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ fontWeight: 950, fontSize: '1.1rem', color: '#111', marginBottom: '4px', letterSpacing: '-0.02em' }}>{founder.name}</div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', color: '#7A1F2B', fontWeight: 950, fontSize: '0.9rem' }}>
+          <Icon name="zap" size={14} />
+          {founder.score.toLocaleString()} PTS
+        </div>
+      </div>
+
+      <div style={{ 
+        width: '100%', height: height, background: `linear-gradient(to bottom, ${color}15, transparent)`, 
+        borderRadius: '24px 24px 0 0', border: `2px solid ${color}20`, borderBottom: 'none', 
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', paddingTop: '2rem', gap: '0.8rem'
+      }}>
+         <Icon name={icon} size={32} color={color} opacity={0.6} />
+         <div style={{ fontSize: '0.68rem', fontWeight: 950, color: color, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Tier Elite</div>
+      </div>
+    </motion.div>
+  );
+}

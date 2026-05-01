@@ -2,7 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { signOut } from '@/lib/auth';
 
 export default function DashboardSidebar({
@@ -12,7 +12,7 @@ export default function DashboardSidebar({
   onClose = () => {},
 }) {
   const pathname = usePathname();
-  const [openSectionId, setOpenSectionId] = useState('courses');
+  const [openSectionId, setOpenSectionId] = useState(null);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const navigation = [
@@ -81,17 +81,17 @@ export default function DashboardSidebar({
         {
           id: 'quizzes',
           label: 'Quizzes',
-          path: '/dashboard/assessments/quizzes',
+          path: '/dashboard/assessment/quiz',
           icon: 'explore',
         },
         {
           id: 'assignments',
-          label: 'Assignments',
-          path: '/dashboard/assessments/assignments',
+          label: 'Assessments',
+          path: '/dashboard/assessment/assessment',
           icon: 'courses',
         },
-        { id: 'exams', label: 'Exams', path: '/dashboard/assessments/exams', icon: 'award' },
-        { id: 'results', label: 'Results', path: '/dashboard/assessments/results', icon: 'streak' },
+        { id: 'exams', label: 'Exams', path: '/dashboard/assessment/exam', icon: 'award' },
+        { id: 'results', label: 'Results', path: '/dashboard/assessment/results', icon: 'streak' },
       ],
     },
     {
@@ -200,6 +200,23 @@ export default function DashboardSidebar({
     if (path === '/dashboard') return pathname === '/dashboard';
     return pathname === path || pathname.startsWith(path + '/');
   };
+
+  useEffect(() => {
+    const activeSection = navigation.find(section =>
+      section.isDropdown &&
+      Array.isArray(section.items) &&
+      section.items.some(item => pathname === item.path || pathname.startsWith(item.path + '/'))
+    );
+
+    if (activeSection) {
+      setOpenSectionId(activeSection.id);
+      return;
+    }
+
+    if (pathname === '/dashboard') {
+      setOpenSectionId(null);
+    }
+  }, [pathname]);
 
   const renderIcon = (icon, size = 18, isOpen = false) => {
     const icons = {
@@ -553,7 +570,7 @@ export default function DashboardSidebar({
                           </svg>
                         </span>
                       )}
-                      {isDropdown && renderIcon('chevron', isSectionOpen)}
+                      {isDropdown && renderIcon('chevron', 16, isSectionOpen)}
                     </div>
                   )
                 )}
@@ -597,7 +614,10 @@ export default function DashboardSidebar({
                         href={item.path}
                         className={`nav-item ${isActive(item.path) ? 'active' : ''}`}
                         prefetch={true}
-                        onClick={onClose}
+                        onClick={() => {
+                          setOpenSectionId(section.id);
+                          onClose();
+                        }}
                       >
                         <span className="nav-item-label">{item.label}</span>
                         {item.badge}
