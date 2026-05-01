@@ -198,7 +198,7 @@ export default function ExplorePage() {
 
   const totalEnrolled = enrolledCourses?.length || 0;
   const totalCerts = certificates?.length || 0;
-  const allCourses = [...(courses || []), ...DUMMY_COURSES];
+  const allCourses = courses || [];
   const freeCount = allCourses.filter(c => !(c.priceInr || c.price)).length || 0;
 
   if (isLoading) {
@@ -552,7 +552,7 @@ export default function ExplorePage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
             <span style={{ fontSize: '0.9rem', color: '#6b7280', fontWeight: 600 }}>
               Showing <span style={{ color: '#111827', fontWeight: 800 }}>{filtered.length}</span>{' '}
-              of {[...(courses || []), ...DUMMY_COURSES].length} courses
+              of {(courses || []).length} courses
             </span>
             {(search || activeCategory !== 'All' || sortBy !== 'default') && (
               <button
