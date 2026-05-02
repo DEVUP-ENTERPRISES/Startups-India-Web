@@ -3,23 +3,20 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import Icon from '@/components/Icon';
+import { apiGet } from '@/lib/api';
 import '@/styles/analytics-v2.css';
 
 export default function SkillGraphPage() {
   const [data, setData] = useState(null);
+  const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function fetchData() {
-      try {
-        const res = await fetch('/api/v1/analytics/skills');
-        const json = await res.json();
-        if (json.success) setData(json.data);
-      } catch (err) {
-        console.error('Failed to fetch skill data:', err);
-      } finally {
-        setIsLoading(false);
-      }
+      const { data: skillData, error: skillError } = await apiGet('/api/v1/analytics/skills');
+      if (skillData) setData(skillData);
+      if (skillError) setError(skillError.message);
+      setIsLoading(false);
     }
     fetchData();
   }, []);
@@ -54,7 +51,18 @@ export default function SkillGraphPage() {
     return `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`;
   }).join(' ') + ' Z';
 
-  if (isLoading) return <div className="p-10 text-center">Rendering Cognitive Skillscape...</div>;
+  if (isLoading) return (
+    <div style={{ padding: '40px', textAlign: 'center', fontFamily: 'var(--brand-font)', fontWeight: 900, color: 'var(--slate-400)' }}>
+      Rendering Cognitive Skillscape...
+    </div>
+  );
+
+  if (error) return (
+    <div style={{ padding: '40px', textAlign: 'center', fontFamily: 'var(--brand-font)', color: '#ef4444' }}>
+      <Icon name="alertCircle" size={32} color="#ef4444" />
+      <p style={{ marginTop: '1rem', fontWeight: 700 }}>Failed to load analytics: {error}</p>
+    </div>
+  );
 
   return (
     <div className="analytics-page">
@@ -62,120 +70,176 @@ export default function SkillGraphPage() {
         <h1 className="analytics-title">
           Skill <span className="red-glow-text">Graph</span>
         </h1>
-        <p className="analytics-subtitle">
-          Visual intelligence showing your cognitive strengths and learning velocity.
-        </p>
       </header>
 
       <div className="analytics-grid">
-        {/* Visual Intelligence Radar Chart */}
-        <div className="col-6">
-           <div className="glass-card-v2" style={{ padding: '3.5rem', textAlign: 'center' }}>
-              <h3 style={{ fontSize: '1.5rem', fontWeight: 950, color: '#0f172a', width: '100%', marginBottom: '4rem', textAlign: 'left' }}>Visual Intelligence</h3>
+        {/* Skills Hero Card */}
+        <div className="col-12">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="glass-card-v2"
+            style={{
+              background: 'linear-gradient(135deg, var(--brand-red) 0%, #5a1720 100%)',
+              color: '#fff',
+              padding: '2.5rem 3rem',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              position: 'relative',
+              overflow: 'hidden',
+              border: 'none',
+              boxShadow: '0 30px 60px rgba(122, 31, 43, 0.2)',
+              flexWrap: 'wrap',
+              gap: '2.5rem'
+            }}
+          >
+            <div style={{ position: 'absolute', top: 0, right: 0, width: '400px', height: '400px', background: 'var(--brand-gold)', filter: 'blur(180px)', opacity: 0.2, zIndex: 0 }} />
+
+            <div style={{ position: 'relative', zIndex: 1 }}>
+              <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
+                <span style={{ padding: '8px 16px', background: 'rgba(197, 151, 91, 0.25)', color: 'var(--brand-gold)', borderRadius: '99px', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                  Founder Intelligence
+                </span>
+                <span style={{ padding: '8px 16px', background: 'rgba(255, 255, 255, 0.1)', color: '#fff', borderRadius: '99px', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', border: '1px solid rgba(255,255,255,0.1)' }}>
+                  Phase: Scale-Up Ready
+                </span>
+              </div>
+              <h2 style={{ fontSize: '2.75rem', fontWeight: 800, letterSpacing: '-0.03em', margin: '0 0 16px', color: '#fff', lineHeight: 1.1 }}>
+                Cognitive <span style={{ color: 'var(--brand-gold)' }}>Skillscape</span>
+              </h2>
+              <p style={{ fontSize: '1.15rem', fontWeight: 500, color: 'rgba(255,255,255,0.7)', lineHeight: 1.6, maxWidth: '550px', margin: 0 }}>
+                Mapping your core competencies across technical, operational, and strategic domains based on your curriculum performance.
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', gap: 'clamp(1rem, 5vw, 3.5rem)', position: 'relative', zIndex: 1, flexWrap: 'wrap' }}>
+               <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: '2.5rem', fontWeight: 800, color: 'var(--brand-gold)', marginBottom: '4px' }}>{radarData.length > 0 ? Math.round(radarData.reduce((sum, r) => sum + r.score, 0) / radarData.length) : 0}%</div>
+                  <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>AVG SCORE</div>
+               </div>
+               <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: '2.5rem', fontWeight: 800, color: '#fff', marginBottom: '4px' }}>{(data?.proficiency || []).length}</div>
+                  <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>SUBJECTS</div>
+               </div>
+            </div>
+          </motion.div>
+        </div>
+
+        {/* Intelligence Radar Chart - Full Width Centered */}
+        <div className="col-12">
+           <div className="glass-card-v2" style={{ padding: 'clamp(1rem, 5vw, 3rem)', textAlign: 'center' }}>
+              <h3 style={{ fontSize: 'clamp(1.25rem, 4vw, 1.75rem)', fontWeight: 800, color: 'var(--slate-900)', marginBottom: 'clamp(2rem, 8vw, 4rem)' }}>Cognitive Mapping</h3>
               
-              <div style={{ position: 'relative', width: '320px', height: '320px', margin: '0 auto' }}>
-                 <svg width="320" height="320" viewBox="0 0 300 300" style={{ overflow: 'visible' }}>
-                    {[20, 40, 60, 80, 100].map((level) => (
-                       <path 
-                          key={level}
-                          d={radarData.map((_, i) => {
-                             const p = getPoint(level, i);
-                             return `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`;
-                          }).join(' ') + ' Z'}
-                          fill="none" stroke="#f1f5f9" strokeWidth="1.5"
-                       />
-                    ))}
-                    {radarData.map((_, i) => {
-                       const p = getPoint(100, i);
-                       return <line key={i} x1={cx} y1={cy} x2={p.x} y2={p.y} stroke="#f1f5f9" strokeWidth="1.5" />;
+              <div style={{ position: 'relative', width: '100%', maxWidth: '600px', margin: '0 auto' }}>
+                 <svg width="100%" height="auto" viewBox="0 0 600 450" style={{ overflow: 'visible' }}>
+                    <defs>
+                       <radialGradient id="radarGlow" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+                          <stop offset="0%" stopColor="var(--brand-red)" stopOpacity="0.2" />
+                          <stop offset="100%" stopColor="var(--brand-red)" stopOpacity="0" />
+                       </radialGradient>
+                    </defs>
+
+                    {/* Background levels */}
+                    {[20, 40, 60, 80, 100].map((level) => {
+                       const levelRadius = (160 * level) / 100;
+                       return (
+                         <path 
+                            key={level}
+                            d={radarData.map((_, i) => {
+                               const angle = (Math.PI * 2 * i) / totalPoints - Math.PI / 2;
+                               return `${i === 0 ? 'M' : 'L'} ${300 + levelRadius * Math.cos(angle)} ${225 + levelRadius * Math.sin(angle)}`;
+                            }).join(' ') + ' Z'}
+                            fill="none" stroke="var(--slate-100)" strokeWidth="1"
+                         />
+                       );
                     })}
+                    
+                    {/* Axis lines */}
+                    {radarData.map((_, i) => {
+                       const angle = (Math.PI * 2 * i) / totalPoints - Math.PI / 2;
+                       return <line key={i} x1="300" y1="225" x2={300 + 160 * Math.cos(angle)} y2={225 + 160 * Math.sin(angle)} stroke="var(--slate-100)" strokeWidth="1" />;
+                    })}
+
+                    {/* Data Path */}
                     <motion.path 
-                       initial={{ pathLength: 0, opacity: 0 }} animate={{ pathLength: 1, opacity: 1 }} transition={{ duration: 2 }}
-                       d={radarPath} fill="rgba(122, 31, 43, 0.1)" stroke="var(--brand-red)" strokeWidth="4"
+                       initial={{ pathLength: 0, opacity: 0 }} 
+                       animate={{ pathLength: 1, opacity: 1 }} 
+                       transition={{ duration: 2, ease: "easeInOut" }}
+                       d={radarData.map((s, i) => {
+                          const angle = (Math.PI * 2 * i) / totalPoints - Math.PI / 2;
+                          const r = (160 * s.score) / 100;
+                          return `${i === 0 ? 'M' : 'L'} ${300 + r * Math.cos(angle)} ${225 + r * Math.sin(angle)}`;
+                       }).join(' ') + ' Z'}
+                       fill="url(#radarGlow)" 
+                       stroke="var(--brand-gold)" 
+                       strokeWidth="3"
+                       strokeLinejoin="round"
                     />
+
+                    {/* Data points and labels */}
                     {radarData.map((s, i) => {
-                       const p = getPoint(s.score, i);
-                       return <circle key={i} cx={p.x} cy={p.y} r="6" fill="var(--brand-red)" stroke="#fff" strokeWidth="2.5" />;
+                       const angle = (Math.PI * 2 * i) / totalPoints - Math.PI / 2;
+                       const r = (160 * s.score) / 100;
+                       const px = 300 + r * Math.cos(angle);
+                       const py = 225 + r * Math.sin(angle);
+                       
+                       // Label positioning
+                       const labelRadius = 200;
+                       const lx = 300 + labelRadius * Math.cos(angle);
+                       const ly = 225 + labelRadius * Math.sin(angle);
+                       
+                       return (
+                         <g key={i}>
+                            <motion.circle 
+                               cx={px} cy={py} r="6" 
+                               fill="var(--brand-gold)" 
+                               stroke="#fff" 
+                               strokeWidth="2.5"
+                               initial={{ scale: 0 }}
+                               animate={{ scale: 1 }}
+                               transition={{ delay: 1 + i * 0.1 }}
+                            />
+                            <text 
+                              x={lx} y={ly} 
+                              textAnchor="middle" 
+                              dominantBaseline="middle"
+                              style={{ fontSize: '13px', fontWeight: 800, fill: 'var(--slate-600)', textTransform: 'uppercase', letterSpacing: '0.05em' }}
+                            >
+                              {s.label}
+                            </text>
+                            <text 
+                              x={lx} y={ly + 18} 
+                              textAnchor="middle" 
+                              dominantBaseline="middle"
+                              style={{ fontSize: '12px', fontWeight: 800, fill: 'var(--brand-gold)' }}
+                            >
+                              {s.score}%
+                            </text>
+                         </g>
+                       );
                     })}
                  </svg>
-
-                 {radarData.map((s, i) => {
-                    const p = getPoint(140, i);
-                    return (
-                       <div key={i} style={{ 
-                          position: 'absolute', top: p.y, left: p.x, transform: 'translate(-50%, -50%)',
-                          fontSize: '0.75rem', fontWeight: 950, color: '#94a3b8', width: '90px', textAlign: 'center'
-                       }}>
-                          <div style={{ color: '#0f172a' }}>{s.label.toUpperCase()}</div>
-                          <div style={{ color: 'var(--brand-red)' }}>{s.score}%</div>
-                       </div>
-                    );
-                 })}
               </div>
            </div>
         </div>
 
-        {/* Proficiency Levels breakdown */}
-        <div className="col-6">
-           <div className="glass-card-v2" style={{ padding: '3.5rem' }}>
-              <h3 style={{ fontSize: '1.5rem', fontWeight: 950, color: '#0f172a', marginBottom: '3.5rem' }}>Proficiency Levels</h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '3rem' }}>
+        {/* Subject Proficiency Grid */}
+        <div className="col-12">
+           <div className="glass-card-v2" style={{ padding: '3rem' }}>
+              <h3 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--slate-900)', marginBottom: '2.5rem' }}>Subject Mastery Breakdown</h3>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2.5rem 4rem' }}>
                  {(data?.proficiency || []).map((s, i) => (
                     <div key={i}>
-                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', alignItems: 'flex-end' }}>
-                          <div>
-                             <span style={{ fontSize: '1.1rem', fontWeight: 950, color: '#0f172a', display: 'block' }}>{s.name}</span>
-                             <span style={{ fontSize: '0.75rem', fontWeight: 950, color: 'var(--brand-gold)', letterSpacing: '0.1em' }}>{s.score > 80 ? 'ADVANCED' : s.score > 50 ? 'INTERMEDIATE' : 'BEGINNER'}</span>
+                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '14px', alignItems: 'flex-end' }}>
+                          <div style={{ flex: 1 }}>
+                             <span style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--slate-900)', display: 'block' }}>{s.name}</span>
+                             <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--brand-gold)', letterSpacing: '0.1em' }}>{s.score > 80 ? 'EXPERT' : s.score > 50 ? 'MASTER' : 'BEGINNER'}</span>
                           </div>
-                          <span style={{ fontSize: '1.1rem', fontWeight: 950, color: 'var(--brand-red)' }}>{s.score}%</span>
+                          <span style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--slate-900)' }}>{s.score}%</span>
                        </div>
-                       <div style={{ height: '10px', background: '#f8fafc', borderRadius: '12px', overflow: 'hidden', border: '1.5px solid #f1f5f9' }}>
-                          <motion.div initial={{ width: 0 }} animate={{ width: `${s.score}%` }} transition={{ duration: 1.5 }} style={{ height: '100%', background: 'var(--brand-red)', borderRadius: '12px' }} />
-                       </div>
-                    </div>
-                 ))}
-              </div>
-           </div>
-        </div>
-
-        {/* Growth Predictor & AI Suggestions */}
-        <div className="col-12">
-           <div className="glass-card-v2" style={{ padding: '4rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '5rem', alignItems: 'center' }}>
-              <div>
-                 <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', marginBottom: '2.5rem' }}>
-                    <div style={{ width: 64, height: 64, borderRadius: '20px', background: '#0f172a', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 20px 40px rgba(15, 23, 42, 0.2)' }}>
-                       <Icon name="zap" size={28} color="var(--brand-gold)" />
-                    </div>
-                    <h3 style={{ fontSize: '2.25rem', fontWeight: 950, color: '#0f172a', margin: 0, letterSpacing: '-0.03em' }}>Growth Predictor</h3>
-                 </div>
-                 <p style={{ fontSize: '1.15rem', fontWeight: 600, color: '#64748b', lineHeight: 1.8, maxWidth: '550px' }}>
-                    Based on your linear progress, you are scheduled to reach <span style={{ color: 'var(--brand-red)', fontWeight: 950 }}>Expert Proficiency</span> in core domains by Dec 2026.
-                 </p>
-                 <div style={{ display: 'flex', gap: '4rem', marginTop: '3.5rem' }}>
-                    <div>
-                       <div style={{ fontSize: '2rem', fontWeight: 950, color: '#0f172a' }}>+14%</div>
-                       <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#94a3b8', letterSpacing: '0.05em' }}>WEEKLY GAIN</div>
-                    </div>
-                    <div>
-                       <div style={{ fontSize: '2rem', fontWeight: 950, color: '#0f172a' }}>Level 12</div>
-                       <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#94a3b8', letterSpacing: '0.05em' }}>GLOBAL RANK</div>
-                    </div>
-                 </div>
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                 <h4 style={{ fontSize: '0.85rem', fontWeight: 950, color: '#94a3b8', letterSpacing: '0.15em', marginBottom: '0.5rem' }}>AI FOCUS SUGGESTIONS</h4>
-                 {[
-                   { title: 'Speed Drill', desc: 'Attempt 3 quickfire quizzes to improve your response rate.', type: 'Quizzes' },
-                   { title: 'Memory Refresher', desc: 'Revise Unit Economics concepts from last week.', type: 'Notes' }
-                 ].map((a, i) => (
-                    <div key={i} style={{ display: 'flex', gap: '2rem', padding: '2rem', background: '#f8fafc', borderRadius: '32px', border: '1.5px solid #f1f5f9' }}>
-                       <div style={{ width: 48, height: 48, borderRadius: '14px', background: 'var(--dashboard-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1.5px solid #f1f5f9' }}>
-                          <Icon name={a.type === 'Quizzes' ? 'zap' : 'fileText'} size={22} color="var(--brand-red)" />
-                       </div>
-                       <div>
-                          <div style={{ fontSize: '1.15rem', fontWeight: 950, color: '#0f172a' }}>{a.title}</div>
-                          <p style={{ margin: '6px 0 0', fontSize: '0.9rem', color: '#64748b', fontWeight: 650, lineHeight: 1.5 }}>{a.desc}</p>
+                       <div style={{ height: '8px', background: 'var(--slate-100)', borderRadius: '12px', overflow: 'hidden' }}>
+                          <motion.div initial={{ width: 0 }} animate={{ width: `${s.score}%` }} transition={{ duration: 1.5, delay: i * 0.05 }} style={{ height: '100%', background: s.score > 70 ? 'var(--brand-gold)' : 'var(--slate-800)', borderRadius: '10px' }} />
                        </div>
                     </div>
                  ))}

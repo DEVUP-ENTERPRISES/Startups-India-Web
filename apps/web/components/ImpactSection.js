@@ -175,11 +175,11 @@ const MetricCard = ({ metric, index }) => {
       style={{ borderRadius: '24px' }}
     >
       {/* Background card with strict inline padding to avoid CSS overrides */}
-      <div 
+      <div
         className="relative h-full flex flex-col transition-all duration-500 bg-[#121212] hover:bg-[#1a1a1a] border border-white/10 hover:border-white/20 group-hover:-translate-y-2 group-hover:shadow-[0_20px_40px_-15px_rgba(229,57,53,0.3)]"
         style={{ borderRadius: '24px', padding: '32px' }}
       >
-        
+
         {/* Top: Icon - pushes bottom content down evenly across all cards */}
         <div className="flex justify-between items-start mb-auto relative z-10">
           <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${metric.gradient} p-[1px] shadow-lg`}>
@@ -207,18 +207,18 @@ const MetricCard = ({ metric, index }) => {
               <span className="text-3xl font-bold !text-[#e53935]">{metric.suffix}</span>
             )}
           </div>
-          
+
           {/* Title */}
           <h3 className="text-sm md:text-base font-bold !text-white tracking-widest uppercase mt-0 mb-2">
             {metric.label}
           </h3>
-          
+
           {/* Subtitle */}
           <p className="text-sm leading-relaxed font-medium !text-[#9ca3af] m-0">
             {metric.sub}
           </p>
         </div>
-        
+
       </div>
     </motion.div>
   );

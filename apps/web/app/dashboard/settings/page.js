@@ -1282,7 +1282,7 @@ function SettingsContent() {
         /* ── Social Links Grid (Strictly 2 per row) ── */
         .stg-social-grid {
           display: grid;
-          grid-template-columns: 1fr 1fr;
+          grid-template-columns: repeat(2, 1fr);
           gap: 16px;
           width: 100%;
         }
@@ -1894,7 +1894,7 @@ function SettingsContent() {
           .stg-page { padding: 1rem 1rem 6rem; }
           .stg-page-header { margin-bottom: 1.5rem; }
           .stg-page-title { font-size: 1.5rem; }
-          .stg-grid-2, .stg-grid-3, .stg-links-grid { grid-template-columns: 1fr; gap: 1rem; }
+          .stg-grid-2, .stg-grid-3, .stg-links-grid, .stg-social-grid { grid-template-columns: 1fr; gap: 1rem; }
           .stg-card { padding: 1.25rem; border-radius: 16px; }
           .stg-avatar-row { flex-direction: column; text-align: center; gap: 1rem; padding: 1.5rem 1rem; }
           .stg-avatar-meta { width: 100%; }
@@ -1925,10 +1925,8 @@ function SettingsContent() {
           .stg-top-tab-item span { display: block; font-size: 0.75rem; text-align: left; }
           .stg-savebar { bottom: 12px; padding: 10px 16px; width: calc(100% - 32px); justify-content: space-between; gap: 12px; border-radius: 12px; }
           .stg-savebar-text { font-size: 0.75rem; }
-          .stg-social-fields { flex-direction: column; gap: 8px; }
-          .stg-social-field, .stg-social-field-url { width: 100%; flex: none; }
-          .stg-social-item { padding: 12px; }
-          .stg-social-remove { position: absolute; top: 8px; right: 8px; margin-top: 0; padding: 6px; }
+          .stg-social-card { padding: 12px; gap: 8px; }
+          .stg-social-add-card { padding: 16px; }
         }
       `}</style>
     </div>
