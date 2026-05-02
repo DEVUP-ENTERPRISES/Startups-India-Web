@@ -102,7 +102,7 @@ export default function Header() {
                   <button className="btn-header btn-signin">Sign in</button>
                 </Link>
                 <Link href="/signup">
-                  <button className="btn-header btn-signup">Apply Now</button>
+                  <button className="btn-header btn-signup">Sign Up</button>
                 </Link>
               </>
             )}
