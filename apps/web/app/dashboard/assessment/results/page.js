@@ -5,79 +5,6 @@ import Icon from '@/components/Icon';
 import { motion, AnimatePresence } from 'framer-motion';
 import '@/styles/assessments-v2.css';
 
-const DUMMY_RESULTS = [
-  {
-    _id: 'r1',
-    assessmentId: { _id: 'q1', title: 'Market Validation Sprint', type: 'quiz' },
-    score: 85,
-    status: 'Graded',
-    submittedAt: new Date(Date.now() - 86400000 * 2).toISOString(),
-    timeTaken: 450,
-    reviewData: [
-      { 
-        q: "What is your primary ICP?", 
-        a: "Tech-savvy HR managers in mid-sized firms.", 
-        correct: true, 
-        options: ["Tech-savvy HR managers", "Retail store owners", "Individual freelancers", "Government contractors"],
-        selected: 0,
-        correctIndex: 0,
-        feedback: "Precisely targeted. Consider segmenting by industry for better conversion." 
-      },
-      { 
-        q: "Define the core problem you solve.", 
-        a: "Inefficient manual onboarding processes.", 
-        correct: true, 
-        options: ["Employee turnover", "Manual onboarding", "Payroll errors", "Lack of perks"],
-        selected: 1,
-        correctIndex: 1,
-        feedback: "Spot on. Quantify the time loss in your value prop." 
-      }
-    ],
-    facultyNotes: "Strong understanding of market dynamics. Next step: detailed competitor matrix."
-  },
-  {
-    _id: 'r2',
-    assessmentId: { _id: 'a1', title: 'Financial Model v1.0', type: 'assignment' },
-    score: 92,
-    status: 'Graded',
-    submittedAt: new Date(Date.now() - 86400000 * 5).toISOString(),
-    timeTaken: 1200,
-    reviewData: [
-      { q: "Submission Evidence", a: "View Financial Model Spreadsheet (link)", correct: true, feedback: "Model is robust. Burn rate calculations are conservative and realistic." }
-    ],
-    facultyNotes: "Excellent financial modeling. The unit economics show a clear path to profitability."
-  },
-  {
-    _id: 'r3',
-    assessmentId: { _id: 'e1', title: 'Series A Readiness Exam', type: 'exam' },
-    score: 78,
-    status: 'Graded',
-    submittedAt: new Date(Date.now() - 86400000 * 1).toISOString(),
-    timeTaken: 3600,
-    reviewData: [
-      { 
-        q: "What is the typical dilution in a Series A round?", 
-        a: "15-25%", 
-        correct: true, 
-        options: ["5-10%", "15-25%", "30-40%", "50%+"],
-        selected: 1,
-        correctIndex: 1,
-        feedback: "Correct. Aiming for 20% is standard." 
-      },
-      { 
-        q: "Which metric is most critical for SaaS Series A?", 
-        a: "Churn Rate", 
-        correct: false, 
-        options: ["Gross Margin", "CAC Payback", "Net Revenue Retention", "Monthly Active Users"],
-        selected: 3,
-        correctIndex: 2,
-        feedback: "Net Revenue Retention is the gold standard for growth sustainability." 
-      }
-    ],
-    facultyNotes: "Good grasp of fundamentals, but need more focus on advanced SaaS metrics."
-  }
-];
-
 export default function ResultsPage() {
   const [results, setResults] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -89,13 +16,13 @@ export default function ResultsPage() {
       try {
         const res = await fetch('/api/v1/assessments/results/all');
         const json = await res.json();
-        if (json.success && json.data.length > 0) {
+        if (json.success && Array.isArray(json.data)) {
           setResults(json.data);
         } else {
-          setResults(DUMMY_RESULTS);
+          setResults([]);
         }
       } catch (err) {
-        setResults(DUMMY_RESULTS);
+        setResults([]);
       } finally {
         setIsLoading(false);
       }
@@ -137,38 +64,57 @@ export default function ResultsPage() {
 
       <main className="platform-grid">
         <AnimatePresence mode="popLayout">
-          {filteredResults.length > 0 ? filteredResults.map((res) => (
-            <motion.div 
-              key={res._id} layout initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-              onClick={() => setSelectedResult(res)}
-              className="assessment-card-v"
-              style={{ padding: '2.5rem', cursor: 'pointer' }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
-                <h3 style={{ fontSize: '1.25rem', fontWeight: 950, color: '#111', lineHeight: 1.2, flex: 1, marginRight: '1rem' }}>{res.assessmentId?.title}</h3>
-                <div style={{ textAlign: 'right' }}>
-                   <div style={{ fontSize: '1.5rem', fontWeight: 950, color: res.score >= 80 ? '#059669' : '#DC2626' }}>{res.score}%</div>
-                   <div style={{ fontSize: '0.6rem', fontWeight: 900, color: '#94A3B8' }}>SCORE</div>
+          {filteredResults.length > 0 ? (
+            filteredResults.map((res) => (
+              <motion.div 
+                key={res._id} layout initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+                onClick={() => setSelectedResult(res)}
+                className="assessment-card-v"
+                style={{ padding: '2.5rem', cursor: 'pointer' }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: 950, color: '#111', lineHeight: 1.2, flex: 1, marginRight: '1rem' }}>{res.assessmentId?.title}</h3>
+                  <div style={{ textAlign: 'right' }}>
+                     <div style={{ fontSize: '1.5rem', fontWeight: 950, color: res.score >= 80 ? '#059669' : '#DC2626' }}>{res.score}%</div>
+                     <div style={{ fontSize: '0.6rem', fontWeight: 900, color: '#94A3B8' }}>SCORE</div>
+                  </div>
                 </div>
-              </div>
 
-              <div style={{ display: 'flex', gap: '1.5rem', borderTop: '1px solid #F1F5F9', paddingTop: '1.5rem', marginTop: 'auto' }}>
-                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Icon name="calendar" size={14} color="#94A3B8" />
-                    <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#64748B' }}>{new Date(res.submittedAt).toLocaleDateString()}</span>
-                 </div>
-                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Icon name="clock" size={14} color="#94A3B8" />
-                    <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#64748B' }}>{Math.round(res.timeTaken / 60)}m</span>
-                 </div>
-              </div>
+                <div style={{ display: 'flex', gap: '1.5rem', borderTop: '1px solid #F1F5F9', paddingTop: '1.5rem', marginTop: 'auto' }}>
+                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Icon name="calendar" size={14} color="#94A3B8" />
+                      <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#64748B' }}>{new Date(res.submittedAt).toLocaleDateString()}</span>
+                   </div>
+                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Icon name="clock" size={14} color="#94A3B8" />
+                      <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#64748B' }}>{Math.round(res.timeTaken / 60)}m</span>
+                   </div>
+                </div>
+              </motion.div>
+            ))
+          ) : (
+            <motion.div 
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+              style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '6rem 2rem', background: '#fff', borderRadius: '32px', border: '2px dashed #E2E8F0' }}
+            >
+              {results.length === 0 ? (
+                <>
+                  <div style={{ width: 64, height: 64, borderRadius: '20px', background: '#F8FAFC', color: '#94A3B8', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
+                    <Icon name="inbox" size={32} />
+                  </div>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: 900, color: '#111' }}>Intelligence Vault Empty</h3>
+                  <p style={{ color: '#94A3B8', fontWeight: 600 }}>Complete your first strategic assessment to see your report.</p>
+                </>
+              ) : (
+                <>
+                  <div style={{ width: 64, height: 64, borderRadius: '20px', background: '#F8FAFC', color: '#94A3B8', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
+                    <Icon name="barChart" size={32} />
+                  </div>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: 900, color: '#111' }}>No {activeTab}s Logged</h3>
+                  <p style={{ color: '#94A3B8', fontWeight: 600 }}>You haven't completed any {activeTab}s in this category yet.</p>
+                </>
+              )}
             </motion.div>
-          )) : (
-            <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '6rem 2rem', background: '#fff', borderRadius: '32px', border: '2px dashed #E2E8F0' }}>
-               <Icon name="inbox" size={48} color="#94A3B8" style={{ marginBottom: '1.5rem' }} />
-               <h3 style={{ fontSize: '1.25rem', fontWeight: 900, color: '#111' }}>No Records Found</h3>
-               <p style={{ color: '#94A3B8', fontWeight: 600 }}>Complete your first strategic assessment to see your intelligence report.</p>
-            </div>
           )}
         </AnimatePresence>
       </main>

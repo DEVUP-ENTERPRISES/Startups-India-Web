@@ -1,4 +1,6 @@
 const { Assessment, Submission } = require('./assessments.model');
+const { Enrollment, LessonProgress } = require('../enrollments/enrollment.model');
+const { Lesson } = require('../courses/course.model');
 const mongoose = require('mongoose');
 
 class AssessmentService {
@@ -9,12 +11,86 @@ class AssessmentService {
     return await Assessment.create(data);
   }
 
-  async getAssessments(query = {}) {
-    return await Assessment.find(query).sort({ createdAt: -1 });
+  async getAssessments(query = {}, userId = null, userRole = 'student') {
+    let assessments = await Assessment.find(query).sort({ createdAt: -1 }).lean();
+
+    if (userRole === 'admin' || userRole === 'instructor') {
+      return assessments.map(a => ({ ...a, isLocked: false, isEnrolled: true }));
+    }
+
+    // For students: Filter by enrollment and calculate locking status
+    const userEnrollments = await Enrollment.find({ userId }).select('courseId').lean();
+    const enrolledCourseIds = userEnrollments.map(e => e.courseId.toString());
+
+    // Filter to only show quizzes from enrolled courses (or global ones if courseId is null)
+    assessments = assessments.filter(a => !a.courseId || enrolledCourseIds.includes(a.courseId.toString()));
+
+    // Enhance with lock status
+    const enhancedAssessments = await Promise.all(assessments.map(async (assessment) => {
+      const { isLocked, lockReason } = await this.isAssessmentLocked(assessment, userId, userRole);
+      
+      return {
+        ...assessment,
+        isLocked,
+        lockReason,
+        isEnrolled: !!(assessment.courseId && enrolledCourseIds.includes(assessment.courseId.toString()))
+      };
+    }));
+
+    return enhancedAssessments;
+  }
+
+  async isAssessmentLocked(assessment, userId, userRole) {
+    if (userRole === 'admin' || userRole === 'instructor') {
+      return { isLocked: false };
+    }
+
+    // 1. Admin Release Check
+    if (assessment.status !== 'published') {
+      return { isLocked: true, lockReason: 'Not yet released by admin' };
+    }
+
+    // 2. Enrollment Check
+    if (assessment.courseId) {
+      const enrolled = await Enrollment.exists({ userId, courseId: assessment.courseId });
+      if (!enrolled) {
+        return { isLocked: true, lockReason: 'Enrolment required' };
+      }
+    }
+
+    // 3. Module Progress Check
+    if (assessment.courseId && assessment.moduleId) {
+      const mandatoryLessons = await Lesson.find({ 
+        moduleId: assessment.moduleId, 
+        isMandatory: true 
+      }).select('_id').lean();
+
+      if (mandatoryLessons.length > 0) {
+        const completedLessons = await LessonProgress.countDocuments({
+          userId,
+          lessonId: { $in: mandatoryLessons.map(l => l._id) },
+          isCompleted: true
+        });
+
+        if (completedLessons < mandatoryLessons.length) {
+          return { isLocked: true, lockReason: 'Complete module lessons to unlock' };
+        }
+      }
+    }
+
+    return { isLocked: false };
   }
 
   async getAssessmentById(id) {
     return await Assessment.findById(id);
+  }
+
+  async updateAssessment(id, data) {
+    return await Assessment.findByIdAndUpdate(id, data, { new: true, runValidators: true });
+  }
+
+  async deleteAssessment(id) {
+    return await Assessment.findByIdAndDelete(id);
   }
 
   /**
@@ -23,7 +99,10 @@ class AssessmentService {
   async startAttempt(userId, assessmentId) {
     const assessment = await Assessment.findById(assessmentId);
     if (!assessment) throw new Error('Assessment not found');
-    if (assessment.status !== 'published') throw new Error('Assessment not published');
+    
+    // Check lock status
+    const { isLocked, lockReason } = await this.isAssessmentLocked(assessment, userId);
+    if (isLocked) throw new Error(`Assessment is locked: ${lockReason}`);
 
     // Check attempt limits
     const attemptCount = await Submission.countDocuments({ userId, assessmentId });

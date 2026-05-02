@@ -56,4 +56,7 @@ router.get(
   asyncHandler(controller.listModules)
 );
 
+// GET /api/v1/courses/:courseId/materials
+router.get('/:courseId/materials', authRequired, asyncHandler(controller.listCourseMaterials));
+
 module.exports = { coursesRouter: router };

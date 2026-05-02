@@ -463,6 +463,22 @@ function CourseBuilder({ courseId, courseTitle, onBack }) {
     passingScore: 70,
     questions: [],
   });
+
+  // Course Materials state
+  const [materials, setMaterials] = useState([]);
+  const [materialsLoading, setMaterialsLoading] = useState(false);
+
+  // Course Exam state
+  const [courseExam, setCourseExam] = useState(null);
+  const [examLoading, setExamLoading] = useState(false);
+  const [examSaving, setExamSaving] = useState(false);
+  const [showExamForm, setShowExamForm] = useState(false);
+  const [examForm, setExamForm] = useState({
+    title: '', description: '', timeLimit: 60, passingScore: 60,
+    maxAttempts: 1, violationLimit: 3, randomizeQuestions: false, status: 'draft',
+  });
+  const [examQuestions, setExamQuestions] = useState([]);
+
   const { uploadState, startUpload, retryUpload, resetUploadState } = useS3DirectUpload();
 
   const loadModules = useCallback(async () => {
@@ -496,6 +512,129 @@ function CourseBuilder({ courseId, courseTitle, onBack }) {
   useEffect(() => {
     loadModules();
   }, [loadModules]);
+
+  const loadMaterials = useCallback(async () => {
+    setMaterialsLoading(true);
+    const { data } = await apiGet(`/api/v1/admin/courses/${courseId}`);
+    setMaterials(data?.materials || []);
+    setMaterialsLoading(false);
+  }, [courseId]);
+
+  const loadCourseExam = useCallback(async () => {
+    setExamLoading(true);
+    const { data } = await apiGet(`/api/v1/assessments?type=exam&courseId=${courseId}`);
+    const exams = Array.isArray(data) ? data : [];
+    const exam = exams.find(e => String(e.courseId) === String(courseId) || e.courseId?._id === courseId) || exams[0] || null;
+    setCourseExam(exam);
+    if (exam) {
+      setExamForm({
+        title: exam.title || '',
+        description: exam.description || '',
+        timeLimit: exam.timeLimit || 60,
+        passingScore: exam.passingScore || 60,
+        maxAttempts: exam.maxAttempts || 1,
+        violationLimit: exam.violationLimit || 3,
+        randomizeQuestions: exam.randomizeQuestions || false,
+        status: exam.status || 'draft',
+      });
+      setExamQuestions((exam.questions || []).map(q => ({
+        ...q,
+        options: (q.options || []).map(o => ({ ...o })),
+      })));
+    } else {
+      setExamForm({ title: `${courseTitle} — Final Exam`, description: '', timeLimit: 60, passingScore: 60, maxAttempts: 1, violationLimit: 3, randomizeQuestions: false, status: 'draft' });
+      setExamQuestions([]);
+    }
+    setExamLoading(false);
+  }, [courseId, courseTitle]);
+
+  const handleUploadMaterial = async (file) => {
+    if (!file) return;
+    if (!confirm(`Upload "${file.name}" as a course material?`)) return;
+    try {
+      const uploaded = await startUpload({
+        file,
+        folder: 'documents',
+        courseId,
+        label: 'course material',
+        onUploaded: async (confirmedUpload) => {
+          const { error } = await apiPost(`/api/v1/admin/courses/${courseId}/materials`, {
+            title: file.name,
+            fileUrl: confirmedUpload.fileUrl,
+            fileKey: confirmedUpload.key,
+            fileType: confirmedUpload.fileType || file.type,
+            size: confirmedUpload.size || file.size,
+          });
+          if (error) throw new Error(error.message);
+        },
+      });
+      await loadMaterials();
+    } catch (err) {
+      alert(`Upload failed: ${err.message}`);
+    }
+  };
+
+  const handleDeleteMaterial = async (materialId) => {
+    if (!confirm('Remove this material?')) return;
+    const { error } = await apiDelete(`/api/v1/admin/courses/${courseId}/materials/${materialId}`);
+    if (error) return alert(error.message);
+    setMaterials(prev => prev.filter(m => m._id !== materialId));
+  };
+
+  const handleSaveExam = async () => {
+    if (!examForm.title.trim()) return alert('Exam title is required.');
+    if (examQuestions.length === 0) return alert('Add at least one question.');
+    for (const [qi, q] of examQuestions.entries()) {
+      if (!q.text?.trim()) { alert(`Question ${qi + 1} is missing text.`); return; }
+      if (!q.options?.some(o => o.isCorrect)) { alert(`Question ${qi + 1} needs a correct answer.`); return; }
+    }
+    setExamSaving(true);
+    const payload = {
+      ...examForm, type: 'exam', courseId,
+      questions: examQuestions.map(q => ({ ...q, options: q.options.filter(o => o.text?.trim()) })),
+    };
+    let err;
+    if (courseExam) {
+      ({ error: err } = await apiPatch(`/api/v1/assessments/${courseExam._id}`, payload));
+    } else {
+      ({ error: err } = await apiPost('/api/v1/assessments', payload));
+    }
+    setExamSaving(false);
+    if (err) return alert(err.message || 'Failed to save exam');
+    setShowExamForm(false);
+    loadCourseExam();
+  };
+
+  const handleDeleteExam = async () => {
+    if (!courseExam) return;
+    if (!confirm('Delete the course exam permanently?')) return;
+    await apiDelete(`/api/v1/assessments/${courseExam._id}`);
+    setCourseExam(null);
+    setExamQuestions([]);
+  };
+
+  // Exam question helpers
+  const addExamQuestion = () => setExamQuestions(prev => [...prev, {
+    text: '', type: 'mcq', points: 1, explanation: '',
+    options: [{ text: '', isCorrect: false }, { text: '', isCorrect: false }, { text: '', isCorrect: false }, { text: '', isCorrect: false }],
+  }]);
+
+  const removeExamQuestion = (qi) => setExamQuestions(prev => prev.filter((_, i) => i !== qi));
+
+  const updateExamQuestion = (qi, field, value) => setExamQuestions(prev =>
+    prev.map((q, i) => i === qi ? { ...q, [field]: value } : q)
+  );
+
+  const updateExamOption = (qi, oi, field, value) => setExamQuestions(prev =>
+    prev.map((q, i) => {
+      if (i !== qi) return q;
+      const opts = q.options.map((o, j) => {
+        if (j !== oi) return field === 'isCorrect' && q.type === 'mcq' ? { ...o, isCorrect: false } : o;
+        return { ...o, [field]: value };
+      });
+      return { ...q, options: opts };
+    })
+  );
 
   // ── Module CRUD ──
   const handleCreateModule = async () => {
@@ -885,18 +1024,53 @@ function CourseBuilder({ courseId, courseTitle, onBack }) {
             <span style={{ fontSize: 13, color: '#64748b' }}>{courseTitle}</span>
           </div>
         </div>
-        <label
-          className="btn btn-secondary btn-sm"
-          style={{ cursor: 'pointer', position: 'relative' }}
-        >
-          Upload Course Image
-          <input
-            type="file"
-            accept="image/*"
-            style={{ position: 'absolute', opacity: 0, width: 0, height: 0 }}
-            onChange={e => handleCourseThumbnailUpload(e.target.files?.[0])}
-          />
-        </label>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <button 
+            className="btn btn-sm"
+            onClick={() => { setActiveModule('MATERIALS'); loadMaterials(); }}
+            style={{ 
+              background: activeModule === 'MATERIALS' ? '#16a34a' : '#fff',
+              color: activeModule === 'MATERIALS' ? '#fff' : '#475569',
+              border: '1px solid #e2e8f0',
+              fontWeight: 700,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '6px 14px'
+            }}
+          >
+            📎 Materials
+          </button>
+          <button 
+            className="btn btn-sm"
+            onClick={() => { setActiveModule('EXAM'); loadCourseExam(); }}
+            style={{ 
+              background: activeModule === 'EXAM' ? '#ea580c' : '#fff',
+              color: activeModule === 'EXAM' ? '#fff' : '#475569',
+              border: '1px solid #e2e8f0',
+              fontWeight: 700,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '6px 14px'
+            }}
+          >
+            ⚡ Final Exam
+          </button>
+          <div style={{ width: 1, height: 24, background: '#e2e8f0', margin: '0 4px' }} />
+          <label
+            className="btn btn-secondary btn-sm"
+            style={{ cursor: 'pointer', position: 'relative' }}
+          >
+            Upload Thumbnail
+            <input
+              type="file"
+              accept="image/*"
+              style={{ position: 'absolute', opacity: 0, width: 0, height: 0 }}
+              onChange={e => handleCourseThumbnailUpload(e.target.files?.[0])}
+            />
+          </label>
+        </div>
       </div>
 
       <UploadProgressPanel
@@ -993,13 +1167,40 @@ function CourseBuilder({ courseId, courseTitle, onBack }) {
               No modules yet. Click + Add.
             </div>
           )}
+
         </div>
 
         {/* Main Content Area */}
         <div
           style={{ background: '#fff', borderRadius: 12, border: '1px solid #e2e8f0', padding: 24 }}
         >
-          {activeModule ? (
+          {activeModule === 'MATERIALS' ? (
+            <MaterialsPanel
+              courseId={courseId}
+              materials={materials}
+              loading={materialsLoading}
+              uploadState={uploadState}
+              onUpload={handleUploadMaterial}
+              onDelete={handleDeleteMaterial}
+            />
+          ) : activeModule === 'EXAM' ? (
+            <ExamPanel
+              exam={courseExam}
+              loading={examLoading}
+              saving={examSaving}
+              showForm={showExamForm}
+              setShowForm={setShowExamForm}
+              examForm={examForm}
+              setExamForm={setExamForm}
+              examQuestions={examQuestions}
+              onSave={handleSaveExam}
+              onDelete={handleDeleteExam}
+              onAddQuestion={addExamQuestion}
+              onRemoveQuestion={removeExamQuestion}
+              onUpdateQuestion={updateExamQuestion}
+              onUpdateOption={updateExamOption}
+            />
+          ) : activeModule ? (
             <>
               <div
                 style={{
@@ -1579,6 +1780,218 @@ function CourseBuilder({ courseId, courseTitle, onBack }) {
                 Save Quiz
               </button>
             </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ──────────────────────────────────────────────────────────────────
+// COURSE MATERIALS PANEL
+// ──────────────────────────────────────────────────────────────────
+function MaterialsPanel({ materials, loading, uploadState, onUpload, onDelete }) {
+  const formatSize = b => {
+    if (!b) return '';
+    if (b < 1024) return `${b} B`;
+    if (b < 1024 * 1024) return `${(b / 1024).toFixed(1)} KB`;
+    return `${(b / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
+  return (
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+        <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>📎 Course Materials</h2>
+        <label className="btn btn-primary btn-sm" style={{ cursor: 'pointer', position: 'relative' }}>
+          {uploadState.status === 'uploading' ? 'Uploading...' : '+ Upload Material'}
+          <input
+            type="file"
+            accept="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,image/*"
+            style={{ position: 'absolute', opacity: 0, width: 0, height: 0 }}
+            onChange={e => onUpload(e.target.files?.[0])}
+          />
+        </label>
+      </div>
+      <p style={{ fontSize: 13, color: '#64748b', marginBottom: 20 }}>
+        Upload PDFs, slides, or documents. Students enrolled in this course can view these under Notes → Course Materials.
+      </p>
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: 40, color: '#94a3b8' }}>Loading...</div>
+      ) : materials.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: 40, color: '#94a3b8', border: '2px dashed #e2e8f0', borderRadius: 12, fontSize: 13 }}>
+          No materials uploaded yet. Upload PDFs or documents above.
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {materials.map(m => (
+            <div key={m._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', border: '1px solid #e2e8f0', borderRadius: 10, background: '#f8fafc' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ width: 36, height: 36, borderRadius: 8, background: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>
+                  {m.fileType?.includes('pdf') ? '📄' : m.fileType?.includes('image') ? '🖼️' : '📋'}
+                </div>
+                <div>
+                  <div style={{ fontWeight: 600, fontSize: 14, color: '#0f172a' }}>{m.title}</div>
+                  <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>
+                    {formatSize(m.size)}{m.uploadedAt ? ` • ${new Date(m.uploadedAt).toLocaleDateString()}` : ''}
+                  </div>
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <a href={m.fileUrl} target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-sm">View</a>
+                <button className="btn btn-danger btn-sm" onClick={() => onDelete(m._id)}>Remove</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ──────────────────────────────────────────────────────────────────
+// FINAL EXAM PANEL
+// ──────────────────────────────────────────────────────────────────
+function ExamPanel({ exam, loading, saving, showForm, setShowForm, examForm, setExamForm, examQuestions, onSave, onDelete, onAddQuestion, onRemoveQuestion, onUpdateQuestion, onUpdateOption }) {
+  if (loading) return <div style={{ textAlign: 'center', padding: 40, color: '#94a3b8' }}>Loading exam...</div>;
+
+  const totalPts = examQuestions.reduce((s, q) => s + (q.points || 1), 0);
+
+  return (
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+        <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>⚡ Final Exam</h2>
+        <div style={{ display: 'flex', gap: 8 }}>
+          {exam && !showForm && (
+            <>
+              <button className="btn btn-secondary btn-sm" onClick={() => setShowForm(true)}>Edit Exam</button>
+              <button className="btn btn-danger btn-sm" onClick={onDelete}>Delete</button>
+            </>
+          )}
+          {!exam && !showForm && (
+            <button className="btn btn-primary btn-sm" onClick={() => setShowForm(true)}>+ Create Exam</button>
+          )}
+        </div>
+      </div>
+
+      <p style={{ fontSize: 13, color: '#64748b', marginBottom: 20 }}>
+        One final exam per course, delivered in fullscreen mode with anti-cheat enforcement. Students access it after completing all modules.
+      </p>
+
+      {exam && !showForm && (
+        <div style={{ padding: 20, border: '1px solid #e2e8f0', borderRadius: 12, background: '#f8fafc', marginBottom: 20 }}>
+          <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 12 }}>{exam.title}</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: 10 }}>
+            {[
+              ['Questions', exam.questions?.length || 0],
+              ['Duration', `${exam.timeLimit || '—'} min`],
+              ['Pass Score', `${exam.passingScore || 0}%`],
+              ['Attempts', exam.maxAttempts || 1],
+              ['Violations', exam.violationLimit || 3],
+              ['Status', exam.status],
+            ].map(([label, val]) => (
+              <div key={label} style={{ textAlign: 'center', padding: 10, border: '1px solid #e2e8f0', borderRadius: 8, background: '#fff' }}>
+                <div style={{ fontSize: 16, fontWeight: 800, color: '#0f172a' }}>{val}</div>
+                <div style={{ fontSize: 10, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {!exam && !showForm && (
+        <div style={{ textAlign: 'center', padding: 40, color: '#94a3b8', border: '2px dashed #e2e8f0', borderRadius: 12, fontSize: 13 }}>
+          No final exam created yet. Click "Create Exam" to add one.
+        </div>
+      )}
+
+      {showForm && (
+        <div style={{ border: '1px solid #e2e8f0', borderRadius: 12, overflow: 'hidden' }}>
+          <div style={{ padding: '14px 20px', background: '#f8fafc', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontWeight: 700, fontSize: 14 }}>{exam ? 'Edit Exam' : 'Create Final Exam'}</span>
+            <span style={{ fontSize: 12, color: '#94a3b8' }}>{examQuestions.length} questions · {totalPts} pts</span>
+          </div>
+
+          <div style={{ padding: 20, maxHeight: '60vh', overflowY: 'auto' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
+              <div style={{ gridColumn: '1 / -1' }} className="admin-form-group">
+                <label>Exam Title *</label>
+                <input value={examForm.title} onChange={e => setExamForm({ ...examForm, title: e.target.value })} />
+              </div>
+              <div className="admin-form-group">
+                <label>Duration (minutes)</label>
+                <input type="number" min={1} value={examForm.timeLimit} onChange={e => setExamForm({ ...examForm, timeLimit: Number(e.target.value) })} />
+              </div>
+              <div className="admin-form-group">
+                <label>Passing Score (%)</label>
+                <input type="number" min={0} max={100} value={examForm.passingScore} onChange={e => setExamForm({ ...examForm, passingScore: Number(e.target.value) })} />
+              </div>
+              <div className="admin-form-group">
+                <label>Max Attempts</label>
+                <input type="number" min={1} value={examForm.maxAttempts} onChange={e => setExamForm({ ...examForm, maxAttempts: Number(e.target.value) })} />
+              </div>
+              <div className="admin-form-group">
+                <label>Violation Limit (auto-submit)</label>
+                <input type="number" min={1} max={10} value={examForm.violationLimit} onChange={e => setExamForm({ ...examForm, violationLimit: Number(e.target.value) })} />
+              </div>
+              <div className="admin-form-group">
+                <label>Status</label>
+                <select value={examForm.status} onChange={e => setExamForm({ ...examForm, status: e.target.value })}>
+                  <option value="draft">Draft</option>
+                  <option value="published">Published</option>
+                </select>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <input type="checkbox" id="examRandomize" checked={examForm.randomizeQuestions} onChange={e => setExamForm({ ...examForm, randomizeQuestions: e.target.checked })} />
+                <label htmlFor="examRandomize" style={{ fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Randomize question order</label>
+              </div>
+            </div>
+
+            <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: 16 }}>
+              <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 12 }}>Questions ({examQuestions.length})</div>
+              {examQuestions.map((q, qi) => (
+                <div key={qi} style={{ border: '1px solid #e2e8f0', borderRadius: 8, padding: 14, marginBottom: 12, background: '#f8fafc' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                    <span style={{ fontWeight: 600, fontSize: 13 }}>Q{qi + 1}</span>
+                    <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                      <input type="number" min={1} value={q.points || 1} onChange={e => onUpdateQuestion(qi, 'points', Number(e.target.value))} style={{ width: 50, padding: '2px 6px', borderRadius: 6, border: '1px solid #e2e8f0', fontSize: 12, textAlign: 'center' }} title="Points" />
+                      <span style={{ fontSize: 12, color: '#94a3b8' }}>pts</span>
+                      {examQuestions.length > 1 && <button className="btn btn-danger" style={{ padding: '2px 8px', fontSize: 11 }} onClick={() => onRemoveQuestion(qi)}>✕</button>}
+                    </div>
+                  </div>
+                  <div className="admin-form-group">
+                    <input placeholder="Question text..." value={q.text || ''} onChange={e => onUpdateQuestion(qi, 'text', e.target.value)} />
+                  </div>
+                  {(q.options || []).map((opt, oi) => (
+                    <div key={oi} style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 6 }}>
+                      <input
+                        type="radio"
+                        name={`exam-correct-${qi}`}
+                        checked={!!opt.isCorrect}
+                        onChange={() => onUpdateOption(qi, oi, 'isCorrect', true)}
+                        title="Mark as correct"
+                      />
+                      <input
+                        placeholder={`Option ${String.fromCharCode(65 + oi)}`}
+                        value={opt.text || ''}
+                        onChange={e => onUpdateOption(qi, oi, 'text', e.target.value)}
+                        style={{ flex: 1 }}
+                      />
+                    </div>
+                  ))}
+                  <div className="admin-form-group" style={{ marginTop: 8 }}>
+                    <input placeholder="Explanation (optional)" value={q.explanation || ''} onChange={e => onUpdateQuestion(qi, 'explanation', e.target.value)} style={{ fontSize: 12 }} />
+                  </div>
+                </div>
+              ))}
+              <button className="btn btn-secondary" style={{ width: '100%' }} onClick={onAddQuestion}>+ Add Question</button>
+            </div>
+          </div>
+
+          <div style={{ padding: '12px 20px', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'flex-end', gap: 8, background: '#f8fafc' }}>
+            <button className="btn btn-secondary" onClick={() => setShowForm(false)}>Cancel</button>
+            <button className="btn btn-primary" onClick={onSave} disabled={saving}>
+              {saving ? 'Saving...' : exam ? 'Save Changes' : 'Create Exam'}
+            </button>
           </div>
         </div>
       )}

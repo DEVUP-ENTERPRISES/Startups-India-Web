@@ -6,30 +6,6 @@ import Icon from '@/components/Icon';
 import { motion, AnimatePresence } from 'framer-motion';
 import '@/styles/assessments-v2.css';
 
-const DUMMY_QUIZZES = [
-  {
-    _id: 'q1',
-    title: 'Market Entry Strategy',
-    description: 'Evaluate your understanding of TAM/SAM/SOM and competitive moat construction for early-stage startups.',
-    time: 15,
-    questions: 10,
-  },
-  {
-    _id: 'q2',
-    title: 'Unit Economics Mastery',
-    description: 'Deep dive into LTV, CAC, and payback periods. Essential for scalable growth modeling.',
-    time: 20,
-    questions: 15,
-  },
-  {
-    _id: 'q3',
-    title: 'B2B Sales Pipeline',
-    description: 'Master the art of lead qualification, CRM management, and enterprise closing techniques.',
-    time: 15,
-    questions: 12,
-  }
-];
-
 export default function QuizzesPage() {
   const [quizzes, setQuizzes] = useState([]);
   const [results, setResults] = useState([]);
@@ -48,13 +24,11 @@ export default function QuizzesPage() {
         const quizJson = await quizRes.json();
         const resultJson = await resultRes.json();
         
-        let fetchedQuizzes = quizJson.success ? quizJson.data : [];
-        if (fetchedQuizzes.length === 0) fetchedQuizzes = DUMMY_QUIZZES;
-        
+        const fetchedQuizzes = quizJson.success && Array.isArray(quizJson.data) ? quizJson.data : [];
         setQuizzes(fetchedQuizzes);
-        if (resultJson.success) setResults(resultJson.data);
+        if (resultJson.success && Array.isArray(resultJson.data)) setResults(resultJson.data);
       } catch (err) {
-        setQuizzes(DUMMY_QUIZZES);
+        setQuizzes([]);
       } finally {
         setIsLoading(false);
       }
@@ -111,18 +85,40 @@ export default function QuizzesPage() {
         ) : (
           <div className="platform-grid">
             <AnimatePresence mode="popLayout">
-              {filteredQuizzes.length > 0 ? filteredQuizzes.map((quiz) => (
-                <QuizCard key={quiz._id} quiz={quiz} onStart={() => handleStart(quiz._id)} />
-              )) : (
+              {filteredQuizzes.length > 0 ? (
+                filteredQuizzes.map((quiz) => (
+                  <QuizCard key={quiz._id} quiz={quiz} onStart={() => handleStart(quiz._id)} />
+                ))
+              ) : (
                 <motion.div 
                   initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                   style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '6rem 2rem', background: '#fff', borderRadius: '32px', border: '2px dashed #E2E8F0' }}
                 >
-                  <div style={{ width: 64, height: 64, borderRadius: '20px', background: '#ECFDF5', color: '#059669', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
-                    <Icon name="check" size={32} />
-                  </div>
-                  <h3 style={{ fontSize: '1.25rem', fontWeight: 900, color: '#111' }}>Curriculum Completed</h3>
-                  <p style={{ color: '#94A3B8', fontWeight: 600 }}>You've mastered all current strategic assessments.</p>
+                  {quizzes.length === 0 ? (
+                    <>
+                      <div style={{ width: 64, height: 64, borderRadius: '20px', background: '#F8FAFC', color: '#94A3B8', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
+                        <Icon name="helpCircle" size={32} />
+                      </div>
+                      <h3 style={{ fontSize: '1.25rem', fontWeight: 900, color: '#111' }}>No Quizzes Found</h3>
+                      <p style={{ color: '#94A3B8', fontWeight: 600 }}>Check back later for new strategic assessments.</p>
+                    </>
+                  ) : pendingQuizzes.length === 0 ? (
+                    <>
+                      <div style={{ width: 64, height: 64, borderRadius: '20px', background: '#ECFDF5', color: '#059669', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
+                        <Icon name="check" size={32} />
+                      </div>
+                      <h3 style={{ fontSize: '1.25rem', fontWeight: 900, color: '#111' }}>Curriculum Completed</h3>
+                      <p style={{ color: '#94A3B8', fontWeight: 600 }}>You've mastered all current strategic assessments.</p>
+                    </>
+                  ) : (
+                    <>
+                      <div style={{ width: 64, height: 64, borderRadius: '20px', background: '#F8FAFC', color: '#94A3B8', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
+                        <Icon name="search" size={32} />
+                      </div>
+                      <h3 style={{ fontSize: '1.25rem', fontWeight: 900, color: '#111' }}>No Matches Found</h3>
+                      <p style={{ color: '#94A3B8', fontWeight: 600 }}>Try adjusting your search terms.</p>
+                    </>
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>
@@ -151,34 +147,57 @@ function SummaryCard({ label, count, icon, color, trend }) {
 }
 
 function QuizCard({ quiz, onStart }) {
+  const isLocked = quiz.isLocked;
+
   return (
     <motion.div 
       layout initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-      className="assessment-card-v"
-      style={{ padding: '2.5rem', display: 'flex', flexDirection: 'column', height: '100%', minHeight: '320px', borderRadius: '32px' }}
+      className={`assessment-card-v ${isLocked ? 'locked' : ''}`}
+      style={{ 
+        padding: '2.5rem', display: 'flex', flexDirection: 'column', height: '100%', minHeight: '320px', borderRadius: '32px',
+        opacity: isLocked ? 0.7 : 1,
+        position: 'relative',
+        filter: isLocked ? 'grayscale(0.5)' : 'none'
+      }}
     >
+      {isLocked && (
+        <div style={{ position: 'absolute', top: '2rem', right: '2rem', background: '#F1F5F9', width: '32px', height: '32px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748B' }}>
+          <Icon name="lock" size={16} />
+        </div>
+      )}
+
       <div style={{ marginBottom: '1.5rem', flex: 1 }}>
         <h3 style={{ fontSize: '1.25rem', fontWeight: 950, color: '#111', marginBottom: '12px', lineHeight: 1.2, letterSpacing: '-0.01em' }}>{quiz.title}</h3>
         <p style={{ fontSize: '0.9rem', color: '#64748B', lineHeight: 1.6, margin: 0, opacity: 0.9 }}>
-          {quiz.description}
+          {isLocked ? `This assessment is currently locked. ${quiz.lockReason || ''}` : quiz.description}
         </p>
       </div>
 
       <div style={{ display: 'flex', gap: '2rem', borderTop: '1px solid #F1F5F9', paddingTop: '1.5rem', marginTop: 'auto', marginBottom: '1.5rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Icon name="helpCircle" size={16} color="#94A3B8" />
-          <span style={{ fontSize: '0.85rem', color: '#111', fontWeight: 800 }}>{quiz.questions?.length || quiz.questions || 0} Questions</span>
+          <span style={{ fontSize: '0.85rem', color: '#111', fontWeight: 800 }}>{quiz.questions?.length || 0} Questions</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Icon name="clock" size={16} color="#94A3B8" />
-          <span style={{ fontSize: '0.85rem', color: '#111', fontWeight: 800 }}>{quiz.timeLimit || quiz.time || 0} Minutes</span>
+          <span style={{ fontSize: '0.85rem', color: '#111', fontWeight: 800 }}>{quiz.timeLimit || 0}m</span>
         </div>
       </div>
 
-      <button onClick={onStart} className="btn-brand-primary" style={{ width: '100%', padding: '14px', borderRadius: '14px', fontSize: '0.9rem', fontWeight: 900 }}>
-        Begin Sprint
+      <button 
+        onClick={onStart} 
+        disabled={isLocked}
+        className={isLocked ? 'btn-locked' : 'btn-brand-primary'} 
+        style={{ 
+          width: '100%', padding: '14px', borderRadius: '14px', fontSize: '0.9rem', fontWeight: 900,
+          background: isLocked ? '#E2E8F0' : '#7A1F2B',
+          color: isLocked ? '#94A3B8' : '#fff',
+          cursor: isLocked ? 'not-allowed' : 'pointer',
+          border: 'none'
+        }}
+      >
+        {isLocked ? 'LOCKED' : 'Begin Sprint'}
       </button>
     </motion.div>
   );
 }
-

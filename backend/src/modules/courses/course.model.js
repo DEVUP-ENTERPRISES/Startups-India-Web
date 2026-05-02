@@ -33,6 +33,14 @@ const courseSchema = new mongoose.Schema(
       type: String,
       default: 'Welcome! The course will begin shortly. Stay tuned.',
     },
+    materials: [{
+      title: { type: String },
+      fileUrl: { type: String },
+      fileKey: { type: String },
+      fileType: { type: String },
+      size: { type: Number },
+      uploadedAt: { type: Date, default: Date.now }
+    }]
   },
   { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
 );

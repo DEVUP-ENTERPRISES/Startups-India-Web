@@ -30,10 +30,10 @@ export const navigationData = [
     id: 'assessments',
     label: 'QUIZ HUB',
     items: [
-      { id: 'quizzes', label: 'Quizzes', path: '/quizzes', icon: 'helpCircle' },
-      { id: 'assignments', label: 'Assignments', path: '/assignments', icon: 'pencil' },
-      { id: 'exams', label: 'Exams', path: '/exams', icon: 'fileText' },
-      { id: 'results', label: 'Results', path: '/results', icon: 'barChart' },
+      { id: 'quizzes', label: 'Quizzes', path: '/quizzes' },
+      { id: 'assignments', label: 'Assignments', path: '/assignments' },
+      { id: 'exams', label: 'Exams', path: '/exams' },
+      { id: 'results', label: 'Results', path: '/results' },
     ],
   },
   {

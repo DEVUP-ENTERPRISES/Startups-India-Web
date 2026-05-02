@@ -22,11 +22,22 @@ exports.getAssessments = asyncHandler(async (req, res) => {
   if (type) filter.type = type;
   if (courseId) filter.courseId = courseId;
   
-  const assessments = await assessmentsService.getAssessments(filter);
+  const assessments = await assessmentsService.getAssessments(filter, req.user.userId, req.user.role);
   res.json({
     success: true,
     data: assessments
   });
+});
+
+exports.updateAssessment = asyncHandler(async (req, res) => {
+  const assessment = await assessmentsService.updateAssessment(req.params.id, req.body);
+  if (!assessment) return res.status(404).json({ success: false, message: 'Assessment not found' });
+  res.json({ success: true, data: assessment });
+});
+
+exports.deleteAssessment = asyncHandler(async (req, res) => {
+  await assessmentsService.deleteAssessment(req.params.id);
+  res.json({ success: true, message: 'Deleted' });
 });
 
 exports.getAssessmentById = asyncHandler(async (req, res) => {

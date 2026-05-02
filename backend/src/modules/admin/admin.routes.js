@@ -46,6 +46,10 @@ adminRouter.get('/modules/:moduleId/quiz', asyncHandler(ctrl.getModuleQuiz));
 adminRouter.post('/quizzes', asyncHandler(ctrl.upsertModuleQuiz));
 adminRouter.delete('/modules/:moduleId/quiz', asyncHandler(ctrl.deleteModuleQuiz));
 
+// Course Materials (admin-uploaded notes/PDFs)
+adminRouter.post('/courses/:id/materials', asyncHandler(ctrl.addCourseMaterial));
+adminRouter.delete('/courses/:id/materials/:materialId', asyncHandler(ctrl.deleteCourseMaterial));
+
 // S3 Upload URL
 adminRouter.post('/upload-url', asyncHandler(ctrl.getUploadUrl));
 

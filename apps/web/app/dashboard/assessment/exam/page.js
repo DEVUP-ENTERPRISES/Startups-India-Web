@@ -6,33 +6,6 @@ import Icon from '@/components/Icon';
 import { motion, AnimatePresence } from 'framer-motion';
 import '@/styles/assessments-v2.css';
 
-const DUMMY_EXAMS = [
-  {
-    _id: 'e1',
-    title: 'Venture Capital Readiness',
-    description: 'A high-stakes evaluation of your startup investment thesis, governance, and exit strategy alignment.',
-    questions: 25,
-    timeLimit: 45,
-    difficulty: 'Expert'
-  },
-  {
-    _id: 'e2',
-    title: 'Product-Market Fit Audit',
-    description: 'Comprehensive assessment of retention cohorts, expansion revenue, and product stickiness metrics.',
-    questions: 20,
-    timeLimit: 40,
-    difficulty: 'Advanced'
-  },
-  {
-    _id: 'e3',
-    title: 'Series A Growth Modeling',
-    description: 'Advanced financial forecasting and scaling strategies for high-growth ventures.',
-    questions: 30,
-    timeLimit: 60,
-    difficulty: 'Expert'
-  }
-];
-
 export default function ExamsPage() {
   const [exams, setExams] = useState([]);
   const [results, setResults] = useState([]);
@@ -51,13 +24,11 @@ export default function ExamsPage() {
         const examJson = await examRes.json();
         const resultJson = await resultRes.json();
         
-        let fetchedExams = examJson.success ? examJson.data : [];
-        if (fetchedExams.length === 0) fetchedExams = DUMMY_EXAMS;
-        
+        const fetchedExams = examJson.success && Array.isArray(examJson.data) ? examJson.data : [];
         setExams(fetchedExams);
-        if (resultJson.success) setResults(resultJson.data);
+        if (resultJson.success && Array.isArray(resultJson.data)) setResults(resultJson.data);
       } catch (err) {
-        setExams(DUMMY_EXAMS);
+        setExams([]);
       } finally {
         setIsLoading(false);
       }
@@ -114,18 +85,40 @@ export default function ExamsPage() {
         ) : (
           <div className="platform-grid">
             <AnimatePresence mode="popLayout">
-              {filteredExams.length > 0 ? filteredExams.map((exam) => (
-                <ExamCard key={exam._id} exam={exam} onStart={() => handleStart(exam._id)} />
-              )) : (
+              {filteredExams.length > 0 ? (
+                filteredExams.map((exam) => (
+                  <ExamCard key={exam._id} exam={exam} onStart={() => handleStart(exam._id)} />
+                ))
+              ) : (
                 <motion.div 
                   initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                   style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '6rem 2rem', background: '#fff', borderRadius: '32px', border: '2px dashed #E2E8F0' }}
                 >
-                  <div style={{ width: 64, height: 64, borderRadius: '20px', background: '#ECFDF5', color: '#059669', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
-                    <Icon name="check" size={32} />
-                  </div>
-                  <h3 style={{ fontSize: '1.25rem', fontWeight: 900, color: '#111' }}>Board Certified</h3>
-                  <p style={{ color: '#94A3B8', fontWeight: 600 }}>You've cleared all current executive examinations.</p>
+                  {exams.length === 0 ? (
+                    <>
+                      <div style={{ width: 64, height: 64, borderRadius: '20px', background: '#F8FAFC', color: '#94A3B8', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
+                        <Icon name="award" size={32} />
+                      </div>
+                      <h3 style={{ fontSize: '1.25rem', fontWeight: 900, color: '#111' }}>No Exams Found</h3>
+                      <p style={{ color: '#94A3B8', fontWeight: 600 }}>Advanced certifications are being prepared for your track.</p>
+                    </>
+                  ) : pendingExams.length === 0 ? (
+                    <>
+                      <div style={{ width: 64, height: 64, borderRadius: '20px', background: '#ECFDF5', color: '#059669', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
+                        <Icon name="check" size={32} />
+                      </div>
+                      <h3 style={{ fontSize: '1.25rem', fontWeight: 900, color: '#111' }}>Board Certified</h3>
+                      <p style={{ color: '#94A3B8', fontWeight: 600 }}>You've cleared all current executive examinations.</p>
+                    </>
+                  ) : (
+                    <>
+                      <div style={{ width: 64, height: 64, borderRadius: '20px', background: '#F8FAFC', color: '#94A3B8', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
+                        <Icon name="search" size={32} />
+                      </div>
+                      <h3 style={{ fontSize: '1.25rem', fontWeight: 900, color: '#111' }}>No Matches Found</h3>
+                      <p style={{ color: '#94A3B8', fontWeight: 600 }}>Try adjusting your search terms.</p>
+                    </>
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>
@@ -154,37 +147,63 @@ function SummaryCard({ label, count, icon, color, trend }) {
 }
 
 function ExamCard({ exam, onStart }) {
+  const isLocked = exam.isLocked;
+
   return (
     <motion.div 
       layout initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-      className="assessment-card-v"
-      style={{ padding: '2.5rem', display: 'flex', flexDirection: 'column', height: '100%', minHeight: '340px', borderRadius: '32px' }}
+      className={`assessment-card-v ${isLocked ? 'locked' : ''}`}
+      style={{ 
+        padding: '2.5rem', display: 'flex', flexDirection: 'column', height: '100%', minHeight: '340px', borderRadius: '32px',
+        opacity: isLocked ? 0.7 : 1,
+        position: 'relative',
+        filter: isLocked ? 'grayscale(0.5)' : 'none'
+      }}
     >
+      {isLocked && (
+        <div style={{ position: 'absolute', top: '2.5rem', right: '2.5rem', background: '#F1F5F9', width: '32px', height: '32px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748B' }}>
+          <Icon name="lock" size={16} />
+        </div>
+      )}
+
       <div style={{ marginBottom: '1.5rem', flex: 1 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
           <h3 style={{ fontSize: '1.25rem', fontWeight: 950, color: '#111', lineHeight: 1.2, letterSpacing: '-0.01em', margin: 0 }}>{exam.title}</h3>
-          <span style={{ fontSize: '0.6rem', fontWeight: 900, padding: '4px 8px', borderRadius: '6px', background: '#F8FAFC', color: '#64748B', border: '1px solid #F1F5F9' }}>
-            {exam.difficulty || 'Advanced'}
-          </span>
+          {!isLocked && (
+            <span style={{ fontSize: '0.6rem', fontWeight: 900, padding: '4px 8px', borderRadius: '6px', background: '#F8FAFC', color: '#64748B', border: '1px solid #F1F5F9' }}>
+              {exam.difficulty || 'Advanced'}
+            </span>
+          )}
         </div>
         <p style={{ fontSize: '0.9rem', color: '#64748B', lineHeight: 1.6, margin: 0, opacity: 0.9 }}>
-          {exam.description}
+          {isLocked ? `This examination is currently locked. ${exam.lockReason || ''}` : exam.description}
         </p>
       </div>
 
       <div style={{ display: 'flex', gap: '2rem', borderTop: '1px solid #F1F5F9', paddingTop: '1.5rem', marginTop: 'auto', marginBottom: '1.5rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Icon name="helpCircle" size={16} color="#94A3B8" />
-          <span style={{ fontSize: '0.85rem', color: '#111', fontWeight: 800 }}>{exam.questions?.length || exam.questions || 0} Questions</span>
+          <span style={{ fontSize: '0.85rem', color: '#111', fontWeight: 800 }}>{exam.questions?.length || 0} Questions</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Icon name="clock" size={16} color="#94A3B8" />
-          <span style={{ fontSize: '0.85rem', color: '#111', fontWeight: 800 }}>{exam.timeLimit || 0} Minutes</span>
+          <span style={{ fontSize: '0.85rem', color: '#111', fontWeight: 800 }}>{exam.timeLimit || 0}m</span>
         </div>
       </div>
 
-      <button onClick={onStart} className="btn-brand-primary" style={{ width: '100%', padding: '14px', borderRadius: '14px', fontSize: '0.9rem', fontWeight: 900 }}>
-        Launch Certification
+      <button 
+        onClick={onStart} 
+        disabled={isLocked}
+        className={isLocked ? 'btn-locked' : 'btn-brand-primary'} 
+        style={{ 
+          width: '100%', padding: '14px', borderRadius: '14px', fontSize: '0.9rem', fontWeight: 900,
+          background: isLocked ? '#E2E8F0' : '#7A1F2B',
+          color: isLocked ? '#94A3B8' : '#fff',
+          cursor: isLocked ? 'not-allowed' : 'pointer',
+          border: 'none'
+        }}
+      >
+        {isLocked ? 'EXAM LOCKED' : 'Launch Certification'}
       </button>
     </motion.div>
   );

@@ -5,35 +5,37 @@ import { useParams, useRouter } from 'next/navigation';
 import Icon from '@/components/Icon';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const DUMMY_QUESTIONS = [
-  {
-    id: 1,
-    text: "What does 'TAM' stand for in market sizing?",
-    options: ["Total Available Market", "Target Attainable Market", "Total Addressable Market", "Technical Asset Management"],
-    correct: 2
-  },
-  {
-    id: 2,
-    text: "Which of these is a typical 'Vanity Metric'?",
-    options: ["Churn Rate", "Cumulative Downloads", "Daily Active Users", "Customer Acquisition Cost"],
-    correct: 1
-  },
-  {
-    id: 3,
-    text: "A 'Burn Rate' of $50k and Cash of $500k gives a runway of how many months?",
-    options: ["5 Months", "10 Months", "12 Months", "20 Months"],
-    correct: 1
-  }
-];
-
 export default function QuizAttemptPage() {
   const { id } = useParams();
   const router = useRouter();
-  const [questions, setQuestions] = useState(DUMMY_QUESTIONS);
+  const [questions, setQuestions] = useState([]);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [answers, setAnswers] = useState({});
-  const [timeLeft, setTimeLeft] = useState(900); // 15 mins
+  const [timeLeft, setTimeLeft] = useState(900); // default 15 mins
   const [isFinished, setIsFinished] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
+
+  useEffect(() => {
+    async function loadQuiz() {
+      try {
+        const res = await fetch(`/api/v1/assessments/${id}`);
+        const json = await res.json();
+        if (json.success && json.data) {
+          const fetchedQuestions = Array.isArray(json.data.questions) ? json.data.questions : [];
+          setQuestions(fetchedQuestions);
+          setTimeLeft(json.data.timeLimit ? json.data.timeLimit * 60 : 900);
+        } else {
+          setLoadError('Quiz questions are not available at the moment.');
+        }
+      } catch (err) {
+        setLoadError('Failed to load quiz data. Please try again later.');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadQuiz();
+  }, [id]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -70,6 +72,38 @@ export default function QuizAttemptPage() {
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
+
+  if (isLoading) {
+    return (
+      <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff', color: '#111', fontFamily: 'Inter, sans-serif' }}>
+        <div style={{ textAlign: 'center', padding: '2rem' }}>
+          <p style={{ fontSize: '1.25rem', fontWeight: 700 }}>Loading quiz...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!questions.length) {
+    return (
+      <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff', color: '#111', fontFamily: 'Inter, sans-serif' }}>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ textAlign: 'center', maxWidth: '500px', padding: '3rem' }}>
+          <div style={{ width: 80, height: 80, background: '#FEF3C7', color: '#92400E', borderRadius: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 2rem' }}>
+            <Icon name="info" size={40} />
+          </div>
+          <h1 style={{ fontSize: '2.5rem', fontWeight: 950, marginBottom: '1rem', letterSpacing: '-0.03em' }}>No Quiz Questions</h1>
+          <p style={{ color: '#64748B', fontSize: '1.1rem', marginBottom: '3rem', fontWeight: 500 }}>
+            {loadError || 'This quiz does not have any questions available right now.'}
+          </p>
+          <button 
+            onClick={() => router.push('/dashboard/assessment/quiz')}
+            style={{ width: '100%', padding: '1.25rem', background: '#0A0A0A', color: '#fff', border: 'none', borderRadius: '16px', fontWeight: 900, cursor: 'pointer', fontSize: '1.1rem' }}
+          >
+            RETURN TO QUIZZES
+          </button>
+        </motion.div>
+      </div>
+    );
+  }
 
   if (isFinished) {
     return (

@@ -69,22 +69,12 @@ export default function DashboardSidebar({
       id: 'assessments',
       label: 'Assessments',
       isDropdown: true,
-      icon: 'award',
+      icon: 'results',
       items: [
-        {
-          id: 'quizzes',
-          label: 'Quizzes',
-          path: '/dashboard/assessment/quiz',
-          icon: 'explore',
-        },
-        {
-          id: 'assignments',
-          label: 'Assessments',
-          path: '/dashboard/assessment/assessment',
-          icon: 'courses',
-        },
-        { id: 'exams', label: 'Exams', path: '/dashboard/assessment/exam', icon: 'award' },
-        { id: 'results', label: 'Results', path: '/dashboard/assessment/results', icon: 'streak' },
+        { id: 'quiz', label: 'Quizzes', path: '/dashboard/assessment/quiz' },
+        { id: 'assignment', label: 'Assignments', path: '/dashboard/assessment/assignments' },
+        { id: 'exam', label: 'Exams', path: '/dashboard/assessment/exam' },
+        { id: 'results', label: 'Results', path: '/dashboard/assessment/results' },
       ],
     },
     {

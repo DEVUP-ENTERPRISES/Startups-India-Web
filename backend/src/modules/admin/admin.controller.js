@@ -136,6 +136,30 @@ async function deleteModuleQuiz(req, res) {
   res.json({ success: true, data });
 }
 
+// ─── COURSE MATERIALS ───────────────────────────────────────────
+async function addCourseMaterial(req, res) {
+  const { Course } = require('../courses/course.model');
+  const { title, fileUrl, fileKey, fileType, size } = req.body;
+  const course = await Course.findByIdAndUpdate(
+    req.params.id,
+    { $push: { materials: { title, fileUrl, fileKey, fileType, size, uploadedAt: new Date() } } },
+    { new: true }
+  );
+  if (!course) return res.status(404).json({ success: false, message: 'Course not found' });
+  res.json({ success: true, data: course.materials });
+}
+
+async function deleteCourseMaterial(req, res) {
+  const { Course } = require('../courses/course.model');
+  const course = await Course.findByIdAndUpdate(
+    req.params.id,
+    { $pull: { materials: { _id: req.params.materialId } } },
+    { new: true }
+  );
+  if (!course) return res.status(404).json({ success: false, message: 'Course not found' });
+  res.json({ success: true, data: course.materials });
+}
+
 // ─── S3 UPLOAD ──────────────────────────────────────────────────
 async function getUploadUrl(req, res) {
   const data = await adminService.getUploadUrl(req.body, req.user.userId);
@@ -362,6 +386,8 @@ module.exports = {
   getModuleQuiz,
   upsertModuleQuiz,
   deleteModuleQuiz,
+  addCourseMaterial,
+  deleteCourseMaterial,
   getUploadUrl,
   getPayments,
   refundPayment,
