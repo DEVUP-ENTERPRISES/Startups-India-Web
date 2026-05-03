@@ -50,12 +50,12 @@ Topics covered include: Understanding different funding stages, Building relatio
         role: 'VC Partner',
         image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
         bio: 'Partner at leading VC firm, invested in 100+ startups',
-      }
+      },
     ],
   },
   {
     id: 2,
-    title: 'Tech Innovation Summit',
+    title: 'India Tech Summit 2025',
     category: 'conferences',
     image: 'https://images.unsplash.com/photo-1505373877841-8d25f7d46678?w=800',
     images: [
@@ -63,7 +63,7 @@ Topics covered include: Understanding different funding stages, Building relatio
       'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1200',
       'https://images.unsplash.com/photo-1475721027785-f74eccf877e2?w=1200',
     ],
-    date: 'Jan 20, 2025',
+    date: 'Jan 20, 2026',
     time: '9:00 AM - 8:00 PM',
     duration: '11 hours',
     location: 'Bangalore Tech Park',
@@ -97,7 +97,7 @@ The summit includes multiple tracks covering AI/ML, Cloud Architecture, DevOps, 
         role: 'AI Research Scientist',
         image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400',
         bio: 'Leading AI researcher, published 50+ papers, ex-Google',
-      }
+      },
     ],
   },
   {
@@ -144,12 +144,12 @@ Walk away with a complete digital marketing plan for your business and actionabl
         role: 'Digital Marketing Expert',
         image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400',
         bio: 'Grew 20+ startups to 1M+ followers, ex-Meta',
-      }
+      },
     ],
   },
   {
     id: 4,
-    title: 'Founder\'s Networking Mixer',
+    title: "Founder's Networking Mixer",
     category: 'networking',
     image: 'https://images.unsplash.com/photo-1511578314322-379afb476865?w=800',
     images: [
@@ -191,7 +191,7 @@ Whether you're looking for co-founders, investors, mentors, or just want to expa
         role: 'Event Organizers',
         image: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=400',
         bio: 'Organizing startup events since 2018',
-      }
+      },
     ],
   },
   {
@@ -238,7 +238,7 @@ Perfect for aspiring product designers, developers wanting to learn design, and 
         role: 'Lead Product Designer',
         image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400',
         bio: 'Ex-Airbnb designer, designed products used by 10M+ users',
-      }
+      },
     ],
   },
   {
@@ -285,7 +285,7 @@ The summit includes technical workshops, investment panels, and exclusive networ
         role: 'Blockchain Architect',
         image: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400',
         bio: 'Built 5 DeFi protocols, $500M+ TVL',
-      }
+      },
     ],
   },
   {
@@ -332,7 +332,7 @@ Get your legal questions answered by experienced startup lawyers in a live Q&A s
         role: 'Startup Legal Expert',
         image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400',
         bio: 'Advised 200+ startups on legal matters',
-      }
+      },
     ],
   },
   {
@@ -379,13 +379,13 @@ Perfect for early risers who want to network in a relaxed, informal setting befo
         role: 'Event Facilitators',
         image: 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=400',
         bio: 'Building the startup community one coffee at a time',
-      }
+      },
     ],
   },
 ];
 
 // Helper function to get event by ID
-export const getEventById = (id) => {
+export const getEventById = id => {
   return eventsData.find(event => event.id === parseInt(id));
 };
 

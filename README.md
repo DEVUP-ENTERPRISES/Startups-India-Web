@@ -111,7 +111,7 @@ INSERT INTO videos (course_id, title, video_url, duration, order_index) VALUES
 
 -- Insert sample quiz questions
 INSERT INTO quizzes (video_id, question, options, correct_answer) VALUES
-('your-video-id', 'What is the first step in building a startup?', 
+('your-video-id', 'What is the first step in building a startup?',
  '["Market Research", "Building Product", "Hiring Team", "Fundraising"]', 0);
 ```
 
@@ -145,12 +145,12 @@ All tables have RLS enabled with policies ensuring users can only access their o
 1. **Sign Up/Login**: User creates account or signs in
 2. **Browse Courses**: View available courses on dashboard
 3. **Enroll**: Click "Enroll Now" (payment integration for paid courses)
-4. **Watch Videos**: 
+4. **Watch Videos**:
    - Videos must be watched in order
    - Progress auto-saved every 30 seconds
    - Cannot skip ahead
 5. **Submit Assignment**: Write 150+ word reflection after each video
-6. **Take Quiz**: 
+6. **Take Quiz**:
    - Must complete video and assignment first
    - One attempt only
    - 75% minimum to pass
@@ -167,7 +167,6 @@ All tables have RLS enabled with policies ensuring users can only access their o
   - Watermark overlay with user ID
   - Seek/skip disabled
   - Picture-in-picture disabled
-  
 - **Authentication**:
   - Supabase Auth with JWT tokens
   - Protected routes
@@ -215,14 +214,14 @@ Compatible with any Next.js hosting platform (Netlify, Railway, etc.)
 
 ## 📝 Environment Variables Reference
 
-| Variable | Description | Required |
-|----------|-------------|----------|
-| NEXT_PUBLIC_SUPABASE_URL | Supabase project URL | Yes |
-| NEXT_PUBLIC_SUPABASE_ANON_KEY | Supabase anonymous key | Yes |
-| SUPABASE_SERVICE_ROLE_KEY | Supabase service role key (server-side) | Yes |
-| STRIPE_SECRET_KEY | Stripe secret key | Yes |
-| NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY | Stripe publishable key | Yes |
-| NEXT_PUBLIC_APP_URL | Application URL | Yes |
+| Variable                           | Description                             | Required |
+| ---------------------------------- | --------------------------------------- | -------- |
+| NEXT_PUBLIC_SUPABASE_URL           | Supabase project URL                    | Yes      |
+| NEXT_PUBLIC_SUPABASE_ANON_KEY      | Supabase anonymous key                  | Yes      |
+| SUPABASE_SERVICE_ROLE_KEY          | Supabase service role key (server-side) | Yes      |
+| STRIPE_SECRET_KEY                  | Stripe secret key                       | Yes      |
+| NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY | Stripe publishable key                  | Yes      |
+| NEXT_PUBLIC_APP_URL                | Application URL                         | Yes      |
 
 ## 🤝 Contributing
 
@@ -241,6 +240,7 @@ MIT License - feel free to use for your own projects
 ## 🆘 Support
 
 For issues or questions:
+
 - Check Supabase documentation
 - Review Next.js documentation
 - Check Stripe API documentation
@@ -248,6 +248,7 @@ For issues or questions:
 ## 🎓 Course Completion Requirements
 
 To earn a certificate, students must:
+
 - ✅ Watch all videos to 100% completion
 - ✅ Submit assignments (150+ words) for each video
 - ✅ Pass all quizzes with 75% or higher score
@@ -256,6 +257,7 @@ To earn a certificate, students must:
 ## 🔄 Future Enhancements
 
 Potential features to add:
+
 - Live sessions integration
 - Discussion forums
 - Peer review system
@@ -267,4 +269,4 @@ Potential features to add:
 
 ---
 
-Built with ❤️ for Startup India Incubation, by Syed Abdur Rahman Uddin
+Built with ❤️ for Startup India Incubation by DevUp Society

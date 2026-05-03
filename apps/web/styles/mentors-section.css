@@ -3,7 +3,7 @@
 .mentors-section {
   position: relative;
   background: linear-gradient(180deg, #f8f8f8 0%, #ffffff 50%, #f5f5f5 100%);
-  padding: 100px 0;
+  padding: 60px 0;
   overflow: hidden;
 }
 
@@ -24,7 +24,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: 
+  background:
     radial-gradient(circle at 20% 30%, rgba(220, 20, 60, 0.03) 0%, transparent 50%),
     radial-gradient(circle at 80% 70%, rgba(139, 0, 0, 0.02) 0%, transparent 50%);
   pointer-events: none;
@@ -39,7 +39,7 @@
 /* Header */
 .mentors-header {
   text-align: center;
-  margin-bottom: 60px;
+  margin-bottom: 40px;
 }
 
 .mentors-badge {
@@ -100,7 +100,7 @@
   border-radius: 24px;
   overflow: hidden;
   transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 
+  box-shadow:
     0 20px 60px rgba(0, 0, 0, 0.08),
     0 0 0 1px rgba(255, 255, 255, 0.9) inset;
   isolation: isolate;
@@ -137,7 +137,7 @@
   transform: translateY(-12px);
   border-color: rgba(220, 20, 60, 0.25);
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0.7) 100%);
-  box-shadow: 
+  box-shadow:
     0 32px 80px rgba(220, 20, 60, 0.12),
     0 0 60px rgba(220, 20, 60, 0.06),
     0 0 0 1px rgba(220, 20, 60, 0.08) inset;
@@ -168,7 +168,7 @@
   color: #dc143c;
   margin-bottom: 12px;
   transition: all 0.5s ease;
-  box-shadow: 
+  box-shadow:
     0 12px 40px rgba(220, 20, 60, 0.08),
     0 0 0 1px rgba(255, 255, 255, 0.5) inset;
   position: relative;
@@ -184,7 +184,12 @@
   content: '';
   position: absolute;
   inset: -50%;
-  background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.3) 50%, transparent 70%);
+  background: linear-gradient(
+    45deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.3) 50%,
+    transparent 70%
+  );
   transform: translateX(-100%);
   transition: transform 0.6s ease;
 }
@@ -196,7 +201,7 @@
 .mentor-card:hover .photo-placeholder {
   transform: scale(1.08) rotate(5deg);
   border-color: rgba(220, 20, 60, 0.4);
-  box-shadow: 
+  box-shadow:
     0 20px 60px rgba(220, 20, 60, 0.2),
     0 0 40px rgba(220, 20, 60, 0.15);
 }
@@ -211,7 +216,7 @@
   text-transform: uppercase;
   letter-spacing: 0.1em;
   border-radius: 14px;
-  box-shadow: 
+  box-shadow:
     0 6px 20px rgba(220, 20, 60, 0.3),
     0 0 0 1px rgba(255, 255, 255, 0.2) inset;
   position: relative;
@@ -228,8 +233,13 @@
 }
 
 @keyframes badge-shimmer {
-  0%, 100% { transform: translateX(-100%); }
-  50% { transform: translateX(100%); }
+  0%,
+  100% {
+    transform: translateX(-100%);
+  }
+  50% {
+    transform: translateX(100%);
+  }
 }
 
 /* Content */
@@ -304,7 +314,7 @@
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
-  box-shadow: 
+  box-shadow:
     0 6px 20px rgba(220, 20, 60, 0.06),
     0 0 0 1px rgba(255, 255, 255, 0.3) inset;
 }
@@ -332,7 +342,7 @@
   border-color: #dc143c;
   color: #ffffff;
   transform: translateY(-3px);
-  box-shadow: 
+  box-shadow:
     0 16px 40px rgba(220, 20, 60, 0.3),
     0 0 0 1px rgba(255, 255, 255, 0.2) inset;
 }
@@ -354,7 +364,7 @@
   border: 2px solid rgba(220, 20, 60, 0.2);
   border-radius: 24px;
   padding: 52px 64px;
-  box-shadow: 
+  box-shadow:
     0 20px 60px rgba(220, 20, 60, 0.12),
     0 0 0 1px rgba(255, 255, 255, 0.8) inset;
   overflow: hidden;
@@ -406,7 +416,7 @@
   font-weight: 800;
   cursor: pointer;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 
+  box-shadow:
     0 12px 36px rgba(220, 20, 60, 0.35),
     0 0 0 1px rgba(255, 255, 255, 0.2) inset;
   white-space: nowrap;
@@ -429,7 +439,7 @@
 
 .mentor-apply-btn:hover {
   transform: translateY(-4px);
-  box-shadow: 
+  box-shadow:
     0 20px 50px rgba(220, 20, 60, 0.5),
     0 0 0 1px rgba(255, 255, 255, 0.3) inset;
 }

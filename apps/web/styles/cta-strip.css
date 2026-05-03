@@ -22,7 +22,7 @@
   grid-template-columns: 1fr 1fr;
   gap: 60px;
   align-items: center;
-  box-shadow: 
+  box-shadow:
     0 20px 60px rgba(220, 20, 60, 0.25),
     0 0 0 1px rgba(255, 255, 255, 0.1) inset;
   overflow: hidden;
@@ -102,18 +102,18 @@
   text-align: center;
 }
 
-.stat-number {
+.cta-strip-stats .stat-number {
   font-size: 40px;
   font-weight: 900;
-  color: #000000;
+  color: #111827 !important;
   margin-bottom: 6px;
   line-height: 1;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
 }
 
-.stat-label {
+.cta-strip-stats .stat-label {
   font-size: 12px;
-  color: #000000;
+  color: #475569 !important;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
