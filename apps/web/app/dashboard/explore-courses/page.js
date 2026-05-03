@@ -69,7 +69,6 @@ const SORT_OPTIONS = [
   { value: 'price-high', label: 'Price: High to Low' },
 ];
 
-
 function SkeletonCard() {
   return (
     <div
@@ -200,6 +199,7 @@ export default function ExplorePage() {
   const totalCerts = certificates?.length || 0;
   const allCourses = courses || [];
   const freeCount = allCourses.filter(c => !(c.priceInr || c.price)).length || 0;
+  const noCourses = allCourses.length === 0;
 
   if (isLoading) {
     return (
@@ -463,7 +463,10 @@ export default function ExplorePage() {
             )}
           </div>
 
-          <div className="toolbar-actions" style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+          <div
+            className="toolbar-actions"
+            style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}
+          >
             {/* Sort */}
             <select
               className="sort-select"
@@ -578,9 +581,7 @@ export default function ExplorePage() {
             const isActive = activeCategory === cat;
             const allCourses = courses || [];
             const count =
-              cat === 'All'
-                ? allCourses.length
-                : allCourses.filter(c => c.category === cat).length;
+              cat === 'All' ? allCourses.length : allCourses.filter(c => c.category === cat).length;
             return (
               <button
                 key={cat}
@@ -693,18 +694,20 @@ export default function ExplorePage() {
                 marginBottom: '0.5rem',
               }}
             >
-              No courses match your criteria
+              {noCourses ? 'No courses available yet' : 'No courses match your criteria'}
             </h3>
             <p
               style={{
                 color: '#64748b',
                 fontSize: '1rem',
                 marginBottom: '1.5rem',
-                maxWidth: '400px',
+                maxWidth: '420px',
                 margin: '0 auto 1.5rem',
               }}
             >
-              Try adjusting your search, category, or sort options to discover more courses.
+              {noCourses
+                ? 'This page displays live courses created through the admin panel only. Please add new courses in the admin dashboard to populate this page.'
+                : 'Try adjusting your search, category, or sort options to discover more courses.'}
             </p>
             <button
               onClick={() => {
