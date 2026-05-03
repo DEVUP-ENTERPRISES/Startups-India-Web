@@ -1,0 +1,201 @@
+/* ==========================================
+   VERTICAL ECOSYSTEM IMPACT ROADMAP
+   Theme: Dark Premium, Vertical Scroll Animation
+   ========================================== */
+
+.ecosystem-roadmap-vertical {
+  background-color: #0b0b0c;
+  color: #ffffff;
+  padding: 150px 0;
+  position: relative;
+  font-family: var(--font-poppins, 'Poppins', sans-serif);
+}
+
+.road-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* Header */
+.road-header {
+  text-align: center;
+  margin-bottom: 100px;
+}
+
+.road-title {
+  font-size: clamp(42px, 6vw, 56px);
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1.1;
+  margin-bottom: 24px;
+  letter-spacing: -1.5px;
+}
+
+.road-title .text-red {
+  color: #E53935;
+}
+
+.road-subtitle {
+  font-size: 18px;
+  color: #9ca3af;
+  max-width: 700px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* Timeline Layout */
+.road-timeline {
+  position: relative;
+  padding-top: 60px;
+  padding-bottom: 0;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* The Background Line */
+.road-line-bg {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 3px;
+  background: rgba(255, 255, 255, 0.05);
+  transform: translateX(-50%);
+  z-index: 1;
+}
+
+/* The Animated Progress Line */
+.road-line-progress {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 3px;
+  background: linear-gradient(180deg, #E53935, #ff6b6b);
+  transform: translateX(-50%);
+  z-index: 2;
+  box-shadow: 0 0 20px rgba(229, 57, 53, 0.6);
+  /* Height is controlled via JS */
+}
+
+/* Timeline Items */
+.road-item {
+  position: relative;
+  z-index: 10; /* Ensure items are above the lines */
+  margin-bottom: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.road-item:last-child {
+  margin-bottom: 0;
+}
+
+/* Icon Box */
+.road-icon-box {
+  width: 64px;
+  height: 64px;
+  background: #18181b;
+  border: 2px solid #E53935;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #E53935;
+  margin-bottom: 32px;
+  position: relative;
+  z-index: 12;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.road-item.active .road-icon-box {
+  background: #E53935;
+  color: #ffffff;
+  box-shadow: 0 0 30px rgba(229, 57, 53, 0.5);
+  transform: scale(1.15);
+}
+
+/* Card Content */
+.road-card {
+  background: #0d0d0e; /* Even more solid background */
+  border: 1.5px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 48px 56px;
+  max-width: 750px;
+  width: 100%;
+  transition: all 0.5s ease;
+  position: relative;
+  z-index: 11;
+}
+
+.road-item.active .road-card {
+  border-color: rgba(229, 57, 53, 0.4);
+  background: #111112;
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.5);
+  transform: translateY(-8px);
+}
+
+.road-card h3 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 16px;
+  letter-spacing: -0.5px;
+}
+
+.road-card p {
+  font-size: 16px;
+  color: #9ca3af;
+  line-height: 1.7;
+}
+
+/* Bottom Quote */
+.road-quote-container {
+  margin-top: 150px;
+  display: flex;
+  justify-content: center;
+}
+
+.road-quote-box {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 24px;
+  padding: 64px;
+  max-width: 850px;
+  text-align: center;
+}
+
+.road-quote-box h2 {
+  font-size: clamp(28px, 4vw, 40px);
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.3;
+  margin: 0;
+  letter-spacing: -1px;
+}
+
+.road-quote-box .text-red {
+  color: #E53935;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .ecosystem-roadmap-vertical {
+    padding: 80px 0;
+  }
+  
+  .road-card {
+    padding: 24px;
+  }
+  
+  .road-quote-box {
+    padding: 32px 24px;
+  }
+  
+  .road-title {
+    font-size: 32px;
+  }
+}
