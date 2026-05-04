@@ -15,12 +15,33 @@ export default function AdminEventsPage() {
   const [form, setForm] = useState({
     title: '',
     description: '',
-    type: 'webinar',
+    category: 'workshops',
+    type: 'workshop',
     date: '',
+    endDate: '',
+    time: '',
+    duration: '',
     venue: 'Online',
+    location: '',
+    locationUrl: '',
     meetingLink: '',
-    maxAttendees: 100,
+    coverImage: '',
+    images: [],
+    price: 0,
+    originalPrice: 0,
+    priceLabel: 'Free',
+    maxAttendees: 0,
+    featured: false,
+    tags: [],
+    organizer: 'StartupsIndia',
+    ageLimit: '18yrs +',
+    language: 'English',
+    genre: '',
     status: 'upcoming',
+    highlights: [],
+    outcomes: [],
+    timeline: [],
+    artists: [],
   });
 
   const load = useCallback(async () => {
@@ -45,12 +66,33 @@ export default function AdminEventsPage() {
     setForm({
       title: '',
       description: '',
-      type: 'webinar',
+      category: 'workshops',
+      type: 'workshop',
       date: '',
+      endDate: '',
+      time: '',
+      duration: '',
       venue: 'Online',
+      location: '',
+      locationUrl: '',
       meetingLink: '',
-      maxAttendees: 100,
+      coverImage: '',
+      images: [],
+      price: 0,
+      originalPrice: 0,
+      priceLabel: 'Free',
+      maxAttendees: 0,
+      featured: false,
+      tags: [],
+      organizer: 'StartupsIndia',
+      ageLimit: '18yrs +',
+      language: 'English',
+      genre: '',
       status: 'upcoming',
+      highlights: [],
+      outcomes: [],
+      timeline: [],
+      artists: [],
     });
     setShowModal(true);
   };
@@ -58,14 +100,35 @@ export default function AdminEventsPage() {
   const openEdit = ev => {
     setEditEvent(ev);
     setForm({
-      title: ev.title,
+      title: ev.title || '',
       description: ev.description || '',
-      type: ev.type,
+      category: ev.category || 'workshops',
+      type: ev.type || 'workshop',
       date: ev.date ? new Date(ev.date).toISOString().slice(0, 16) : '',
+      endDate: ev.endDate ? new Date(ev.endDate).toISOString().slice(0, 16) : '',
+      time: ev.time || '',
+      duration: ev.duration || '',
       venue: ev.venue || 'Online',
+      location: ev.location || '',
+      locationUrl: ev.locationUrl || '',
       meetingLink: ev.meetingLink || '',
-      maxAttendees: ev.maxAttendees || 100,
-      status: ev.status,
+      coverImage: ev.coverImage || '',
+      images: ev.images || [],
+      price: ev.price || 0,
+      originalPrice: ev.originalPrice || 0,
+      priceLabel: ev.priceLabel || 'Free',
+      maxAttendees: ev.maxAttendees || 0,
+      featured: ev.featured || false,
+      tags: ev.tags || [],
+      organizer: ev.organizer || 'StartupsIndia',
+      ageLimit: ev.ageLimit || '18yrs +',
+      language: ev.language || 'English',
+      genre: ev.genre || '',
+      status: ev.status || 'upcoming',
+      highlights: ev.highlights || [],
+      outcomes: ev.outcomes || [],
+      timeline: ev.timeline || [],
+      artists: ev.artists || [],
     });
     setShowModal(true);
   };
@@ -140,11 +203,14 @@ export default function AdminEventsPage() {
             <thead>
               <tr>
                 <th>Title</th>
-                <th>Type</th>
+                <th>Category</th>
                 <th>Date</th>
-                <th>Venue</th>
+                <th>Time</th>
+                <th>Location</th>
+                <th>Price</th>
                 <th>Registrations</th>
                 <th>Status</th>
+                <th>Featured</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -153,10 +219,20 @@ export default function AdminEventsPage() {
                 <tr key={ev._id}>
                   <td style={{ fontWeight: 600 }}>{ev.title}</td>
                   <td>
-                    <span className="badge badge-purple">{ev.type}</span>
+                    <span className="badge badge-purple">{ev.category}</span>
                   </td>
-                  <td style={{ fontSize: 12.5 }}>{new Date(ev.date).toLocaleString()}</td>
-                  <td style={{ color: '#64748b' }}>{ev.venue}</td>
+                  <td style={{ fontSize: 12.5 }}>{new Date(ev.date).toLocaleDateString()}</td>
+                  <td style={{ fontSize: 12 }}>{ev.time || 'TBD'}</td>
+                  <td style={{ color: '#64748b', fontSize: 12 }}>
+                    {ev.venue || ev.location || 'Online'}
+                  </td>
+                  <td>
+                    {ev.price === 0 ? (
+                      <span style={{ color: '#10b981', fontWeight: 600 }}>Free</span>
+                    ) : (
+                      <span>₹{ev.price}</span>
+                    )}
+                  </td>
                   <td>
                     {(ev.registrations || []).length}
                     {ev.maxAttendees ? `/${ev.maxAttendees}` : ''}
@@ -166,6 +242,11 @@ export default function AdminEventsPage() {
                       className={`badge ${ev.status === 'upcoming' ? 'badge-blue' : ev.status === 'live' ? 'badge-green' : ev.status === 'completed' ? 'badge-gray' : 'badge-red'}`}
                     >
                       {ev.status}
+                    </span>
+                  </td>
+                  <td>
+                    <span style={{ color: ev.featured ? '#f59e0b' : '#94a3b8' }}>
+                      {ev.featured ? '⭐' : '☆'}
                     </span>
                   </td>
                   <td>
@@ -185,7 +266,7 @@ export default function AdminEventsPage() {
               ))}
               {events.length === 0 && (
                 <tr>
-                  <td colSpan={7} style={{ textAlign: 'center', padding: 40, color: '#94a3b8' }}>
+                  <td colSpan={10} style={{ textAlign: 'center', padding: 40, color: '#94a3b8' }}>
                     No events yet
                   </td>
                 </tr>
@@ -212,7 +293,11 @@ export default function AdminEventsPage() {
 
       {showModal && (
         <div className="admin-modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="admin-modal" style={{ maxWidth: 560 }} onClick={e => e.stopPropagation()}>
+          <div
+            className="admin-modal"
+            style={{ maxWidth: 700, maxHeight: '90vh', overflowY: 'auto' }}
+            onClick={e => e.stopPropagation()}
+          >
             <div className="admin-modal-header">
               <h2>{editEvent ? 'Edit Event' : 'New Event'}</h2>
               <button className="admin-modal-close" onClick={() => setShowModal(false)}>
@@ -231,48 +316,149 @@ export default function AdminEventsPage() {
             </div>
             <div className="admin-modal-body">
               <div className="admin-form-group">
-                <label>Title</label>
+                <label>Title *</label>
                 <input
                   value={form.title}
                   onChange={e => setForm({ ...form, title: e.target.value })}
+                  placeholder="Event title"
                 />
               </div>
+
               <div className="admin-form-group">
                 <label>Description</label>
                 <textarea
                   value={form.description}
                   onChange={e => setForm({ ...form, description: e.target.value })}
+                  placeholder="Event description"
+                  rows={4}
                 />
               </div>
+
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 <div className="admin-form-group">
-                  <label>Type</label>
+                  <label>Category *</label>
                   <select
-                    value={form.type}
-                    onChange={e => setForm({ ...form, type: e.target.value })}
+                    value={form.category}
+                    onChange={e => setForm({ ...form, category: e.target.value })}
                   >
-                    <option value="webinar">Webinar</option>
-                    <option value="workshop">Workshop</option>
-                    <option value="meetup">Meetup</option>
-                    <option value="conference">Conference</option>
-                    <option value="other">Other</option>
+                    <option value="workshops">Workshops</option>
+                    <option value="webinars">Webinars</option>
+                    <option value="meetups">Meetups</option>
+                    <option value="conferences">Conferences</option>
+                    <option value="networking">Networking</option>
+                    <option value="entertainment">Entertainment</option>
                   </select>
                 </div>
                 <div className="admin-form-group">
-                  <label>Date & Time</label>
+                  <label>Status</label>
+                  <select
+                    value={form.status}
+                    onChange={e => setForm({ ...form, status: e.target.value })}
+                  >
+                    <option value="upcoming">Upcoming</option>
+                    <option value="live">Live</option>
+                    <option value="completed">Completed</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div className="admin-form-group">
+                  <label>Date *</label>
                   <input
                     type="datetime-local"
                     value={form.date}
                     onChange={e => setForm({ ...form, date: e.target.value })}
                   />
                 </div>
+                <div className="admin-form-group">
+                  <label>End Date</label>
+                  <input
+                    type="datetime-local"
+                    value={form.endDate}
+                    onChange={e => setForm({ ...form, endDate: e.target.value })}
+                  />
+                </div>
               </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div className="admin-form-group">
+                  <label>Time</label>
+                  <input
+                    type="text"
+                    value={form.time}
+                    onChange={e => setForm({ ...form, time: e.target.value })}
+                    placeholder="e.g. 2:00 PM - 5:00 PM"
+                  />
+                </div>
+                <div className="admin-form-group">
+                  <label>Duration</label>
+                  <input
+                    type="text"
+                    value={form.duration}
+                    onChange={e => setForm({ ...form, duration: e.target.value })}
+                    placeholder="e.g. 3 hours"
+                  />
+                </div>
+              </div>
+
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 <div className="admin-form-group">
                   <label>Venue</label>
                   <input
                     value={form.venue}
                     onChange={e => setForm({ ...form, venue: e.target.value })}
+                    placeholder="Event venue"
+                  />
+                </div>
+                <div className="admin-form-group">
+                  <label>Location</label>
+                  <input
+                    value={form.location}
+                    onChange={e => setForm({ ...form, location: e.target.value })}
+                    placeholder="City/Address"
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div className="admin-form-group">
+                  <label>Cover Image URL</label>
+                  <input
+                    value={form.coverImage}
+                    onChange={e => setForm({ ...form, coverImage: e.target.value })}
+                    placeholder="https://..."
+                  />
+                </div>
+                <div className="admin-form-group">
+                  <label>Meeting Link</label>
+                  <input
+                    type="url"
+                    value={form.meetingLink}
+                    onChange={e => setForm({ ...form, meetingLink: e.target.value })}
+                    placeholder="Zoom/Google Meet link"
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+                <div className="admin-form-group">
+                  <label>Price (₹)</label>
+                  <input
+                    type="number"
+                    value={form.price}
+                    onChange={e => setForm({ ...form, price: Number(e.target.value) })}
+                    min="0"
+                  />
+                </div>
+                <div className="admin-form-group">
+                  <label>Original Price (₹)</label>
+                  <input
+                    type="number"
+                    value={form.originalPrice}
+                    onChange={e => setForm({ ...form, originalPrice: Number(e.target.value) })}
+                    min="0"
                   />
                 </div>
                 <div className="admin-form-group">
@@ -303,6 +489,57 @@ export default function AdminEventsPage() {
                   <option value="completed">Completed</option>
                   <option value="cancelled">Cancelled</option>
                 </select>
+              </div>
+
+              <div className="admin-form-group">
+                <label>Highlights (One per line)</label>
+                <textarea
+                  value={form.highlights?.join('\n') || ''}
+                  onChange={e => setForm({ ...form, highlights: e.target.value.split('\n').filter(Boolean) })}
+                  placeholder="Key highlights..."
+                  rows={3}
+                />
+              </div>
+
+              <div className="admin-form-group">
+                <label>Outcomes (One per line)</label>
+                <textarea
+                  value={form.outcomes?.join('\n') || ''}
+                  onChange={e => setForm({ ...form, outcomes: e.target.value.split('\n').filter(Boolean) })}
+                  placeholder="Learning outcomes..."
+                  rows={3}
+                />
+              </div>
+
+              <div className="admin-form-group">
+                <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span>Timeline</span>
+                  <button type="button" className="btn btn-sm" onClick={() => setForm({...form, timeline: [...(form.timeline || []), { time: '', title: '', description: '' }]})}>+ Add Item</button>
+                </label>
+                {(form.timeline || []).map((item, idx) => (
+                  <div key={idx} style={{ display: 'flex', gap: 8, marginBottom: 8, background: '#f8fafc', padding: 8, borderRadius: 8 }}>
+                    <input style={{ flex: 1 }} value={item.time} onChange={e => { const t = [...form.timeline]; t[idx].time = e.target.value; setForm({...form, timeline: t}); }} placeholder="Time (e.g. 10:00 AM)" />
+                    <input style={{ flex: 1.5 }} value={item.title} onChange={e => { const t = [...form.timeline]; t[idx].title = e.target.value; setForm({...form, timeline: t}); }} placeholder="Title" />
+                    <input style={{ flex: 2 }} value={item.description} onChange={e => { const t = [...form.timeline]; t[idx].description = e.target.value; setForm({...form, timeline: t}); }} placeholder="Description" />
+                    <button type="button" onClick={() => { const t = [...form.timeline]; t.splice(idx, 1); setForm({...form, timeline: t}); }} style={{ color: 'red', background: 'transparent', border: 'none', cursor: 'pointer' }}>X</button>
+                  </div>
+                ))}
+              </div>
+
+              <div className="admin-form-group">
+                <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span>Speakers / Artists</span>
+                  <button type="button" className="btn btn-sm" onClick={() => setForm({...form, artists: [...(form.artists || []), { name: '', role: '', image: '', bio: '' }]})}>+ Add Speaker</button>
+                </label>
+                {(form.artists || []).map((artist, idx) => (
+                  <div key={idx} style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 8, background: '#f8fafc', padding: 8, borderRadius: 8 }}>
+                    <input style={{ flex: '1 1 45%' }} value={artist.name} onChange={e => { const a = [...form.artists]; a[idx].name = e.target.value; setForm({...form, artists: a}); }} placeholder="Name" />
+                    <input style={{ flex: '1 1 45%' }} value={artist.role} onChange={e => { const a = [...form.artists]; a[idx].role = e.target.value; setForm({...form, artists: a}); }} placeholder="Role" />
+                    <input style={{ flex: '1 1 45%' }} value={artist.image} onChange={e => { const a = [...form.artists]; a[idx].image = e.target.value; setForm({...form, artists: a}); }} placeholder="Image URL" />
+                    <input style={{ flex: '1 1 45%' }} value={artist.bio} onChange={e => { const a = [...form.artists]; a[idx].bio = e.target.value; setForm({...form, artists: a}); }} placeholder="Bio (Short)" />
+                    <button type="button" onClick={() => { const a = [...form.artists]; a.splice(idx, 1); setForm({...form, artists: a}); }} style={{ color: 'red', background: 'transparent', border: 'none', cursor: 'pointer', width: '100%', textAlign: 'right' }}>Remove Speaker</button>
+                  </div>
+                ))}
               </div>
             </div>
             <div className="admin-modal-footer">

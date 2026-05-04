@@ -3,7 +3,8 @@ const mongoose = require('mongoose');
 const paymentSchema = new mongoose.Schema(
   {
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
-    courseId: { type: mongoose.Schema.Types.ObjectId, ref: 'Course', required: true, index: true },
+    courseId: { type: mongoose.Schema.Types.ObjectId, ref: 'Course', index: true },
+    eventId: { type: mongoose.Schema.Types.ObjectId, ref: 'Event', index: true },
     provider: { type: String, enum: ['stripe', 'razorpay', 'manual'], default: 'stripe' },
     paymentIntentId: { type: String, index: true, unique: true, sparse: true },
     orderId: { type: String, index: true, unique: true, sparse: true },

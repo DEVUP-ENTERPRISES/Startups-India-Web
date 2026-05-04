@@ -6,21 +6,22 @@
    CSS imported here to ensure proper loading on client-side navigation
    ========================================== */
 
-import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, useRef, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { signIn, initGoogleSignIn } from '@/lib/auth';
 import '@/styles/signup.css';
-// import '@/styles/signup-responsive.css';
 
-export default function LoginPage() {
+function LoginContent() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const returnUrl = searchParams.get('returnUrl') || '/dashboard';
   const [currentSlide, setCurrentSlide] = useState(0);
   const googleBtnRef = useRef(null);
 
@@ -28,9 +29,9 @@ export default function LoginPage() {
   useEffect(() => {
     const token = localStorage.getItem('access_token');
     if (token) {
-      router.replace('/dashboard');
+      router.replace(returnUrl);
     }
-  }, [router]);
+  }, [router, returnUrl]);
 
   // Carousel auto-rotation
   useEffect(() => {
@@ -73,11 +74,11 @@ export default function LoginPage() {
         }
         if (data) {
           setSuccess(true);
-          setTimeout(() => router.push('/dashboard'), 1500);
+          setTimeout(() => router.push(returnUrl), 1500);
         }
       });
     }
-  }, [router]);
+  }, [router, returnUrl]);
 
   const handleSubmit = async e => {
     e.preventDefault();
@@ -100,7 +101,7 @@ export default function LoginPage() {
         // No need to log here to avoid duplicates
 
         setTimeout(() => {
-          router.push('/dashboard');
+          router.push(returnUrl);
         }, 3000);
       }
     } catch (err) {
@@ -468,5 +469,13 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div style={{ display: 'flex', height: '100vh', justifyContent: 'center', alignItems: 'center' }}>Loading...</div>}>
+      <LoginContent />
+    </Suspense>
   );
 }

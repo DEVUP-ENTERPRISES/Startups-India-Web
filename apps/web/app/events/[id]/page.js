@@ -3,29 +3,91 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter, useParams } from 'next/navigation';
-import { motion } from 'framer-motion';
-import Link from 'next/link';
-import { getEventById } from '@/lib/eventsData';
+import { apiGet, apiPost } from '@/lib/api';
 import '../../../styles/event-details.css';
 
 export default function EventDetailsPage() {
   const router = useRouter();
   const params = useParams();
+  const [event, setEvent] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [isInterested, setIsInterested] = useState(false);
-  const [interestedCount, setInterestedCount] = useState(166);
+  const [isRegistered, setIsRegistered] = useState(false);
+  const [registering, setRegistering] = useState(false);
 
-  // Get event data based on ID
-  const event = getEventById(params.id);
+  const formatMoney = value => {
+    if (typeof value !== 'number' || !Number.isFinite(value)) return null;
+    if (value <= 0) return 'FREE';
+    return `₹${value}`;
+  };
+
+  const formatDate = value => {
+    try {
+      const d = value ? new Date(value) : null;
+      if (!d || Number.isNaN(d.valueOf())) return null;
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    } catch {
+      return null;
+    }
+  };
+
+  // Fetch event data based on ID
+  useEffect(() => {
+    const fetchEvent = async () => {
+      try {
+        setLoading(true);
+        const response = await apiGet(`/api/v1/events/${params.id}`);
+        if (response.data && !response.error) {
+          setEvent(response.data);
+        } else {
+          setError('Event not found');
+        }
+      } catch (err) {
+        setError('Failed to load event');
+        console.error('Error fetching event:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (params.id) {
+      fetchEvent();
+    }
+  }, [params.id]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !document.getElementById('razorpay-script')) {
+      const script = document.createElement('script');
+      script.id = 'razorpay-script';
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.async = true;
+      document.body.appendChild(script);
+    }
+  }, []);
+
+  // If loading, show loading state
+  if (loading) {
+    return (
+      <div className="event-details-page">
+        <div className="container">
+          <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+            <div className="loading-spinner"></div>
+            <p>Loading event details...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // If event not found, show error
-  if (!event) {
+  if (!event || error) {
     return (
       <div className="event-details-page">
         <div className="container">
           <div style={{ textAlign: 'center', padding: '60px 20px' }}>
             <h1 style={{ fontSize: '24px', color: '#1f2937', marginBottom: '16px' }}>
-              Event Not Found
+              {error || 'Event Not Found'}
             </h1>
             <p style={{ color: '#6b7280', marginBottom: '24px' }}>
               The event you're looking for doesn't exist.
@@ -52,16 +114,121 @@ export default function EventDetailsPage() {
   }
 
   const nextImage = () => {
-    setCurrentImageIndex(prev => (prev + 1) % event.images.length);
+    const images = event.images || [event.coverImage];
+    setCurrentImageIndex(prev => (prev + 1) % images.length);
   };
 
   const prevImage = () => {
-    setCurrentImageIndex(prev => (prev - 1 + event.images.length) % event.images.length);
+    const images = event.images || [event.coverImage];
+    setCurrentImageIndex(prev => (prev - 1 + images.length) % images.length);
   };
 
-  const handleInterested = () => {
-    setIsInterested(!isInterested);
-    setInterestedCount(prev => (isInterested ? prev - 1 : prev + 1));
+  const handleRegister = async () => {
+    try {
+      if (!localStorage.getItem('access_token')) {
+        router.push(`/login?returnUrl=/events/${params.id}`);
+        return;
+      }
+
+      setRegistering(true);
+      if (isRegistered) {
+        const res = await apiGet(`/api/v1/events/${params.id}/register`, { method: 'DELETE' });
+        if (res.error?.status === 401) {
+          router.push(`/login?returnUrl=/events/${params.id}`);
+          return;
+        }
+        setIsRegistered(false);
+        setRegistering(false);
+      } else {
+        if (!isFree) {
+          const orderRes = await apiPost('/api/v1/payments/razorpay/order', {
+            eventId: event._id,
+            amount: event.price,
+          });
+
+          if (orderRes.error) {
+            if (orderRes.error.status === 401 || orderRes.error.message.includes('token')) {
+              router.push(`/login?returnUrl=/events/${params.id}`);
+              return;
+            }
+            alert(orderRes.error.message || 'Could not initiate payment');
+            setRegistering(false);
+            return;
+          }
+
+          const orderData = orderRes.data?.order || orderRes.data;
+          const options = {
+            key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || orderData.key_id || 'rzp_test_placeholder',
+            amount: orderData.amount,
+            currency: orderData.currency || 'INR',
+            name: 'Startups India',
+            description: `Registration for: ${event.title}`,
+            order_id: orderData.id || orderData.orderId,
+            handler: async function (response) {
+              try {
+                const verifyRes = await apiPost('/api/v1/payments/razorpay/verify', {
+                  orderId: response.razorpay_order_id,
+                  paymentId: response.razorpay_payment_id,
+                  signature: response.razorpay_signature,
+                });
+
+                if (verifyRes.error) {
+                  alert('Payment verification failed. Please contact support.');
+                } else {
+                  setIsRegistered(true);
+                  const refreshRes = await apiGet(`/api/v1/events/${params.id}`);
+                  if (refreshRes.data && !refreshRes.error) setEvent(refreshRes.data);
+                }
+              } catch (err) {
+                alert('An unexpected error occurred during verification.');
+              } finally {
+                setRegistering(false);
+              }
+            },
+            modal: { ondismiss: () => setRegistering(false) },
+            theme: { color: '#e63946' },
+          };
+
+          if (window.Razorpay) {
+            new window.Razorpay(options).open();
+          } else {
+            alert('Payment gateway is still loading. Please refresh.');
+            setRegistering(false);
+          }
+        } else {
+          const res = await apiGet(`/api/v1/events/${params.id}/register`, { method: 'POST' });
+          if (res.error) {
+            if (res.error.status === 401 || res.error.message.includes('token')) {
+              router.push(`/login?returnUrl=/events/${params.id}`);
+              return;
+            }
+            alert(res.error.message || 'Could not register for event');
+            setRegistering(false);
+            return;
+          }
+          setIsRegistered(true);
+          setRegistering(false);
+        }
+      }
+    } catch (err) {
+      console.error('Error managing registration:', err);
+      setRegistering(false);
+    }
+  };
+
+  const handleShare = async () => {
+    try {
+      const url = typeof window !== 'undefined' ? window.location.href : '';
+      if (navigator.share) {
+        await navigator.share({ title: event?.title || 'Event', url });
+        return;
+      }
+      if (navigator.clipboard?.writeText && url) {
+        await navigator.clipboard.writeText(url);
+      }
+    } catch {
+      // ignore share errors
+    }
   };
 
   return (
@@ -92,7 +259,7 @@ export default function EventDetailsPage() {
             {/* Title and Share */}
             <div className="event-title-section">
               <h1 className="event-title">{event.title}</h1>
-              <button className="share-button">
+              <button className="share-button" onClick={handleShare} aria-label="Share event">
                 <svg
                   width="20"
                   height="20"
@@ -113,83 +280,96 @@ export default function EventDetailsPage() {
             {/* Image Carousel */}
             <div className="event-image-carousel">
               <div className="carousel-container">
-                <Image
-                  src={event.images[currentImageIndex]}
+                <img
+                  src={(event.images && event.images[currentImageIndex]) || event.coverImage}
                   alt={event.title}
                   className="carousel-image"
-                  width={800}
-                  height={400}
-                  style={{ objectFit: 'cover' }}
-                  priority
+                  style={{
+                    objectFit: 'cover',
+                    width: '100%',
+                    height: 'auto',
+                    borderRadius: '12px',
+                  }}
                 />
-                <button className="carousel-btn prev-btn" onClick={prevImage}>
-                  <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <path d="M15 18l-6-6 6-6" />
-                  </svg>
-                </button>
-                <button className="carousel-btn next-btn" onClick={nextImage}>
-                  <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <path d="M9 18l6-6-6-6" />
-                  </svg>
-                </button>
-                <div className="carousel-indicators">
-                  {event.images.map((_, index) => (
-                    <button
-                      key={index}
-                      className={`indicator ${index === currentImageIndex ? 'active' : ''}`}
-                      onClick={() => setCurrentImageIndex(index)}
-                    />
-                  ))}
-                </div>
+                {event.images && event.images.length > 1 && (
+                  <>
+                    <button className="carousel-btn prev-btn" onClick={prevImage}>
+                      <svg
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      >
+                        <path d="M15 18l-6-6 6-6" />
+                      </svg>
+                    </button>
+                    <button className="carousel-btn next-btn" onClick={nextImage}>
+                      <svg
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      >
+                        <path d="M9 18l6-6-6-6" />
+                      </svg>
+                    </button>
+                  </>
+                )}
+                {event.images && event.images.length > 1 && (
+                  <div className="carousel-indicators">
+                    {event.images.map((_, index) => (
+                      <button
+                        key={index}
+                        className={`indicator ${index === currentImageIndex ? 'active' : ''}`}
+                        onClick={() => setCurrentImageIndex(index)}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
             {/* Category Tags */}
-            <div className="event-tags">
-              {event.tags.map((tag, index) => (
-                <span key={index} className="event-tag">
-                  {tag}
-                </span>
-              ))}
-            </div>
+            {event.tags && event.tags.length > 0 && (
+              <div className="event-tags">
+                {event.tags.map((tag, index) => (
+                  <span key={index} className="event-tag">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
 
-            {/* Interested Button */}
+            {/* Register Button */}
             <div className="interested-section">
               <button
-                className={`interested-btn ${isInterested ? 'active' : ''}`}
-                onClick={handleInterested}
+                className={`interested-btn ${isRegistered ? 'active' : ''}`}
+                onClick={handleRegister}
+                disabled={registering}
               >
                 <svg
                   width="20"
                   height="20"
                   viewBox="0 0 24 24"
-                  fill={isInterested ? 'currentColor' : 'none'}
+                  fill={isRegistered ? 'currentColor' : 'none'}
                   stroke="currentColor"
                   strokeWidth="2"
                 >
-                  <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
                 </svg>
-                {interestedCount} are interested
+                {event.registrations ? event.registrations.length : 0} registered
               </button>
               <button
-                className={`im-interested-btn ${isInterested ? 'active' : ''}`}
-                onClick={handleInterested}
+                className={`im-interested-btn ${isRegistered ? 'active' : ''}`}
+                onClick={handleRegister}
+                disabled={registering}
               >
-                {isInterested ? "You're Interested" : "I'm Interested"}
+                {registering ? 'Loading...' : isRegistered ? 'Registered' : 'Register Now'}
               </button>
             </div>
 
@@ -197,60 +377,105 @@ export default function EventDetailsPage() {
             <section className="event-section">
               <h2 className="section-title">About The Event</h2>
               <div className="event-description">
-                {event.description.split('\n\n').map((paragraph, index) => (
-                  <p key={index}>{paragraph}</p>
-                ))}
+                {(event.description ? String(event.description) : 'Details will be updated soon.')
+                  .split('\n\n')
+                  .filter(Boolean)
+                  .map((paragraph, index) => (
+                    <p key={index}>{paragraph}</p>
+                  ))}
               </div>
             </section>
 
             {/* You Should Know */}
-            <section className="event-section">
-              <h2 className="section-title">You Should Know</h2>
-              <div className="highlights-box">
-                <div className="highlights-icon">
-                  <svg
-                    width="32"
-                    height="32"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <circle cx="12" cy="12" r="10" />
-                    <path d="M12 16v-4M12 8h.01" />
-                  </svg>
+            {Array.isArray(event.highlights) && event.highlights.length > 0 && (
+              <section className="event-section">
+                <h2 className="section-title">You Should Know</h2>
+                <div className="highlights-box">
+                  <div className="highlights-icon">
+                    <svg
+                      width="32"
+                      height="32"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <circle cx="12" cy="12" r="10" />
+                      <path d="M12 16v-4M12 8h.01" />
+                    </svg>
+                  </div>
+                  <ul className="highlights-list">
+                    {event.highlights.map((highlight, index) => (
+                      <li key={index}>{highlight}</li>
+                    ))}
+                  </ul>
                 </div>
-                <ul className="highlights-list">
-                  {event.highlights.map((highlight, index) => (
-                    <li key={index}>{highlight}</li>
+              </section>
+            )}
+
+            {Array.isArray(event.outcomes) && event.outcomes.length > 0 && (
+              <section className="event-section">
+                <h2 className="section-title">Outcomes</h2>
+                <ul className="event-simple-list">
+                  {event.outcomes.map((item, index) => (
+                    <li key={index}>{item}</li>
                   ))}
                 </ul>
-              </div>
-            </section>
+              </section>
+            )}
+
+            {Array.isArray(event.timeline) && event.timeline.length > 0 && (
+              <section className="event-section">
+                <h2 className="section-title">Event Timeline</h2>
+                <div className="event-timeline">
+                  {event.timeline.map((item, index) => (
+                    <div key={index} className="timeline-item" style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
+                      <div className="timeline-time" style={{ minWidth: '100px', fontWeight: 'bold', color: '#e63946' }}>
+                        {item.time}
+                      </div>
+                      <div className="timeline-content">
+                        <h4 style={{ margin: '0 0 8px 0', fontSize: '1.1rem' }}>{item.title}</h4>
+                        <p style={{ margin: 0, color: '#6b7280' }}>{item.description}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
 
             {/* Artists */}
-            <section className="event-section">
-              <h2 className="section-title">Artists</h2>
-              <div className="artists-grid">
-                {event.artists.map((artist, index) => (
-                  <div key={index} className="artist-card">
-                    <Image
-                      src={artist.image}
-                      alt={artist.name}
-                      className="artist-image"
-                      width={120}
-                      height={120}
-                      style={{ objectFit: 'cover' }}
-                    />
-                    <div className="artist-info">
-                      <h3 className="artist-name">{artist.name}</h3>
-                      <p className="artist-role">{artist.role}</p>
-                      {artist.bio && <p className="artist-bio">{artist.bio}</p>}
+            {Array.isArray(event.artists) && event.artists.length > 0 && (
+              <section className="event-section">
+                <h2 className="section-title">Speakers & Guests</h2>
+                <div className="artists-grid">
+                  {event.artists.map((artist, index) => (
+                    <div key={index} className="artist-card">
+                      {artist?.image ? (
+                        <Image
+                          src={artist.image}
+                          alt={artist.name || 'Speaker'}
+                          className="artist-image"
+                          width={120}
+                          height={120}
+                          style={{ objectFit: 'cover' }}
+                        />
+                      ) : (
+                        <div className="artist-image artist-image-fallback" aria-hidden="true">
+                          {String(artist?.name || 'S')
+                            .charAt(0)
+                            .toUpperCase()}
+                        </div>
+                      )}
+                      <div className="artist-info">
+                        <h3 className="artist-name">{artist.name}</h3>
+                        {artist.role && <p className="artist-role">{artist.role}</p>}
+                        {artist.bio && <p className="artist-bio">{artist.bio}</p>}
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </section>
+                  ))}
+                </div>
+              </section>
+            )}
           </div>
 
           {/* Right Column - Booking Card */}
@@ -271,7 +496,10 @@ export default function EventDetailsPage() {
                     <line x1="8" y1="2" x2="8" y2="6" />
                     <line x1="3" y1="10" x2="21" y2="10" />
                   </svg>
-                  <span>{event.date}</span>
+                  <span>
+                    {formatDate(event.date) || 'Date TBD'}
+                    {event.endDate ? ` - ${formatDate(event.endDate) || ''}` : ''}
+                  </span>
                 </div>
 
                 <div className="detail-item">
@@ -286,7 +514,7 @@ export default function EventDetailsPage() {
                     <circle cx="12" cy="12" r="10" />
                     <polyline points="12 6 12 12 16 14" />
                   </svg>
-                  <span>{event.duration || event.time}</span>
+                  <span>{event.duration || event.time || 'Time TBD'}</span>
                 </div>
 
                 <div className="detail-item">
@@ -303,7 +531,7 @@ export default function EventDetailsPage() {
                     <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
                     <path d="M16 3.13a4 4 0 0 1 0 7.75" />
                   </svg>
-                  <span>Age Limit - {event.ageLimit}</span>
+                  <span>{event.ageLimit ? `Age Limit - ${event.ageLimit}` : 'Age Limit - NA'}</span>
                 </div>
 
                 <div className="detail-item">
@@ -317,7 +545,7 @@ export default function EventDetailsPage() {
                   >
                     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                   </svg>
-                  <span>{event.language}</span>
+                  <span>{event.language || 'Language - NA'}</span>
                 </div>
 
                 <div className="detail-item">
@@ -331,7 +559,7 @@ export default function EventDetailsPage() {
                   >
                     <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
                   </svg>
-                  <span>{event.genre}</span>
+                  <span>{event.genre || 'Category - NA'}</span>
                 </div>
 
                 <div className="detail-item location-item">
@@ -347,28 +575,91 @@ export default function EventDetailsPage() {
                     <circle cx="12" cy="10" r="3" />
                   </svg>
                   <div>
-                    <span>{event.location}</span>
-                    <a
-                      href={event.locationUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="location-link"
-                    >
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
+                    <span>{event.venue || event.location || 'Online'}</span>
+                    {event.locationUrl && (
+                      <a
+                        href={event.locationUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="location-link"
+                        aria-label="Open location"
                       >
-                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                        <polyline points="15 3 21 3 21 9" />
-                        <line x1="10" y1="14" x2="21" y2="3" />
-                      </svg>
-                    </a>
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        >
+                          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                          <polyline points="15 3 21 3 21 9" />
+                          <line x1="10" y1="14" x2="21" y2="3" />
+                        </svg>
+                      </a>
+                    )}
                   </div>
                 </div>
+
+                {event.maxAttendees && (
+                  <div className="detail-item">
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                      <circle cx="9" cy="7" r="4" />
+                      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                    </svg>
+                    <span>Max Attendees: {event.maxAttendees}</span>
+                  </div>
+                )}
+
+                {event.organizer && (
+                  <div className="detail-item">
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <path d="M12 21v-2m0 0v-4a3 3 0 0 0-6 0m0 4v-4m0 4H6m12 0h-6m0 0v-4a3 3 0 0 0-6 0" />
+                      <circle cx="12" cy="5" r="3" />
+                    </svg>
+                    <span>Organizer: {event.organizer}</span>
+                  </div>
+                )}
+
+                {event.meetingLink && (
+                  <div className="detail-item">
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <path d="M23 7l-7 5 7 5V7z" />
+                      <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
+                    </svg>
+                    <a
+                      className="detail-link"
+                      href={event.meetingLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Join link
+                    </a>
+                  </div>
+                )}
               </div>
 
               <div className="booking-status">
@@ -383,15 +674,30 @@ export default function EventDetailsPage() {
                   <circle cx="12" cy="12" r="10" />
                   <polyline points="12 6 12 12 16 14" />
                 </svg>
-                <span>Bookings are filling fast for Hyderabad</span>
+                <span>
+                  Bookings are filling fast
+                  {event.venue || event.location ? ` for ${event.venue || event.location}` : ''}
+                </span>
               </div>
 
               <div className="booking-price">
-                <span className="price-amount">{event.priceLabel}</span>
-                <span className="price-status">{event.status}</span>
+                <span className="price-amount">
+                  {event.priceLabel || formatMoney(event.price) || 'FREE'}
+                </span>
+                <span className="price-status">{event.status || 'upcoming'}</span>
               </div>
 
-              <button className="book-now-btn-large">Book Now</button>
+              <button
+                className="book-now-btn-large"
+                onClick={handleRegister}
+                disabled={registering}
+              >
+                {registering
+                  ? 'Please wait...'
+                  : isRegistered
+                    ? 'Cancel Registration'
+                    : 'Register Now'}
+              </button>
             </div>
           </div>
         </div>

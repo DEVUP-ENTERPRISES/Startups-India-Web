@@ -69,7 +69,8 @@ async function createRazorpayOrder(userId, input) {
     receipt: input.receipt || `rcpt_${Date.now()}_${Math.floor(Math.random() * 10000)}`,
     notes: {
       userId: String(userId),
-      courseId: String(input.courseId),
+      ...(input.courseId ? { courseId: String(input.courseId) } : {}),
+      ...(input.eventId ? { eventId: String(input.eventId) } : {}),
       ...(input.notes || {}),
     },
   });
@@ -80,6 +81,7 @@ async function createRazorpayOrder(userId, input) {
       $set: {
         userId,
         courseId: input.courseId,
+        eventId: input.eventId,
         provider: 'razorpay',
         orderId: order.id,
         amount: order.amount / 100,
@@ -167,6 +169,16 @@ async function verifyRazorpayPayment(userId, input) {
       paymentMethod: 'razorpay',
       amountPaid: updated.amount,
     });
+  }
+
+  const eventId = existing.eventId;
+  if (eventId) {
+    const eventsService = require('../events/events.service');
+    try {
+      await eventsService.registerForEvent(eventId, userId);
+    } catch (e) {
+      console.error(`Event registration error after payment: ${e.message}`);
+    }
   }
 
   return updated;
@@ -321,18 +333,27 @@ async function processRazorpayWebhook(rawBody, signature) {
       amount: updated.amount,
       currency: updated.currency,
     });
-    // On payment.captured event, verify payment and create enrollment if not already exists
-    if (paymentEntity.notes?.userId && paymentEntity.notes?.courseId) {
-      const enrollmentsService = require('../enrollments/enrollments.service');
-      await enrollmentsService.upsertEnrollment(paymentEntity.notes.userId, {
-        courseId: paymentEntity.notes.courseId,
-        paymentVerified: true,
-        paymentStatus: 'completed',
-        paymentId: String(updated._id),
-        stripePaymentId: updated.paymentId,
-        paymentMethod: 'razorpay',
-        amountPaid: updated.amount,
-      });
+    if (paymentEntity.notes?.userId) {
+      if (paymentEntity.notes?.courseId) {
+        const enrollmentsService = require('../enrollments/enrollments.service');
+        await enrollmentsService.upsertEnrollment(paymentEntity.notes.userId, {
+          courseId: paymentEntity.notes.courseId,
+          paymentVerified: true,
+          paymentStatus: 'completed',
+          paymentId: String(updated._id),
+          stripePaymentId: updated.paymentId,
+          paymentMethod: 'razorpay',
+          amountPaid: updated.amount,
+        });
+      }
+      if (paymentEntity.notes?.eventId) {
+        const eventsService = require('../events/events.service');
+        try {
+          await eventsService.registerForEvent(paymentEntity.notes.eventId, paymentEntity.notes.userId);
+        } catch (e) {
+          console.error(`Event registration error in webhook: ${e.message}`);
+        }
+      }
     }
   }
 
