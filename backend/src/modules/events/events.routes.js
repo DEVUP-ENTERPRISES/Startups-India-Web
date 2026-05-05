@@ -1,6 +1,6 @@
 const express = require('express');
 const { asyncHandler } = require('../../utils/asyncHandler');
-const { authRequired } = require('../../middlewares/authMiddleware');
+const { authRequired, optionalAuth } = require('../../middlewares/authMiddleware');
 const { cacheMiddleware } = require('../../middlewares/cache.middleware');
 const controller = require('./events.controller');
 
@@ -28,7 +28,8 @@ router.delete('/:id/register', authRequired, asyncHandler(controller.unregisterF
 // GET /api/v1/events/:id - Get single event
 router.get(
   '/:id',
-  cacheMiddleware(req => `event:${req.params.id}`, 600),
+  optionalAuth,
+  cacheMiddleware(req => `event:${req.params.id}:${req.user?.userId || 'anon'}`, 600),
   asyncHandler(controller.getEvent)
 );
 

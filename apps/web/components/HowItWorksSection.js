@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Rocket, FileEdit, UserCheck, Zap, TrendingUp, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Reveal, StaggerContainer, StaggerItem } from './ScrollReveal';
 import '../styles/how-it-works.css';
 
 const steps = [
@@ -45,7 +46,7 @@ export default function HowItWorksSection() {
   const [direction, setDirection] = useState(0);
 
   useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    const handleResize = () => setIsMobile(window.innerWidth < 1024);
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
@@ -114,9 +115,32 @@ export default function HowItWorksSection() {
       <div className="iec-container">
         {/* Header */}
         <div className="roadmap-header">
-          <span className="section-label-premium">THE INSTITUTIONAL PATHWAY</span>
-          <h2>A Strategic Trajectory for Founders</h2>
+          <motion.span 
+            className="section-label-premium mb-3 bg-gradient-to-r from-[#e53935]/20 to-red-600/10 backdrop-blur-md border-red-500/30 !text-red-500 shadow-[0_0_20px_rgba(229,57,53,0.15)] inline-block"
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            animate={{ 
+              boxShadow: ["0 0 20px rgba(229,57,53,0.15)", "0 0 35px rgba(229,57,53,0.3)", "0 0 20px rgba(229,57,53,0.15)"]
+            }}
+            transition={{ 
+              duration: 2, 
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+            viewport={{ once: true }}
+          >
+            THE INSTITUTIONAL PATHWAY
+          </motion.span>
           
+          <motion.h2 
+            className="text-transparent bg-clip-text bg-gradient-to-r from-[#ffffff] to-[#9ca3af] drop-shadow-[0_2px_10px_rgba(0,0,0,0.5)] block mt-2"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2 }}
+          >
+            A Strategic Trajectory for Founders
+          </motion.h2>
         </div>
 
         <div className="roadmap-container">
@@ -155,23 +179,26 @@ export default function HowItWorksSection() {
                 </div>
               </div>
 
-              <div className="roadmap-cards-grid">
-                {steps.map((step, idx) => (
-                  <motion.div
-                    key={idx}
-                    className={`roadmap-step-card-glass${activeStep === idx ? ' focused' : ''}`}
-                    onMouseEnter={() => handleCardHover(idx)}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: idx * 0.1 }}
-                  >
-                    <div className="step-card-icon">{step.icon}</div>
-                    <h4 className="step-card-title">{step.title}</h4>
-                    <p className="step-card-desc">{step.description}</p>
-                  </motion.div>
-                ))}
-              </div>
+                <StaggerContainer>
+                  <div className="roadmap-cards-grid">
+                    {steps.map((step, idx) => (
+                      <StaggerItem key={idx}>
+                        <motion.div
+                          className={`roadmap-step-card-glass${activeStep === idx ? ' focused' : ''}`}
+                          onMouseEnter={() => handleCardHover(idx)}
+                          whileHover={{ 
+                            y: -12,
+                            transition: { duration: 0.3 }
+                          }}
+                        >
+                          <div className="step-card-icon">{step.icon}</div>
+                          <h4 className="step-card-title !text-white">{step.title}</h4>
+                          <p className="step-card-desc !text-white/70">{step.description}</p>
+                        </motion.div>
+                      </StaggerItem>
+                    ))}
+                  </div>
+                </StaggerContainer>
             </>
           ) : (
             /* ── Mobile View: Carousel Format ── */
@@ -196,8 +223,8 @@ export default function HowItWorksSection() {
                         <div className="mobile-step-pill">STEP {steps[mobileStep].number}</div>
                         <div className="mobile-card-icon">{steps[mobileStep].icon}</div>
                       </div>
-                      <h3 className="mobile-card-title">{steps[mobileStep].title}</h3>
-                      <p className="mobile-card-desc">{steps[mobileStep].description}</p>
+                      <h3 className="mobile-card-title !text-white">{steps[mobileStep].title}</h3>
+                      <p className="mobile-card-desc !text-white/70">{steps[mobileStep].description}</p>
                     </div>
                   </motion.div>
                 </AnimatePresence>

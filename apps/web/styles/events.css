@@ -1104,6 +1104,21 @@
   box-shadow: 0 8px 28px rgba(230, 57, 70, 0.5);
 }
 
+.book-now-btn.registered {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  cursor: default;
+}
+
+.book-now-btn.registered:hover {
+  transform: none;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.book-now-btn.registered::before {
+  display: none;
+}
+
 /* No Events State */
 .no-events {
   text-align: center;
@@ -1574,12 +1589,12 @@
 
 @media (max-width: 768px) {
   .events-hero {
-    min-height: 80vh;
-    padding: 100px 0 60px;
+    min-height: 60vh;
+    padding: 80px 0 40px;
   }
 
   .events-hero-title {
-    font-size: 38px;
+    font-size: 32px;
   }
 
   .events-hero-description {

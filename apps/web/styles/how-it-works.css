@@ -3,8 +3,8 @@
     ════════════════════════════════════════════════════════════════════════════ */
 
 .how-it-works-modern {
-  padding: 80px 0 60px 0;
-  background: transparent;
+  padding: 10px 0 60px;
+  background: #0a0a0a; /* Force dark background for premium look and visibility */
   position: relative;
   overflow: hidden;
 }
@@ -19,7 +19,7 @@
 .roadmap-header {
   text-align: center;
   max-width: 700px;
-  margin: 0 auto 60px;
+  margin: 0 auto 30px;
 }
 
 @media (max-width: 768px) {
@@ -39,16 +39,16 @@
 }
 
 .roadmap-header h2 {
-  font-size: clamp(32px, 4vw, 42px);
+  font-size: clamp(32px, 4vw, 48px);
   font-weight: 800;
-  color: #1a1a1a;
+  color: #ffffff !important; /* White text on dark background - Force override */
   margin-bottom: 16px;
   letter-spacing: -0.02em;
 }
 
 .roadmap-header p {
-  font-size: 16px;
-  color: #555;
+  font-size: 17px;
+  color: rgba(255, 255, 255, 0.7);
   line-height: 1.6;
 }
 
@@ -185,11 +185,12 @@
   background: rgba(255, 255, 255, 0.03);
   backdrop-filter: blur(15px);
   -webkit-backdrop-filter: blur(15px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 20px;
-  padding: 32px 24px;
+  padding: 40px 30px;
   transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
   cursor: pointer;
+  height: 100%;
 }
 
 .roadmap-step-card-glass:hover,
@@ -222,13 +223,13 @@
 .step-card-title {
   font-size: 18px;
   font-weight: 800;
-  color: #ffffff;
+  color: #ffffff !important; /* Force visibility */
   margin-bottom: 12px;
 }
 
 .step-card-desc {
   font-size: 13.5px;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.6) !important; /* Force visibility */
   line-height: 1.6;
 }
 
@@ -251,7 +252,7 @@
   }
 }
 
-@media (max-width: 767px) {
+@media (max-width: 1023px) {
   /* Hide Desktop specific axis parts on mobile */
   .roadmap-axis,
   .roadmap-cards-grid {
@@ -287,14 +288,14 @@
 
   /* Dark Theme Card matching reference */
   .mobile-card-inner {
-    background: #18181B; /* Changed from #111111 to match reference image */
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 16px;
-    padding: 24px; /* Reduced padding from 32px 24px */
+    background: #111111;
+    border: 1px solid rgba(255, 255, 255, 0.15); /* Stronger border for visibility */
+    border-radius: 24px;
+    padding: 32px 24px;
     height: 100%;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
   }
 
   .mobile-card-header {
@@ -338,7 +339,7 @@
 
   .mobile-card-desc {
     font-size: 15px;
-    color: #a3a3a3;
+    color: #d1d5db; /* Lighter color for better visibility on dark background */
     line-height: 1.6;
     flex-grow: 1;
   }
@@ -386,21 +387,24 @@
   }
 
   .mobile-nav-btn {
-    width: 40px;
-    height: 40px;
+    width: 48px; /* Slightly larger for better tap target */
+    height: 48px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(229, 57, 53, 0.1);
+    border: 1.5px solid rgba(229, 57, 53, 0.3); /* Red border for visibility */
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #ffffff;
+    color: #e53935; /* Red icons for visibility */
     cursor: pointer;
     transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(229, 57, 53, 0.2);
   }
 
-  .mobile-nav-btn:hover {
+  .mobile-nav-btn:hover, .mobile-nav-btn:active {
     background: #e53935;
     color: #ffffff;
+    border-color: #e53935;
+    transform: scale(1.05);
   }
 }

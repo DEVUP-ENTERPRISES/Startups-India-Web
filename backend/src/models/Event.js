@@ -13,7 +13,7 @@ const eventSchema = new mongoose.Schema(
     },
     category: {
       type: String,
-      enum: ['workshops', 'networking', 'conferences', 'webinars', 'meetups', 'entertainment', 'workshop', 'hackathon', 'startup pitch', 'tech talk', 'competition', 'other'],
+      enum: ['workshops', 'networking', 'conferences', 'webinars', 'meetups', 'meetup', 'entertainment', 'workshop', 'hackathon', 'startup pitch', 'tech talk', 'competition', 'other'],
       default: 'workshops',
     },
     date: { type: Date, required: true }, // Legacy/compat

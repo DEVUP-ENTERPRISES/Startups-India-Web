@@ -23,7 +23,7 @@
 .ecosystem-header {
   text-align: center;
   max-width: 700px;
-  margin: 0 auto 48px auto;
+  margin: 0 auto 32px auto;
 }
 
 .ecosystem-badge {
@@ -43,7 +43,7 @@
   font-size: 44px;
   font-weight: 800;
   color: #111111;
-  margin-bottom: 20px;
+  margin-bottom: 12px;
   line-height: 1.2;
   letter-spacing: -0.02em;
 }
@@ -200,11 +200,17 @@
 
 /* Hover effect only when not flipped */
 .card-container:not(.flipped) .ecosystem-card:hover {
-  transform: translateY(-6px);
+  transform: translateY(-10px);
   box-shadow:
-    0 20px 40px rgba(0, 0, 0, 0.12),
-    0 0 0 1px rgba(229, 57, 53, 0.2);
-  border-color: rgba(229, 57, 53, 0.3);
+    0 25px 50px -12px rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(229, 57, 53, 0.3);
+  border-color: rgba(229, 57, 53, 0.4);
+  animation: cardGlowBreath 3s infinite ease-in-out;
+}
+
+@keyframes cardGlowBreath {
+  0%, 100% { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(229, 57, 53, 0.3); }
+  50% { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 20px 2px rgba(229, 57, 53, 0.2); }
 }
 
 /* Strip gradient on touch devices */

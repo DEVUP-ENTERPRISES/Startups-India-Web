@@ -549,18 +549,24 @@ async function listEvents({ page = 1, limit = 20, status, sort = '-date' }) {
 }
 
 async function createEvent(data) {
-  return Event.create(data);
+  const event = await Event.create(data);
+  cacheFlushPattern('events:*').catch(() => {});
+  return event;
 }
 
 async function updateEvent(id, updates) {
   const event = await Event.findByIdAndUpdate(id, updates, { new: true });
   if (!event) throw new ApiError(404, 'Event not found');
+  cacheDel(`event:${id}`).catch(() => {});
+  cacheFlushPattern('events:*').catch(() => {});
   return event;
 }
 
 async function deleteEvent(id) {
   const event = await Event.findByIdAndDelete(id);
   if (!event) throw new ApiError(404, 'Event not found');
+  cacheDel(`event:${id}`).catch(() => {});
+  cacheFlushPattern('events:*').catch(() => {});
   return { deleted: true };
 }
 

@@ -4,8 +4,11 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { apiGet } from '@/lib/api';
+import { apiGet, apiPost } from '@/lib/api';
 import '../../styles/events.css';
+import '../../styles/event-details.css';
+
+const DEFAULT_EVENT_IMAGE = 'https://images.unsplash.com/photo-1557683316-973673baf926?w=800&q=80';
 
 export default function EventsPage() {
   const router = useRouter();
@@ -17,13 +20,19 @@ export default function EventsPage() {
   const [error, setError] = useState(null);
 
   const formatPrice = event => {
-    const price = typeof event?.price === 'number' ? event.price : null;
-    const originalPrice = typeof event?.originalPrice === 'number' ? event.originalPrice : null;
-    if (!price) return { label: 'FREE', isFree: true, original: null };
+    const rawPrice = event?.price;
+    const price = rawPrice !== undefined && rawPrice !== null ? Number(rawPrice) : null;
+    const originalPrice = event?.originalPrice ? Number(event.originalPrice) : null;
+    
+    // If isPaid is true or price > 0, it's not free
+    const isActuallyFree = !event?.isPaid && (price === null || price <= 0);
+    
+    if (isActuallyFree) return { label: 'FREE', isFree: true, original: null };
+    
     return {
-      label: `₹${price}`,
+      label: `₹${price || 0}`,
       isFree: false,
-      original: originalPrice && originalPrice > price ? `₹${originalPrice}` : null,
+      original: originalPrice && originalPrice > (price || 0) ? `₹${originalPrice}` : null,
     };
   };
 
@@ -47,7 +56,7 @@ export default function EventsPage() {
       setLoading(true);
       const params = new URLSearchParams();
       if (selectedCategory !== 'all') params.set('category', selectedCategory);
-      params.set('status', 'upcoming');
+      params.set('status', 'upcoming,live');
       params.set('limit', '50');
 
       const response = await apiGet(`/api/v1/events?${params}`);
@@ -259,12 +268,18 @@ export default function EventsPage() {
           <line x1="20" y1="8" x2="20" y2="14" />
         </svg>
       ),
-      count: events.filter(e => e.category === 'meetups').length,
+      count: events.filter(e => e.category === 'meetups' || e.category === 'meetup').length,
     },
   ];
 
   const filteredEvents = events.filter(event => {
-    const categoryMatch = selectedCategory === 'all' || event.category === selectedCategory;
+    const categoryMatch = 
+      selectedCategory === 'all' || 
+      event.category === selectedCategory || 
+      (selectedCategory === 'meetups' && event.category === 'meetup') ||
+      (selectedCategory === 'workshops' && event.category === 'workshop') ||
+      (selectedCategory === 'conferences' && event.category === 'conference') ||
+      (selectedCategory === 'webinars' && event.category === 'webinar');
     const priceMatch =
       priceFilter === 'all' ||
       (priceFilter === 'free' && (event.price === 0 || !event.price)) ||
@@ -381,21 +396,6 @@ export default function EventsPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            {/* <motion.span 
-              className="events-badge"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                <line x1="16" y1="2" x2="16" y2="6"/>
-                <line x1="8" y1="2" x2="8" y2="6"/>
-                <line x1="3" y1="10" x2="21" y2="10"/>
-              </svg>
-              Discover Amazing Events
-            </motion.span> */}
-
             <motion.h1
               className="events-hero-title"
               initial={{ opacity: 0, y: 20 }}
@@ -415,7 +415,6 @@ export default function EventsPage() {
               Connect with industry leaders, learn from experts, and build meaningful relationships.
             </motion.p>
 
-            {/* Search Bar */}
             <motion.div
               className="hero-search-bar"
               initial={{ opacity: 0, y: 20 }}
@@ -444,7 +443,6 @@ export default function EventsPage() {
               <button className="hero-search-btn">Search Events</button>
             </motion.div>
 
-            {/* Quick Stats */}
             <motion.div
               className="hero-quick-stats"
               initial={{ opacity: 0, y: 20 }}
@@ -635,24 +633,16 @@ export default function EventsPage() {
                     }}
                   >
                     <div className="event-card-image-wrapper">
-                      {event.coverImage || event.image ? (
-                        <img
-                          src={event.coverImage || event.image}
-                          alt={event.title}
-                          className="event-card-image"
-                          loading="lazy"
-                          onError={(e) => {
-                            e.target.onerror = null;
-                            e.target.src = "https://images.unsplash.com/photo-1557683316-973673baf926?w=800&q=80";
-                          }}
-                        />
-                      ) : (
-                        <img 
-                          src="https://images.unsplash.com/photo-1557683316-973673baf926?w=800&q=80" 
-                          alt="Event Default Cover" 
-                          className="event-card-image"
-                        />
-                      )}
+                      <img
+                        src={event.coverImage || event.image || DEFAULT_EVENT_IMAGE}
+                        alt={event.title}
+                        className="event-card-image"
+                        loading="lazy"
+                        onError={e => {
+                          e.target.onerror = null;
+                          e.target.src = DEFAULT_EVENT_IMAGE;
+                        }}
+                      />
                       <div className="event-card-overlay">
                         {(() => {
                           const price = formatPrice(event);
@@ -739,7 +729,9 @@ export default function EventsPage() {
                           href={`/events/${event._id || event.id}`}
                           onClick={e => e.stopPropagation()}
                         >
-                          <button className="book-now-btn">Book Now</button>
+                          <button className={`book-now-btn ${event.isRegistered ? 'registered' : ''}`}>
+                            {event.isRegistered ? 'Registered' : 'Book Now'}
+                          </button>
                         </Link>
                       </div>
                     </div>
@@ -862,7 +854,7 @@ export default function EventsPage() {
                 >
                   <div className="event-image-wrapper">
                     <img
-                      src={event.coverImage || event.image}
+                      src={(event.images && event.images[0]) || event.coverImage || DEFAULT_EVENT_IMAGE}
                       alt={event.title}
                       className="event-image"
                       loading="lazy"

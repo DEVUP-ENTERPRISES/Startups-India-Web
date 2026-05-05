@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import { useCallback, useRef, useState } from 'react';
 import { Users, IndianRupee, Building2, Globe, Scale, Handshake } from 'lucide-react';
+import { StaggerContainer, StaggerItem } from './ScrollReveal';
 import '../styles/ecosystem-features.css';
 
 const iconMap = {
@@ -494,11 +495,15 @@ export default function EcosystemFeaturesSection() {
         </motion.div>
 
         {/* Feature Cards Grid */}
-        <div className="ecosystem-grid">
-          {features.map((feature, index) => (
-            <FlipCard key={index} feature={feature} index={index} />
-          ))}
-        </div>
+        <StaggerContainer>
+          <div className="ecosystem-grid">
+            {features.map((feature, index) => (
+              <StaggerItem key={index}>
+                <FlipCard feature={feature} index={index} />
+              </StaggerItem>
+            ))}
+          </div>
+        </StaggerContainer>
       </div>
     </section>
   );

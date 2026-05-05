@@ -1,10 +1,17 @@
+const mongoose = require('mongoose');
 const { Event } = require('../../models/Event');
+const { EventRegistration } = require('../../models/EventRegistration');
+const { User } = require('../users/user.model');
 const { ApiError } = require('../../utils/apiError');
+const { cacheDel } = require('../../infrastructure/cache/redis');
 
-async function listEvents({ page = 1, limit = 20, category, status = 'upcoming', sort = 'date' }) {
+async function listEvents({ page = 1, limit = 20, category, status = 'upcoming', sort = 'date', userId = null }) {
   const query = {};
   if (category) query.category = category;
-  if (status) query.status = status;
+  if (status) {
+    const statuses = status.split(',').map(s => s.trim());
+    query.status = { $in: statuses };
+  }
 
   const total = await Event.countDocuments(query);
   const events = await Event.find(query)
@@ -13,6 +20,12 @@ async function listEvents({ page = 1, limit = 20, category, status = 'upcoming',
     .skip((page - 1) * limit)
     .limit(limit)
     .lean();
+
+  if (userId) {
+    events.forEach(event => {
+      event.isRegistered = event.registrations && event.registrations.some(r => r.toString() === userId.toString());
+    });
+  }
 
   return {
     events,
@@ -24,14 +37,26 @@ async function listEvents({ page = 1, limit = 20, category, status = 'upcoming',
   };
 }
 
-async function getEventById(id) {
+async function getEventById(id, userId = null) {
   const event = await Event.findById(id).populate('createdBy', 'fullName');
   if (!event) throw new ApiError(404, 'Event not found');
-  return event;
+
+  const eventObj = event.toObject();
+  
+  // Check if user is registered
+  const isRegistered = userId && event.registrations.some(r => r.toString() === userId.toString());
+  eventObj.isRegistered = !!isRegistered;
+
+  // Hide sensitive link if not registered
+  if (!isRegistered) {
+    delete eventObj.meetingLink;
+  }
+
+  return eventObj;
 }
 
 async function getFeaturedEvents(limit = 6) {
-  return Event.find({ status: 'upcoming' })
+  return Event.find({ status: { $in: ['upcoming', 'live'] } })
     .sort('-createdAt')
     .limit(limit)
     .populate('createdBy', 'fullName')
@@ -52,6 +77,28 @@ async function registerForEvent(eventId, userId) {
 
   event.registrations.push(userId);
   await event.save();
+
+  // Create official registration record for Admin Panel
+  try {
+    const user = await User.findById(userId).select('fullName email phoneNumber');
+    if (user) {
+      await EventRegistration.create({
+        event: eventId,
+        user: userId,
+        fullName: user.fullName || 'Unknown User',
+        email: user.email || 'unknown@user.com',
+        phoneNumber: user.phoneNumber || '',
+        paymentStatus: event.isPaid ? 'Completed' : 'Free',
+        attendanceStatus: 'Registered'
+      });
+    }
+  } catch (err) {
+    console.error('Failed to create EventRegistration document:', err.message);
+    // Non-blocking: we still have the userId in the event.registrations array
+  }
+
+  // Invalidate cache for this user so they see "Registered" status immediately
+  cacheDel(`event:${eventId}:${userId}`).catch(() => {});
 
   return { message: 'Successfully registered for event' };
 }
