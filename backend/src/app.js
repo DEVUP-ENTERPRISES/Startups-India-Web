@@ -34,6 +34,7 @@ app.use(
     },
     crossOriginEmbedderPolicy: false, // Allow cross-origin resources (S3 videos)
     crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' }, // Allow Google OAuth popups
+    crossOriginResourcePolicy: { policy: 'cross-origin' }, // Allow CORS preflight responses
     hsts: { maxAge: 63072000, includeSubDomains: true, preload: true },
   })
 );
@@ -50,7 +51,8 @@ app.use((req, res, next) => {
   next();
 });
 
-app.set('trust proxy', 1); // Trust first proxy for correct client IPs (if behind a proxy)
+// Trust first proxy for correct client IPs (if behind a proxy)
+app.set('trust proxy', env.NODE_ENV === 'production' ? 1 : false);
 
 // app.use(
 //   cors({
@@ -106,7 +108,6 @@ app.use(
 );
 
 app.disable('x-powered-by');
-app.set('trust proxy', env.NODE_ENV === 'production' ? 1 : false);
 
 app.use(cookieParser());
 app.use((req, res, next) => {
