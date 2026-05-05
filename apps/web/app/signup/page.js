@@ -36,7 +36,7 @@ function SignupContent() {
     hasNumber: false,
     hasSpecialChar: false,
   });
-  });
+
   const router = useRouter();
   const searchParams = useSearchParams();
   const returnUrl = searchParams.get('returnUrl') || '/dashboard';

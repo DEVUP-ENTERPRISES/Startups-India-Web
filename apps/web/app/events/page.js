@@ -641,15 +641,17 @@ export default function EventsPage() {
                           alt={event.title}
                           className="event-card-image"
                           loading="lazy"
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = "https://images.unsplash.com/photo-1557683316-973673baf926?w=800&q=80";
+                          }}
                         />
                       ) : (
-                        <div className="event-card-image-fallback" aria-hidden="true">
-                          <span>
-                            {String(event.title || 'Event')
-                              .slice(0, 1)
-                              .toUpperCase()}
-                          </span>
-                        </div>
+                        <img 
+                          src="https://images.unsplash.com/photo-1557683316-973673baf926?w=800&q=80" 
+                          alt="Event Default Cover" 
+                          className="event-card-image"
+                        />
                       )}
                       <div className="event-card-overlay">
                         {(() => {

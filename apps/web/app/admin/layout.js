@@ -25,7 +25,7 @@ const navSections = [
   {
     title: 'Content',
     items: [
-      { id: 'blog', label: 'Blog / CMS', href: '/admin/blog', icon: 'edit' },
+      { id: 'articles', label: 'Sources / Articles', href: '/admin/articles', icon: 'edit' },
       { id: 'events', label: 'Events', href: '/admin/events', icon: 'calendar' },
       { id: 'testimonials', label: 'Testimonials', href: '/admin/testimonials', icon: 'star' },
     ],

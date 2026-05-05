@@ -418,6 +418,23 @@
   padding: 5px 10px;
   font-size: 12px;
 }
+.admin-btn-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: transparent;
+  border: none;
+  color: var(--admin-text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.admin-btn-icon:hover {
+  background: #f1f5f9;
+  color: var(--admin-text);
+}
 
 /* ─── Pagination ─── */
 .admin-pagination {

@@ -41,11 +41,15 @@ export default function CourseCard({ course }) {
         style={{ borderRadius: 12, overflow: 'hidden', marginBottom: 12 }}
       >
         <Image
-          src={course.thumbnail}
+          src={course.thumbnail || "https://images.unsplash.com/photo-1557683316-973673baf926?w=800&q=80"}
           alt={course.title}
           width={400}
           height={225}
           className="thumbnail-image"
+          onError={(e) => {
+            e.currentTarget.srcset = '';
+            e.currentTarget.src = "https://images.unsplash.com/photo-1557683316-973673baf926?w=800&q=80";
+          }}
         />
         {course.originalPrice && course.price < course.originalPrice && (
           <div className="discount-badge">{discountPercentage}% OFF</div>

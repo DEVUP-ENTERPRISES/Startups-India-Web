@@ -44,6 +44,18 @@ const MEDIA_RULES = {
     maxSize: 25 * MB,
     mimeTypes: ['application/pdf'],
   },
+  articles: {
+    maxSize: 10 * MB,
+    mimeTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'],
+  },
+  events: {
+    maxSize: 10 * MB,
+    mimeTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'],
+  },
+  system: {
+    maxSize: 10 * MB,
+    mimeTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'],
+  }
 };
 
 function normalizeFolder(folder) {
@@ -52,7 +64,7 @@ function normalizeFolder(folder) {
     .toLowerCase();
 
   if (!MEDIA_RULES[normalized]) {
-    throw new ApiError(400, 'Invalid folder. Allowed: videos, pdfs, images, certificates');
+    throw new ApiError(400, 'Invalid folder. Allowed: videos, pdfs, images, certificates, articles, events, system');
   }
 
   return normalized;
@@ -93,12 +105,18 @@ function normalizeUploadRequest(input = {}) {
   const courseId = String(input.courseId || '').trim();
   const moduleId = input.moduleId ? String(input.moduleId).trim() : null;
 
-  if (!courseId) {
-    throw new ApiError(400, 'courseId is required');
+  // If it's a course specific folder, require courseId
+  const courseSpecificFolders = ['videos', 'pdfs', 'certificates'];
+  if (courseSpecificFolders.includes(folder) && !courseId) {
+    throw new ApiError(400, 'courseId is required for this folder type');
   }
 
   if (!fileType) {
     throw new ApiError(400, 'fileType is required');
+  }
+
+  if (!fileSize) {
+    throw new ApiError(400, 'fileSize is required');
   }
 
   validateFileAgainstFolder(folder, fileType, fileSize);
@@ -114,6 +132,8 @@ function normalizeUploadRequest(input = {}) {
 }
 
 async function assertCourseContext(courseId, moduleId) {
+  if (!courseId) return; // Allow generic uploads
+  
   if (!mongoose.isValidObjectId(courseId)) {
     throw new ApiError(400, 'Invalid courseId');
   }
@@ -144,9 +164,13 @@ async function assertCourseContext(courseId, moduleId) {
 function buildCourseObjectKey({ courseId, folder, moduleId, fileName }) {
   const safeName = sanitizeFileName(fileName);
   const objectId = crypto.randomUUID();
-  const moduleSegment = moduleId || 'root';
+  const moduleSegment = moduleId ? `/${moduleId}` : '';
 
-  return `courses/${courseId}/${folder}/${moduleSegment}/${objectId}-${safeName}`;
+  if (courseId) {
+    return `courses/${courseId}/${folder}${moduleSegment}/${objectId}-${safeName}`;
+  } else {
+    return `${folder}/${objectId}-${safeName}`;
+  }
 }
 
 function normalizeMediaDocument(media) {
@@ -206,9 +230,12 @@ async function completeUpload(userId, input) {
     throw new ApiError(400, 'key is required');
   }
 
-  const expectedPrefix = `courses/${normalized.courseId}/${normalized.folder}/`;
+  const expectedPrefix = normalized.courseId 
+    ? `courses/${normalized.courseId}/${normalized.folder}/`
+    : `${normalized.folder}/`;
+
   if (!key.startsWith(expectedPrefix)) {
-    throw new ApiError(400, 'key does not belong to the supplied course and folder');
+    throw new ApiError(400, 'key does not belong to the supplied folder/course');
   }
 
   const expectedFileUrl = buildS3FileUrl(key);

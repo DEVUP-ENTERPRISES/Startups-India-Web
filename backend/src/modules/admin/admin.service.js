@@ -4,8 +4,10 @@ const { ModuleQuiz } = require('../courses/moduleQuiz.model');
 const { Enrollment } = require('../enrollments/enrollment.model');
 const { Payment } = require('../payments/payment.model');
 const { Certificate } = require('../certificates/certificate.model');
-const { BlogPost } = require('../../models/BlogPost');
+const { Article } = require('../../models/Article');
+const { ArticleView, ArticleLike, ArticleBookmark } = require('../../models/ArticleAnalytics');
 const { Event } = require('../../models/Event');
+const { EventRegistration } = require('../../models/EventRegistration');
 const { Lead } = require('../../models/Lead');
 const { Testimonial } = require('../../models/Testimonial');
 const { Notification } = require('../../models/Notification');
@@ -416,43 +418,122 @@ async function revokeCertificate(id) {
   return cert;
 }
 
-// ─── BLOG ───────────────────────────────────────────────────────
-async function listBlogPosts({ page = 1, limit = 20, status, sort = '-createdAt' }) {
+// ─── ARTICLES ───────────────────────────────────────────────────────
+async function listArticles({ page = 1, limit = 20, status, category, search, sort = '-createdAt' }) {
   const query = {};
   if (status) query.status = status;
-  const total = await BlogPost.countDocuments(query);
-  const posts = await BlogPost.find(query)
-    .populate('author', 'fullName email')
+  if (category) query.category = category;
+  if (search) {
+    query.$or = [
+      { title: { $regex: search, $options: 'i' } },
+      { 'author.name': { $regex: search, $options: 'i' } }
+    ];
+  }
+  const total = await Article.countDocuments(query);
+  const articles = await Article.find(query)
     .sort(sort)
     .skip((page - 1) * limit)
     .limit(limit);
-  return { posts, total, page, pages: Math.ceil(total / limit) };
+  return { articles, total, page, pages: Math.ceil(total / limit) };
 }
 
-async function createBlogPost(data) {
+async function getArticle(id) {
+  const article = await Article.findById(id);
+  if (!article) throw new ApiError(404, 'Article not found');
+  return article;
+}
+
+async function createArticle(data) {
   if (!data.slug && data.title) {
     data.slug = data.title
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-|-$/g, '');
   }
-  const post = await BlogPost.create(data);
-  return post;
+  
+  // Calculate reading time roughly if not provided
+  if (!data.readTime && data.content) {
+    const words = data.content.replace(/<[^>]*>?/gm, '').split(/\s+/).length;
+    data.readTime = Math.ceil(words / 200); // 200 words per min
+  }
+  
+  if (data.status === 'published' && !data.publishedAt) {
+    data.publishedAt = new Date();
+  }
+
+  const article = await Article.create(data);
+  return article;
 }
 
-async function updateBlogPost(id, updates) {
+async function updateArticle(id, updates) {
   if (updates.status === 'published' && !updates.publishedAt) {
     updates.publishedAt = new Date();
   }
-  const post = await BlogPost.findByIdAndUpdate(id, updates, { new: true });
-  if (!post) throw new ApiError(404, 'Blog post not found');
-  return post;
+  if (!updates.readTime && updates.content) {
+    const words = updates.content.replace(/<[^>]*>?/gm, '').split(/\s+/).length;
+    updates.readTime = Math.ceil(words / 200);
+  }
+  const article = await Article.findByIdAndUpdate(id, updates, { new: true });
+  if (!article) throw new ApiError(404, 'Article not found');
+  return article;
 }
 
-async function deleteBlogPost(id) {
-  const post = await BlogPost.findByIdAndDelete(id);
-  if (!post) throw new ApiError(404, 'Blog post not found');
+async function deleteArticle(id) {
+  const article = await Article.findByIdAndDelete(id);
+  if (!article) throw new ApiError(404, 'Article not found');
+  
+  // Clean up analytics
+  await ArticleView.deleteMany({ articleId: id });
+  await ArticleLike.deleteMany({ articleId: id });
+  await ArticleBookmark.deleteMany({ articleId: id });
+
   return { deleted: true };
+}
+
+async function duplicateArticle(id) {
+  const article = await Article.findById(id).lean();
+  if (!article) throw new ApiError(404, 'Article not found');
+
+  delete article._id;
+  delete article.createdAt;
+  delete article.updatedAt;
+  article.title = `${article.title} (Copy)`;
+  article.slug = `${article.slug}-copy-${Date.now()}`;
+  article.status = 'draft';
+  article.publishedAt = null;
+  article.metrics = {
+    viewsCount: 0,
+    uniqueViews: 0,
+    likesCount: 0,
+    sharesCount: 0,
+    savesCount: 0,
+    avgReadTime: 0,
+    dropOffRate: 0,
+  };
+
+  const newArticle = await Article.create(article);
+  return newArticle;
+}
+
+async function getArticleAnalytics(id) {
+  const article = await Article.findById(id).select('title metrics status publishedAt');
+  if (!article) throw new ApiError(404, 'Article not found');
+
+  const totalViews = await ArticleView.countDocuments({ articleId: id });
+  const uniqueViews = (await ArticleView.distinct('ipAddress', { articleId: id })).length;
+  const totalLikes = await ArticleLike.countDocuments({ articleId: id });
+  const totalBookmarks = await ArticleBookmark.countDocuments({ articleId: id });
+
+  return {
+    article,
+    stats: {
+      totalViews,
+      uniqueViews,
+      totalLikes,
+      totalBookmarks,
+      ...article.metrics
+    }
+  };
 }
 
 // ─── EVENTS ─────────────────────────────────────────────────────
@@ -481,6 +562,73 @@ async function deleteEvent(id) {
   const event = await Event.findByIdAndDelete(id);
   if (!event) throw new ApiError(404, 'Event not found');
   return { deleted: true };
+}
+
+async function duplicateEvent(id, userId) {
+  const event = await Event.findById(id).lean();
+  if (!event) throw new ApiError(404, 'Event not found');
+
+  const { _id, createdAt, updatedAt, ...eventData } = event;
+  eventData.title = `${eventData.title} (Copy)`;
+  eventData.status = 'upcoming';
+  eventData.registrations = [];
+  eventData.attendees = 0;
+  eventData.createdBy = userId;
+
+  const newEvent = await Event.create(eventData);
+  return newEvent;
+}
+
+async function getEventRegistrations(id, { page = 1, limit = 20, search, status, paymentStatus, sort = '-createdAt' }) {
+  const query = { event: id };
+  if (search) {
+    query.$or = [
+      { fullName: { $regex: search, $options: 'i' } },
+      { email: { $regex: search, $options: 'i' } },
+    ];
+  }
+  if (status) query.attendanceStatus = status;
+  if (paymentStatus) query.paymentStatus = paymentStatus;
+
+  const total = await EventRegistration.countDocuments(query);
+  const registrations = await EventRegistration.find(query)
+    .populate('user', 'fullName email')
+    .sort(sort)
+    .skip((Number(page) - 1) * Number(limit))
+    .limit(Number(limit));
+
+  return { registrations, total, page: Number(page), pages: Math.ceil(total / Number(limit)) };
+}
+
+async function getEventAnalytics(id) {
+  const event = await Event.findById(id).select('maxAttendees');
+  if (!event) throw new ApiError(404, 'Event not found');
+
+  const registrations = await EventRegistration.find({ event: id });
+
+  const totalRegistrations = registrations.length;
+  const remainingSeats = event.maxAttendees > 0 ? Math.max(0, event.maxAttendees - totalRegistrations) : null;
+  const attendanceRate = totalRegistrations > 0 ? (registrations.filter(r => r.attendanceStatus === 'Attended').length / totalRegistrations) * 100 : 0;
+  const refundCount = registrations.filter(r => r.paymentStatus === 'Refunded').length;
+
+  const paymentStats = registrations.reduce((acc, r) => {
+    acc[r.paymentStatus] = (acc[r.paymentStatus] || 0) + 1;
+    return acc;
+  }, {});
+
+  const attendanceStats = registrations.reduce((acc, r) => {
+    acc[r.attendanceStatus] = (acc[r.attendanceStatus] || 0) + 1;
+    return acc;
+  }, {});
+
+  return {
+    totalRegistrations,
+    remainingSeats,
+    attendanceRate: attendanceRate.toFixed(1),
+    refundCount,
+    paymentStats,
+    attendanceStats
+  };
 }
 
 // ─── LEADS/CRM ──────────────────────────────────────────────────
@@ -609,7 +757,7 @@ async function getMonitoringData() {
     leadsByStatus,
     totalEvents,
     upcomingEvents,
-    totalBlogPosts,
+    totalArticles,
     publishedPosts,
     totalNotifications,
     pendingTestimonials,
@@ -654,8 +802,8 @@ async function getMonitoringData() {
     Event.countDocuments(),
     Event.countDocuments({ status: { $in: ['upcoming', 'live'] } }),
     // Blog
-    BlogPost.countDocuments(),
-    BlogPost.countDocuments({ status: 'published' }),
+    Article.countDocuments(),
+    Article.countDocuments({ status: 'published' }),
     // Notifications
     Notification.countDocuments(),
     // Testimonials
@@ -781,7 +929,7 @@ async function getMonitoringData() {
       newLeads7d,
       totalEvents,
       upcomingEvents,
-      totalBlogPosts,
+      totalArticles,
       publishedPosts,
       totalNotifications,
       pendingTestimonials,
@@ -1080,14 +1228,20 @@ module.exports = {
   createEnrollment,
   listCertificates,
   revokeCertificate,
-  listBlogPosts,
-  createBlogPost,
-  updateBlogPost,
-  deleteBlogPost,
+  listArticles,
+  getArticle,
+  createArticle,
+  updateArticle,
+  deleteArticle,
+  duplicateArticle,
+  getArticleAnalytics,
   listEvents,
   createEvent,
   updateEvent,
   deleteEvent,
+  duplicateEvent,
+  getEventRegistrations,
+  getEventAnalytics,
   listLeads,
   createLead,
   updateLead,

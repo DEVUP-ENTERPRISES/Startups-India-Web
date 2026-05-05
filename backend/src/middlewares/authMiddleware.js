@@ -25,6 +25,29 @@ function authRequired(req, res, next) {
   }
 }
 
+function optionalAuth(req, res, next) {
+  try {
+    const authHeader = req.headers.authorization;
+    const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
+    const cookieToken = req.cookies?.accessToken;
+    const token = bearerToken || cookieToken;
+
+    if (!token) {
+      return next();
+    }
+
+    const payload = verifyAccessToken(token, env);
+    req.user = {
+      userId: payload.sub,
+      role: payload.role || 'user',
+      email: payload.email,
+    };
+    return next();
+  } catch (error) {
+    return next();
+  }
+}
+
 function requireRole(...roles) {
   return (req, res, next) => {
     if (!req.user) {
@@ -37,4 +60,4 @@ function requireRole(...roles) {
   };
 }
 
-module.exports = { authRequired, requireRole };
+module.exports = { authRequired, requireRole, optionalAuth };

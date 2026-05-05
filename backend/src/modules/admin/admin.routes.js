@@ -65,17 +65,23 @@ adminRouter.post('/enrollments', asyncHandler(ctrl.createEnrollment));
 adminRouter.get('/certificates', asyncHandler(ctrl.getCertificates));
 adminRouter.post('/certificates/:id/revoke', asyncHandler(ctrl.revokeCertificate));
 
-// Blog
-adminRouter.get('/blog', asyncHandler(ctrl.getBlogPosts));
-adminRouter.post('/blog', asyncHandler(ctrl.createBlogPost));
-adminRouter.patch('/blog/:id', asyncHandler(ctrl.updateBlogPost));
-adminRouter.delete('/blog/:id', asyncHandler(ctrl.deleteBlogPost));
+// Articles
+adminRouter.get('/articles', asyncHandler(ctrl.getArticles));
+adminRouter.get('/articles/:id', asyncHandler(ctrl.getArticle));
+adminRouter.post('/articles', asyncHandler(ctrl.createArticle));
+adminRouter.patch('/articles/:id', asyncHandler(ctrl.updateArticle));
+adminRouter.delete('/articles/:id', asyncHandler(ctrl.deleteArticle));
+adminRouter.post('/articles/:id/duplicate', asyncHandler(ctrl.duplicateArticle));
+adminRouter.get('/articles/:id/analytics', asyncHandler(ctrl.getArticleAnalytics));
 
 // Events
 adminRouter.get('/events', asyncHandler(ctrl.getEvents));
 adminRouter.post('/events', asyncHandler(ctrl.createEvent));
 adminRouter.patch('/events/:id', asyncHandler(ctrl.updateEvent));
 adminRouter.delete('/events/:id', asyncHandler(ctrl.deleteEvent));
+adminRouter.post('/events/:id/duplicate', asyncHandler(ctrl.duplicateEvent));
+adminRouter.get('/events/:id/registrations', asyncHandler(ctrl.getEventRegistrations));
+adminRouter.get('/events/:id/analytics', asyncHandler(ctrl.getEventAnalytics));
 
 // Leads/CRM
 adminRouter.get('/leads', asyncHandler(ctrl.getLeads));
