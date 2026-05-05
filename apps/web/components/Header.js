@@ -14,6 +14,8 @@ export default function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
   const [programsDropdownOpen, setProgramsDropdownOpen] = useState(false);
+  const [mobileDropdowns, setMobileDropdowns] = useState({});
+  const [hoveredNav, setHoveredNav] = useState(null);
   const pathname = usePathname();
 
   const menuItems = [
@@ -75,7 +77,17 @@ export default function Header() {
     }
   }, [mobileMenuOpen]);
 
-  const closeMobileMenu = () => setMobileMenuOpen(false);
+  const closeMobileMenu = () => {
+    setMobileMenuOpen(false);
+    setMobileDropdowns({});
+  };
+
+  const toggleMobileDropdown = (label) => {
+    setMobileDropdowns(prev => ({
+      ...prev,
+      [label]: !prev[label]
+    }));
+  };
 
   return (
     <header className={`site-header ${scrolled ? 'scrolled' : ''}`}>
@@ -137,13 +149,43 @@ export default function Header() {
       {/* 🧱 BOTTOM ROW: NAVIGATION links */}
       <nav className="header-bottom">
         <div className="container">
-          <div className="nav-links">
+          <div className="nav-links" onMouseLeave={() => setHoveredNav(null)}>
+            {/* 🏃‍♂️ SLIDING HIGHLIGHT */}
+            <AnimatePresence>
+              {hoveredNav !== null && (
+                <motion.div
+                  className="nav-sliding-highlight"
+                  layoutId="nav-highlight"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                  style={{
+                    left: hoveredNav.left,
+                    top: hoveredNav.top,
+                    width: hoveredNav.width,
+                    height: hoveredNav.height,
+                  }}
+                />
+              )}
+            </AnimatePresence>
+
             {menuItems.map((item, index) =>
               item.dropdown ? (
                 <div
                   key={index}
                   className="nav-dropdown-container"
-                  onMouseEnter={() => setProgramsDropdownOpen(true)}
+                  onMouseEnter={(e) => {
+                    setProgramsDropdownOpen(true);
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    const parentRect = e.currentTarget.parentElement.getBoundingClientRect();
+                    setHoveredNav({
+                      left: rect.left - parentRect.left,
+                      top: rect.top - parentRect.top,
+                      width: rect.width,
+                      height: rect.height,
+                    });
+                  }}
                   onMouseLeave={() => setProgramsDropdownOpen(false)}
                 >
                   <button
@@ -159,10 +201,10 @@ export default function Header() {
                     {programsDropdownOpen && (
                       <motion.div
                         className="programs-dropdown"
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        transition={{ duration: 0.2 }}
+                        initial={{ opacity: 0, y: 15, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                        transition={{ duration: 0.2, ease: 'easeOut' }}
                       >
                         {item.dropdown.map((dropdownItem, dropdownIndex) => (
                           <Link
@@ -185,6 +227,16 @@ export default function Header() {
                   key={index}
                   href={item.href}
                   className={`nav-link ${pathname === item.href ? 'active' : ''}`}
+                  onMouseEnter={(e) => {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    const parentRect = e.currentTarget.parentElement.getBoundingClientRect();
+                    setHoveredNav({
+                      left: rect.left - parentRect.left,
+                      top: rect.top - parentRect.top,
+                      width: rect.width,
+                      height: rect.height,
+                    });
+                  }}
                 >
                   {item.label}
                 </Link>
@@ -210,23 +262,43 @@ export default function Header() {
           {menuItems.map((item, index) =>
             item.dropdown ? (
               <div key={index} className="mobile-dropdown-container">
-                <div className="mobile-nav-item dropdown-header">
+                <div 
+                  className={`mobile-nav-item dropdown-header ${mobileDropdowns[item.label] ? 'open' : ''}`}
+                  onClick={() => toggleMobileDropdown(item.label)}
+                >
                   {item.label}
-                  <ChevronRight size={18} />
+                  <ChevronDown 
+                    size={20} 
+                    style={{ 
+                      transform: mobileDropdowns[item.label] ? 'rotate(180deg)' : 'rotate(0deg)',
+                      transition: 'transform 0.3s ease'
+                    }} 
+                  />
                 </div>
-                <div className="mobile-dropdown-items">
-                  {item.dropdown.map((dropdownItem, dropdownIndex) => (
-                    <Link
-                      key={dropdownIndex}
-                      href={dropdownItem.href}
-                      className="mobile-dropdown-item"
-                      onClick={closeMobileMenu}
+                <AnimatePresence>
+                  {mobileDropdowns[item.label] && (
+                    <motion.div 
+                      className="mobile-dropdown-items"
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.3, ease: 'easeInOut' }}
+                      style={{ overflow: 'hidden' }}
                     >
-                      <div className="mobile-dropdown-title">{dropdownItem.label}</div>
-                      <div className="mobile-dropdown-description">{dropdownItem.description}</div>
-                    </Link>
-                  ))}
-                </div>
+                      {item.dropdown.map((dropdownItem, dropdownIndex) => (
+                        <Link
+                          key={dropdownIndex}
+                          href={dropdownItem.href}
+                          className="mobile-dropdown-item"
+                          onClick={closeMobileMenu}
+                        >
+                          <div className="mobile-dropdown-title">{dropdownItem.label}</div>
+                          <div className="mobile-dropdown-description">{dropdownItem.description}</div>
+                        </Link>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             ) : (
               <Link

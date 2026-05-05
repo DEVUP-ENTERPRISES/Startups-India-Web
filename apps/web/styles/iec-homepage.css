@@ -18,8 +18,8 @@
   position: absolute;
   inset: 0;
   background-image: 
-    radial-gradient(circle at 10% 20%, rgba(229, 57, 53, 0.03) 0%, transparent 20%),
-    radial-gradient(circle at 90% 80%, rgba(229, 57, 53, 0.03) 0%, transparent 20%);
+    radial-gradient(circle at 10% 20%, rgba(230, 57, 70, 0.03) 0%, transparent 20%),
+    radial-gradient(circle at 90% 80%, rgba(230, 57, 70, 0.03) 0%, transparent 20%);
   pointer-events: none;
   z-index: -1;
 }
@@ -309,25 +309,24 @@
 .iec-program-card {
   background: white;
   padding: 2.5rem;
-  border-radius: 6px;
+  border-radius: 20px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
   border: 1px solid #eee;
-  transition:
-    transform 0.2s,
-    box-shadow 0.2s;
+  transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .iec-program-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  transform: translateY(-8px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
+  border-color: rgba(230, 57, 70, 0.2);
 }
 
 .iec-program-icon {
-  width: 48px;
-  height: 48px;
+  width: 56px;
+  height: 56px;
   background: #fff0f0;
-  color: #e53935;
-  border-radius: 8px;
+  color: #e63946;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -335,8 +334,10 @@
 }
 
 .iec-program-card h3 {
-  font-size: 1.4rem;
+  font-size: 1.5rem;
+  font-weight: 800;
   margin-bottom: 0.5rem;
+  color: #1a1a1a;
 }
 
 .iec-program-card p {
@@ -345,16 +346,10 @@
   margin-bottom: 1.5rem;
 }
 
-.iec-program-features {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
 .iec-program-features li {
   padding-left: 1.5rem;
   position: relative;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.6rem;
   font-size: 0.9rem;
   color: #555;
 }
@@ -363,7 +358,7 @@
   content: '✓';
   position: absolute;
   left: 0;
-  color: #e53935;
+  color: #e63946;
   font-weight: bold;
 }
 

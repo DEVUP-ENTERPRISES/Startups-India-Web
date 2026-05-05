@@ -116,7 +116,7 @@ export default function HowItWorksSection() {
         <div className="roadmap-header">
           <span className="section-label-premium">THE INSTITUTIONAL PATHWAY</span>
           <h2>A Strategic Trajectory for Founders</h2>
-          <p>From visionary concept to global market leader, our structured roadmap ensures every milestone is an engine for growth.</p>
+          
         </div>
 
         <div className="roadmap-container">
@@ -212,17 +212,27 @@ export default function HowItWorksSection() {
                       className="mobile-progress-fill" 
                       style={{ width: `${((mobileStep + 1) / steps.length) * 100}%` }}
                     />
-                    {/* Rocket Cursor for mobile progress bar */}
+                    {/* Rocket Cursor for mobile progress bar - perfectly centered */}
                     <div
                       className="rocket-pilot visible"
                       style={{ 
                         left: `${((mobileStep + 1) / steps.length) * 100}%`,
-                        transition: 'left 0.3s ease',
-                        width: '24px',
-                        height: '24px'
+                        transition: 'left 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                        width: '28px',
+                        height: '28px',
+                        position: 'absolute',
+                        top: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        background: '#18181B',
+                        border: '1px solid rgba(229, 57, 53, 0.4)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderRadius: '50%',
+                        zIndex: 10
                       }}
                     >
-                      <Rocket size={12} style={{ transform: 'rotate(90deg)' }} />
+                      <Rocket size={14} color="#e53935" style={{ transform: 'rotate(90deg)' }} />
                     </div>
                   </div>
                   <span className="mobile-progress-text">0{steps.length}</span>
