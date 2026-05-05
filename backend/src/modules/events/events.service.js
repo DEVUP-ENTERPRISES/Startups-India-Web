@@ -1,5 +1,5 @@
 const { Event } = require('../../models/Event');
-const { ApiError } = require('../../utils/ApiError');
+const { ApiError } = require('../../utils/apiError');
 
 async function listEvents({ page = 1, limit = 20, category, status = 'upcoming', sort = 'date' }) {
   const query = {};
