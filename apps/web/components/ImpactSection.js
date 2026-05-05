@@ -254,7 +254,7 @@ export default function ImpactSection() {
         className="iec-container relative z-10 w-full flex flex-col items-center"
       >
         {/* HEADER */}
-        <div className="text-center relative w-full flex flex-col items-center" style={{ marginBottom: '80px' }}>
+        <div className="text-center mb-16 md:mb-24 relative w-full flex flex-col items-center">
           <motion.div variants={headerVariants}>
             <span className="section-label-premium mb-8">
               Our Impact
@@ -278,7 +278,7 @@ export default function ImpactSection() {
         </div>
 
         {/* GRID */}
-        <div className="w-full grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8">
+        <div className="w-full grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8 stats-grid">
           {impactMetrics.map((metric, index) => (
             <MetricCard key={metric.id} metric={metric} index={index} />
           ))}
