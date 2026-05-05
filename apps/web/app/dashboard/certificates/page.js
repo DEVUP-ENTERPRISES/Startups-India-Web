@@ -243,7 +243,7 @@ export default function CertificatesPage() {
           </div>
           <h2>No certificates yet</h2>
           <p>Complete any course or program to receive a verified certificate of completion.</p>
-          <Link href="/dashboard/explore" className="btn-explore">
+          <Link href="/dashboard/explore-courses" className="btn-explore">
             Browse Courses <Icon name="arrowRight" size={18} />
           </Link>
         </div>

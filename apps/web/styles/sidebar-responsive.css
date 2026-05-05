@@ -69,6 +69,11 @@ html, body {
   .premium-sidebar .sidebar-logo-img {
     height: 34px !important;
   }
+
+  .premium-sidebar .sidebar-home-btn {
+    width: 34px !important;
+    height: 34px !important;
+  }
   
   /* Buttons should always be visible in the sidebar */
   .premium-sidebar .nav-item,
@@ -646,10 +651,12 @@ html, body {
 
   .dashboard-content {
     padding: 12px 8px !important;
+    padding-top: 65px !important; /* Slightly tighter for small mobile */
   }
   
   .mobile-nav-header {
     padding: 8px 12px;
+    height: 54px;
   }
   
   .mobile-brand-name {
@@ -692,13 +699,23 @@ html, body {
 
 /* Mobile Sidebar Specifics */
 .sidebar-header-flex {
+  display: grid;
+  grid-template-columns: 34px 1fr 34px;
+  align-items: center;
+  width: 100%;
+  min-height: 40px;
+  gap: 12px;
+}
+
+.sidebar-home-btn {
+  grid-column: 1;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  width: 100%;
+  justify-content: center;
 }
 
 .sidebar-close-btn {
+  grid-column: 3;
   background: transparent;
   border: none;
   color: rgba(255, 255, 255, 0.9);

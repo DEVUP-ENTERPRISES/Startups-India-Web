@@ -30,6 +30,7 @@ const assessmentSchema = new mongoose.Schema({
   passingScore: { type: Number, default: 0 },
   randomizeQuestions: { type: Boolean, default: false },
   maxAttempts: { type: Number, default: 1 },
+  violationLimit: { type: Number, default: 3 },
   
   // Assignment Config
   deadline: { type: Date },

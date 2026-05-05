@@ -1,9 +1,0 @@
-This file documents the planned move of all frontend files/folders into the new monorepo structure under apps/web. This is a checkpoint for traceability.
-
-- All contents of /app → /apps/web/app
-- All contents of /components → /apps/web/components
-- All contents of /styles → /apps/web/styles
-- All contents of /public → /apps/web/public
-- All subfolders and files preserved, no deletions yet.
-- Imports will be updated in a later step after move.
-- This file is for migration traceability and onboarding reference.

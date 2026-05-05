@@ -6,15 +6,14 @@
    CSS imported here to ensure proper loading on client-side navigation
    ========================================== */
 
-import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, useRef, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { signUp, initGoogleSignIn, resendVerificationEmail } from '@/lib/auth';
 import '@/styles/signup.css';
-// import '@/styles/signup-responsive.css';
 
-export default function SignupPage() {
+function SignupContent() {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -37,7 +36,10 @@ export default function SignupPage() {
     hasNumber: false,
     hasSpecialChar: false,
   });
+
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const returnUrl = searchParams.get('returnUrl') || '/dashboard';
   const [currentSlide, setCurrentSlide] = useState(0);
   const googleBtnRef = useRef(null);
 
@@ -45,9 +47,9 @@ export default function SignupPage() {
   useEffect(() => {
     const token = localStorage.getItem('access_token');
     if (token) {
-      router.replace('/dashboard');
+      router.replace(returnUrl);
     }
-  }, [router]);
+  }, [router, returnUrl]);
 
   // Carousel auto-rotation
   useEffect(() => {
@@ -90,11 +92,11 @@ export default function SignupPage() {
         }
         if (data) {
           setSuccess(true);
-          setTimeout(() => router.push('/dashboard'), 1500);
+          setTimeout(() => router.push(returnUrl), 1500);
         }
       });
     }
-  }, [router]);
+  }, [router, returnUrl]);
 
   // Check password strength in real-time
   useEffect(() => {
@@ -180,7 +182,7 @@ export default function SignupPage() {
         setSuccess(true);
         setIsLoading(false);
         // Auto-redirect to dashboard after 3 seconds
-        setTimeout(() => router.push('/dashboard'), 3000);
+        setTimeout(() => router.push(returnUrl), 3000);
       }
     } catch (err) {
       console.error('Unexpected error:', err);
@@ -1136,5 +1138,13 @@ export default function SignupPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense fallback={<div style={{ display: 'flex', height: '100vh', justifyContent: 'center', alignItems: 'center' }}>Loading...</div>}>
+      <SignupContent />
+    </Suspense>
   );
 }

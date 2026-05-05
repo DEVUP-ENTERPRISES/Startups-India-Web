@@ -537,10 +537,34 @@ export default function CourseLearnPage() {
   };
 
   const navigateLesson = dir => {
-    if (!dashboard?.modules || !activeLesson) return;
+    if (!dashboard?.modules) return;
     const all = getAllLessonsFlat(dashboard.modules);
-    const idx = all.findIndex(l => l._id === activeLesson);
-    if (idx < 0) return;
+    
+    // If no active lesson, find index based on current module overview
+    let idx = all.findIndex(l => String(l._id) === String(activeLesson));
+    
+    if (idx < 0 && selectedModule) {
+      // Find first lesson of selected module
+      const mod = dashboard.modules.find(m => String(m._id) === String(selectedModule));
+      if (mod && mod.lessons?.length) {
+        if (dir > 0) {
+          // "Next" from module overview goes to first lesson of module
+          const firstId = mod.lessons[0]._id;
+          idx = all.findIndex(l => String(l._id) === String(firstId)) - 1;
+        } else {
+          // "Prev" from module overview goes to last lesson of previous module
+          const firstId = mod.lessons[0]._id;
+          idx = all.findIndex(l => String(l._id) === String(firstId));
+        }
+      }
+    }
+
+    if (idx < 0 && dir > 0) {
+      // If still not found and going next, start from first lesson
+      openLesson(all[0]._id, all[0]);
+      return;
+    }
+
     const t = idx + dir;
     if (t < 0 || t >= all.length) return;
     if (all[t].isLocked) return;
@@ -1025,18 +1049,18 @@ export default function CourseLearnPage() {
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        style={{ maxWidth: 780, margin: '0 auto' }}
+        style={{ maxWidth: 1100, margin: '0 auto' }}
       >
         {/* Header card */}
         <div
           style={{
             background: 'linear-gradient(135deg, #7A1F2B, #4a131a)',
-            borderRadius: '32px',
-            padding: '3rem',
-            marginBottom: '32px',
+            borderRadius: '40px',
+            padding: '4rem',
+            marginBottom: '40px',
             position: 'relative',
             overflow: 'hidden',
-            boxShadow: '0 20px 40px rgba(122,31,43,0.15)',
+            boxShadow: '0 30px 60px rgba(122,31,43,0.18)',
           }}
         >
           <div
@@ -1044,10 +1068,10 @@ export default function CourseLearnPage() {
               position: 'absolute',
               top: -50,
               right: -50,
-              width: 250,
-              height: 250,
-              background: 'radial-gradient(circle, rgba(197,151,91,0.2) 0%, transparent 70%)',
-              filter: 'blur(40px)',
+              width: 400,
+              height: 400,
+              background: 'radial-gradient(circle, rgba(197,151,91,0.25) 0%, transparent 70%)',
+              filter: 'blur(60px)',
             }}
           />
           <div style={{ position: 'relative', zIndex: 1 }}>
@@ -1056,20 +1080,20 @@ export default function CourseLearnPage() {
                 display: 'flex',
                 alignItems: 'center',
                 gap: 12,
-                marginBottom: 20,
+                marginBottom: 24,
               }}
             >
               <span
                 style={{
-                  fontSize: '0.7rem',
+                  fontSize: '0.75rem',
                   fontWeight: 900,
                   textTransform: 'uppercase',
                   letterSpacing: '0.15em',
                   color: '#C5975B',
                   background: 'rgba(255,255,255,0.1)',
-                  padding: '6px 16px',
-                  borderRadius: '10px',
-                  border: '1px solid rgba(255,255,255,0.1)',
+                  padding: '8px 20px',
+                  borderRadius: '12px',
+                  border: '1px solid rgba(255,255,255,0.15)',
                 }}
               >
                 Module {mod.moduleNumber}
@@ -1077,12 +1101,12 @@ export default function CourseLearnPage() {
               {mod.weekNumber > 0 && (
                 <span
                   style={{
-                    fontSize: '0.7rem',
+                    fontSize: '0.75rem',
                     fontWeight: 800,
                     color: 'rgba(255,255,255,0.6)',
                     background: 'rgba(0,0,0,0.1)',
-                    padding: '6px 14px',
-                    borderRadius: '10px',
+                    padding: '8px 18px',
+                    borderRadius: '12px',
                   }}
                 >
                   Week {mod.weekNumber}
@@ -1091,11 +1115,11 @@ export default function CourseLearnPage() {
             </div>
             <h2
               style={{
-                fontSize: '2.4rem',
+                fontSize: '3.2rem',
                 fontWeight: 900,
                 color: '#fff',
-                margin: '0 0 16px',
-                lineHeight: 1.1,
+                margin: '0 0 20px',
+                lineHeight: 1,
                 letterSpacing: '-0.04em',
               }}
             >
@@ -1104,11 +1128,11 @@ export default function CourseLearnPage() {
             {mod.description && (
               <p
                 style={{
-                  color: 'rgba(255,255,255,0.8)',
-                  fontSize: '1.1rem',
+                  color: 'rgba(255,255,255,0.85)',
+                  fontSize: '1.2rem',
                   lineHeight: 1.6,
                   margin: 0,
-                  maxWidth: '640px',
+                  maxWidth: '800px',
                   fontWeight: 500,
                 }}
               >
@@ -1116,11 +1140,11 @@ export default function CourseLearnPage() {
               </p>
             )}
             {!isPreStart && total > 0 && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 32 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginTop: 40 }}>
                 <div
                   style={{
                     flex: 1,
-                    height: 8,
+                    height: 10,
                     background: 'rgba(255,255,255,0.1)',
                     borderRadius: 999,
                     overflow: 'hidden',
@@ -1132,12 +1156,12 @@ export default function CourseLearnPage() {
                       background: '#C5975B',
                       borderRadius: 999,
                       width: (mod.progress || 0) + '%',
-                      transition: 'width 1s cubic-bezier(0.4, 0, 0.2, 1)',
+                      transition: 'width 1.2s cubic-bezier(0.4, 0, 0.2, 1)',
                     }}
                   />
                 </div>
                 <span
-                  style={{ fontSize: '0.9rem', fontWeight: 900, color: '#fff', letterSpacing: '0.05em' }}
+                  style={{ fontSize: '1rem', fontWeight: 900, color: '#fff', letterSpacing: '0.05em' }}
                 >
                   {mod.progress}% COMPLETE
                 </span>
@@ -1146,208 +1170,215 @@ export default function CourseLearnPage() {
           </div>
         </div>
 
-        {mod.whatYouLearn?.length > 0 && (
-          <div
-            style={{
-              background: '#fff',
-              border: '1px solid #f0e8e0',
-              borderRadius: 18,
-              padding: '1.75rem',
-              marginBottom: 16,
-            }}
-          >
-            <h3
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '2rem', marginBottom: '2.5rem' }}>
+          {mod.whatYouLearn?.length > 0 && (
+            <div
               style={{
-                fontSize: '1rem',
-                fontWeight: 800,
-                color: '#1a1a1a',
-                margin: '0 0 1rem',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 10,
+                background: '#fff',
+                border: '1px solid #f0e8e0',
+                borderRadius: 24,
+                padding: '2rem',
+                height: '100%'
               }}
             >
-              <span
+              <h3
                 style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: 10,
-                  background: '#ecfdf5',
+                  fontSize: '1.1rem',
+                  fontWeight: 800,
+                  color: '#1a1a1a',
+                  margin: '0 0 1.5rem',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center',
+                  gap: 12,
                 }}
               >
-                <svg
-                  width="16"
-                  height="16"
-                  fill="none"
-                  stroke="#059669"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  viewBox="0 0 24 24"
-                >
-                  <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
-                  <polyline points="22 4 12 14.01 9 11.01" />
-                </svg>
-              </span>{' '}
-              What You&apos;ll Learn
-            </h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {mod.whatYouLearn.map((item, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-                  <CheckIcon size={16} color="#059669" />
-                  <span style={{ fontSize: '0.88rem', color: '#555', lineHeight: 1.6 }}>
-                    {item}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {mod.keyActivities?.length > 0 && (
-          <div
-            style={{
-              background: '#fff',
-              border: '1px solid #f0e8e0',
-              borderRadius: 18,
-              padding: '1.75rem',
-              marginBottom: 16,
-            }}
-          >
-            <h3
-              style={{
-                fontSize: '1rem',
-                fontWeight: 800,
-                color: '#1a1a1a',
-                margin: '0 0 1rem',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 10,
-              }}
-            >
-              <span
-                style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: 10,
-                  background: '#fdf2f4',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <svg
-                  width="16"
-                  height="16"
-                  fill="none"
-                  stroke="#7A1F2B"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  viewBox="0 0 24 24"
-                >
-                  <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-                </svg>
-              </span>{' '}
-              Key Activities
-            </h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {mod.keyActivities.map((item, i) => (
-                <div
-                  key={i}
+                <span
                   style={{
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    gap: 10,
-                    background: '#faf8f5',
+                    width: 36,
+                    height: 36,
                     borderRadius: 12,
-                    padding: '0.75rem 1rem',
+                    background: '#ecfdf5',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                   }}
                 >
-                  <span
+                  <svg
+                    width="18"
+                    height="18"
+                    fill="none"
+                    stroke="#059669"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
+                    <polyline points="22 4 12 14.01 9 11.01" />
+                  </svg>
+                </span>{' '}
+                Key Outcomes
+              </h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {mod.whatYouLearn.map((item, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                    <div style={{ marginTop: 4 }}><CheckIcon size={16} color="#059669" /></div>
+                    <span style={{ fontSize: '0.95rem', color: '#444', lineHeight: 1.6, fontWeight: 500 }}>
+                      {item}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {mod.keyActivities?.length > 0 && (
+            <div
+              style={{
+                background: '#fff',
+                border: '1px solid #f0e8e0',
+                borderRadius: 24,
+                padding: '2rem',
+                height: '100%'
+              }}
+            >
+              <h3
+                style={{
+                  fontSize: '1.1rem',
+                  fontWeight: 800,
+                  color: '#1a1a1a',
+                  margin: '0 0 1.5rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12,
+                }}
+              >
+                <span
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 12,
+                    background: '#fdf2f4',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <svg
+                    width="18"
+                    height="18"
+                    fill="none"
+                    stroke="#7A1F2B"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                  </svg>
+                </span>{' '}
+                Milestones
+              </h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {mod.keyActivities.map((item, i) => (
+                  <div
+                    key={i}
                     style={{
-                      width: 24,
-                      height: 24,
-                      borderRadius: 8,
-                      background: '#7A1F2B',
-                      color: '#fff',
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '0.65rem',
-                      fontWeight: 800,
-                      flexShrink: 0,
+                      gap: 12,
+                      background: '#faf8f5',
+                      borderRadius: 16,
+                      padding: '1rem',
                     }}
                   >
-                    {i + 1}
-                  </span>
-                  <span style={{ fontSize: '0.88rem', color: '#555', lineHeight: 1.6 }}>
-                    {item}
-                  </span>
-                </div>
-              ))}
+                    <span
+                      style={{
+                        width: 28,
+                        height: 28,
+                        borderRadius: 10,
+                        background: '#7A1F2B',
+                        color: '#fff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '0.75rem',
+                        fontWeight: 900,
+                        flexShrink: 0,
+                      }}
+                    >
+                      {i + 1}
+                    </span>
+                    <span style={{ fontSize: '0.92rem', color: '#333', fontWeight: 600 }}>
+                      {item}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {mod.deliverable && (
           <div
             style={{
               background: 'linear-gradient(135deg, #fffbeb, #fef3c7)',
               border: '1px solid #fde68a',
-              borderRadius: 18,
-              padding: '1.75rem',
-              marginBottom: 16,
+              borderRadius: 24,
+              padding: '2rem 2.5rem',
+              marginBottom: '2.5rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 24
             }}
           >
-            <h3
+            <div
               style={{
-                fontSize: '1rem',
-                fontWeight: 800,
-                color: '#92400e',
-                margin: '0 0 8px',
+                width: 56,
+                height: 56,
+                borderRadius: 16,
+                background: 'rgba(217,119,6,0.1)',
                 display: 'flex',
                 alignItems: 'center',
-                gap: 10,
+                justifyContent: 'center',
+                flexShrink: 0
               }}
             >
-              <span
+              <svg
+                width="28"
+                height="28"
+                fill="none"
+                stroke="#d97706"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                viewBox="0 0 24 24"
+              >
+                <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+              </svg>
+            </div>
+            <div>
+              <h3
                 style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: 10,
-                  background: 'rgba(217,119,6,0.1)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
+                  fontSize: '0.8rem',
+                  fontWeight: 900,
+                  color: '#92400e',
+                  margin: '0 0 4px',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.1em'
                 }}
               >
-                <svg
-                  width="16"
-                  height="16"
-                  fill="none"
-                  stroke="#d97706"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  viewBox="0 0 24 24"
-                >
-                  <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                </svg>
-              </span>{' '}
-              Deliverable
-            </h3>
-            <p style={{ fontSize: '0.9rem', fontWeight: 700, color: '#78350f', margin: 0 }}>
-              {mod.deliverable}
-            </p>
-            {mod.deliverableDescription && (
-              <p style={{ fontSize: '0.85rem', color: '#92400e', margin: '6px 0 0', opacity: 0.8 }}>
-                {mod.deliverableDescription}
+                Primary Deliverable
+              </h3>
+              <p style={{ fontSize: '1.2rem', fontWeight: 800, color: '#78350f', margin: 0 }}>
+                {mod.deliverable}
               </p>
-            )}
+              {mod.deliverableDescription && (
+                <p style={{ fontSize: '0.95rem', color: '#92400e', margin: '6px 0 0', opacity: 0.8, fontWeight: 500 }}>
+                  {mod.deliverableDescription}
+                </p>
+              )}
+            </div>
           </div>
         )}
 
@@ -1357,17 +1388,25 @@ export default function CourseLearnPage() {
             style={{
               background: '#fff',
               border: '1px solid #f0e8e0',
-              borderRadius: 18,
-              padding: '1.75rem',
+              borderRadius: 24,
+              padding: '2.5rem',
             }}
           >
-            <h3 style={{ fontSize: '1rem', fontWeight: 800, color: '#1a1a1a', margin: '0 0 4px' }}>
-              Lessons
-            </h3>
-            <p style={{ fontSize: '0.75rem', color: '#999', margin: '0 0 16px' }}>
-              Complete each lesson in order — watch 90% of videos, spend 90% of required time
-            </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '2rem' }}>
+              <div>
+                <h3 style={{ fontSize: '1.4rem', fontWeight: 900, color: '#1a1a1a', margin: '0 0 6px' }}>
+                  Curriculum Repository
+                </h3>
+                <p style={{ fontSize: '0.9rem', color: '#999', margin: 0, fontWeight: 500 }}>
+                  Strategic breakdown of phase objectives and tactical lessons.
+                </p>
+              </div>
+              <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#7A1F2B', background: 'rgba(122,31,43,0.05)', padding: '6px 14px', borderRadius: '10px' }}>
+                {done} / {total} COMPLETED
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(450px, 1fr))', gap: '1rem' }}>
               {(mod.lessons || []).map(lesson => {
                 const isLk = lesson.isLocked;
                 return (
@@ -1379,55 +1418,58 @@ export default function CourseLearnPage() {
                     style={{
                       display: 'flex',
                       alignItems: 'center',
-                      gap: 12,
-                      padding: '0.85rem 1rem',
-                      borderRadius: 14,
+                      gap: 16,
+                      padding: '1.25rem',
+                      borderRadius: 20,
                       background: isLk ? '#fafafa' : '#faf8f5',
                       border: '1px solid #f0e8e0',
                       cursor: isLk ? 'not-allowed' : 'pointer',
-                      transition: 'all 0.2s',
+                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                       textAlign: 'left',
                       width: '100%',
-                      opacity: isLk ? 0.5 : 1,
+                      opacity: isLk ? 0.6 : 1,
                     }}
                   >
                     <span
                       style={{
-                        width: 34,
-                        height: 34,
-                        borderRadius: 10,
+                        width: 44,
+                        height: 44,
+                        borderRadius: 14,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         flexShrink: 0,
-                        background: lesson.isCompleted ? '#ecfdf5' : isLk ? '#f0f0f0' : '#fdf2f4',
+                        background: lesson.isCompleted ? '#ecfdf5' : isLk ? '#f0f0f0' : '#fff',
+                        boxShadow: lesson.isCompleted || isLk ? 'none' : '0 4px 10px rgba(0,0,0,0.03)'
                       }}
                     >
                       {lesson.isCompleted ? (
-                        <CheckIcon size={15} color="#059669" />
+                        <CheckIcon size={20} color="#059669" />
                       ) : isLk ? (
-                        <LockIcon size={14} color="#ccc" />
+                        <LockIcon size={18} color="#ccc" />
                       ) : (
-                        <LessonIcon type={lesson.contentType} size={15} color="#7A1F2B" />
+                        <LessonIcon type={lesson.contentType} size={20} color="#7A1F2B" />
                       )}
                     </span>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <p
                         style={{
-                          fontSize: '0.88rem',
-                          fontWeight: 600,
-                          color: isLk ? '#bbb' : lesson.isCompleted ? '#999' : '#333',
+                          fontSize: '1rem',
+                          fontWeight: 700,
+                          color: isLk ? '#bbb' : lesson.isCompleted ? '#999' : '#111',
                           margin: 0,
+                          letterSpacing: '-0.01em'
                         }}
                       >
                         {lesson.title}
                       </p>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 3 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 4 }}>
                         <span
                           style={{
-                            fontSize: '0.68rem',
+                            fontSize: '0.75rem',
                             color: '#bbb',
                             textTransform: 'capitalize',
+                            fontWeight: 600
                           }}
                         >
                           {(lesson.contentType || 'lesson').replace('_', ' ')}
@@ -1435,27 +1477,79 @@ export default function CourseLearnPage() {
                         {lesson.durationMinutes > 0 && (
                           <span
                             style={{
-                              fontSize: '0.68rem',
+                              fontSize: '0.75rem',
                               color: '#ccc',
                               display: 'flex',
                               alignItems: 'center',
-                              gap: 2,
+                              gap: 4,
+                              fontWeight: 500
                             }}
                           >
-                            <ClockIcon size={10} color="#ccc" /> {lesson.durationMinutes}m required
-                          </span>
-                        )}
-                        {isLk && (
-                          <span style={{ fontSize: '0.62rem', color: '#d97706', fontWeight: 600 }}>
-                            Locked
+                            <ClockIcon size={12} color="#ccc" /> {lesson.durationMinutes}m
                           </span>
                         )}
                       </div>
                     </div>
-                    {!isLk && <ChevronRight size={16} color="#ccc" />}
+                    {!isLk && <div style={{ color: '#C5975B', transform: 'translateX(0)', transition: '0.3s' }} className="lesson-arrow"><ChevronRight size={20} /></div>}
                   </button>
                 );
               })}
+              
+              {/* Quiz button in grid */}
+              {mod.quiz && !isPreStart && (
+                <button
+                  onClick={() => (mod.allLessonsComplete ? openQuiz(mod._id) : null)}
+                  disabled={!mod.allLessonsComplete}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 16,
+                    padding: '1.25rem',
+                    borderRadius: 20,
+                    background: mod.allLessonsComplete ? 'rgba(197,151,91,0.05)' : '#fafafa',
+                    border: '1px solid rgba(197,151,91,0.2)',
+                    cursor: mod.allLessonsComplete ? 'pointer' : 'not-allowed',
+                    textAlign: 'left',
+                    width: '100%',
+                    opacity: mod.allLessonsComplete ? 1 : 0.4,
+                  }}
+                >
+                  <span
+                    style={{
+                      width: 44,
+                      height: 44,
+                      borderRadius: 14,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      background: mod.quizPassed ? '#ecfdf5' : '#fff',
+                      border: mod.quizPassed ? 'none' : '1px solid rgba(197,151,91,0.3)',
+                    }}
+                  >
+                    {mod.quizPassed ? (
+                      <CheckIcon size={20} color="#059669" />
+                    ) : (
+                      <LessonIcon type="quiz" size={20} color="#C5975B" />
+                    )}
+                  </span>
+                  <div style={{ flex: 1 }}>
+                    <p
+                      style={{
+                        margin: 0,
+                        fontSize: '1rem',
+                        fontWeight: 800,
+                        color: mod.quizPassed ? '#059669' : '#C5975B',
+                      }}
+                    >
+                      {mod.quiz.title || 'Phase Assessment'}
+                    </p>
+                    <p style={{ margin: '2px 0 0', fontSize: '0.75rem', color: '#999', fontWeight: 600 }}>
+                      {mod.quiz.questionCount} Qs · {mod.quizPassed ? 'Verified' : '75% Required'}
+                    </p>
+                  </div>
+                  {mod.allLessonsComplete && <ChevronRight size={20} color="#C5975B" />}
+                </button>
+              )}
             </div>
           </div>
         )}
@@ -1491,6 +1585,10 @@ export default function CourseLearnPage() {
     .btn-premium:disabled { background: #eee; color: #aaa; cursor: not-allowed; transform: none; box-shadow: none; }
     
     .accent-bar { width: 30px; height: 3px; background: #C5975B; border-radius: 2px; margin-bottom: 12px; }
+
+    @media (min-width: 1024px) {
+      .sidebar-overlay { display: none !important; }
+    }
   `;
 
   /* ═══════ LOADING ═══════ */
@@ -2067,10 +2165,11 @@ export default function CourseLearnPage() {
     modules.find(m => m._id === selectedModule) || modules.find(m => m.isUnlocked) || modules[0];
 
   const allLessons = getAllLessonsFlat(modules);
-  const curIdx = allLessons.findIndex(l => l._id === activeLesson);
-  const hasPrev = curIdx > 0;
+  const curIdx = allLessons.findIndex(l => String(l._id) === String(activeLesson));
+  const hasPrev = curIdx > 0 || (curIdx === -1 && selectedModule && allLessons.length > 0);
   const hasNext =
-    curIdx >= 0 && curIdx < allLessons.length - 1 && !allLessons[curIdx + 1]?.isLocked;
+    (curIdx >= 0 && curIdx < allLessons.length - 1 && !allLessons[curIdx + 1]?.isLocked) ||
+    (curIdx === -1 && selectedModule && allLessons.length > 0);
 
   const reqSec = lessonDetail ? (lessonDetail.durationMinutes || 0) * 60 : 0;
   const timerPct = reqSec > 0 ? Math.min((timeSpent / Math.ceil(reqSec * 0.9)) * 100, 100) : 100;
@@ -2086,47 +2185,53 @@ export default function CourseLearnPage() {
       }}
     >
       <style dangerouslySetInnerHTML={{ __html: pageStyles }} />
+      {/* Mobile-only overlay: remove blur as requested */}
       {sidebarOpen && (
         <div
+          className="sidebar-overlay"
           onClick={() => setSidebarOpen(false)}
-          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.25)', zIndex: 30 }}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.05)', zIndex: 30 }}
         />
       )}
 
       <aside
         className="learn-sidebar"
         style={{
-          width: 320,
+          width: 360,
           background: '#fff',
-          borderRight: '1px solid #f0e8e0',
+          borderRight: '1px solid #f5f0eb',
           flexShrink: 0,
           height: '100vh',
           display: 'flex',
           flexDirection: 'column',
           position: 'sticky',
           top: 0,
-          boxShadow: '2px 0 12px rgba(0,0,0,0.02)',
+          zIndex: 35,
+          boxShadow: '4px 0 24px rgba(0,0,0,0.02)',
           overflowY: 'auto',
+          transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+          marginLeft: sidebarOpen ? 0 : -360,
+          opacity: sidebarOpen ? 1 : 0
         }}
       >
         {renderSidebar(modules, overallProgress)}
       </aside>
 
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, background: '#fafafa' }}>
         {/* Top bar */}
         <div
           style={{
-            background: 'rgba(255,255,255,0.85)',
-            backdropFilter: 'blur(20px)',
-            borderBottom: '1px solid rgba(0,0,0,0.05)',
-            padding: '1rem 2rem',
+            background: 'rgba(255,255,255,0.8)',
+            backdropFilter: 'blur(30px)',
+            borderBottom: '1px solid rgba(0,0,0,0.04)',
+            padding: '1.25rem 3rem',
             display: 'flex',
             alignItems: 'center',
-            gap: 16,
+            gap: 20,
             position: 'sticky',
             top: 0,
             zIndex: 40,
-            boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
+            boxShadow: '0 4px 30px rgba(0,0,0,0.02)',
           }}
         >
           <button
@@ -2215,7 +2320,7 @@ export default function CourseLearnPage() {
         </div>
 
         {/* Content */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '2rem 2.5rem' }}>
+        <div style={{ flex: 1, overflowY: 'auto', padding: '3rem 4rem' }}>
           {lessonLoading ? (
             <div
               style={{
@@ -2257,7 +2362,7 @@ export default function CourseLearnPage() {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              style={{ maxWidth: 860, margin: '0 auto' }}
+              style={{ maxWidth: 1280, margin: '0 auto' }}
             >
               {/* Video */}
               {lessonDetail.videoUrl ? (
@@ -2655,88 +2760,115 @@ export default function CourseLearnPage() {
               </div>
 
               {/* Nav buttons */}
-              <div style={{ marginTop: 24, display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ marginTop: '4rem', padding: '2rem 0', borderTop: '1px solid #f0e8e0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 24 }}>
                 <button
                   onClick={() => navigateLesson(-1)}
                   disabled={!hasPrev}
-                  className="nav-btn"
+                  className="nav-btn-v2"
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 6,
-                    padding: '0.7rem 1.2rem',
+                    gap: 10,
+                    padding: '1rem 2rem',
                     background: '#fff',
-                    border: '1px solid #f0e8e0',
-                    borderRadius: 12,
-                    color: hasPrev ? '#7A1F2B' : '#ccc',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '16px',
+                    color: hasPrev ? '#1a1a1a' : '#cbd5e1',
                     fontWeight: 700,
-                    fontSize: '0.82rem',
+                    fontSize: '0.9rem',
                     cursor: hasPrev ? 'pointer' : 'not-allowed',
-                    opacity: hasPrev ? 1 : 0.5,
-                    transition: 'all 0.2s',
+                    transition: 'all 0.3s ease',
+                    boxShadow: hasPrev ? '0 4px 12px rgba(0,0,0,0.05)' : 'none'
                   }}
                 >
-                  <ChevronLeft size={14} color={hasPrev ? '#7A1F2B' : '#ccc'} /> Previous
+                  <ChevronLeft size={18} color={hasPrev ? '#1a1a1a' : '#cbd5e1'} /> Previous
                 </button>
 
-                <button
-                  onClick={() => {
-                    setLessonDetail(null);
-                    setActiveLesson(null);
-                  }}
-                  style={{
-                    padding: '0.7rem 1rem',
-                    background: 'none',
-                    border: 'none',
-                    color: '#888',
-                    fontWeight: 600,
-                    fontSize: '0.8rem',
-                    cursor: 'pointer',
-                  }}
-                >
-                  Module Overview
-                </button>
+                <div style={{ height: 32, width: 1, background: '#e2e8f0' }} />
 
                 <button
                   onClick={() => navigateLesson(1)}
                   disabled={!hasNext}
-                  className="nav-btn"
+                  className="nav-btn-v2-primary"
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 6,
-                    padding: '0.7rem 1.2rem',
-                    background:
-                      hasNext && lessonDetail.isCompleted
-                        ? 'linear-gradient(135deg, #7A1F2B, #922538)'
-                        : '#fff',
-                    border: hasNext && lessonDetail.isCompleted ? 'none' : '1px solid #f0e8e0',
-                    borderRadius: 12,
-                    color:
-                      hasNext && lessonDetail.isCompleted ? '#fff' : hasNext ? '#7A1F2B' : '#ccc',
-                    fontWeight: 700,
-                    fontSize: '0.82rem',
+                    gap: 10,
+                    padding: '1rem 3rem',
+                    background: hasNext && lessonDetail.isCompleted 
+                      ? 'linear-gradient(135deg, #7A1F2B, #922538)' 
+                      : hasNext ? '#1a1a1a' : '#f1f5f9',
+                    border: 'none',
+                    borderRadius: '16px',
+                    color: hasNext ? '#fff' : '#94a3b8',
+                    fontWeight: 800,
+                    fontSize: '0.9rem',
                     cursor: hasNext ? 'pointer' : 'not-allowed',
-                    opacity: hasNext ? 1 : 0.5,
-                    transition: 'all 0.2s',
-                    boxShadow:
-                      hasNext && lessonDetail.isCompleted
-                        ? '0 4px 14px rgba(122,31,43,0.2)'
-                        : 'none',
+                    transition: 'all 0.3s ease',
+                    boxShadow: hasNext ? '0 10px 25px rgba(0,0,0,0.1)' : 'none'
                   }}
                 >
-                  Next Lesson{' '}
-                  <ChevronRight
-                    size={14}
-                    color={
-                      hasNext && lessonDetail.isCompleted ? '#fff' : hasNext ? '#7A1F2B' : '#ccc'
-                    }
-                  />
+                  {hasNext && lessonDetail.isCompleted ? 'Next Phase Objective' : 'Next Lesson'}
+                  <ChevronRight size={18} color={hasNext ? '#fff' : '#94a3b8'} />
                 </button>
               </div>
             </motion.div>
           ) : currentModule ? (
-            renderModuleDetail(currentModule)
+            <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+              {renderModuleDetail(currentModule)}
+              
+              {/* Universal Nav buttons for module overview */}
+              <div style={{ marginTop: '4rem', padding: '2rem 0', borderTop: '1px solid #f0e8e0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 24 }}>
+                <button
+                  onClick={() => navigateLesson(-1)}
+                  disabled={!hasPrev}
+                  className="nav-btn-v2"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 10,
+                    padding: '1rem 2rem',
+                    background: '#fff',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '16px',
+                    color: hasPrev ? '#1a1a1a' : '#cbd5e1',
+                    fontWeight: 700,
+                    fontSize: '0.9rem',
+                    cursor: hasPrev ? 'pointer' : 'not-allowed',
+                    transition: 'all 0.3s ease',
+                    boxShadow: hasPrev ? '0 4px 12px rgba(0,0,0,0.05)' : 'none'
+                  }}
+                >
+                  <ChevronLeft size={18} color={hasPrev ? '#1a1a1a' : '#cbd5e1'} /> Previous
+                </button>
+
+                <div style={{ height: 32, width: 1, background: '#e2e8f0' }} />
+
+                <button
+                  onClick={() => navigateLesson(1)}
+                  disabled={!hasNext}
+                  className="nav-btn-v2-primary"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 10,
+                    padding: '1rem 3rem',
+                    background: hasNext ? '#1a1a1a' : '#f1f5f9',
+                    border: 'none',
+                    borderRadius: '16px',
+                    color: hasNext ? '#fff' : '#94a3b8',
+                    fontWeight: 800,
+                    fontSize: '0.9rem',
+                    cursor: hasNext ? 'pointer' : 'not-allowed',
+                    transition: 'all 0.3s ease',
+                    boxShadow: hasNext ? '0 10px 25px rgba(0,0,0,0.1)' : 'none'
+                  }}
+                >
+                  Start Phase Lesson
+                  <ChevronRight size={18} color={hasNext ? '#fff' : '#94a3b8'} />
+                </button>
+              </div>
+            </div>
           ) : (
             <motion.div
               initial={{ opacity: 0, y: 10 }}

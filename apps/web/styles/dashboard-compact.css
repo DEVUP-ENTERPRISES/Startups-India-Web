@@ -452,6 +452,18 @@
   }
 }
 
+@media (max-width: 1060px) {
+  .dashboard-main {
+    margin-left: 0 !important;
+  }
+  
+  .dashboard-header {
+    left: 0 !important;
+    width: 100% !important;
+    padding: 0 1rem !important;
+  }
+}
+
 @media (max-width: 30rem) {
   .nav-item {
     font-size: 0.8125rem !important;

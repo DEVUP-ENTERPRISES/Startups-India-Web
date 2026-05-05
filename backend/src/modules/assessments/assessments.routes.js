@@ -10,6 +10,8 @@ const router = express.Router();
 router.get('/', authRequired, controller.getAssessments);
 router.post('/', authRequired, requireRole('admin', 'instructor'), controller.createAssessment);
 router.get('/:id', authRequired, controller.getAssessmentById);
+router.patch('/:id', authRequired, requireRole('admin', 'instructor'), controller.updateAssessment);
+router.delete('/:id', authRequired, requireRole('admin', 'instructor'), controller.deleteAssessment);
 
 /**
  * Quiz/Exam Attempts

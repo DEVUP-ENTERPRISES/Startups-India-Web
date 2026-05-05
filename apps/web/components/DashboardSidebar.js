@@ -2,7 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { signOut } from '@/lib/auth';
 
 export default function DashboardSidebar({
@@ -12,8 +12,7 @@ export default function DashboardSidebar({
   onClose = () => {},
 }) {
   const pathname = usePathname();
-  const [openSectionId, setOpenSectionId] = useState('courses');
-  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [openSectionId, setOpenSectionId] = useState(null);
 
   const navigation = [
     {
@@ -29,7 +28,7 @@ export default function DashboardSidebar({
       isDropdown: true,
       icon: 'courses',
       items: [
-        { id: 'explore', label: 'Explore Courses', path: '/dashboard/explore', icon: 'explore' },
+        { id: 'explore', label: 'Explore Courses', path: '/dashboard/explore-courses', icon: 'explore' },
         {
           id: 'enrolled',
           label: 'Enrolled Courses',
@@ -51,12 +50,6 @@ export default function DashboardSidebar({
       isDropdown: true,
       icon: 'explore',
       items: [
-        {
-          id: 'continue',
-          label: 'Continue Learning',
-          path: '/dashboard/learning/continue',
-          icon: 'dashboard',
-        },
         { id: 'live', label: 'Live Classes', path: '/dashboard/learning/live', icon: 'explore' },
         {
           id: 'recorded',
@@ -76,22 +69,12 @@ export default function DashboardSidebar({
       id: 'assessments',
       label: 'Assessments',
       isDropdown: true,
-      icon: 'award',
+      icon: 'results',
       items: [
-        {
-          id: 'quizzes',
-          label: 'Quizzes',
-          path: '/dashboard/assessments/quizzes',
-          icon: 'explore',
-        },
-        {
-          id: 'assignments',
-          label: 'Assignments',
-          path: '/dashboard/assessments/assignments',
-          icon: 'courses',
-        },
-        { id: 'exams', label: 'Exams', path: '/dashboard/assessments/exams', icon: 'award' },
-        { id: 'results', label: 'Results', path: '/dashboard/assessments/results', icon: 'streak' },
+        { id: 'quiz', label: 'Quizzes', path: '/dashboard/assessment/quiz' },
+        { id: 'assignment', label: 'Assignments', path: '/dashboard/assessment/assignments' },
+        { id: 'exam', label: 'Exams', path: '/dashboard/assessment/exam' },
+        { id: 'results', label: 'Results', path: '/dashboard/assessment/results' },
       ],
     },
     {
@@ -200,6 +183,23 @@ export default function DashboardSidebar({
     if (path === '/dashboard') return pathname === '/dashboard';
     return pathname === path || pathname.startsWith(path + '/');
   };
+
+  useEffect(() => {
+    const activeSection = navigation.find(section =>
+      section.isDropdown &&
+      Array.isArray(section.items) &&
+      section.items.some(item => pathname === item.path || pathname.startsWith(item.path + '/'))
+    );
+
+    if (activeSection) {
+      setOpenSectionId(activeSection.id);
+      return;
+    }
+
+    if (pathname === '/dashboard') {
+      setOpenSectionId(null);
+    }
+  }, [pathname]);
 
   const renderIcon = (icon, size = 18, isOpen = false) => {
     const icons = {
@@ -473,6 +473,10 @@ export default function DashboardSidebar({
         {/* Logo and Branding */}
         <div className="sidebar-header">
           <div className="sidebar-header-flex">
+            <Link href="/" className="sidebar-home-btn" title="Back to Home" onClick={onClose}>
+              {renderIcon('home', 20)}
+            </Link>
+
             <Link href="/dashboard" className="sidebar-logo" onClick={onClose}>
               <img
                 src="/assets/images/logo-new.png"
@@ -553,7 +557,7 @@ export default function DashboardSidebar({
                           </svg>
                         </span>
                       )}
-                      {isDropdown && renderIcon('chevron', isSectionOpen)}
+                      {isDropdown && renderIcon('chevron', 16, isSectionOpen)}
                     </div>
                   )
                 )}
@@ -571,35 +575,21 @@ export default function DashboardSidebar({
                   }
                 >
                   {section.items.map(item =>
-                    item.isAction ? (
-                      <button
-                        key={item.id}
-                        className="nav-item action-button-nav"
-                        onClick={() => {
-                          if (item.id === 'logout') {
-                            onClose();
-                            setShowLogoutModal(true);
-                          }
-                        }}
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          width: 'calc(100% - 24px)',
-                          textAlign: 'left',
-                          fontFamily: 'inherit',
-                        }}
-                      >
-                        <span className="nav-item-label">{item.label}</span>
-                      </button>
-                    ) : (
+                    (
                       <Link
                         key={item.id}
                         href={item.path}
                         className={`nav-item ${isActive(item.path) ? 'active' : ''}`}
                         prefetch={true}
-                        onClick={onClose}
+                        onClick={() => {
+                          setOpenSectionId(section.id);
+                          onClose();
+                        }}
                       >
-                        <span className="nav-item-label">{item.label}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          {item.icon && renderIcon(item.icon, 16)}
+                          <span className="nav-item-label">{item.label}</span>
+                        </div>
                         {item.badge}
                       </Link>
                     )
@@ -612,28 +602,6 @@ export default function DashboardSidebar({
 
         <div className="sidebar-bottom">
           <div className="bottom-actions">
-
-            <button
-              className="bottom-action"
-              onClick={() => {
-                onClose();
-                setShowLogoutModal(true);
-              }}
-            >
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                <polyline points="16 17 21 12 16 7" />
-                <line x1="21" y1="12" x2="9" y2="12" />
-              </svg>
-              <span>Logout</span>
-            </button>
 
             <Link href="/dashboard/contact" className="bottom-action" onClick={onClose}>
               <svg
@@ -653,132 +621,6 @@ export default function DashboardSidebar({
           </div>
         </div>
 
-        {/* Logout Confirmation Modal */}
-        {showLogoutModal && (
-          <div
-            style={{
-              position: 'fixed',
-              inset: 0,
-              zIndex: 9999,
-              background: 'rgba(0,0,0,0.45)',
-              backdropFilter: 'blur(6px)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-            onClick={() => setShowLogoutModal(false)}
-          >
-            <div
-              style={{
-                background: '#fff',
-                borderRadius: 16,
-                padding: '36px 32px 28px',
-                width: 380,
-                maxWidth: '90vw',
-                textAlign: 'center',
-                boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
-                position: 'relative',
-                animation: 'logoutModalIn 0.25s ease-out',
-              }}
-              onClick={e => e.stopPropagation()}
-            >
-              <div
-                style={{
-                  width: 56,
-                  height: 56,
-                  borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #fee2e2, #fecaca)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  margin: '0 auto 20px',
-                }}
-              >
-                <svg
-                  width="28"
-                  height="28"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="#dc2626"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                  <polyline points="16 17 21 12 16 7" />
-                  <line x1="21" y1="12" x2="9" y2="12" />
-                </svg>
-              </div>
-              <h3 style={{ margin: '0 0 8px', fontSize: 20, fontWeight: 700, color: '#111' }}>
-                Sign Out?
-              </h3>
-              <p style={{ margin: '0 0 28px', fontSize: 14, color: '#6b7280', lineHeight: 1.5 }}>
-                Are you sure you want to sign out? You will need to log in again to access your
-                dashboard.
-              </p>
-              <div style={{ display: 'flex', gap: 12 }}>
-                <button
-                  onClick={() => setShowLogoutModal(false)}
-                  style={{
-                    flex: 1,
-                    padding: '12px 0',
-                    borderRadius: 10,
-                    border: '1.5px solid #e5e7eb',
-                    background: '#fff',
-                    fontSize: 14,
-                    fontWeight: 600,
-                    color: '#374151',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
-                  }}
-                  onMouseEnter={e => {
-                    e.target.style.background = '#f9fafb';
-                    e.target.style.borderColor = '#d1d5db';
-                  }}
-                  onMouseLeave={e => {
-                    e.target.style.background = '#fff';
-                    e.target.style.borderColor = '#e5e7eb';
-                  }}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={async () => {
-                    await signOut();
-                    window.location.replace('/login');
-                  }}
-                  style={{
-                    flex: 1,
-                    padding: '12px 0',
-                    borderRadius: 10,
-                    border: 'none',
-                    background: 'linear-gradient(135deg, #7A1F2B, #9B3040)',
-                    fontSize: 14,
-                    fontWeight: 600,
-                    color: '#fff',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
-                    boxShadow: '0 2px 8px rgba(122,31,43,0.3)',
-                  }}
-                  onMouseEnter={e => (e.target.style.opacity = '0.9')}
-                  onMouseLeave={e => (e.target.style.opacity = '1')}
-                >
-                  Yes, Sign Out
-                </button>
-              </div>
-            </div>
-            <style
-              dangerouslySetInnerHTML={{
-                __html: `
-            @keyframes logoutModalIn {
-              from { opacity: 0; transform: scale(0.9) translateY(10px); }
-              to { opacity: 1; transform: scale(1) translateY(0); }
-            }
-          `,
-              }}
-            />
-          </div>
-        )}
       </aside>
     </>
   );

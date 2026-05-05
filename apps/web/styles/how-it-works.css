@@ -3,17 +3,29 @@
     ════════════════════════════════════════════════════════════════════════════ */
 
 .how-it-works-modern {
-  padding: 40px 0 20px 0;
+  padding: 80px 0 60px 0;
   background: transparent;
   position: relative;
   overflow: hidden;
+}
+
+@media (max-width: 768px) {
+  .how-it-works-modern {
+    padding: 10px 20px 40px;
+  }
 }
 
 /* ── Header ─────────────────────────────────────────────────────────────── */
 .roadmap-header {
   text-align: center;
   max-width: 700px;
-  margin: 0 auto 50px;
+  margin: 0 auto 60px;
+}
+
+@media (max-width: 768px) {
+  .roadmap-header {
+    margin-bottom: 10px;
+  }
 }
 
 .sub-tag {
@@ -29,14 +41,14 @@
 .roadmap-header h2 {
   font-size: clamp(32px, 4vw, 42px);
   font-weight: 800;
-  color: #1a1a1b;
-  margin-bottom: 20px;
+  color: #1a1a1a;
+  margin-bottom: 16px;
   letter-spacing: -0.02em;
 }
 
 .roadmap-header p {
   font-size: 16px;
-  color: #64748b;
+  color: #555;
   line-height: 1.6;
 }
 
@@ -100,7 +112,7 @@
   height: 44px;
   border-radius: 50%;
   border: 2px solid #E53935;
-  background: #fff;
+  background: #0a0a0a;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -137,14 +149,14 @@
   transform: translate(-50%, -50%);
   z-index: 3; /* below nodes (z:5) but above flame trail (z:2) */
   color: #E53935;
-  background: #fff;
+  background: #0a0a0a;
   width: 34px;
   height: 34px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  border: 2px solid rgba(229,57,53,0.2);
+  border: 2px solid rgba(229,57,53,0.4);
   box-shadow: 0 0 12px rgba(229,57,53,0.3), 0 2px 8px rgba(0,0,0,0.08);
   /* Hidden until cursor enters the axis */
   opacity: 0;
@@ -170,22 +182,22 @@
 }
 
 .roadmap-step-card-glass {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
   padding: 32px 24px;
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
   cursor: pointer;
 }
 
 .roadmap-step-card-glass:hover,
 .roadmap-step-card-glass.focused {
-  transform: translateY(-6px);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
-  border-color: rgba(229, 57, 53, 0.15);
-  background: #fff;
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  border-color: rgba(230, 57, 70, 0.3);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .step-card-icon {
@@ -208,15 +220,15 @@
 }
 
 .step-card-title {
-  font-size: 17px;
-  font-weight: 700;
-  color: #1e293b;
+  font-size: 18px;
+  font-weight: 800;
+  color: #ffffff;
   margin-bottom: 12px;
 }
 
 .step-card-desc {
   font-size: 13.5px;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.6);
   line-height: 1.6;
 }
 
@@ -259,10 +271,10 @@
   .mobile-carousel-viewport {
     position: relative;
     width: 100%;
-    height: 240px; /* Reduced from 320px to remove empty space */
+    height: 320px;
     overflow: hidden;
-    border-radius: 16px;
-    margin-bottom: 24px;
+    border-radius: 20px;
+    margin-bottom: 20px;
   }
 
   .mobile-carousel-card {
@@ -296,11 +308,13 @@
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 20px;
-    padding: 6px 16px;
-    font-size: 11px;
-    font-weight: 700;
-    color: #a3a3a3;
-    letter-spacing: 1px;
+    padding: 6px 14px;
+    font-size: 10px;
+    font-weight: 800;
+    color: rgba(255, 255, 255, 0.5);
+    letter-spacing: 1.5px;
+    white-space: nowrap;
+    text-transform: uppercase;
   }
 
   .mobile-card-icon {
@@ -316,9 +330,9 @@
 
   .mobile-card-title {
     font-size: 24px;
-    font-weight: 700;
-    color: #ffffff;
-    margin-bottom: 16px;
+    font-weight: 800;
+    color: #ffffff !important;
+    margin-bottom: 12px;
     line-height: 1.2;
   }
 
@@ -348,7 +362,7 @@
   .mobile-progress-text {
     font-size: 13px;
     font-weight: 600;
-    color: #111111; /* Dark text for light mode container */
+    color: rgba(255, 255, 255, 0.8);
   }
 
   .mobile-progress-track {
@@ -375,12 +389,12 @@
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: rgba(0, 0, 0, 0.05);
-    border: none;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #111111;
+    color: #ffffff;
     cursor: pointer;
     transition: all 0.2s ease;
   }

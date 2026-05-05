@@ -97,6 +97,13 @@ async function completeCourse(req, res) {
   });
 }
 
+async function listCourseMaterials(req, res) {
+  const { Course } = require('./course.model');
+  const course = await Course.findById(req.params.courseId).select('materials title').lean();
+  if (!course) return res.status(404).json({ success: false, message: 'Course not found' });
+  res.json({ success: true, data: { materials: course.materials || [], courseTitle: course.title } });
+}
+
 module.exports = {
   listCourses,
   getCourseById,
@@ -107,4 +114,5 @@ module.exports = {
   toggleWishlist,
   getWishlist,
   completeCourse,
+  listCourseMaterials,
 };

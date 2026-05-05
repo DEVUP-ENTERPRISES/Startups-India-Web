@@ -17,7 +17,8 @@ router.post(
   authRequired,
   validateBody(
     z.object({
-      courseId: z.string().min(1),
+      courseId: z.string().min(1).optional(),
+      eventId: z.string().min(1).optional(),
       provider: z.enum(['stripe', 'razorpay', 'manual']).optional(),
       paymentIntentId: z.string().optional(),
       amount: z.number().nonnegative(),
@@ -45,7 +46,8 @@ router.post(
   authRequired,
   validateBody(
     z.object({
-      courseId: z.string().min(1),
+      courseId: z.string().min(1).optional(),
+      eventId: z.string().min(1).optional(),
       amount: z.number().positive(),
       currency: z.string().optional(),
       receipt: z.string().optional(),

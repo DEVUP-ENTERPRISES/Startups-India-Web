@@ -159,13 +159,16 @@
 }
 
 .category-chip:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
 }
 
 .category-chip.active {
   background: #ff5e4d;
   border-color: #ff5e4d;
+  box-shadow: 0 16px 40px rgba(255, 93, 77, 0.12);
+  transform: translateY(-2px);
 }
 
 .chip-label {
@@ -320,6 +323,23 @@
 }
 
 .interaction-icon-box {
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 12px;
+  transition: all 0.35s ease;
+}
+
+.article-card:hover .interaction-icon-box {
+  color: #ffffff;
+  transform: translate(2px, -2px);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.interaction-icon-box {
   color: #666666;
   transition: all 0.3s ease;
 }
@@ -345,12 +365,66 @@
   .container {
     padding: 0 24px;
   }
-  
+
+  .source-hero {
+    padding: 80px 0 40px;
+  }
+
   .hero-title {
     font-size: 42px;
   }
-  
+
+  .hero-description {
+    font-size: 16px;
+  }
+
   .section-title-large {
     font-size: 32px;
+  }
+}
+
+@media (max-width: 640px) {
+  .source-hero {
+    padding: 60px 0 30px;
+  }
+
+  .hero-title {
+    font-size: 32px;
+  }
+
+  .hero-description {
+    font-size: 15px;
+    max-width: 100%;
+  }
+
+  .category-chip {
+    padding: 10px 16px;
+    font-size: 12px;
+  }
+
+  .articles-grid {
+    gap: 18px;
+  }
+
+  .article-card {
+    border-radius: 18px;
+  }
+
+  .card-body {
+    padding: 18px;
+  }
+
+  .card-content-title {
+    font-size: 20px;
+  }
+
+  .card-excerpt-text {
+    font-size: 13px;
+  }
+
+  .card-meta-row {
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 8px;
   }
 }

@@ -57,6 +57,6 @@ exports.deleteAccount = asyncHandler(async (req, res) => {
      app.use('/api/v1/settings', settingsRouter, settingsErrorHandler);
 ─────────────────────────────────────────────────── */
 exports.settingsErrorHandler = (err, req, res, _next) => {
-  const status = err.status || 500;
+  const status = err.statusCode || err.status || 500;
   res.status(status).json({ success: false, message: err.message || 'Internal server error' });
 };

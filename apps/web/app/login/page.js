@@ -1,7 +1,18 @@
 'use client';
 
+<<<<<<< HEAD
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+=======
+/* ==========================================
+   LOGIN PAGE - Client Component
+   
+   CSS imported here to ensure proper loading on client-side navigation
+   ========================================== */
+
+import { useState, useEffect, useRef, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+>>>>>>> 561bef390565a9c6984d833a39d996779b36748d
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -21,9 +32,13 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import { signIn, initGoogleSignIn } from '@/lib/auth';
+<<<<<<< HEAD
 import '@/styles/auth-redesign.css';
+=======
+import '@/styles/signup.css';
+>>>>>>> 561bef390565a9c6984d833a39d996779b36748d
 
-export default function LoginPage() {
+function LoginContent() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -31,15 +46,21 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const router = useRouter();
+<<<<<<< HEAD
+=======
+  const searchParams = useSearchParams();
+  const returnUrl = searchParams.get('returnUrl') || '/dashboard';
+  const [currentSlide, setCurrentSlide] = useState(0);
+>>>>>>> 561bef390565a9c6984d833a39d996779b36748d
   const googleBtnRef = useRef(null);
 
   // Redirect if already logged in
   useEffect(() => {
     const token = localStorage.getItem('access_token');
     if (token) {
-      router.replace('/dashboard');
+      router.replace(returnUrl);
     }
-  }, [router]);
+  }, [router, returnUrl]);
 
   // Render Google Sign-In button
   useEffect(() => {
@@ -51,11 +72,11 @@ export default function LoginPage() {
         }
         if (data) {
           setSuccess(true);
-          setTimeout(() => router.push('/dashboard'), 1500);
+          setTimeout(() => router.push(returnUrl), 1500);
         }
       });
     }
-  }, [router]);
+  }, [router, returnUrl]);
 
   const handleSubmit = async e => {
     e.preventDefault();
@@ -74,8 +95,13 @@ export default function LoginPage() {
       if (data) {
         setSuccess(true);
         setTimeout(() => {
+<<<<<<< HEAD
           router.push('/dashboard');
         }, 2000);
+=======
+          router.push(returnUrl);
+        }, 3000);
+>>>>>>> 561bef390565a9c6984d833a39d996779b36748d
       }
     } catch (err) {
       setError('An unexpected error occurred. Please try again.');
@@ -345,5 +371,13 @@ export default function LoginPage() {
         </motion.div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div style={{ display: 'flex', height: '100vh', justifyContent: 'center', alignItems: 'center' }}>Loading...</div>}>
+      <LoginContent />
+    </Suspense>
   );
 }

@@ -125,82 +125,142 @@ function Spinner() {
   );
 }
 
-function SaveBar({ dirty, saving, onReset, onSave }) {
-  if (!dirty) return null;
-  return (
-    <div className="stg-savebar">
-      <span className="stg-savebar-msg">You have unsaved changes</span>
-      <div className="stg-savebar-actions">
-        <button className="stg-btn stg-btn-ghost" onClick={onReset} disabled={saving}>
-          Discard
-        </button>
-        <button className="stg-btn stg-btn-primary" onClick={onSave} disabled={saving}>
-          {saving ? (
-            <>
-              <span className="stg-btn-spinner" />
-              Saving…
-            </>
-          ) : (
-            'Save Changes'
-          )}
-        </button>
-      </div>
-    </div>
-  );
-}
+
 
 /* ─────────────────────────────────────────────────────────
    PROFILE TAB
 ───────────────────────────────────────────────────────── */
+const AVATAR_OPTIONS = [
+  'https://api.dicebear.com/7.x/avataaars/svg?seed=Alex&mouth=smile,twinkle',
+  'https://api.dicebear.com/7.x/avataaars/svg?seed=Jordan&mouth=smile,twinkle',
+  'https://api.dicebear.com/7.x/avataaars/svg?seed=Taylor&mouth=smile,twinkle',
+  'https://api.dicebear.com/7.x/avataaars/svg?seed=Morgan&mouth=smile,twinkle',
+  'https://api.dicebear.com/7.x/avataaars/svg?seed=Casey&mouth=smile,twinkle',
+  'https://api.dicebear.com/7.x/avataaars/svg?seed=Riley&mouth=smile,twinkle',
+  'https://api.dicebear.com/7.x/avataaars/svg?seed=Jamie&mouth=smile,twinkle',
+  'https://api.dicebear.com/7.x/avataaars/svg?seed=Avery&mouth=smile,twinkle',
+  'https://api.dicebear.com/7.x/avataaars/svg?seed=Quinn&mouth=smile,twinkle',
+  'https://api.dicebear.com/7.x/avataaars/svg?seed=Skyler&mouth=smile,twinkle',
+  'https://api.dicebear.com/7.x/avataaars/svg?seed=Dakota&mouth=smile,twinkle',
+  'https://api.dicebear.com/7.x/avataaars/svg?seed=Reese&mouth=smile,twinkle',
+];
+
 function ProfileTab({ toast }) {
   const { refresh } = useDashboard();
   const empty = {
-    fullName: '', headline: '', missionStatement: '', bio: '',
-    location: '', phone: '', timezone: 'IST (UTC+5:30)',
-    socialLinks: { linkedin: '', twitter: '', github: '', website: '' },
+    fullName: '', headline: '', missionStatement: '', bio: '', avatarUrl: '',
+    city: '', state: '', phone: '',
+    socialLinks: [],
   };
   const [form, setForm] = useState(empty);
-  const [initial, setInitial] = useState(null);
+  const [initial, setInitial] = useState(JSON.parse(JSON.stringify(empty)));
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [showAvatarModal, setShowAvatarModal] = useState(false);
 
   useEffect(() => {
     apiGet('/api/v1/settings/profile').then(res => {
       if (!res.error) {
         const d = res.data;
+        let parsedLinks = [
+          { name: 'LinkedIn', url: '' },
+          { name: 'Twitter', url: '' }
+        ];
+        if (Array.isArray(d.socialLinks) && d.socialLinks.length > 0) {
+          parsedLinks = d.socialLinks;
+        } else if (d.socialLinks && typeof d.socialLinks === 'object' && !Array.isArray(d.socialLinks)) {
+          parsedLinks = [];
+          if (d.socialLinks.linkedin) parsedLinks.push({ name: 'LinkedIn', url: d.socialLinks.linkedin });
+          if (d.socialLinks.twitter) parsedLinks.push({ name: 'Twitter', url: d.socialLinks.twitter });
+          if (d.socialLinks.github) parsedLinks.push({ name: 'GitHub', url: d.socialLinks.github });
+          if (d.socialLinks.website) parsedLinks.push({ name: 'Website', url: d.socialLinks.website });
+          if (parsedLinks.length === 0) {
+            parsedLinks = [{ name: 'LinkedIn', url: '' }, { name: 'Twitter', url: '' }];
+          }
+        }
+
         const formatted = {
           fullName: d.fullName || '',
           headline: d.headline || '',
           missionStatement: d.missionStatement || '',
           bio: d.bio || '',
-          location: d.location || '',
+          avatarUrl: d.avatarUrl || '',
+          city: d.city || d.location || '',
+          state: d.state || '',
           phone: d.phone || '',
-          timezone: d.timezone || 'IST (UTC+5:30)',
-          socialLinks: {
-            linkedin: d.socialLinks?.linkedin || '',
-            twitter: d.socialLinks?.twitter || '',
-            github: d.socialLinks?.github || '',
-            website: d.socialLinks?.website || '',
-          },
+          socialLinks: parsedLinks,
         };
-        setForm(formatted);
-        setInitial(formatted);
+        setForm(JSON.parse(JSON.stringify(formatted)));
+        setInitial(JSON.parse(JSON.stringify(formatted)));
       }
     }).finally(() => setLoading(false));
   }, []);
 
   const field = (key, val) => setForm(f => ({ ...f, [key]: val }));
-  const social = (key, val) =>
-    setForm(f => ({ ...f, socialLinks: { ...f.socialLinks, [key]: val } }));
+  
+  const updateSocialLink = (index, key, val) => {
+    setForm(f => {
+      const newLinks = [...f.socialLinks];
+      newLinks[index] = { ...newLinks[index], [key]: val };
+      
+      // Validation check for URL
+      if (key === 'url') {
+        const isValid = val.trim() === '' || val.startsWith('http://') || val.startsWith('https://');
+        newLinks[index].error = isValid ? '' : 'URL must start with http:// or https://';
+      }
+      
+      return { ...f, socialLinks: newLinks };
+    });
+  };
 
-  const dirty = initial && JSON.stringify(form) !== JSON.stringify(initial);
+  const addSocialLink = () => {
+    setForm(f => ({
+      ...f,
+      socialLinks: [...f.socialLinks, { name: '', url: '' }]
+    }));
+  };
+
+  const removeSocialLink = (index) => {
+    setForm(f => {
+      const newLinks = [...f.socialLinks];
+      newLinks.splice(index, 1);
+      return { ...f, socialLinks: newLinks };
+    });
+  };
+
+  const dirty = JSON.stringify(form) !== JSON.stringify(initial);
 
   const handleSave = async () => {
+    // Validation check for social links
+    const invalidLinks = form.socialLinks.filter(link => 
+      link.url && !link.url.startsWith('http://') && !link.url.startsWith('https://')
+    );
+    
+    if (invalidLinks.length > 0) {
+      toast('Please fix the invalid social links (must start with http:// or https://)', 'error');
+      return;
+    }
+
+    // Phone number validation (exactly 10 digits)
+    const phoneDigits = form.phone.replace(/\D/g, '');
+    if (phoneDigits.length !== 10) {
+      toast('Phone number must be exactly 10 digits', 'error');
+      return;
+    }
+
     setSaving(true);
-    const { error } = await apiPatch('/api/v1/settings/profile', form);
+    // Use cleaned phone number and filter out empty social links
+    const finalForm = { 
+      ...form, 
+      phone: phoneDigits,
+      socialLinks: form.socialLinks.filter(link => link.name.trim() !== '' && link.url.trim() !== '')
+    };
+    
+    const { error } = await apiPatch('/api/v1/settings/profile', finalForm);
     setSaving(false);
     if (!error) {
-      setInitial({ ...form });
+      setInitial(JSON.parse(JSON.stringify(finalForm)));
+      setForm(finalForm);
       if (refresh) await refresh();
       toast('Profile updated successfully', 'success');
     } else {
@@ -209,7 +269,7 @@ function ProfileTab({ toast }) {
   };
 
   const initials = form.fullName
-    ? form.fullName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+    ? form.fullName.charAt(0).toUpperCase()
     : 'U';
 
   if (loading) return <Spinner />;
@@ -225,8 +285,12 @@ function ProfileTab({ toast }) {
       <Card title="Profile Information">
         <div className="stg-avatar-row">
           <div className="stg-avatar-wrap">
-            <div className="stg-avatar">{initials}</div>
-            <div className="stg-avatar-badge">
+            {form.avatarUrl ? (
+              <img src={form.avatarUrl} alt="Avatar" className="stg-avatar" style={{ objectFit: 'cover' }} />
+            ) : (
+              <div className="stg-avatar">{initials}</div>
+            )}
+            <div className="stg-avatar-badge" onClick={() => setShowAvatarModal(true)} style={{ cursor: 'pointer' }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
@@ -236,7 +300,7 @@ function ProfileTab({ toast }) {
           <div className="stg-avatar-meta">
             <p className="stg-avatar-name">{form.fullName || 'Your Name'}</p>
             <p className="stg-avatar-tagline">{form.headline || 'Add a headline below'}</p>
-            <p className="stg-avatar-note">Avatar uses your initials — photo upload coming soon</p>
+            <p className="stg-avatar-note">{form.city && form.state ? `${form.city}, ${form.state}` : form.city || form.state || 'Add your location below…'}</p>
           </div>
         </div>
 
@@ -280,91 +344,131 @@ function ProfileTab({ toast }) {
           />
         </FieldGroup>
 
-        <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'flex-end' }}>
-          <button 
-            className="stg-btn stg-btn-primary" 
-            onClick={handleSave} 
-            disabled={saving || !dirty}
-            style={{ minWidth: '160px' }}
-          >
-            {saving ? 'Updating…' : 'Update Profile'}
-          </button>
-        </div>
+
       </Card>
 
-      {/* ── Contact details ── */}
-      <Card title="Contact &amp; Location">
+      {/* ── Avatar Modal ── */}
+      {showAvatarModal && (
+        <div className="stg-modal-overlay" onClick={() => setShowAvatarModal(false)}>
+          <div className="stg-modal-content" onClick={e => e.stopPropagation()}>
+            <div className="stg-modal-header">
+              <h3 style={{ margin: 0, fontSize: '1.25rem', color: '#0f172a' }}>Select Avatar</h3>
+              <button onClick={() => setShowAvatarModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8' }}>
+                <Icon name="x" size={20} />
+              </button>
+            </div>
+            <div className="stg-avatar-grid">
+              {AVATAR_OPTIONS.map((url, idx) => (
+                <div 
+                  key={idx} 
+                  className={`stg-avatar-option ${form.avatarUrl === url ? 'selected' : ''}`}
+                  onClick={() => { field('avatarUrl', url); setShowAvatarModal(false); }}
+                >
+                  <img src={url} alt={`Avatar ${idx}`} />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+  {/* ── Contact details ── */}
+      <Card title="Contact &amp; Details">
         <div className="stg-grid-3">
-          <FieldGroup label="Location">
+          <FieldGroup label="City">
             <div className="stg-input-icon">
               <Icon name="mapPin" size={15} />
               <input
                 className="stg-input"
-                value={form.location}
-                onChange={e => field('location', e.target.value)}
-                placeholder="City, Country"
+                value={form.city}
+                onChange={e => field('city', e.target.value)}
+                placeholder="e.g. Mumbai"
               />
             </div>
           </FieldGroup>
-          <FieldGroup label="Timezone">
+          <FieldGroup label="State">
             <div className="stg-input-icon">
-              <Icon name="clock" size={15} />
-              <select
+              <Icon name="mapPin" size={15} />
+              <input
                 className="stg-input"
-                value={form.timezone}
-                onChange={e => field('timezone', e.target.value)}
-              >
-                <option>IST (UTC+5:30)</option>
-                <option>EST (UTC-5:00)</option>
-                <option>CST (UTC-6:00)</option>
-                <option>PST (UTC-8:00)</option>
-                <option>GMT (UTC+0:00)</option>
-                <option>CET (UTC+1:00)</option>
-                <option>JST (UTC+9:00)</option>
-                <option>AEST (UTC+10:00)</option>
-              </select>
+                value={form.state}
+                onChange={e => field('state', e.target.value)}
+                placeholder="e.g. Maharashtra"
+              />
             </div>
           </FieldGroup>
-          <FieldGroup label="Phone">
+          <FieldGroup label="Phone Number" hint="Must be exactly 10 digits">
             <div className="stg-input-icon">
               <Icon name="phone" size={15} />
               <input
                 className="stg-input"
                 value={form.phone}
-                onChange={e => field('phone', e.target.value)}
-                placeholder="+91 98765 43210"
+                onChange={e => {
+                  const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                  field('phone', val);
+                }}
+                placeholder="9876543210"
               />
             </div>
           </FieldGroup>
         </div>
       </Card>
 
-      {/* ── Social links ── */}
-      <Card title="Social Links">
-        <div className="stg-links-grid">
-          {[
-            { key: 'linkedin', label: 'LinkedIn', placeholder: 'https://linkedin.com/in/yourprofile', icon: 'linkedin' },
-            { key: 'twitter', label: 'Twitter / X', placeholder: 'https://twitter.com/yourhandle', icon: 'twitter' },
-            { key: 'github', label: 'GitHub', placeholder: 'https://github.com/yourusername', icon: 'github' },
-            { key: 'website', label: 'Personal Website', placeholder: 'https://yourwebsite.com', icon: 'globe' },
-          ].map(({ key, label, placeholder, icon }) => (
-            <FieldGroup key={key} label={label}>
-              <div className="stg-input-icon">
-                <Icon name={icon} size={15} />
+      <Card title="Social Links" subtitle="Strictly 2 links per row. URLs must be valid and start with http:// or https://">
+        <div className="stg-social-grid">
+          {form.socialLinks.map((link, idx) => (
+            <div key={idx} className="stg-social-card">
+              <div className="stg-social-card-header">
+                <div className="stg-social-icon-box">
+                  <Icon name={link.name.toLowerCase().includes('linkedin') ? 'linkedin' : link.name.toLowerCase().includes('twitter') ? 'twitter' : 'link'} size={14} />
+                </div>
                 <input
-                  className="stg-input"
-                  type="url"
-                  value={form.socialLinks[key]}
-                  onChange={e => social(key, e.target.value)}
-                  placeholder={placeholder}
+                  className="stg-social-name-input"
+                  value={link.name}
+                  onChange={e => updateSocialLink(idx, 'name', e.target.value)}
+                  placeholder="Link Name (e.g. LinkedIn)"
                 />
+                <button 
+                  className="stg-social-card-remove"
+                  onClick={() => removeSocialLink(idx)}
+                >
+                  <Icon name="x" size={14} />
+                </button>
               </div>
-            </FieldGroup>
+              <div className="stg-social-url-wrap">
+                <input
+                  className={`stg-input stg-social-url-input ${link.error ? 'stg-input-error' : ''}`}
+                  type="url"
+                  value={link.url}
+                  onChange={e => updateSocialLink(idx, 'url', e.target.value)}
+                  placeholder="https://..."
+                />
+                {link.error && <p className="stg-social-error-text">{link.error}</p>}
+              </div>
+            </div>
           ))}
+          <button 
+            className="stg-social-add-card" 
+            onClick={addSocialLink}
+          >
+            <div className="stg-social-add-icon">
+              <Icon name="plus" size={20} />
+            </div>
+            <span>Add New Link</span>
+          </button>
         </div>
       </Card>
 
-      <SaveBar dirty={dirty} saving={saving} onReset={() => setForm(initial)} onSave={handleSave} />
+      <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'flex-end' }}>
+        <button 
+          className="stg-btn stg-btn-primary" 
+          onClick={handleSave} 
+          disabled={saving || !dirty}
+          style={{ minWidth: '160px' }}
+        >
+          {saving ? 'Updating…' : 'Update Profile'}
+        </button>
+      </div>
     </div>
   );
 }
@@ -381,6 +485,7 @@ function AccountTab({ toast }) {
   const [deactivating, setDeactivating] = useState(false);
   const [showCurrent, setShowCurrent] = useState(false);
   const [showNext, setShowNext] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   useEffect(() => {
     apiGet('/api/v1/settings/profile').then(res => {
@@ -477,15 +582,18 @@ function AccountTab({ toast }) {
               <PasswordStrength password={pw.next} />
             </FieldGroup>
             <FieldGroup label="Confirm New Password">
-              <div className="stg-input-icon">
+              <div className="stg-input-icon stg-input-suffix">
                 <Icon name="lock" size={15} />
                 <input
                   className="stg-input"
-                  type="password"
+                  type={showConfirm ? 'text' : 'password'}
                   placeholder="••••••••"
                   value={pw.confirm}
                   onChange={e => setPw(p => ({ ...p, confirm: e.target.value }))}
                 />
+                <button type="button" className="stg-eye-btn" onClick={() => setShowConfirm(v => !v)}>
+                  <Icon name={showConfirm ? 'eyeOff' : 'eye'} size={14} />
+                </button>
               </div>
               {pw.confirm && pw.next !== pw.confirm && (
                 <p className="stg-field-error">Passwords do not match</p>
@@ -514,6 +622,27 @@ function AccountTab({ toast }) {
             {pwSaving ? 'Updating…' : 'Update Password'}
           </button>
         </form>
+      </Card>
+
+      {/* ── Session ── */}
+      <Card title="Session" subtitle="Manage your current session.">
+        <div className="stg-session-row">
+          <div className="stg-session-text">
+            <p className="stg-session-desc">You are currently logged in as {email}. Sign out to end your session securely.</p>
+          </div>
+          <button
+            className="stg-btn stg-btn-danger-outline"
+            onClick={async () => {
+              const { signOut } = await import('@/lib/auth');
+              await signOut();
+              window.location.replace('/login');
+            }}
+            style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+          >
+            <Icon name="logout" size={18} />
+            Sign Out
+          </button>
+        </div>
       </Card>
 
       {/* ── Danger zone ── */}
@@ -656,7 +785,16 @@ function NotificationsTab({ toast }) {
         ))}
       </Card>
 
-      <SaveBar dirty={dirty} saving={saving} onReset={() => setPrefs(initial)} onSave={handleSave} />
+        <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'flex-end' }}>
+          <button 
+            className="stg-btn stg-btn-primary" 
+            onClick={handleSave} 
+            disabled={saving || !dirty}
+            style={{ minWidth: '160px' }}
+          >
+            {saving ? 'Saving…' : 'Save Preferences'}
+          </button>
+        </div>
     </div>
   );
 }
@@ -775,7 +913,16 @@ function PrivacyTab({ toast }) {
         </div>
       </div>
 
-      <SaveBar dirty={dirty} saving={saving} onReset={() => setSettings(initial)} onSave={handleSave} />
+        <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'flex-end' }}>
+          <button 
+            className="stg-btn stg-btn-primary" 
+            onClick={handleSave} 
+            disabled={saving || !dirty}
+            style={{ minWidth: '160px' }}
+          >
+            {saving ? 'Saving…' : 'Save Settings'}
+          </button>
+        </div>
     </div>
   );
 }
@@ -842,7 +989,7 @@ function SettingsContent() {
         .stg-page {
           min-height: 100vh;
           background: #ffffff;
-          padding: 2.5rem 3rem 6rem;
+          padding: 0.5rem 3rem 6rem;
           font-family: 'Poppins', sans-serif;
           max-width: 1400px;
           margin: 0 auto;
@@ -877,17 +1024,15 @@ function SettingsContent() {
           border: 1.5px solid #f0e8e9;
           padding: 8px;
           position: sticky;
-          top: 90px;
+          top: 80px;
           z-index: 100;
           box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+          margin-bottom: 1.5rem;
         }
         .stg-top-nav-inner {
           display: flex;
           gap: 8px;
-          overflow-x: auto;
-          scrollbar-width: none;
         }
-        .stg-top-nav-inner::-webkit-scrollbar { display: none; }
 
         .stg-top-tab-item {
           display: flex;
@@ -922,7 +1067,7 @@ function SettingsContent() {
         .stg-tab-body {
           display: flex;
           flex-direction: column;
-          gap: 1.5rem;
+          gap: 1rem;
         }
         .stg-tab-header { margin-bottom: 0.25rem; }
         .stg-tab-title {
@@ -944,7 +1089,7 @@ function SettingsContent() {
           background: #fff;
           border-radius: 20px;
           border: 1.5px solid #f3f4f6;
-          padding: 2rem;
+          padding: 1.25rem;
           box-shadow: 0 1px 4px rgba(0,0,0,0.04);
         }
         .stg-card-danger {
@@ -952,8 +1097,8 @@ function SettingsContent() {
           background: rgba(254, 242, 242, 0.4);
         }
         .stg-card-head {
-          margin-bottom: 1.5rem;
-          padding-bottom: 1.25rem;
+          margin-bottom: 1rem;
+          padding-bottom: 1rem;
           border-bottom: 1.5px solid #f8fafc;
         }
         .stg-card-title {
@@ -974,10 +1119,10 @@ function SettingsContent() {
           display: flex;
           align-items: center;
           gap: 1.5rem;
-          padding: 1.5rem;
+          padding: 1rem;
           background: #f8fafc;
           border-radius: 16px;
-          margin-bottom: 2rem;
+          margin-bottom: 1.25rem;
           border: 1.5px solid #f0e8e9;
         }
         .stg-avatar-wrap { position: relative; flex-shrink: 0; }
@@ -1033,7 +1178,7 @@ function SettingsContent() {
           display: flex;
           flex-direction: column;
           gap: 6px;
-          margin-bottom: 1.25rem;
+          margin-bottom: 1rem;
         }
         .stg-field:last-child { margin-bottom: 0; }
         .stg-label {
@@ -1115,6 +1260,12 @@ function SettingsContent() {
           transition: color 0.15s;
         }
         .stg-eye-btn:hover { color: #0f172a; }
+        .stg-eye-btn :global(svg) {
+          position: static !important;
+          transform: none !important;
+          pointer-events: auto !important;
+          color: inherit !important;
+        }
         .stg-field-error {
           font-size: 0.72rem;
           color: #ef4444;
@@ -1123,11 +1274,133 @@ function SettingsContent() {
         }
 
         /* ── Grids ── */
-        .stg-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
-        .stg-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.25rem; }
-        .stg-links-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+        .stg-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .stg-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+        .stg-links-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 
         /* ── Password strength ── */
+        /* ── Social Links Grid (Strictly 2 per row) ── */
+        .stg-social-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 16px;
+          width: 100%;
+        }
+        .stg-social-card {
+          background: #fafafa;
+          border: 1.5px solid #f1f5f9;
+          border-radius: 16px;
+          padding: 16px;
+          transition: all 0.2s;
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+        .stg-social-card:hover {
+          border-color: #cbd5e1;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+        }
+        .stg-social-card-header {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+        .stg-social-icon-box {
+          width: 32px;
+          height: 32px;
+          background: #fff;
+          border: 1px solid #e2e8f0;
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #64748b;
+        }
+        .stg-social-name-input {
+          flex: 1;
+          background: transparent;
+          border: none;
+          font-size: 0.85rem;
+          font-weight: 700;
+          color: #0f172a;
+          outline: none;
+          padding: 4px 0;
+        }
+        .stg-social-name-input::placeholder { color: #94a3b8; font-weight: 500; }
+        .stg-social-card-remove {
+          background: none;
+          border: none;
+          color: #94a3b8;
+          cursor: pointer;
+          padding: 4px;
+          border-radius: 6px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s;
+        }
+        .stg-social-card-remove:hover {
+          background: #fee2e2;
+          color: #ef4444;
+        }
+        .stg-social-url-wrap {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+        .stg-social-url-input {
+          height: 40px !important;
+          font-size: 0.8rem !important;
+          background: #fff !important;
+        }
+        .stg-input-error {
+          border-color: #ef4444 !important;
+          background: #fff5f5 !important;
+        }
+        .stg-social-error-text {
+          font-size: 0.65rem;
+          color: #ef4444;
+          font-weight: 600;
+          margin: 0;
+        }
+        .stg-social-add-card {
+          border: 2px dashed #e2e8f0;
+          background: #fff;
+          border-radius: 16px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          cursor: pointer;
+          transition: all 0.2s;
+          padding: 24px;
+          color: #64748b;
+        }
+        .stg-social-add-card:hover {
+          border-color: #7A1F2B;
+          color: #7A1F2B;
+          background: #fdf2f2;
+        }
+        .stg-social-add-icon {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          background: #f1f5f9;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s;
+        }
+        .stg-social-add-card:hover .stg-social-add-icon {
+          background: #7A1F2B;
+          color: #fff;
+        }
+        .stg-social-add-card span {
+          font-size: 0.85rem;
+          font-weight: 700;
+        }
+
         .stg-pw-strength {
           display: flex;
           align-items: center;
@@ -1412,6 +1685,24 @@ function SettingsContent() {
           font-weight: 500;
         }
 
+        /* ── Session Row ── */
+        .stg-session-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 20px;
+          padding: 12px 0;
+        }
+        .stg-session-text {
+          flex: 1;
+        }
+        .stg-session-desc {
+          font-size: 0.875rem;
+          color: #64748b;
+          margin: 0;
+          line-height: 1.5;
+        }
+
         /* ── Buttons ── */
         .stg-btn {
           display: inline-flex;
@@ -1462,27 +1753,64 @@ function SettingsContent() {
           display: inline-block;
         }
 
-        /* ── Save bar ── */
-        .stg-savebar {
-          position: sticky;
-          bottom: 24px;
+        /* ── Modal & Avatars ── */
+        .stg-modal-overlay {
+          position: fixed;
+          top: 0; left: 0;
+          width: 100vw;
+          height: 100vh;
+          background: transparent;
           display: flex;
           align-items: center;
+          justify-content: center;
+          z-index: 99999;
+        }
+        .stg-modal-content {
+          background: #fff;
+          border-radius: 20px;
+          padding: 24px;
+          width: 90%;
+          max-width: 480px;
+          box-shadow: 0 20px 60px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05);
+          animation: stg-slide-up 0.2s ease-out;
+          margin: auto;
+        }
+        .stg-modal-header {
+          display: flex;
           justify-content: space-between;
-          gap: 1rem;
-          padding: 16px 24px;
-          background: #0f172a;
-          border-radius: 18px;
-          box-shadow: 0 8px 30px rgba(0,0,0,0.25);
-          z-index: 50;
-          animation: stg-slide-up 0.25s ease;
+          align-items: center;
+          margin-bottom: 24px;
         }
-        .stg-savebar-msg {
-          font-size: 0.875rem;
-          font-weight: 600;
-          color: #e2e8f0;
+        .stg-avatar-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+          gap: 16px;
         }
-        .stg-savebar-actions { display: flex; gap: 10px; }
+        .stg-avatar-option {
+          width: 70px;
+          height: 70px;
+          border-radius: 16px;
+          background: #f8fafc;
+          border: 2px solid transparent;
+          cursor: pointer;
+          transition: 0.2s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          overflow: hidden;
+        }
+        .stg-avatar-option img {
+          width: 80%;
+          height: 80%;
+          object-fit: cover;
+        }
+        .stg-avatar-option:hover { transform: scale(1.05); background: #f1f5f9; }
+        .stg-avatar-option.selected {
+          border-color: #7A1F2B;
+          background: #fdf2f2;
+        }
+
+
 
         /* ── Toast ── */
         .toast-container {
@@ -1557,30 +1885,48 @@ function SettingsContent() {
 
         /* ── Responsive ── */
         @media (max-width: 1060px) {
-          .stg-page { padding: 2rem 1.5rem 6rem; }
+          .stg-page { padding: 1.5rem 1.5rem 6rem; }
           .stg-top-tab-item { padding: 10px 16px; font-size: 0.875rem; }
+          .stg-top-nav { top: 70px; }
         }
 
         @media (max-width: 768px) {
-          .stg-page { padding: 1.5rem 1rem 6rem; }
-          .stg-page-title { font-size: 1.75rem; }
-          .stg-grid-2, .stg-grid-3, .stg-links-grid { grid-template-columns: 1fr; }
-          .stg-card { padding: 1.5rem; border-radius: 16px; }
-          .stg-avatar-row { flex-direction: column; text-align: center; }
+          .stg-page { padding: 1rem 1rem 6rem; }
+          .stg-page-header { margin-bottom: 1.5rem; }
+          .stg-page-title { font-size: 1.5rem; }
+          .stg-grid-2, .stg-grid-3, .stg-links-grid, .stg-social-grid { grid-template-columns: 1fr; gap: 1rem; }
+          .stg-card { padding: 1.25rem; border-radius: 16px; }
+          .stg-avatar-row { flex-direction: column; text-align: center; gap: 1rem; padding: 1.5rem 1rem; }
+          .stg-avatar-meta { width: 100%; }
           .stg-privacy-grid { grid-template-columns: 1fr; }
-          .stg-danger-inner { flex-direction: column; }
-          .stg-savebar { flex-direction: column; text-align: center; bottom: 16px; }
+          .stg-danger-inner { flex-direction: column; gap: 1rem; }
+          .stg-top-nav { top: 60px; border-radius: 14px; margin-bottom: 1rem; }
+          .stg-top-tab-item { padding: 10px 14px; border-radius: 10px; display: flex; align-items: center; gap: 8px; }
+          .stg-top-tab-item span { display: block; font-size: 0.8rem; }
         }
 
         @media (max-width: 480px) {
-          .stg-page { padding: 1rem 0.75rem 5rem; }
-          .stg-page-title { font-size: 1.5rem; }
-          .stg-card { padding: 1.25rem; }
-          .stg-tab-title { font-size: 1.25rem; }
-          .stg-mobile-tab span { display: none; }
+          .stg-page { padding: 0.75rem 0.5rem 5rem; }
+          .stg-page-title { font-size: 1.4rem; }
+          .stg-card { padding: 1rem; }
+          .stg-tab-title { font-size: 1.1rem; }
+          .stg-tab-subtitle { font-size: 0.75rem; }
+          .stg-email-row { flex-direction: column; align-items: flex-start; gap: 12px; }
           .stg-email-text { flex-direction: column; align-items: flex-start; gap: 6px; }
-          .toast-container { left: 16px; right: 16px; transform: none; }
-          .toast { min-width: 0; width: 100%; }
+          .stg-verified-pill { align-self: flex-start; }
+          .toast-container { left: 16px; right: 16px; transform: none; width: auto; }
+          .toast { min-width: 0; width: 100%; padding: 12px 16px; }
+          .stg-modal-content { padding: 20px; width: 95%; }
+          .stg-avatar-grid { grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 12px; }
+          .stg-avatar-option { width: 60px; height: 60px; }
+          .stg-top-nav-inner { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+          .stg-top-nav-inner::-webkit-scrollbar { display: none; }
+          .stg-top-tab-item { flex-direction: row; gap: 6px; padding: 8px 12px; font-size: 0.75rem; min-width: max-content; }
+          .stg-top-tab-item span { display: block; font-size: 0.75rem; text-align: left; }
+          .stg-savebar { bottom: 12px; padding: 10px 16px; width: calc(100% - 32px); justify-content: space-between; gap: 12px; border-radius: 12px; }
+          .stg-savebar-text { font-size: 0.75rem; }
+          .stg-social-card { padding: 12px; gap: 8px; }
+          .stg-social-add-card { padding: 16px; }
         }
       `}</style>
     </div>

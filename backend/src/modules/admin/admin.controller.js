@@ -136,6 +136,30 @@ async function deleteModuleQuiz(req, res) {
   res.json({ success: true, data });
 }
 
+// ─── COURSE MATERIALS ───────────────────────────────────────────
+async function addCourseMaterial(req, res) {
+  const { Course } = require('../courses/course.model');
+  const { title, fileUrl, fileKey, fileType, size } = req.body;
+  const course = await Course.findByIdAndUpdate(
+    req.params.id,
+    { $push: { materials: { title, fileUrl, fileKey, fileType, size, uploadedAt: new Date() } } },
+    { new: true }
+  );
+  if (!course) return res.status(404).json({ success: false, message: 'Course not found' });
+  res.json({ success: true, data: course.materials });
+}
+
+async function deleteCourseMaterial(req, res) {
+  const { Course } = require('../courses/course.model');
+  const course = await Course.findByIdAndUpdate(
+    req.params.id,
+    { $pull: { materials: { _id: req.params.materialId } } },
+    { new: true }
+  );
+  if (!course) return res.status(404).json({ success: false, message: 'Course not found' });
+  res.json({ success: true, data: course.materials });
+}
+
 // ─── S3 UPLOAD ──────────────────────────────────────────────────
 async function getUploadUrl(req, res) {
   const data = await adminService.getUploadUrl(req.body, req.user.userId);
@@ -192,30 +216,47 @@ async function revokeCertificate(req, res) {
   res.json({ success: true, data });
 }
 
-// ─── BLOG ───────────────────────────────────────────────────────
-async function getBlogPosts(req, res) {
-  const { page, limit, status, sort } = req.query;
-  const data = await adminService.listBlogPosts({
+// ─── ARTICLES ───────────────────────────────────────────────────────
+async function getArticles(req, res) {
+  const { page, limit, status, category, search, sort } = req.query;
+  const data = await adminService.listArticles({
     page: Number(page) || 1,
     limit: Number(limit) || 20,
     status,
+    category,
+    search,
     sort,
   });
   res.json({ success: true, data });
 }
 
-async function createBlogPost(req, res) {
-  const data = await adminService.createBlogPost({ ...req.body, author: req.user.userId });
-  res.status(201).json({ success: true, data });
-}
-
-async function updateBlogPost(req, res) {
-  const data = await adminService.updateBlogPost(req.params.id, req.body);
+async function getArticle(req, res) {
+  const data = await adminService.getArticle(req.params.id);
   res.json({ success: true, data });
 }
 
-async function deleteBlogPost(req, res) {
-  const data = await adminService.deleteBlogPost(req.params.id);
+async function createArticle(req, res) {
+  const data = await adminService.createArticle(req.body);
+  res.status(201).json({ success: true, data });
+}
+
+async function updateArticle(req, res) {
+  const data = await adminService.updateArticle(req.params.id, req.body);
+  res.json({ success: true, data });
+}
+
+async function deleteArticle(req, res) {
+  const data = await adminService.deleteArticle(req.params.id);
+  res.json({ success: true, data });
+}
+
+async function duplicateArticle(req, res) {
+  const data = await adminService.duplicateArticle(req.params.id);
+  res.json({ success: true, data });
+}
+
+async function getArticleAnalytics(req, res) {
+  const data = await adminService.getArticleAnalytics(req.params.id);
   res.json({ success: true, data });
 }
 
@@ -243,6 +284,21 @@ async function updateEvent(req, res) {
 
 async function deleteEvent(req, res) {
   const data = await adminService.deleteEvent(req.params.id);
+  res.json({ success: true, data });
+}
+
+async function duplicateEvent(req, res) {
+  const data = await adminService.duplicateEvent(req.params.id, req.user.userId);
+  res.status(201).json({ success: true, data });
+}
+
+async function getEventRegistrations(req, res) {
+  const data = await adminService.getEventRegistrations(req.params.id, req.query);
+  res.json({ success: true, data });
+}
+
+async function getEventAnalytics(req, res) {
+  const data = await adminService.getEventAnalytics(req.params.id);
   res.json({ success: true, data });
 }
 
@@ -362,6 +418,8 @@ module.exports = {
   getModuleQuiz,
   upsertModuleQuiz,
   deleteModuleQuiz,
+  addCourseMaterial,
+  deleteCourseMaterial,
   getUploadUrl,
   getPayments,
   refundPayment,
@@ -369,14 +427,20 @@ module.exports = {
   createEnrollment,
   getCertificates,
   revokeCertificate,
-  getBlogPosts,
-  createBlogPost,
-  updateBlogPost,
-  deleteBlogPost,
+  getArticles,
+  getArticle,
+  createArticle,
+  updateArticle,
+  deleteArticle,
+  duplicateArticle,
+  getArticleAnalytics,
   getEvents,
   createEvent,
   updateEvent,
   deleteEvent,
+  duplicateEvent,
+  getEventRegistrations,
+  getEventAnalytics,
   getLeads,
   createLead,
   updateLead,
