@@ -1,9 +1,0 @@
-Backend Restructuring Move Plan (Step 1)
-
-- Move all backend logic from lib/ into backend/src:
-  * All service files (e.g., assessmentService.js, courseService.js, dashboardService.js, etc.) → backend/src/modules (by feature)
-  * config.js, logger.js, env/config files → backend/src/config
-  * utils/helpers (e.g., sanitizer.js, rateLimiter.js, performance.js, etc.) → backend/src/utils
-- Move API logic from app/api/*/route.js into backend/src/modules (routes/controllers)
-- No deletions yet. Imports will be updated after each move.
-- This file is for migration traceability and onboarding reference.
