@@ -255,7 +255,11 @@ export default function ImpactSection() {
         className="iec-container relative z-10 w-full flex flex-col items-center"
       >
         {/* HEADER */}
+<<<<<<< HEAD
         <div className="text-center relative w-full flex flex-col items-center" style={{ marginBottom: '48px' }}>
+=======
+        <div className="text-center mb-16 md:mb-24 relative w-full flex flex-col items-center">
+>>>>>>> 92b53af17ec553050bd634d31b039f4ad86d07f2
           <motion.div variants={headerVariants}>
             <motion.span 
               className="section-label-premium mb-8 inline-block"
@@ -285,6 +289,7 @@ export default function ImpactSection() {
         </div>
 
         {/* GRID */}
+<<<<<<< HEAD
         <StaggerContainer>
           <div className="w-full grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8">
             {impactMetrics.map((metric, index) => (
@@ -294,6 +299,13 @@ export default function ImpactSection() {
             ))}
           </div>
         </StaggerContainer>
+=======
+        <div className="w-full grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8 stats-grid">
+          {impactMetrics.map((metric, index) => (
+            <MetricCard key={metric.id} metric={metric} index={index} />
+          ))}
+        </div>
+>>>>>>> 92b53af17ec553050bd634d31b039f4ad86d07f2
       </motion.div>
     </section>
   );

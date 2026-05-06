@@ -13,6 +13,7 @@
   padding: 0 4rem;
 }
 
+<<<<<<< HEAD
 @media (max-width: 1024px) {
   .iec-container {
     padding: 0 2rem;
@@ -22,6 +23,11 @@
 @media (max-width: 768px) {
   .iec-container {
     padding: 0 1rem;
+=======
+@media (max-width: 768px) {
+  .iec-container {
+    padding: 0 1.5rem !important;
+>>>>>>> 92b53af17ec553050bd634d31b039f4ad86d07f2
   }
 }
 
@@ -59,6 +65,13 @@
   font-weight: 700;
   color: #111;
   margin-bottom: 1rem;
+}
+
+/* Ensure white text in dark sections overrides the base heading color */
+.bg-\[\#050505\] h3,
+.iec-bg-gray h3,
+.impact-roadmap-card h3 {
+  color: white !important;
 }
 
 .iec-text-red {
@@ -504,8 +517,9 @@
   }
   .iec-stats-grid,
   .iec-programs-grid,
-  .iec-steps {
-    grid-template-columns: 1fr;
+  .iec-steps,
+  .stats-grid {
+    grid-template-columns: 1fr !important;
   }
   .iec-testimonial {
     padding: 2rem;
