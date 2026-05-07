@@ -6,17 +6,16 @@ import Link from 'next/link';
 import '../styles/network-hero.css';
 
 const PHRASES = [
-  'startup journey',
-  'business idea',
-  'funding roadmap',
-  'entrepreneurial vision',
-  'innovation pathway',
+  'Startups That Solve Real Problems',
+  'Businesses With Global Potential',
+  'Innovations That Create Impact',
+  'Ventures That Shape The Future',
 ];
 
 const FLOATING_STATS = [
-  { value: '5000+', label: 'Startups' },
-  { value: '200+', label: 'Mentors' },
-  { value: '24/7', label: 'Support' },
+  { value: '5000+', label: 'STARTUPS SUPPORTED' },
+  { value: '200+', label: 'EXPERT MENTORS' },
+  { value: '95%', label: 'SUCCESS RATE' },
 ];
 
 export default function NetworkHero() {
@@ -73,7 +72,7 @@ export default function NetworkHero() {
             boxShadow: { duration: 2, repeat: Infinity, ease: "easeInOut" }
           }}
         >
-          EXPERT MENTORSHIP
+          STARTUP ECOSYSTEM PLATFORM
         </motion.div>
 
         <motion.h1 
@@ -82,22 +81,23 @@ export default function NetworkHero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
         >
-          Start your innovation and <br />
-          <div className="h-[1.2em] relative inline-block min-w-[300px]">
-            <AnimatePresence mode="wait">
-              <motion.span
-                key={textIndex}
-                initial={{ opacity: 0, y: 20, filter: 'blur(10px)' }}
-                animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                exit={{ opacity: 0, y: -20, filter: 'blur(10px)' }}
-                transition={{ duration: 0.5, ease: "circOut" }}
-                className="highlight-red absolute left-0 right-0"
-              >
-                {PHRASES[textIndex]}
-              </motion.span>
-            </AnimatePresence>
-          </div>
+          Empowering Founders To Build
         </motion.h1>
+
+        <div className="h-[1.3em] relative block w-full text-center" style={{ marginTop: '-0.2em' }}>
+          <AnimatePresence mode="wait">
+            <motion.span
+              key={textIndex}
+              initial={{ opacity: 0, y: 20, filter: 'blur(8px)' }}
+              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+              exit={{ opacity: 0, y: -20, filter: 'blur(8px)' }}
+              transition={{ duration: 0.5, ease: "circOut" }}
+              className="hero-rotating-text highlight-red"
+            >
+              {PHRASES[textIndex]}
+            </motion.span>
+          </AnimatePresence>
+        </div>
 
         <motion.div 
           className="hero-pills"
@@ -105,7 +105,7 @@ export default function NetworkHero() {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5, staggerChildren: 0.1 }}
         >
-          {['Fast-Track Programs', 'Expert Mentors Network', 'Grants & Funding Support'].map((pill, i) => (
+          {['Idea Validation & Mentorship', 'Funding & Investor Access', 'Incubation & Market Growth'].map((pill, i) => (
             <motion.div 
               key={pill}
               className="hero-pill"
@@ -135,7 +135,7 @@ export default function NetworkHero() {
           </motion.div>
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Link href="/programs" className="hero-btn-secondary">
-              View Programs
+              Explore Programs
             </Link>
           </motion.div>
         </motion.div>

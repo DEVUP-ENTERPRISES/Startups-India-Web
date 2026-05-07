@@ -1,18 +1,7 @@
 'use client';
 
-<<<<<<< HEAD
-import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
-=======
-/* ==========================================
-   LOGIN PAGE - Client Component
-   
-   CSS imported here to ensure proper loading on client-side navigation
-   ========================================== */
-
 import { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
->>>>>>> 561bef390565a9c6984d833a39d996779b36748d
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -32,11 +21,7 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import { signIn, initGoogleSignIn } from '@/lib/auth';
-<<<<<<< HEAD
 import '@/styles/auth-redesign.css';
-=======
-import '@/styles/signup.css';
->>>>>>> 561bef390565a9c6984d833a39d996779b36748d
 
 function LoginContent() {
   const [email, setEmail] = useState('');
@@ -46,12 +31,8 @@ function LoginContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const router = useRouter();
-<<<<<<< HEAD
-=======
   const searchParams = useSearchParams();
   const returnUrl = searchParams.get('returnUrl') || '/dashboard';
-  const [currentSlide, setCurrentSlide] = useState(0);
->>>>>>> 561bef390565a9c6984d833a39d996779b36748d
   const googleBtnRef = useRef(null);
 
   // Redirect if already logged in
@@ -95,13 +76,8 @@ function LoginContent() {
       if (data) {
         setSuccess(true);
         setTimeout(() => {
-<<<<<<< HEAD
-          router.push('/dashboard');
-        }, 2000);
-=======
           router.push(returnUrl);
-        }, 3000);
->>>>>>> 561bef390565a9c6984d833a39d996779b36748d
+        }, 2000);
       }
     } catch (err) {
       setError('An unexpected error occurred. Please try again.');

@@ -65,22 +65,17 @@ export default function AboutUs() {
             >
               <div className="section-header">
                 <div className="section-label">Our Story</div>
-                <h2 className="section-title">Who We Are</h2>
+                <h2 className="section-title">Why We Built StartupsIndia</h2>
               </div>
 
               <div className="who-content">
                 <p className="who-description">
-                  Startups India is a startup ecosystem platform built to support the complete
-                  entrepreneurial journey—from the first spark of an idea to building and scaling a
-                  real startup. We exist to connect founders, innovators, students, mentors, and
-                  ecosystem partners under one collaborative platform where learning turns into
-                  execution.
+                  We believe talent is everywhere, but opportunities are not. StartupsIndia was built to help students, innovators, and early-stage founders turn ideas into real startups through mentorship, ecosystem support, networking, funding access, and practical guidance. Our mission is to make entrepreneurship accessible for every ambitious founder — regardless of background, city, or college.
                 </p>
                 <div className="who-highlight">
                   <p>
-                    We strongly believe that great startups are not built in isolation. They grow
-                    when the right guidance, opportunities, and ecosystem support come together at
-                    the right time.
+                    Our mission is to make entrepreneurship accessible for every ambitious
+                    founder — regardless of background, city, or college.
                   </p>
                 </div>
               </div>

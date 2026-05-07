@@ -133,7 +133,7 @@
   font-size: 4rem;
   font-weight: 800;
   line-height: 1.05;
-  margin-bottom: 1.75rem;
+  margin-bottom: 0;
   letter-spacing: -1.5px;
   max-width: 800px;
   transform: translateY(20px);
@@ -200,6 +200,31 @@
 @media (max-width: 480px) {
   .hero-title {
     font-size: 2.2rem;
+  }
+}
+
+/* Rotating Text Below Headline */
+.hero-rotating-text {
+  display: block;
+  font-size: 4rem;
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -1.5px;
+  text-align: center;
+  color: #e53935 !important;
+  -webkit-text-fill-color: #e53935 !important;
+  margin-bottom: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .hero-rotating-text {
+    font-size: 2.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-rotating-text {
+    font-size: 2rem;
   }
 }
 

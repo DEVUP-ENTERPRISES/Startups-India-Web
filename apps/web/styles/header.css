@@ -334,53 +334,16 @@
   cursor: pointer;
 }
 
-<<<<<<< HEAD
 /* 📱 MOBILE MENU FINAL UPGRADE (767px) */
 @media (max-width: 767px) {
   .mobile-nav-content {
     display: flex;
     flex-direction: column;
     gap: 8px;
+    padding: 24px;
+    flex: 1;
   }
-=======
-.mobile-nav-content {
-  display: flex;
-  flex-direction: column;
-  padding: 24px;
-  gap: 10px;
-  flex: 1;
-}
 
-.mobile-nav-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 20px;
-  background: rgba(0, 0, 0, 0.03);
-  border-radius: 16px;
-  text-decoration: none;
-  color: #1f2937;
-  font-weight: 700;
-  font-size: 16px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 1px solid transparent;
-}
-
-.mobile-nav-item:active {
-  transform: scale(0.98);
-}
-
-.mobile-nav-item.active {
-  background: rgba(230, 57, 70, 0.08);
-  color: #e63946;
-  border-color: rgba(230, 57, 70, 0.2);
-}
-
-.mobile-nav-item svg {
-  color: #e63946;
-  opacity: 0.7;
-}
->>>>>>> 561bef390565a9c6984d833a39d996779b36748d
 
   .mobile-nav-list {
     list-style: none;
