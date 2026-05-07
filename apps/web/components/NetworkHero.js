@@ -84,7 +84,12 @@ export default function NetworkHero() {
           Empowering Founders To Build
         </motion.h1>
 
-        <div className="h-[1.3em] relative block w-full text-center" style={{ marginTop: '-0.2em' }}>
+        <motion.div 
+          className="h-[1.1em] relative block w-full text-center"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4, duration: 0.6 }}
+        >
           <AnimatePresence mode="wait">
             <motion.span
               key={textIndex}
@@ -97,7 +102,7 @@ export default function NetworkHero() {
               {PHRASES[textIndex]}
             </motion.span>
           </AnimatePresence>
-        </div>
+        </motion.div>
 
         <motion.div 
           className="hero-pills"

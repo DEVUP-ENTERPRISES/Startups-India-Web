@@ -245,11 +245,7 @@ export default function ImpactSection() {
         className="hero-impact-section z-10"
       >
         {/* HEADER */}
-<<<<<<< HEAD
         <div className="flex flex-col items-center">
-=======
-        <div className="text-center relative w-full flex flex-col items-center" style={{ marginBottom: '48px' }}>
->>>>>>> c2041c35d6a29678761bf6de90471fa43c67c7c6
           <motion.div variants={headerVariants}>
             <div className="impact-badge">
               <span className="text-[#ef4444] mr-2">★</span>
