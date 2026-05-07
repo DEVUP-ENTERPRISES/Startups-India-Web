@@ -147,13 +147,12 @@ export default function AchievementsSection() {
               <div className="lg:col-span-7 relative z-10">
                 <div className="relative group">
                   <div className="absolute -inset-4 bg-gradient-to-r from-[#e53935]/40 to-red-900/40 blur-[50px] rounded-[32px] opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
-                  <div className="relative rounded-[32px] overflow-hidden border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] aspect-[16/9] bg-[#0a0a0a]">
+                  <div className="relative rounded-[32px] overflow-hidden border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] aspect-[16/9] bg-[#0a0a0a] event-image">
                     <motion.img
                       src={activeItem.image}
                       alt={activeItem.title}
                       className="w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#000000] via-[#000000]/40 to-transparent opacity-90 pointer-events-none" />
                     
                     <div className="absolute bottom-6 left-6 right-6 flex flex-wrap gap-4 z-20">
                       {/* Premium Glass Badges */}

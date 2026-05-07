@@ -1,5 +1,11 @@
 'use client';
 
+/* ==========================================
+   LOGIN PAGE - Client Component
+   
+   CSS imported here to ensure proper loading on client-side navigation
+   ========================================== */
+
 import { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -34,6 +40,15 @@ function LoginContent() {
   const searchParams = useSearchParams();
   const returnUrl = searchParams.get('returnUrl') || '/dashboard';
   const googleBtnRef = useRef(null);
+  const [isSwitching, setIsSwitching] = useState(false);
+
+  const handleNavigation = (e, path) => {
+    e.preventDefault();
+    setIsSwitching(true);
+    setTimeout(() => {
+      router.push(path);
+    }, 500); // match animation duration
+  };
 
   // Redirect if already logged in
   useEffect(() => {
@@ -85,8 +100,17 @@ function LoginContent() {
     }
   };
 
+  const handleMouseMove = (e) => {
+    const card = e.currentTarget;
+    const rect = card.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    card.style.setProperty("--x", `${x}px`);
+    card.style.setProperty("--y", `${y}px`);
+  };
+
   const dashboardCards = [
-    { icon: <Users size={20} />, label: "Live Seats", value: "2,051", trend: "↑ 24%", trendClass: "" },
+    { icon: <Users size={20} />, label: "Live Seats", value: "2,051", trend: "↑ 24%", trendClass: "", hasLiveDot: true },
     { icon: <Briefcase size={20} />, label: "Avg Funding", value: "₹50L+", trend: "↑ 12%", trendClass: "" },
     { icon: <Target size={20} />, label: "Expert Mentors", value: "47+", trend: "↑ 18%", trendClass: "purple" },
     { icon: <TrendingUp size={20} />, label: "Growth", value: "Growth", isChart: true },
@@ -95,9 +119,9 @@ function LoginContent() {
   ];
 
   return (
-    <div className="auth-redesign">
+    <div className={`auth-layout ${isSwitching ? 'auth-switching' : ''}`}>
       {/* Left Panel - Visuals */}
-      <div className="visual-panel">
+      <div className="dashboard-panel left-panel">
         <div className="bg-pattern"></div>
         
         {/* Logo */}
@@ -143,10 +167,15 @@ function LoginContent() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.4 + index * 0.1 }}
-                className="dashboard-card"
+                className="metric-card"
+                onMouseMove={handleMouseMove}
               >
-                <div className="card-icon-box">{card.icon}</div>
-                <div className="card-label">{card.label}</div>
+                <div className="top-glow"></div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div className="icon-box">{card.icon}</div>
+                  {card.hasLiveDot && <div className="live-dot"></div>}
+                </div>
+                <div className="metric-label">{card.label}</div>
                 
                 {card.isChart ? (
                   <div className="chart-container">
@@ -167,7 +196,7 @@ function LoginContent() {
                   </div>
                 ) : (
                   <>
-                    <div className="card-value">{card.value}</div>
+                    <div className="metric-value">{card.value}</div>
                     <div className={`card-trend ${card.trendClass}`}>{card.trend}</div>
                   </>
                 )}
@@ -193,13 +222,35 @@ function LoginContent() {
       </div>
 
       {/* Right Panel - Auth */}
-      <div className="auth-panel">
+      <div className="auth-panel right-panel">
         <motion.div 
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5 }}
           className="auth-card"
         >
+          {/* Abstract Illustration Background */}
+          <div className="auth-illustration">
+            <svg className="rocket-icon" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="1.5">
+              <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/>
+              <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/>
+              <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/>
+              <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/>
+            </svg>
+            <div className="building-silhouette building-1"></div>
+            <div className="building-silhouette building-2"></div>
+            <div className="building-silhouette building-3"></div>
+            <svg className="cloud-icon cloud-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M17.5 19H9a7 7 0 1 1 6.71-5h1.79a4.5 4.5 0 1 1 0 9Z"/>
+            </svg>
+            <svg className="cloud-icon cloud-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M17.5 19H9a7 7 0 1 1 6.71-5h1.79a4.5 4.5 0 1 1 0 9Z"/>
+            </svg>
+            <svg className="trajectory-line" viewBox="0 0 100 100" preserveAspectRatio="none">
+              <path d="M0,100 Q40,60 100,0" fill="none" stroke="#ef4444" strokeWidth="0.5" strokeDasharray="4 4"/>
+            </svg>
+          </div>
+
           <AnimatePresence mode="wait">
             {success ? (
               <motion.div 
@@ -233,13 +284,14 @@ function LoginContent() {
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     style={{ 
-                      padding: '12px', 
+                      padding: '12px 16px', 
                       background: '#fef2f2', 
                       border: '1px solid #fee2e2', 
-                      borderRadius: '10px', 
+                      borderRadius: '12px', 
                       color: '#ef4444', 
                       fontSize: '13px',
-                      marginBottom: '20px',
+                      fontWeight: 500,
+                      marginBottom: '24px',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '8px'
@@ -291,6 +343,11 @@ function LoginContent() {
                     </div>
                   </div>
 
+                  <div className="form-group remember-me-group">
+                    <input type="checkbox" id="rememberMe" className="custom-checkbox" />
+                    <label htmlFor="rememberMe">Remember me</label>
+                  </div>
+
                   <button 
                     type="submit" 
                     className="btn-primary"
@@ -303,14 +360,14 @@ function LoginContent() {
 
                 <div className="divider-container">
                   <div className="divider-line"></div>
-                  <span className="divider-text">or continue with</span>
+                  <span className="divider-text">OR CONTINUE WITH</span>
                   <div className="divider-line"></div>
                 </div>
 
                 <div ref={googleBtnRef} className="google-container"></div>
 
                 <div className="signup-footer">
-                  <p>Don't have an account? <Link href="/signup" className="signup-action">Sign up</Link></p>
+                  <p>Don't have an account? <a href="/signup" onClick={(e) => handleNavigation(e, '/signup')} className="signup-action">Sign up</a></p>
                 </div>
               </motion.div>
             )}
