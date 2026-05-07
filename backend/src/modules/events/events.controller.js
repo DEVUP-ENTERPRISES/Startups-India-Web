@@ -11,12 +11,13 @@ async function listEvents(req, res) {
     category,
     status: status || 'upcoming',
     sort: sort || 'date',
+    userId: req.user?.userId
   });
   res.json({ success: true, data });
 }
 
 async function getEvent(req, res) {
-  const event = await eventsService.getEventById(req.params.id);
+  const event = await eventsService.getEventById(req.params.id, req.user?.userId);
   res.json({ success: true, data: event });
 }
 

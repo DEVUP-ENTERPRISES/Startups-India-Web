@@ -8,7 +8,6 @@ const { certificatesRouter } = require('../modules/certificates/certificates.rou
 const { profilesRouter } = require('../modules/profiles/profiles.routes');
 const { learningRouter } = require('../modules/learning/learning.routes');
 const { learnRouter } = require('../modules/learning/learningEngine.routes');
-const { dataRouter } = require('../modules/data/data.routes');
 const { adminRouter } = require('../modules/admin/admin.routes');
 const { analyticsRouter } = require('../modules/analytics/analytics.routes');
 const { achievementsRouter } = require('../modules/achievements/achievements.routes');
@@ -56,9 +55,6 @@ function registerRoutes(app) {
     requireRole('admin', 'instructor'),
     asyncHandler(mediaController.completeUpload)
   );
-
-  // Legacy compatibility endpoint kept for transitional clients.
-  app.use('/api/v1/data', dataRouter);
 
   // Activity feed
   app.get(

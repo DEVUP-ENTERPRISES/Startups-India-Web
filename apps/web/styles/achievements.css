@@ -36,9 +36,26 @@
   transform: translateY(-8px) scale(1.02);
 }
 
-/* Progress bar pulse */
+/* Progress bar glow */
 .achievements-section .bg-\[\#e53935\] {
-  box-shadow: 0 0 15px rgba(229, 57, 53, 0.4);
+  box-shadow: 0 0 20px rgba(229, 57, 53, 0.6);
+  position: relative;
+}
+
+.achievements-section .bg-\[\#e53935\]::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  animation: progressBarShine 2s infinite;
+}
+
+@keyframes progressBarShine {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
 }
 
 /* Typography polish */
@@ -52,19 +69,53 @@
   text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
 }
 
+/* Glass Badge Animation */
+.group\/badge:hover {
+  border-color: rgba(229, 57, 53, 0.5) !important;
+  box-shadow: 0 8px 32px rgba(229, 57, 53, 0.2) !important;
+}
+
 /* Responsive adjustments */
 @media (max-width: 1024px) {
   .achievements-section {
     padding: 80px 0;
   }
+  .achievements-section .grid {
+    gap: 3rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .achievements-section .iec-container {
+    padding: 0 1.5rem;
+  }
+  .achievements-section h3 {
+    font-size: 2.25rem !important;
+  }
+  .achievements-section p {
+    font-size: 1rem !important;
+  }
 }
 
 @media (max-width: 640px) {
   .achievements-section h2 {
-    font-size: 2.25rem !important;
+    font-size: 2rem !important;
   }
   .achievements-section .aspect-\[16\/9\] {
     aspect-ratio: 4/3;
+    border-radius: 24px;
+  }
+  .achievements-section .absolute.bottom-6 {
+    bottom: 1rem;
+    left: 1rem;
+    right: 1rem;
+    gap: 0.5rem !important;
+  }
+  .achievements-section .group\/badge {
+    padding: 0.4rem 0.8rem !important;
+  }
+  .achievements-section .group\/badge span {
+    font-size: 10px !important;
   }
 }
 

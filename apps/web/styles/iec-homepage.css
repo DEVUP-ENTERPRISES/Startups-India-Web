@@ -7,15 +7,21 @@
 }
 
 .iec-container {
-  max-width: 1400px; /* Increased for a more premium wide feel */
+  max-width: 1400px;
   margin-left: auto !important;
   margin-right: auto !important;
   padding: 0 4rem;
 }
 
+@media (max-width: 1024px) {
+  .iec-container {
+    padding: 0 2rem;
+  }
+}
+
 @media (max-width: 768px) {
   .iec-container {
-    padding: 0 1.5rem !important;
+    padding: 0 1rem;
   }
 }
 
@@ -31,7 +37,7 @@
 }
 
 .iec-section {
-  padding: 5rem 0;
+  padding: 3.5rem 0;
 }
 
 .iec-bg-gray {
@@ -153,7 +159,7 @@
   display: flex;
   align-items: center;
   gap: 4rem;
-  padding: 6rem 0;
+  padding: 4rem 0;
   min-height: 80vh;
   background: linear-gradient(180deg, #ffffff 0%, #f9fafb 100%);
   position: relative;
@@ -439,7 +445,7 @@
 /* Call To Action */
 .iec-cta-section {
   text-align: center;
-  padding: 6rem 0;
+  padding: 4rem 0;
   background: linear-gradient(180deg, #0a0a0a 0%, #111111 100%);
 }
 

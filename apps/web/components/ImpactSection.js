@@ -17,6 +17,7 @@ import {
   Briefcase,
   Scale,
 } from 'lucide-react';
+import { StaggerContainer, StaggerItem } from './ScrollReveal';
 
 const iconMap = {
   users: Users,
@@ -226,7 +227,7 @@ const MetricCard = ({ metric, index }) => {
 
 export default function ImpactSection() {
   return (
-    <section id="impact" className="iec-section !pt-20 !pb-24 relative bg-[#000000] overflow-hidden">
+    <section className="impact-section py-20 px-4 relative overflow-hidden bg-[#050505]">
       {/* --- LAYERED BACKGROUND DEPTH --- */}
 
       {/* 1. Base Gradient */}
@@ -254,11 +255,17 @@ export default function ImpactSection() {
         className="iec-container relative z-10 w-full flex flex-col items-center"
       >
         {/* HEADER */}
-        <div className="text-center mb-16 md:mb-24 relative w-full flex flex-col items-center">
+        <div className="text-center relative w-full flex flex-col items-center" style={{ marginBottom: '48px' }}>
           <motion.div variants={headerVariants}>
-            <span className="section-label-premium mb-8">
+            <motion.span 
+              className="section-label-premium mb-8 inline-block"
+              animate={{ 
+                boxShadow: ["0 0 15px rgba(229,57,53,0.1)", "0 0 25px rgba(229,57,53,0.2)", "0 0 15px rgba(229,57,53,0.1)"]
+              }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            >
               Our Impact
-            </span>
+            </motion.span>
           </motion.div>
 
           <motion.div variants={headerVariants}>
@@ -271,18 +278,22 @@ export default function ImpactSection() {
           </motion.div>
 
           <motion.div variants={headerVariants}>
-            <p className="text-[#a1a1aa] max-w-[700px] text-xl mx-auto leading-relaxed z-10 font-medium">
+            <p className="!text-[#a1a1aa] max-w-[700px] text-xl mx-auto leading-relaxed z-10 font-medium">
               Driving transformational growth across the startup landscape with measurable results, capital infusion, and lasting partnerships.
             </p>
           </motion.div>
         </div>
 
         {/* GRID */}
-        <div className="w-full grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8 stats-grid">
-          {impactMetrics.map((metric, index) => (
-            <MetricCard key={metric.id} metric={metric} index={index} />
-          ))}
-        </div>
+        <StaggerContainer>
+          <div className="w-full grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8">
+            {impactMetrics.map((metric, index) => (
+              <StaggerItem key={metric.id}>
+                <MetricCard metric={metric} index={index} />
+              </StaggerItem>
+            ))}
+          </div>
+        </StaggerContainer>
       </motion.div>
     </section>
   );

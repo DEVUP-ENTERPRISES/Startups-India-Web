@@ -6,6 +6,8 @@ import { useRouter, useParams } from 'next/navigation';
 import { apiGet, apiPost } from '@/lib/api';
 import '../../../styles/event-details.css';
 
+const DEFAULT_EVENT_IMAGE = 'https://images.unsplash.com/photo-1557683316-973673baf926?w=800&q=80';
+
 export default function EventDetailsPage() {
   const router = useRouter();
   const params = useParams();
@@ -32,6 +34,64 @@ export default function EventDetailsPage() {
     }
   };
 
+  const CountdownTimer = ({ targetDate }) => {
+    const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+
+    useEffect(() => {
+      const timer = setInterval(() => {
+        const now = new Date().getTime();
+        const distance = new Date(targetDate).getTime() - now;
+
+        if (distance < 0) {
+          clearInterval(timer);
+          return;
+        }
+
+        setTimeLeft({
+          days: Math.floor(distance / (1000 * 60 * 60 * 24)),
+          hours: Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+          minutes: Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)),
+          seconds: Math.floor((distance % (1000 * 60)) / 1000),
+        });
+      }, 1000);
+
+      return () => clearInterval(timer);
+    }, [targetDate]);
+
+    return (
+      <div className="event-countdown" style={{
+        display: 'flex',
+        gap: '12px',
+        marginTop: '16px',
+        background: '#1f2937',
+        padding: '12px',
+        borderRadius: '12px',
+        color: 'white',
+        justifyContent: 'center'
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '18px', fontWeight: '800' }}>{timeLeft.days}</div>
+          <div style={{ fontSize: '10px', opacity: 0.7, textTransform: 'uppercase' }}>Days</div>
+        </div>
+        <div style={{ fontSize: '18px', fontWeight: '800' }}>:</div>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '18px', fontWeight: '800' }}>{timeLeft.hours}</div>
+          <div style={{ fontSize: '10px', opacity: 0.7, textTransform: 'uppercase' }}>Hours</div>
+        </div>
+        <div style={{ fontSize: '18px', fontWeight: '800' }}>:</div>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '18px', fontWeight: '800' }}>{timeLeft.minutes}</div>
+          <div style={{ fontSize: '10px', opacity: 0.7, textTransform: 'uppercase' }}>Mins</div>
+        </div>
+        <div style={{ fontSize: '18px', fontWeight: '800' }}>:</div>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '18px', fontWeight: '800' }}>{timeLeft.seconds}</div>
+          <div style={{ fontSize: '10px', opacity: 0.7, textTransform: 'uppercase' }}>Secs</div>
+        </div>
+      </div>
+    );
+  };
+
   // Fetch event data based on ID
   useEffect(() => {
     const fetchEvent = async () => {
@@ -39,7 +99,9 @@ export default function EventDetailsPage() {
         setLoading(true);
         const response = await apiGet(`/api/v1/events/${params.id}`);
         if (response.data && !response.error) {
-          setEvent(response.data);
+          const eventData = response.data;
+          setEvent(eventData);
+          setIsRegistered(!!eventData.isRegistered);
         } else {
           setError('Event not found');
         }
@@ -131,6 +193,7 @@ export default function EventDetailsPage() {
       }
 
       setRegistering(true);
+      const isFree = !event.isPaid && (event.price === 0 || !event.price);
       if (isRegistered) {
         const res = await apiGet(`/api/v1/events/${params.id}/register`, { method: 'DELETE' });
         if (res.error?.status === 401) {
@@ -166,26 +229,39 @@ export default function EventDetailsPage() {
             order_id: orderData.id || orderData.orderId,
             handler: async function (response) {
               try {
+                // 1. Immediate feedback to user
+                console.log('Payment successful, verifying...', response);
+                
                 const verifyRes = await apiPost('/api/v1/payments/razorpay/verify', {
-                  orderId: response.razorpay_order_id,
+                  orderId: response.razorpay_order_id || orderData.id || orderData.orderId,
                   paymentId: response.razorpay_payment_id,
                   signature: response.razorpay_signature,
                 });
 
                 if (verifyRes.error) {
-                  alert('Payment verification failed. Please contact support.');
+                  console.error('Verification error:', verifyRes.error);
+                  alert('Payment verified on Razorpay, but enrollment failed. Please refresh the page.');
                 } else {
+                  // 2. Success state
                   setIsRegistered(true);
-                  const refreshRes = await apiGet(`/api/v1/events/${params.id}`);
-                  if (refreshRes.data && !refreshRes.error) setEvent(refreshRes.data);
+                  alert('Registration successful! Redirecting to event details...');
+                  
+                  // 3. Force reload to show the meeting link and updated status
+                  window.location.reload();
                 }
               } catch (err) {
-                alert('An unexpected error occurred during verification.');
+                console.error('Handler error:', err);
+                alert('Verification process failed. Please refresh the page to check your status.');
               } finally {
                 setRegistering(false);
               }
             },
-            modal: { ondismiss: () => setRegistering(false) },
+            modal: { 
+              ondismiss: () => {
+                setRegistering(false);
+                console.log('Checkout modal closed');
+              }
+            },
             theme: { color: '#e63946' },
           };
 
@@ -281,9 +357,13 @@ export default function EventDetailsPage() {
             <div className="event-image-carousel">
               <div className="carousel-container">
                 <img
-                  src={(event.images && event.images[currentImageIndex]) || event.coverImage}
+                  src={(event.images && event.images[currentImageIndex]) || event.coverImage || DEFAULT_EVENT_IMAGE}
                   alt={event.title}
                   className="carousel-image"
+                  onError={e => {
+                    e.target.onerror = null;
+                    e.target.src = DEFAULT_EVENT_IMAGE;
+                  }}
                   style={{
                     objectFit: 'cover',
                     width: '100%',
@@ -443,39 +523,47 @@ export default function EventDetailsPage() {
               </section>
             )}
 
-            {/* Artists */}
-            {Array.isArray(event.artists) && event.artists.length > 0 && (
-              <section className="event-section">
-                <h2 className="section-title">Speakers & Guests</h2>
-                <div className="artists-grid">
-                  {event.artists.map((artist, index) => (
-                    <div key={index} className="artist-card">
-                      {artist?.image ? (
-                        <Image
-                          src={artist.image}
-                          alt={artist.name || 'Speaker'}
-                          className="artist-image"
-                          width={120}
-                          height={120}
-                          style={{ objectFit: 'cover' }}
-                        />
-                      ) : (
-                        <div className="artist-image artist-image-fallback" aria-hidden="true">
-                          {String(artist?.name || 'S')
-                            .charAt(0)
-                            .toUpperCase()}
+            {/* Speakers / Artists */}
+            {(() => {
+              const participants = (Array.isArray(event.speakers) && event.speakers.length > 0) 
+                ? event.speakers 
+                : (Array.isArray(event.artists) ? event.artists : []);
+              
+              if (participants.length === 0) return null;
+
+              return (
+                <section className="event-section">
+                  <h2 className="section-title">
+                    {Array.isArray(event.speakers) && event.speakers.length > 0 ? 'Speakers' : 'Artists'}
+                  </h2>
+                  <div className="artists-grid">
+                    {participants.map((person, index) => (
+                      <div key={index} className="artist-card">
+                        {person.photo || person.image ? (
+                          <img
+                            src={person.photo || person.image}
+                            alt={person.name}
+                            className="artist-image"
+                          />
+                        ) : (
+                          <div className="artist-image artist-image-fallback">
+                            {person.name ? person.name.charAt(0) : 'S'}
+                          </div>
+                        )}
+                        <div className="artist-info">
+                          <h3 className="artist-name">{person.name}</h3>
+                          <p className="artist-role">
+                            {person.role}
+                            {person.company ? ` at ${person.company}` : ''}
+                          </p>
+                          {person.bio && <p className="artist-bio">{person.bio}</p>}
                         </div>
-                      )}
-                      <div className="artist-info">
-                        <h3 className="artist-name">{artist.name}</h3>
-                        {artist.role && <p className="artist-role">{artist.role}</p>}
-                        {artist.bio && <p className="artist-bio">{artist.bio}</p>}
                       </div>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            )}
+                    ))}
+                  </div>
+                </section>
+              );
+            })()}
           </div>
 
           {/* Right Column - Booking Card */}
@@ -637,7 +725,7 @@ export default function EventDetailsPage() {
                   </div>
                 )}
 
-                {event.meetingLink && (
+                {isRegistered && event.meetingLink && (
                   <div className="detail-item">
                     <svg
                       width="20"
@@ -660,42 +748,96 @@ export default function EventDetailsPage() {
                     </a>
                   </div>
                 )}
+                {isRegistered && (
+                  <div className="registered-success-banner" style={{
+                    background: 'rgba(16, 185, 129, 0.1)',
+                    border: '1px solid #10b981',
+                    borderRadius: '12px',
+                    padding: '16px',
+                    marginBottom: '20px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '12px'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#059669', fontWeight: '700' }}>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                      You are officially registered!
+                    </div>
+                    {event.meetingLink && (
+                      <a
+                        href={event.meetingLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="join-now-btn"
+                        style={{
+                          background: '#10b981',
+                          color: 'white',
+                          padding: '12px',
+                          borderRadius: '8px',
+                          textAlign: 'center',
+                          textDecoration: 'none',
+                          fontWeight: '800',
+                          fontSize: '15px',
+                          boxShadow: '0 4px 10px rgba(16, 185, 129, 0.3)',
+                          display: 'block'
+                        }}
+                      >
+                        JOIN MEETING NOW
+                      </a>
+                    )}
+                  </div>
+                )}
+                {event.date && (
+                  <CountdownTimer targetDate={event.date} />
+                )}
               </div>
 
-              <div className="booking-status">
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <circle cx="12" cy="12" r="10" />
-                  <polyline points="12 6 12 12 16 14" />
-                </svg>
-                <span>
-                  Bookings are filling fast
-                  {event.venue || event.location ? ` for ${event.venue || event.location}` : ''}
-                </span>
-              </div>
+              {event.date && !isRegistered && (
+                <div className="booking-status">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12 6 12 12 16 14" />
+                  </svg>
+                  <span>
+                    Bookings closing soon!
+                  </span>
+                </div>
+              )}
 
               <div className="booking-price">
                 <span className="price-amount">
-                  {event.priceLabel || formatMoney(event.price) || 'FREE'}
+                  {event.price > 0 ? formatMoney(event.price) : (event.priceLabel || 'FREE')}
                 </span>
-                <span className="price-status">{event.status || 'upcoming'}</span>
+                <span className={`price-status ${event.status}`}>
+                  {event.status?.toUpperCase() || 'UPCOMING'}
+                </span>
               </div>
 
               <button
-                className="book-now-btn-large"
-                onClick={handleRegister}
-                disabled={registering}
+                className={`book-now-btn-large ${isRegistered ? 'already-registered' : ''}`}
+                onClick={isRegistered ? null : handleRegister}
+                disabled={registering || isRegistered}
+                style={isRegistered ? {
+                  background: '#f3f4f6',
+                  color: '#6b7280',
+                  border: '1px solid #e5e7eb',
+                  boxShadow: 'none',
+                  cursor: 'default'
+                } : {}}
               >
                 {registering
-                  ? 'Please wait...'
+                  ? 'Processing...'
                   : isRegistered
-                    ? 'Cancel Registration'
+                    ? 'Successfully Registered ✓'
                     : 'Register Now'}
               </button>
             </div>

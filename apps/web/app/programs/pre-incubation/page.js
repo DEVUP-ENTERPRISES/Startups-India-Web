@@ -9,7 +9,7 @@ import ModulesSection from '@/components/ModulesSection';
 import HowItWorksSection from '@/components/HowItWorksSection';
 import OutcomesSection from '@/components/OutcomesSection';
 import MentorsSection from '@/components/MentorsSection';
-import TestimonialsSection from '@/components/TestimonialsSection';
+import FoundersTestimonialsSection from '@/components/FoundersTestimonialsSection';
 import FAQSection from '@/components/FAQSection';
 import DemoClassesSection from '@/components/DemoClassesSection';
 
@@ -260,16 +260,6 @@ export default function PreIncubationPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <motion.div
-                className="hero-page-heading"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.05 }}
-              >
-                <span className="page-kicker">Pre-Incubation Program</span>
-                <h2 className="hero-subtitle">Launch your idea with clarity, validation, and founder-ready execution</h2>
-              </motion.div>
-
               <motion.h1
                 className="hero-title-center"
                 initial={{ opacity: 0, y: 20 }}
@@ -418,7 +408,7 @@ export default function PreIncubationPage() {
       <CTAStripSection />
 
       {/* 17. Testimonials Section - Pinterest-style testimonials */}
-      <TestimonialsSection />
+      <FoundersTestimonialsSection />
 
       {/* 18. FAQ Section - Accordion-style FAQs */}
       <FAQSection />
