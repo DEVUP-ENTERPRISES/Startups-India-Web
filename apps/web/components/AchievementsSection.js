@@ -193,7 +193,10 @@ export default function AchievementsSection() {
                     </p>
                   </motion.div>
 
+<<<<<<< HEAD
                   <div className="flex items-center">
+=======
+>>>>>>> c2041c35d6a29678761bf6de90471fa43c67c7c6
                     <button className="inline-flex items-center justify-center gap-2.5 px-7 py-2.5 bg-[#e53935] hover:bg-white text-white hover:text-black border border-[#e53935] hover:border-white rounded-full text-[13px] font-black group transition-all duration-500 w-fit shadow-[0_12px_24px_rgba(229,57,53,0.3)] hover:shadow-[0_12px_24px_rgba(255,255,255,0.15)] hover:-translate-y-0.5">
                       EXPLORE EVENT 
                       <ExternalLink size={16} className="text-white group-hover:text-[#e53935] group-hover:translate-x-1 group-hover:-translate-y-1 transition-all duration-500" />

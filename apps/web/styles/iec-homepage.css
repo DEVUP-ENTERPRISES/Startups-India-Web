@@ -21,7 +21,11 @@
 
 @media (max-width: 768px) {
   .iec-container {
+<<<<<<< HEAD
     padding: 0 1.5rem !important;
+=======
+    padding: 0 1rem;
+>>>>>>> c2041c35d6a29678761bf6de90471fa43c67c7c6
   }
 }
 
