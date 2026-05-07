@@ -4,11 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-<<<<<<< HEAD
-import { Search, Menu, X, ChevronRight, Home, Info, LayoutGrid, Calendar, Users, Coins, Rocket, ChevronDown } from 'lucide-react';
-=======
 import { Search, Menu, X, ChevronRight, ChevronDown } from 'lucide-react';
->>>>>>> 561bef390565a9c6984d833a39d996779b36748d
 import { getCurrentUser } from '@/lib/auth';
 import '../styles/header.css';
 
@@ -23,33 +19,6 @@ export default function Header() {
   const pathname = usePathname();
 
   const menuItems = [
-<<<<<<< HEAD
-    { label: 'Home', href: '/', icon: Home },
-    { 
-      label: 'About Us', 
-      href: '/about', 
-      icon: Info,
-      hasSubmenu: true,
-      submenu: [
-        { label: 'About Us', href: '/about' },
-        { label: 'Team', href: '/team' }
-      ]
-    },
-    { 
-      label: 'Our Programs', 
-      href: '/programs', 
-      icon: LayoutGrid,
-      hasSubmenu: true,
-      submenu: [
-        { label: 'Pre-Incubation', href: '/programs/pre-incubation' },
-        { label: 'Incubation', href: '/programs/incubation' }
-      ]
-    },
-    { label: 'Events', href: '/events', icon: Calendar },
-    { label: 'Mentors', href: '/mentors', icon: Users },
-    { label: 'Investors', href: '/investors', icon: Coins },
-    { label: 'Market Access', href: '/market-access', icon: Rocket },
-=======
     { label: 'Home', href: '/' },
     { label: 'About Us', href: '/about' },
     {
@@ -78,7 +47,6 @@ export default function Header() {
     { label: 'Investors', href: '/investors' },
     { label: 'Market Access', href: '/market-access' },
     { label: 'Source', href: '/source' },
->>>>>>> 561bef390565a9c6984d833a39d996779b36748d
   ];
 
   const [openSubmenu, setOpenSubmenu] = useState(null);
@@ -297,56 +265,6 @@ export default function Header() {
         </div>
 
         <nav className="mobile-nav-content">
-<<<<<<< HEAD
-          <ul className="mobile-nav-list">
-            {menuItems.map((item, index) => {
-              const Icon = item.icon;
-              const isOpen = openSubmenu === item.label;
-              
-              return (
-                <li 
-                  key={index} 
-                  className={`mobile-nav-wrapper ${item.hasSubmenu ? 'has-submenu' : ''} ${isOpen ? 'open' : ''}`}
-                  style={{ '--index': index }}
-                >
-                  {item.hasSubmenu ? (
-                    <>
-                      <div className="menu-parent" onClick={() => toggleSubmenu(item.label)}>
-                        <span className="menu-left">
-                          <Icon size={20} className="menu-icon" />
-                          {item.label}
-                        </span>
-                        <ChevronDown size={18} className="arrow" />
-                      </div>
-                      <ul className="submenu">
-                        {item.submenu.map((sub, idx) => (
-                          <li key={idx}>
-                            <Link href={sub.href} onClick={closeMobileMenu} className="submenu-link">
-                              {sub.label}
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
-                    </>
-                  ) : (
-                    <Link
-                      href={item.href}
-                      className={`mobile-nav-item ${pathname === item.href ? 'active' : ''}`}
-                      onClick={closeMobileMenu}
-                    >
-                      <span className="menu-left">
-                        <Icon size={20} className="menu-icon" />
-                        {item.label}
-                      </span>
-                      <ChevronRight size={18} />
-                    </Link>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-          
-=======
           {menuItems.map((item, index) =>
             item.dropdown ? (
               <div key={index} className="mobile-dropdown-container">
@@ -400,8 +318,6 @@ export default function Header() {
               </Link>
             )
           )}
-
->>>>>>> 561bef390565a9c6984d833a39d996779b36748d
           <div className="mobile-drawer-actions">
             {user ? (
               <Link href="/dashboard" onClick={closeMobileMenu}>

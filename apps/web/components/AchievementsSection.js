@@ -147,23 +147,21 @@ export default function AchievementsSection() {
               <div className="lg:col-span-7 relative z-10">
                 <div className="relative group">
                   <div className="absolute -inset-4 bg-gradient-to-r from-[#e53935]/40 to-red-900/40 blur-[50px] rounded-[32px] opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
-                  <div className="relative rounded-[32px] overflow-hidden border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] aspect-[16/9] bg-[#0a0a0a]">
+                  <div className="relative rounded-[32px] overflow-hidden border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] aspect-[16/9] bg-[#0a0a0a] event-image">
                     <motion.img
                       src={activeItem.image}
                       alt={activeItem.title}
                       className="w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#000000] via-[#000000]/40 to-transparent opacity-90 pointer-events-none" />
                     
-                    <div className="absolute bottom-8 left-8 flex flex-wrap gap-3 z-20">
-                      {/* Clean High-Contrast Solid Badges */}
-                      <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-xl hover:scale-105 transition-transform cursor-default">
-                        <Calendar size={14} className="text-[#e53935]" />
-                        <span className="text-[13px] font-bold text-black tracking-widest uppercase">{activeItem.year}</span>
+                    <div className="event-badge-group">
+                      <div className="event-badge">
+                        <Calendar />
+                        <span>{activeItem.year}</span>
                       </div>
-                      <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-xl hover:scale-105 transition-transform cursor-default">
-                        <Award size={14} className="text-[#e53935]" />
-                        <span className="text-[13px] font-bold text-black tracking-widest uppercase">{activeItem.category}</span>
+                      <div className="event-badge">
+                        <Award />
+                        <span>{activeItem.category}</span>
                       </div>
                     </div>
                   </div>
@@ -198,9 +196,9 @@ export default function AchievementsSection() {
 
                   {/* Smaller, sleeker Explore button */}
                   <div className="flex items-center">
-                    <button className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#e53935] hover:bg-white text-white hover:text-black border border-[#e53935] hover:border-white rounded-full text-sm font-bold group transition-all duration-300 w-fit shadow-lg">
+                    <button className="event-cta group">
                       Explore Event 
-                      <ExternalLink size={16} className="text-white group-hover:text-[#e53935] group-hover:translate-x-1 transition-all" />
+                      <ExternalLink size={16} className="group-hover:translate-x-1 transition-all" />
                     </button>
                   </div>
 
