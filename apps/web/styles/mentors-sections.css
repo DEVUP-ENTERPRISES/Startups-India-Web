@@ -10,7 +10,7 @@
 - `[x]` Final visualization and walkthrough 
 - `[x]` Implement premium "Become a Mentor" CTA section with tech-pattern bg */
 .role-section {
-  padding: 120px 0 40px; /* Reduced bottom padding from 120px */
+  padding: 80px 0 30px; /* Reduced from 120px 0 40px */
   background: #000000;
   position: relative;
   overflow: hidden;
@@ -142,7 +142,7 @@
 
 /* Onboarding Process Section */
 .onboarding-section {
-  padding: 40px 0 120px; /* Reduced top padding from 120px */
+  padding: 30px 0 80px; /* Reduced from 40px 0 120px */
   background: #000000;
   position: relative;
   overflow: hidden;
@@ -367,7 +367,7 @@
 
 /* Important Note Section Redesign */
 .important-note-section {
-  padding: 120px 0;
+  padding: 60px 0;
   background: #000000;
   position: relative;
   overflow: hidden;
@@ -584,7 +584,7 @@
 
 /* Who Can Apply Section — Premium Dark */
 .who-can-apply-section {
-  padding: 40px 0 100px; /* Reduced top padding from 100px */
+  padding: 30px 0 70px; /* Reduced from 40px 0 100px */
   background: #000000; /* Unified with rest of the page */
   position: relative;
 }
@@ -602,7 +602,7 @@
   font-size: 16px;
   color: rgba(255, 255, 255, 0.45);
   text-align: center;
-  margin-bottom: 56px;
+  margin-bottom: 40px;
   max-width: 560px;
   margin-left: auto;
   margin-right: auto;
@@ -624,7 +624,7 @@
   grid-template-columns: repeat(2, 1fr);
   gap: 16px;
   max-width: 1100px;
-  margin: 0 auto 48px;
+  margin: 0 auto 32px;
   padding: 0 24px;
 }
 
@@ -833,7 +833,7 @@
    ========================================== */
 
 .become-mentor-cta {
-  padding: 140px 0;
+  padding: 80px 0;
   background: #0a0a0b;
   position: relative;
   overflow: hidden;
@@ -842,7 +842,7 @@
 
 /* Inline variant — breaks out of parent container to go full viewport width */
 .bmc-inline-wrapper {
-  padding: 140px 0;
+  padding: 80px 0 40px;
   background: #0a0a0b;
   position: relative;
   overflow: hidden;
@@ -1153,7 +1153,7 @@
    ========================================== */
 
 .become-mentor-cta {
-  padding: 140px 0;
+  padding: 80px 0;
   background: #0a0a0b;
   position: relative;
   overflow: hidden;
@@ -1162,12 +1162,12 @@
 
 /* Inline variant — breaks out of parent container to go full viewport width */
 .bmc-inline-wrapper {
-  padding: 140px 0 40px; /* Reduced bottom padding from 140px */
+  padding: 80px 0 40px; /* Reduced padding further for tighter flow */
   background: #000000; /* Unified with rest of the page */
   position: relative;
   overflow: hidden;
   text-align: center;
-  margin-top: 48px;
+  margin-top: 24px;
   /* Break out of parent container */
   width: 100vw;
   left: 50%;

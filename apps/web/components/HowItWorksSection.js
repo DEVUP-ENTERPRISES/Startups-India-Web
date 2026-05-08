@@ -38,6 +38,7 @@ const NODE_POSITIONS_PCT = [0, 33.333, 66.666, 100];
 
 export default function HowItWorksSection() {
   const axisRef = useRef(null);
+  const sectionRef = useRef(null);
   const [rocketPct, setRocketPct] = useState(0);       // 0–100 %
   const [activeStep, setActiveStep] = useState(0);
   const [isHovering, setIsHovering] = useState(false);
@@ -52,18 +53,44 @@ export default function HowItWorksSection() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Mobile scroll-based progress
+  useEffect(() => {
+    if (!isMobile) return;
+
+    const handleScroll = () => {
+      if (!sectionRef.current) return;
+      const rect = sectionRef.current.getBoundingClientRect();
+      const viewportHeight = window.innerHeight;
+      
+      // Calculate progress based on section position in viewport
+      // Starts when top is at 80% viewport, ends when bottom is at 20%
+      const start = viewportHeight * 0.8;
+      const end = viewportHeight * 0.2;
+      const progress = 1 - (rect.top - end) / (start - end);
+      const clamped = Math.max(0, Math.min(progress, 1)) * 100;
+      
+      setRocketPct(clamped);
+      
+      // Sync mobile step with scroll progress
+      const currentStep = Math.floor((clamped / 100) * steps.length);
+      setMobileStep(Math.min(currentStep, steps.length - 1));
+      setActiveStep(Math.min(currentStep, steps.length - 1));
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [isMobile]);
+
   const handleMouseMove = useCallback((e) => {
     if (!axisRef.current || isMobile) return;
     const rect = axisRef.current.getBoundingClientRect();
-    // cursor X relative to the left edge of the axis element itself
     const rawX = e.clientX - rect.left;
-    // clamp to [0, rect.width] then convert to percentage
     const clamped = Math.max(0, Math.min(rawX, rect.width));
     const pct = (clamped / rect.width) * 100;
 
     setRocketPct(pct);
 
-    // Snap active step to whichever node is closest
+    // Progressive node activation: activate all nodes passed by rocket
     const nearest = NODE_POSITIONS_PCT.reduce((best, pos, idx) =>
       Math.abs(pct - pos) < Math.abs(pct - NODE_POSITIONS_PCT[best]) ? idx : best
     , 0);
@@ -73,11 +100,14 @@ export default function HowItWorksSection() {
   const handleMouseEnter = useCallback(() => setIsHovering(true), []);
   const handleMouseLeave = useCallback(() => {
     setIsHovering(false);
+    // Smoothly return to start or stay at last position? 
+    // User said "move from point -> point", implying persistence or intentionality.
+    // Let's reset to 0 for a "reset" feel or just leave it. 
+    // User said "follows horizontally", let's keep it 0 when leaving for a clean state.
     setRocketPct(0);
     setActiveStep(0);
   }, []);
 
-  // When hovering a card, snap the rocket to that step
   const handleCardHover = useCallback((idx) => {
     setActiveStep(idx);
     setRocketPct(NODE_POSITIONS_PCT[idx]);
@@ -85,12 +115,16 @@ export default function HowItWorksSection() {
 
   const nextMobileStep = () => {
     setDirection(1);
-    setMobileStep((prev) => (prev === steps.length - 1 ? 0 : prev + 1));
+    const next = (mobileStep === steps.length - 1 ? 0 : mobileStep + 1);
+    setMobileStep(next);
+    setRocketPct(NODE_POSITIONS_PCT[next]);
   };
 
   const prevMobileStep = () => {
     setDirection(-1);
-    setMobileStep((prev) => (prev === 0 ? steps.length - 1 : prev - 1));
+    const prev = (mobileStep === 0 ? steps.length - 1 : mobileStep - 1);
+    setMobileStep(prev);
+    setRocketPct(NODE_POSITIONS_PCT[prev]);
   };
 
   const variants = {
@@ -111,7 +145,7 @@ export default function HowItWorksSection() {
   };
 
   return (
-    <section className="how-it-works-modern">
+    <section className="how-it-works-modern" ref={sectionRef}>
       <div className="iec-container">
         {/* Header */}
         <div className="roadmap-header">
@@ -161,16 +195,19 @@ export default function HowItWorksSection() {
                 />
                 <div
                   className={`rocket-pilot${isHovering ? ' visible' : ''}`}
-                  style={{ left: `${rocketPct}%` }}
+                  style={{ 
+                    left: `${rocketPct}%`,
+                    transform: `translate(-50%, -50%) rotate(${rocketPct > 0 ? '-15deg' : '-45deg'})`
+                  }}
                 >
-                  <Rocket size={18} style={{ transform: 'rotate(90deg)' }} />
+                  <Rocket size={22} className="rocket-icon-svg" />
                 </div>
 
                 <div className="roadmap-nodes-wrapper">
                   {steps.map((step, idx) => (
                     <div
                       key={idx}
-                      className={`roadmap-node-item${activeStep >= idx ? ' active' : ''}${activeStep === idx ? ' current' : ''}`}
+                      className={`roadmap-node-item${rocketPct >= NODE_POSITIONS_PCT[idx] ? ' active' : ''}${activeStep === idx ? ' current' : ''}`}
                       onMouseEnter={() => handleCardHover(idx)}
                     >
                       <span className="node-number">{idx + 1}</span>
@@ -186,10 +223,11 @@ export default function HowItWorksSection() {
                         <motion.div
                           className={`roadmap-step-card-glass${activeStep === idx ? ' focused' : ''}`}
                           onMouseEnter={() => handleCardHover(idx)}
-                          whileHover={{ 
-                            y: -12,
-                            transition: { duration: 0.3 }
+                          animate={{
+                            y: activeStep === idx ? -12 : 0,
+                            borderColor: activeStep === idx ? "rgba(239,68,68,0.45)" : "rgba(255,255,255,0.1)",
                           }}
+                          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
                         >
                           <div className="step-card-icon">{step.icon}</div>
                           <h4 className="step-card-title !text-white">{step.title}</h4>
@@ -234,32 +272,36 @@ export default function HowItWorksSection() {
               <div className="mobile-carousel-controls">
                 <div className="mobile-progress-wrapper">
                   <span className="mobile-progress-text">0{mobileStep + 1}</span>
-                  <div className="mobile-progress-track" style={{ position: 'relative' }}>
+                  <div className="mobile-progress-track" style={{ position: 'relative', background: 'rgba(255,255,255,0.05)' }}>
                     <div 
                       className="mobile-progress-fill" 
-                      style={{ width: `${((mobileStep + 1) / steps.length) * 100}%` }}
+                      style={{ 
+                        width: `${rocketPct}%`,
+                        boxShadow: '0 0 15px rgba(239,68,68,0.4)'
+                      }}
                     />
-                    {/* Rocket Cursor for mobile progress bar - perfectly centered */}
+                    {/* Rocket Cursor for mobile progress bar */}
                     <div
                       className="rocket-pilot visible"
                       style={{ 
-                        left: `${((mobileStep + 1) / steps.length) * 100}%`,
-                        transition: 'left 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-                        width: '28px',
-                        height: '28px',
+                        left: `${rocketPct}%`,
+                        transition: 'left 0.4s cubic-bezier(0.22, 1, 0.36, 1)',
+                        width: '32px',
+                        height: '32px',
                         position: 'absolute',
                         top: '50%',
-                        transform: 'translate(-50%, -50%)',
-                        background: '#18181B',
-                        border: '1px solid rgba(229, 57, 53, 0.4)',
+                        transform: 'translate(-50%, -50%) rotate(-45deg)',
+                        background: 'linear-gradient(135deg, #ff5a5a, #ef4444)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         borderRadius: '50%',
-                        zIndex: 10
+                        zIndex: 10,
+                        border: '1px solid rgba(255,255,255,0.2)',
+                        boxShadow: '0 0 15px rgba(239,68,68,0.5)'
                       }}
                     >
-                      <Rocket size={14} color="#e53935" style={{ transform: 'rotate(90deg)' }} />
+                      <Rocket size={16} color="#ffffff" />
                     </div>
                   </div>
                   <span className="mobile-progress-text">0{steps.length}</span>
