@@ -172,44 +172,38 @@ const MetricCard = ({ metric, index }) => {
       ref={cardRef}
       className="relative group h-full"
     >
-      <div className="impact-card relative h-full transition-all duration-500 bg-[#121212] hover:bg-[#1a1a1a] border border-white/10 hover:border-white/20 group-hover:-translate-y-2 group-hover:shadow-[0_20px_40px_-15px_rgba(229,57,53,0.3)] rounded-[24px]">
+      <div className="impact-card-premium relative h-full transition-all duration-500 rounded-[28px] overflow-hidden">
         
-        {/* Top: Icon Box & Index */}
-        <div className="icon-box flex justify-between items-start">
-          <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${metric.gradient} p-[1px] shadow-lg`}>
-            <div className="w-full h-full rounded-2xl bg-[#000000] flex items-center justify-center relative overflow-hidden">
-              <div className={`absolute inset-0 bg-gradient-to-br ${metric.gradient} opacity-20`} />
-              <Icon className="w-6 h-6 !text-white relative z-10" />
-            </div>
+        {/* [Top Row]: Icon & Card Number */}
+        <div className="card-top-row">
+          <div className="icon-container-premium">
+            <div className={`icon-glow-bg bg-gradient-to-br ${metric.gradient} opacity-20`} />
+            <Icon className="icon-element !text-white" />
           </div>
-          <div className="text-[#444444] font-mono text-xl font-bold opacity-50 group-hover:opacity-100 transition-opacity">
+          <div className="card-index-premium">
             0{index + 1}
           </div>
         </div>
 
-        {/* Content Box */}
-        <div className="relative z-10 flex flex-col">
-          {/* Metric Number */}
-          <div className="metric-number flex items-baseline flex-wrap gap-x-2 text-white">
-            {metric.prefix && (
-              <span className="text-3xl font-bold text-white/70">{metric.prefix}</span>
-            )}
-            <AnimatedCounter value={metric.value} trigger={isInView} duration={1600} />
-            {metric.suffix && (
-              <span className="text-4xl font-bold text-[#ef4444]">{metric.suffix}</span>
-            )}
-          </div>
-
-          {/* Metric Title */}
-          <h3 className="metric-title text-white">
-            {metric.label}
-          </h3>
-
-          {/* Metric Description */}
-          <p className="metric-description">
-            {metric.sub}
-          </p>
+        {/* [Main Metric] */}
+        <div className="metric-value-premium">
+          {metric.prefix && <span className="metric-prefix">{metric.prefix}</span>}
+          <AnimatedCounter value={metric.value} trigger={isInView} duration={1600} />
+          {metric.suffix && <span className="metric-suffix">{metric.suffix}</span>}
         </div>
+
+        {/* [Card Title] */}
+        <h3 className="metric-label-premium">
+          {metric.label}
+        </h3>
+
+        {/* [Description] */}
+        <p className="metric-desc-premium">
+          {metric.sub}
+        </p>
+
+        {/* Subtle Glass Reflection Overlay */}
+        <div className="card-reflection-premium" />
       </div>
     </motion.div>
   );
@@ -255,8 +249,7 @@ export default function ImpactSection() {
 
           <motion.div variants={headerVariants}>
             <h2 className="hero-impact-title">
-              Empowering The Next Era of<br />
-              <span className="highlight">Innovation</span>
+              Empowering The Next Era of <span className="highlight">Innovation</span>
             </h2>
           </motion.div>
 
