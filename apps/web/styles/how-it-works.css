@@ -1,10 +1,10 @@
 /* ════════════════════════════════════════════════════════════════════════════
-    Rocket Roadmap UI — Home Page
+    Startup Journey Roadmap UI — Home Page
     ════════════════════════════════════════════════════════════════════════════ */
 
 .how-it-works-modern {
   padding: 10px 0 60px;
-  background: #0a0a0a; /* Force dark background for premium look and visibility */
+  background: #0a0a0a;
   position: relative;
   overflow: hidden;
 }
@@ -15,11 +15,29 @@
   }
 }
 
+/* ── Section Container ─────────────────────────────────────────────────── */
+.startup-journey-section {
+  position: relative;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 120px 40px;
+  overflow: hidden;
+}
+
+@media (max-width: 768px) {
+  .startup-journey-section {
+    padding: 60px 16px;
+  }
+}
+
 /* ── Header ─────────────────────────────────────────────────────────────── */
 .roadmap-header {
   text-align: center;
-  max-width: 700px;
+  max-width: 1000px;
   margin: 0 auto 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 @media (max-width: 768px) {
@@ -28,33 +46,38 @@
   }
 }
 
-.sub-tag {
-  display: block;
-  font-size: 11px;
-  font-weight: 700;
-  color: #E53935;
-  letter-spacing: 0.15em;
-  margin-bottom: 12px;
-  opacity: 0.7;
-}
-
-.roadmap-header h2 {
-  font-size: clamp(32px, 4vw, 48px);
+/* ── Journey Title ──────────────────────────────────────────────────────── */
+.journey-title {
+  max-width: 1000px;
+  margin: 0 auto;
+  text-align: center;
+  font-size: clamp(56px, 6vw, 92px);
   font-weight: 800;
-  color: #ffffff !important; /* White text on dark background - Force override */
-  margin-bottom: 16px;
-  letter-spacing: -0.02em;
+  line-height: 1.02;
+  letter-spacing: -3px;
+  color: #ffffff !important;
 }
 
-.roadmap-header p {
-  font-size: 17px;
-  color: rgba(255, 255, 255, 0.7);
-  line-height: 1.6;
+.journey-title .highlight {
+  color: #ef4444;
+  display: inline-block;
+  line-height: inherit;
+}
+
+/* ── Journey Subtitle ───────────────────────────────────────────────────── */
+.journey-subtitle {
+  max-width: 850px;
+  margin: 28px auto 0;
+  text-align: center;
+  font-size: 20px;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.65);
+  font-weight: 400;
 }
 
 /* ── Roadmap axis (Line + Nodes + Rocket) ────────────────────────────────── */
 .roadmap-container {
-  max-width: 1100px;
+  max-width: 1200px;
   margin: 0 auto;
 }
 
@@ -62,18 +85,19 @@
   position: relative;
   height: 80px;
   margin-bottom: 40px;
+  margin-top: 80px;
   display: flex;
   align-items: center;
 }
 
-/* Flame Line Style */
+/* Timeline Line */
 .roadmap-base-line {
   position: absolute;
   left: 0;
   right: 0;
   top: 50%;
-  height: 3px;
-  background: rgba(229, 57, 53, 0.08);
+  height: 2px;
+  background: linear-gradient(90deg, rgba(239, 68, 68, 0.4), rgba(239, 68, 68, 0.12));
   border-radius: 999px;
   transform: translateY(-50%);
   z-index: 1;
@@ -89,7 +113,6 @@
   transform: translateY(-50%);
   z-index: 2;
   box-shadow: 0 0 12px rgba(229, 57, 53, 0.4);
-  /* Fast transition for real-time cursor tracking */
   transition: width 0.05s linear;
 }
 
@@ -102,17 +125,17 @@
   transform: translateY(-50%);
   display: flex;
   justify-content: space-between;
-  /* Nodes must be above the rocket */
   z-index: 5;
   pointer-events: all;
 }
 
 .roadmap-node-item {
-  width: 44px;
-  height: 44px;
+  width: 58px;
+  height: 58px;
   border-radius: 50%;
-  border: 2px solid #E53935;
-  background: #0a0a0a;
+  border: 2px solid rgba(239, 68, 68, 0.7);
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(10px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -123,16 +146,16 @@
 
 .node-number {
   font-size: 16px;
-  font-weight: 800;
-  color: #E53935;
+  font-weight: 700;
+  color: #ffffff;
   transition: color 0.3s ease;
 }
 
 .roadmap-node-item:hover,
 .roadmap-node-item.active {
-  background: #E53935;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
   transform: scale(1.1);
-  box-shadow: 0 0 15px rgba(229, 57, 53, 0.4);
+  box-shadow: 0 0 28px rgba(239, 68, 68, 0.35);
 }
 
 .roadmap-node-item:hover .node-number,
@@ -140,14 +163,12 @@
   color: #fff;
 }
 
-/* Rocket Pilot — sits exactly on the line, never overlaps nodes */
+/* Rocket Pilot */
 .rocket-pilot {
   position: absolute;
-  /* Vertically centered on the line axis */
   top: 50%;
-  /* Horizontally driven by JS left% */
   transform: translate(-50%, -50%);
-  z-index: 3; /* below nodes (z:5) but above flame trail (z:2) */
+  z-index: 3;
   color: #E53935;
   background: #0a0a0a;
   width: 34px;
@@ -156,16 +177,13 @@
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  border: 2px solid rgba(229,57,53,0.4);
-  box-shadow: 0 0 12px rgba(229,57,53,0.3), 0 2px 8px rgba(0,0,0,0.08);
-  /* Hidden until cursor enters the axis */
+  border: 2px solid rgba(229, 57, 53, 0.4);
+  box-shadow: 0 0 12px rgba(229, 57, 53, 0.3), 0 2px 8px rgba(0, 0, 0, 0.08);
   opacity: 0;
-  /* Near-real-time movement, tiny lag for smoothness */
   transition: left 0.05s linear, opacity 0.2s ease;
   pointer-events: none;
 }
 
-/* Rocket becomes visible when cursor is over the axis */
 .rocket-pilot.visible {
   opacity: 1;
 }
@@ -174,67 +192,105 @@
   filter: drop-shadow(0 0 4px rgba(229, 57, 53, 0.4));
 }
 
-/* ── Cards Grid ─────────────────────────────────────────────────────────── */
-.roadmap-cards-grid {
+/* ── Journey Cards Grid ─────────────────────────────────────────────────── */
+.journey-card-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 24px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 28px;
+  align-items: stretch;
 }
 
-.roadmap-step-card-glass {
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(15px);
-  -webkit-backdrop-filter: blur(15px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 20px;
-  padding: 40px 30px;
-  transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+.journey-card {
+  position: relative;
+  border-radius: 28px;
+  padding: 34px;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.015));
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  min-height: 420px;
+  display: flex;
+  flex-direction: column;
   cursor: pointer;
-  height: 100%;
+  transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
 }
 
-.roadmap-step-card-glass:hover,
-.roadmap-step-card-glass.focused {
+.journey-card:hover,
+.journey-card.focused {
   transform: translateY(-8px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-  border-color: rgba(230, 57, 70, 0.3);
-  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(239, 68, 68, 0.22);
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.35),
+    0 0 28px rgba(239, 68, 68, 0.10);
 }
 
-.step-card-icon {
-  width: 48px;
-  height: 48px;
-  background: rgba(229, 57, 53, 0.05);
-  border-radius: 10px;
+/* Card Icon */
+.journey-card .step-card-icon {
+  width: 56px;
+  height: 56px;
+  background: rgba(229, 57, 53, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.15);
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #E53935;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
   transition: all 0.3s ease;
 }
 
-.roadmap-step-card-glass:hover .step-card-icon,
-.roadmap-step-card-glass.focused .step-card-icon {
+.journey-card:hover .step-card-icon,
+.journey-card.focused .step-card-icon {
   background: #E53935;
   color: #fff;
+  border-color: #E53935;
+  box-shadow: 0 8px 24px rgba(229, 57, 53, 0.3);
 }
 
-.step-card-title {
-  font-size: 18px;
+/* Step Label (e.g. "1.") */
+.journey-card-step-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #ef4444;
+  margin-bottom: 8px;
+  letter-spacing: 0.5px;
+}
+
+/* Card Title */
+.journey-card-title {
+  font-size: 20px;
   font-weight: 800;
-  color: #ffffff !important; /* Force visibility */
-  margin-bottom: 12px;
+  color: #ffffff !important;
+  margin-bottom: 14px;
+  line-height: 1.3;
 }
 
-.step-card-desc {
-  font-size: 13.5px;
-  color: rgba(255, 255, 255, 0.6) !important; /* Force visibility */
-  line-height: 1.6;
+/* Card Description */
+.journey-card-desc {
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.6) !important;
+  line-height: 1.7;
+  flex-grow: 1;
+}
+
+/* Card Accent Line */
+.journey-card-accent-line {
+  width: 40px;
+  height: 3px;
+  background: linear-gradient(90deg, #ef4444, #dc2626);
+  border-radius: 999px;
+  margin-top: 24px;
+  opacity: 0.7;
+  transition: width 0.3s ease, opacity 0.3s ease;
+}
+
+.journey-card:hover .journey-card-accent-line,
+.journey-card.focused .journey-card-accent-line {
+  width: 60px;
+  opacity: 1;
 }
 
 /* ── Animations ─────────────────────────────────────────────────────────── */
-/* Smooth pulse for active nodes */
 @keyframes pulse-glow {
   0% { box-shadow: 0 0 0 0 rgba(229, 57, 53, 0.4); }
   70% { box-shadow: 0 0 0 10px rgba(229, 57, 53, 0); }
@@ -247,19 +303,36 @@
 
 /* ── Responsive ─────────────────────────────────────────────────────────── */
 @media (max-width: 1024px) {
-  .roadmap-cards-grid {
+  .journey-card-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .journey-title {
+    font-size: 48px;
+    line-height: 1.08;
+    letter-spacing: -1px;
+  }
+
+  .journey-subtitle {
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  .journey-card-grid {
+    grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 1023px) {
   /* Hide Desktop specific axis parts on mobile */
   .roadmap-axis,
-  .roadmap-cards-grid {
+  .journey-card-grid {
     display: none;
   }
 
-  /* ── Mobile Carousel Format (New) ── */
+  /* ── Mobile Carousel Format ── */
   .mobile-carousel-container {
     display: flex;
     flex-direction: column;
@@ -286,10 +359,10 @@
     height: 100%;
   }
 
-  /* Dark Theme Card matching reference */
+  /* Dark Theme Card */
   .mobile-card-inner {
     background: #111111;
-    border: 1px solid rgba(255, 255, 255, 0.15); /* Stronger border for visibility */
+    border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 24px;
     padding: 32px 24px;
     height: 100%;
@@ -302,7 +375,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 20px; /* Reduced from 24px */
+    margin-bottom: 20px;
   }
 
   .mobile-step-pill {
@@ -339,7 +412,7 @@
 
   .mobile-card-desc {
     font-size: 15px;
-    color: #d1d5db; /* Lighter color for better visibility on dark background */
+    color: #d1d5db;
     line-height: 1.6;
     flex-grow: 1;
   }
@@ -371,7 +444,6 @@
     height: 4px;
     background: rgba(0, 0, 0, 0.1);
     border-radius: 4px;
-    /* Removed overflow: hidden so the rocket cursor isn't clipped */
   }
 
   .mobile-progress-fill {
@@ -387,15 +459,15 @@
   }
 
   .mobile-nav-btn {
-    width: 48px; /* Slightly larger for better tap target */
+    width: 48px;
     height: 48px;
     border-radius: 50%;
     background: rgba(229, 57, 53, 0.1);
-    border: 1.5px solid rgba(229, 57, 53, 0.3); /* Red border for visibility */
+    border: 1.5px solid rgba(229, 57, 53, 0.3);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #e53935; /* Red icons for visibility */
+    color: #e53935;
     cursor: pointer;
     transition: all 0.2s ease;
     box-shadow: 0 4px 12px rgba(229, 57, 53, 0.2);

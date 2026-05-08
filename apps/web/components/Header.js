@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Menu, X, ChevronRight, ChevronDown } from 'lucide-react';
+import { Search, Menu, X, ChevronRight, Home, Info, LayoutGrid, Calendar, Users, Coins, Rocket, ChevronDown } from 'lucide-react';
 import { getCurrentUser } from '@/lib/auth';
 import '../styles/header.css';
 
@@ -19,34 +19,43 @@ export default function Header() {
   const pathname = usePathname();
 
   const menuItems = [
-    { label: 'Home', href: '/' },
-    { label: 'About Us', href: '/about' },
-    {
-      label: 'Our Programs',
-      href: '/programs',
+    { label: 'Home', href: '/', icon: Home },
+    { 
+      label: 'About Us', 
+      href: '/about', 
+      icon: Info,
       dropdown: [
-        {
-          label: 'Pre-Incubation',
+        { label: 'About Us', href: '/about' },
+        { label: 'Team', href: '/team' }
+      ]
+    },
+    { 
+      label: 'Our Programs', 
+      href: '/programs', 
+      icon: LayoutGrid,
+      dropdown: [
+        { 
+          label: 'Pre-Incubation', 
           href: '/programs/pre-incubation',
-          description: '4-week intensive program for idea validation',
+          description: '4-week intensive program for idea validation'
         },
-        {
-          label: 'Incubation',
+        { 
+          label: 'Incubation', 
           href: '/programs/incubation',
-          description: 'Full incubation support for early-stage startups',
+          description: 'Full incubation support for early-stage startups'
         },
         {
           label: 'Master Classes',
           href: '/programs/master-classes',
           description: 'Advanced training and skill development',
         },
-      ],
+      ]
     },
-    { label: 'Events', href: '/events' },
-    { label: 'Mentors', href: '/mentors' },
-    { label: 'Investors', href: '/investors' },
-    { label: 'Market Access', href: '/market-access' },
-    { label: 'Source', href: '/source' },
+    { label: 'Events', href: '/events', icon: Calendar },
+    { label: 'Mentors', href: '/mentors', icon: Users },
+    { label: 'Investors', href: '/investors', icon: Coins },
+    { label: 'Market Access', href: '/market-access', icon: Rocket },
+    { label: 'Source', href: '/source', icon: Search },
   ];
 
   const [openSubmenu, setOpenSubmenu] = useState(null);
@@ -265,59 +274,55 @@ export default function Header() {
         </div>
 
         <nav className="mobile-nav-content">
-          {menuItems.map((item, index) =>
-            item.dropdown ? (
-              <div key={index} className="mobile-dropdown-container">
-                <div 
-                  className={`mobile-nav-item dropdown-header ${mobileDropdowns[item.label] ? 'open' : ''}`}
-                  onClick={() => toggleMobileDropdown(item.label)}
+          <ul className="mobile-nav-list">
+            {menuItems.map((item, index) => {
+              const Icon = item.icon;
+              const hasDropdown = !!item.dropdown;
+              const isOpen = openSubmenu === item.label;
+              
+              return (
+                <li 
+                  key={index} 
+                  className={`mobile-nav-wrapper ${hasDropdown ? 'has-submenu' : ''} ${isOpen ? 'open' : ''}`}
+                  style={{ '--index': index }}
                 >
-                  {item.label}
-                  <ChevronDown 
-                    size={20} 
-                    style={{ 
-                      transform: mobileDropdowns[item.label] ? 'rotate(180deg)' : 'rotate(0deg)',
-                      transition: 'transform 0.3s ease'
-                    }} 
-                  />
-                </div>
-                <AnimatePresence>
-                  {mobileDropdowns[item.label] && (
-                    <motion.div 
-                      className="mobile-dropdown-items"
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.3, ease: 'easeInOut' }}
-                      style={{ overflow: 'hidden' }}
+                  {hasDropdown ? (
+                    <>
+                      <div className="menu-parent" onClick={() => toggleSubmenu(item.label)}>
+                        <span className="menu-left">
+                          <Icon size={20} className="menu-icon" />
+                          {item.label}
+                        </span>
+                        <ChevronDown size={18} className="arrow" />
+                      </div>
+                      <ul className="submenu">
+                        {item.dropdown.map((sub, idx) => (
+                          <li key={idx}>
+                            <Link href={sub.href} onClick={closeMobileMenu} className="submenu-link">
+                              <div className="submenu-title">{sub.label}</div>
+                              {sub.description && <div className="submenu-desc">{sub.description}</div>}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </>
+                  ) : (
+                    <Link
+                      href={item.href}
+                      className={`mobile-nav-item ${pathname === item.href ? 'active' : ''}`}
+                      onClick={closeMobileMenu}
                     >
-                      {item.dropdown.map((dropdownItem, dropdownIndex) => (
-                        <Link
-                          key={dropdownIndex}
-                          href={dropdownItem.href}
-                          className="mobile-dropdown-item"
-                          onClick={closeMobileMenu}
-                        >
-                          <div className="mobile-dropdown-title">{dropdownItem.label}</div>
-                          <div className="mobile-dropdown-description">{dropdownItem.description}</div>
-                        </Link>
-                      ))}
-                    </motion.div>
+                      <span className="menu-left">
+                        <Icon size={20} className="menu-icon" />
+                        {item.label}
+                      </span>
+                      <ChevronRight size={18} />
+                    </Link>
                   )}
-                </AnimatePresence>
-              </div>
-            ) : (
-              <Link
-                key={index}
-                href={item.href}
-                className={`mobile-nav-item ${pathname === item.href ? 'active' : ''}`}
-                onClick={closeMobileMenu}
-              >
-                {item.label}
-                <ChevronRight size={18} />
-              </Link>
-            )
-          )}
+                </li>
+              );
+            })}
+          </ul>
           <div className="mobile-drawer-actions">
             {user ? (
               <Link href="/dashboard" onClick={closeMobileMenu}>
