@@ -25,6 +25,7 @@ import '@/styles/design-system.css';
 import '@/styles/home-enterprise.css';
 
 // 6. Layout Components - Shared across all pages (SIXTH)
+import '@/styles/header.css';
 import '@/styles/footer.css';
 
 // 7. Global Responsive Overrides - Applied LAST for global responsiveness (SEVENTH)

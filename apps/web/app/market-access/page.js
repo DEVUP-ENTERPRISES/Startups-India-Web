@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import MarketAccessHero from '../../components/MarketAccessHero';
 import '../../styles/market-access.css';
+import '../../styles/network-hero.css';
 
 export default function MarketAccessPage() {
   return (

@@ -522,6 +522,10 @@
 }
 
 /* Responsive */
+.mobile-only-quote {
+  display: none;
+}
+
 @media (max-width: 1024px) {
   .team-grid {
     grid-template-columns: repeat(3, 1fr);
@@ -546,26 +550,78 @@
   }
 
   .flip-card {
-    height: 320px;
+    height: auto;
+    min-height: auto;
+  }
+
+  .flip-card-inner {
+    transform: none !important;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    gap: 14px;
+    height: auto;
+  }
+
+  .flip-card:hover {
+    transform: none;
+  }
+
+  .flip-card:hover .flip-card-inner {
+    transform: none !important;
+  }
+
+  .flip-card-front {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: auto;
+  }
+
+  .flip-card-back {
+    display: none !important;
+  }
+
+  .flip-card-front .card-image-wrapper {
+    height: auto;
+    aspect-ratio: 1;
+    margin-bottom: 10px;
+    border-radius: 16px;
+  }
+
+  .flip-card-front .card-content {
+    position: relative;
+    padding: 0;
+  }
+
+  .mobile-only-quote {
+    display: flex;
+    margin-bottom: 16px;
   }
 
   .member-name {
-    font-size: 0.9rem;
+    font-size: 28px;
   }
 
   .member-role {
-    font-size: 0.75rem;
+    font-size: 18px;
   }
 
   .member-quote p {
-    font-size: 0.68rem;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  .card-icon-link {
+    width: 42px;
+    height: 42px;
   }
 }
 
 @media (max-width: 480px) {
   .team-grid {
     grid-template-columns: 1fr;
-    max-width: 300px;
+    max-width: 100%;
     margin: 0 auto;
   }
 
@@ -600,28 +656,29 @@
   }
 
   .flip-card {
-    height: 300px;
+    height: auto;
+    min-height: auto;
   }
 
   .member-name {
-    font-size: 0.85rem;
+    font-size: 24px;
   }
 
   .member-role {
-    font-size: 0.7rem;
+    font-size: 16px;
   }
 
   .member-quote p {
-    font-size: 0.65rem;
+    font-size: 14px;
   }
 
   .card-icon-link {
-    width: 28px;
-    height: 28px;
+    width: 42px;
+    height: 42px;
   }
 
   .card-icon-link svg {
-    width: 12px;
-    height: 12px;
+    width: 16px;
+    height: 16px;
   }
 }
