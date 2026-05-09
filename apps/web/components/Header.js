@@ -13,7 +13,7 @@ export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
-  const [programsDropdownOpen, setProgramsDropdownOpen] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState(null);
   const [mobileDropdowns, setMobileDropdowns] = useState({});
   const [hoveredNav, setHoveredNav] = useState(null);
   const [activeDropdown, setActiveDropdown] = useState(null);
@@ -245,7 +245,7 @@ export default function Header() {
                   key={index}
                   className="nav-dropdown-container"
                   onMouseEnter={(e) => {
-                    setProgramsDropdownOpen(true);
+                    setOpenDropdown(index);
                     const rect = e.currentTarget.getBoundingClientRect();
                     const parentRect = e.currentTarget.parentElement.getBoundingClientRect();
                     setHoveredNav({
@@ -255,7 +255,7 @@ export default function Header() {
                       height: rect.height,
                     });
                   }}
-                  onMouseLeave={() => setProgramsDropdownOpen(false)}
+                  onMouseLeave={() => setOpenDropdown(null)}
                 >
                   <button
                     className={`nav-link dropdown-toggle ${pathname.startsWith(item.href) ? 'active' : ''}`}
@@ -263,11 +263,11 @@ export default function Header() {
                     {item.label}
                     <ChevronDown
                       size={16}
-                      className={`dropdown-arrow ${programsDropdownOpen ? 'rotated' : ''}`}
+                      className={`dropdown-arrow ${openDropdown === index ? 'rotated' : ''}`}
                     />
                   </button>
                   <AnimatePresence>
-                    {programsDropdownOpen && (
+                    {openDropdown === index && (
                       <motion.div
                         className="programs-dropdown"
                         initial={{ opacity: 0, y: 15, scale: 0.95 }}
