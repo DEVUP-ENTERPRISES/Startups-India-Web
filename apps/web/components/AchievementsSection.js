@@ -147,23 +147,22 @@ export default function AchievementsSection() {
               <div className="lg:col-span-7 relative z-10">
                 <div className="relative group">
                   <div className="absolute -inset-4 bg-gradient-to-r from-[#e53935]/40 to-red-900/40 blur-[50px] rounded-[32px] opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
-                  <div className="relative rounded-[32px] overflow-hidden border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] aspect-[16/9] bg-[#0a0a0a]">
+                  <div className="relative rounded-[32px] overflow-hidden border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] aspect-[16/9] bg-[#0a0a0a] event-image">
                     <motion.img
                       src={activeItem.image}
                       alt={activeItem.title}
                       className="w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#000000] via-[#000000]/40 to-transparent opacity-90 pointer-events-none" />
                     
-                    <div className="absolute bottom-6 left-6 right-6 flex flex-wrap gap-4 z-20">
-                      {/* Premium Glass Badges */}
-                      <div className="flex items-center gap-2.5 px-4 py-2 bg-white/10 backdrop-blur-xl rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.3)] hover:scale-105 hover:bg-white/20 transition-all duration-300 cursor-default border border-white/20 group/badge">
-                        <Calendar size={14} className="text-[#e53935] group-hover/badge:scale-110 transition-transform" />
-                        <span className="text-[12px] font-bold text-white/90 tracking-[0.15em] uppercase">{activeItem.year}</span>
+                    <div className="absolute bottom-8 left-8 right-8 flex flex-wrap gap-4 z-20">
+                      {/* Premium Glass Pills */}
+                      <div className="event-pill-premium">
+                        <Calendar size={16} className="pill-icon" />
+                        <span className="pill-text">{activeItem.year}</span>
                       </div>
-                      <div className="flex items-center gap-2.5 px-4 py-2 bg-white/10 backdrop-blur-xl rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.3)] hover:scale-105 hover:bg-white/20 transition-all duration-300 cursor-default border border-white/20 group/badge">
-                        <Award size={14} className="text-[#e53935] group-hover/badge:scale-110 transition-transform" />
-                        <span className="text-[12px] font-bold text-white/90 tracking-[0.15em] uppercase">{activeItem.category}</span>
+                      <div className="event-pill-premium">
+                        <Award size={16} className="pill-icon" />
+                        <span className="pill-text">{activeItem.category}</span>
                       </div>
                     </div>
                   </div>
@@ -178,13 +177,13 @@ export default function AchievementsSection() {
                 </div>
                 
                 <div 
-                  className="relative z-10 flex flex-col gap-8 achievements-content-block"
+                  className="relative z-10 flex flex-col gap-10 achievements-content-block"
                 >
                   <motion.div
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     key={`title-${activeItem.id}`}
-                    className="flex flex-col gap-5"
+                    className="flex flex-col gap-6"
                   >
                     <h3 className="text-4xl md:text-5xl font-black !text-white leading-[1.15] tracking-tight">
                       {activeItem.title}
@@ -195,26 +194,26 @@ export default function AchievementsSection() {
                   </motion.div>
 
                   <div className="flex items-center">
-                    <button className="inline-flex items-center justify-center gap-2.5 px-7 py-2.5 bg-[#e53935] hover:bg-white text-white hover:text-black border border-[#e53935] hover:border-white rounded-full text-[13px] font-black group transition-all duration-500 w-fit shadow-[0_12px_24px_rgba(229,57,53,0.3)] hover:shadow-[0_12px_24px_rgba(255,255,255,0.15)] hover:-translate-y-0.5">
+                    <button className="event-cta-premium">
                       EXPLORE EVENT 
-                      <ExternalLink size={16} className="text-white group-hover:text-[#e53935] group-hover:translate-x-1 group-hover:-translate-y-1 transition-all duration-500" />
+                      <ExternalLink size={20} className="cta-icon" />
                     </button>
                   </div>
 
                   {/* Controls */}
-                  <div className="flex items-center gap-6 mt-4">
-                    <div className="flex gap-3">
+                  <div className="flex items-center gap-8 mt-4">
+                    <div className="flex gap-4">
                       <button 
                         onClick={handlePrev}
-                        className="w-12 h-12 flex items-center justify-center rounded-full border border-white/10 hover:border-[#e53935] hover:bg-[#e53935]/10 transition-all duration-500 bg-white/[0.03] backdrop-blur-md shadow-2xl group"
+                        className="nav-btn-premium"
                       >
-                        <ChevronLeft size={22} className="!text-white/70 group-hover:!text-white group-hover:scale-110 transition-all duration-500" />
+                        <ChevronLeft size={24} className="nav-icon" />
                       </button>
                       <button 
                         onClick={handleNext}
-                        className="w-12 h-12 flex items-center justify-center rounded-full border border-white/10 hover:border-[#e53935] hover:bg-[#e53935]/10 transition-all duration-500 bg-white/[0.03] backdrop-blur-md shadow-2xl group"
+                        className="nav-btn-premium"
                       >
-                        <ChevronRight size={22} className="!text-white/70 group-hover:!text-white group-hover:scale-110 transition-all duration-500" />
+                        <ChevronRight size={24} className="nav-icon" />
                       </button>
                     </div>
                     

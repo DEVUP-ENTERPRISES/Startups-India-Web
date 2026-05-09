@@ -18,6 +18,7 @@ import {
   BriefcaseBusiness,
   Building2,
   Briefcase,
+  Search
 } from 'lucide-react';
 import MentorRegistrationModal from '@/components/MentorRegistrationModal';
 import ExploreMentorsModal from '@/components/ExploreMentorsModal';
@@ -794,170 +795,7 @@ export default function MentorsPage() {
         </div>
       </section>
 
-      {/* Important Note Section */}
-      <section className="important-note-section">
-        <div className="container">
-          <motion.div
-            className="note-container-premium"
-            initial="closed"
-            whileHover="open"
-            animate="closed"
-            variants={{
-              closed: { opacity: 1, scale: 1 },
-              open: { opacity: 1, scale: 1.01 },
-            }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, ease: 'easeOut' }}
-            viewport={{ once: true }}
-          >
-            {/* Animated Border Decoration */}
-            <motion.div
-              className="note-animated-border"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: [0.3, 0.6, 0.3] }}
-              transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
-            ></motion.div>
 
-            <div className="note-card-glow"></div>
-
-            <div className="note-header-premium">
-              <div className="lock-icon-wrapper">
-                <div className="lock-glow"></div>
-                <svg
-                  width="28"
-                  height="28"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="#ff4d4d"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  style={{ overflow: 'visible' }}
-                >
-                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                  <motion.path
-                    d="M7 11V7a5 5 0 0 1 10 0v4"
-                    variants={{
-                      closed: {
-                        y: 0,
-                        x: 0,
-                        rotate: 0,
-                        originX: '7px',
-                        originY: '11px',
-                        transition: { type: 'spring', stiffness: 400, damping: 10 },
-                      },
-                      open: {
-                        y: -6,
-                        x: 4,
-                        rotate: 30,
-                        originX: '7px',
-                        originY: '11px',
-                        transition: { type: 'spring', stiffness: 500, damping: 15 },
-                      },
-                    }}
-                  />
-                  <circle cx="12" cy="16" r="1.5" fill="#ff4d4d"></circle>
-                </svg>
-              </div>
-              <h2 className="note-title-premium">IMPORTANT NOTE</h2>
-              <motion.p
-                className="note-subtitle-premium"
-                variants={{
-                  closed: { opacity: 0.6, y: 0 },
-                  open: { opacity: 1, y: -2, transition: { duration: 0.3 } },
-                }}
-              >
-                Mentors do not directly interact with founders or participants through this
-                platform.
-              </motion.p>
-            </div>
-
-            <motion.div
-              className="note-bullets-container"
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.5, duration: 0.6 }}
-            >
-              <ul className="note-bullets-premium">
-                {[
-                  'No direct messaging, booking, or live interaction features are provided',
-                  'All mentor engagement happens through Startups India-managed programs, events, and initiatives',
-                ].map((text, i) => (
-                  <motion.li
-                    key={i}
-                    initial={{ opacity: 0, x: -10 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.7 + i * 0.2 }}
-                  >
-                    {text}
-                  </motion.li>
-                ))}
-              </ul>
-            </motion.div>
-
-            <div className="note-benefits-grid">
-              {[
-                {
-                  label: 'QUALITY CONTROL',
-                  icon: <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10zM9 12l2 2 4-4" />,
-                },
-                {
-                  label: 'STRUCTURED MENTORSHIP',
-                  icon: (
-                    <>
-                      <path d="M20 7h-9M14 17H5" />
-                      <circle cx="17" cy="17" r="3" />
-                      <circle cx="7" cy="7" r="3" />
-                    </>
-                  ),
-                },
-                {
-                  label: "RESPECT FOR MENTORS' TIME",
-                  icon: (
-                    <>
-                      <circle cx="12" cy="12" r="10" />
-                      <polyline points="12 6 12 12 16 14" />
-                    </>
-                  ),
-                },
-                {
-                  label: 'ALIGNED ECOSYSTEM OUTCOMES',
-                  icon: (
-                    <>
-                      <path d="M12 2L2 7l10 5 10-5-10-5zM21 17l-9 5-9-5M21 12l-9 5-9-5" />
-                    </>
-                  ),
-                },
-              ].map((benefit, i) => (
-                <motion.div
-                  key={i}
-                  className="benefit-card-premium"
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  whileHover={{ scale: 1.05, borderColor: 'rgba(255, 77, 77, 0.5)' }}
-                  transition={{ delay: 1 + i * 0.1, duration: 0.5 }}
-                >
-                  <div className="benefit-icon-premium">
-                    <svg
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="#ff4d4d"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      {benefit.icon}
-                    </svg>
-                  </div>
-                  <span>{benefit.label}</span>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
-        </div>
-      </section>
 
       {/* Mentors Grid */}
       <section className="mentors-grid-section">
@@ -1020,55 +858,89 @@ export default function MentorsPage() {
                         </div>
                       </div>
 
-                      {/* Back Face */}
+                      {/* Back Face - Premium Redesign */}
                       <div className="mentor-card-back">
-                        <div className="back-header">
-                          <div className="back-title">Expertise & Impact</div>
-                          <div className="back-subtitle">{mentor.full_name}</div>
-                        </div>
-
-                        <div className="mentor-stats-grid">
-                          <div className="stat-item-back">
-                            <span className="stat-value-back">{mentor.total_mentees}+</span>
-                            <span className="stat-label-back">Mentees</span>
+                        {/* Subtle ambient glow behind */}
+                        <div className="back-ambient-glow" />
+                        
+                        {/* Top: Rating & Close/Flip */}
+                        <div className="back-top-bar">
+                          <div className="rating-pill-glass">
+                            <Star size={14} className="star-icon-red" fill="currentColor" />
+                            <span>{mentor.rating || '4.9'}</span>
                           </div>
-                          <div className="stat-item-back">
-                            <span className="stat-value-back">{mentor.total_sessions}+</span>
-                            <span className="stat-label-back">Sessions</span>
-                          </div>
-                          <div className="stat-item-back" style={{ gridColumn: 'span 2' }}>
-                            <span className="stat-value-back">{mentor.experience}</span>
-                            <span className="stat-label-back">Industry Experience</span>
+                          <div className="flip-icon-glass">
+                            {/* Close SVG */}
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-white/60">
+                              <line x1="18" y1="6" x2="6" y2="18"></line>
+                              <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
                           </div>
                         </div>
 
-                        <div className="history-section-back">
-                          <span className="history-label">Previous Career Path:</span>
-                          <div className="history-list">
-                            {mentor.previous_companies?.map((company, idx) => (
-                              <span key={idx} className="history-tag">
-                                {company}
+                        {/* Middle: About Section */}
+                        <div className="back-middle-section">
+                          <div className="section-header-pill">
+                            {/* User SVG */}
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                              <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                            <span>About Mentor</span>
+                          </div>
+                          <p className="mentor-bio-short">
+                            {mentor.current_role?.length > 120 
+                              ? mentor.current_role.substring(0, 120) + '...' 
+                              : mentor.current_role}
+                          </p>
+                          
+                          <div className="back-divider" />
+                          
+                          <div className="section-header-pill">
+                            <Briefcase size={16} className="text-[#ef4444]" />
+                            <span>Expertise</span>
+                          </div>
+                          <div className="expertise-tags-premium">
+                            {mentor.expertise?.slice(0, 4).map((skill, idx) => (
+                              <span key={idx} className="tag-glass-pill">
+                                {skill}
                               </span>
                             ))}
                           </div>
                         </div>
 
-                        <div className="back-footer">
-                          <button className="connect-btn-back">
-                            Connect with Mentor
-                            <svg
-                              width="16"
-                              height="16"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2.5"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
+                        {/* Bottom Action Area */}
+                        <div className="back-action-area">
+                          <div className="secondary-actions">
+                            <a 
+                              href={mentor.linkedin_url || '#'} 
+                              target="_blank" 
+                              rel="noopener noreferrer" 
+                              className="action-btn-glass"
                             >
-                              <line x1="7" y1="17" x2="17" y2="7"></line>
-                              <polyline points="7 7 17 7 17 17"></polyline>
-                            </svg>
+                              {/* Linkedin SVG */}
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
+                                <rect x="2" y="9" width="4" height="12"></rect>
+                                <circle cx="4" cy="4" r="2"></circle>
+                              </svg>
+                              <span>LinkedIn Profile</span>
+                            </a>
+                            <button className="action-btn-glass">
+                              {/* Calendar SVG */}
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="16" y1="2" x2="16" y2="6"></line>
+                                <line x1="8" y1="2" x2="8" y2="6"></line>
+                                <line x1="3" y1="10" x2="21" y2="10"></line>
+                              </svg>
+                              <span>Book a Session</span>
+                            </button>
+                          </div>
+                          
+                          <button className="primary-cta-glow">
+                            <span>View Full Profile</span>
+                            <ArrowRight size={18} className="cta-arrow" />
                           </button>
                         </div>
                       </div>

@@ -3,35 +3,45 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
+import { Rocket, ArrowRight, Lightbulb, DollarSign, Users } from 'lucide-react';
 import '../styles/network-hero.css';
 
 const PHRASES = [
-  'startup journey',
-  'business idea',
-  'funding roadmap',
-  'entrepreneurial vision',
-  'innovation pathway',
+  'Ideas into successful startups',
+  'Passion into scalable businesses',
+  'Innovation into real-world impact',
+  'Vision into entrepreneurial success',
 ];
 
-const FLOATING_STATS = [
-  { value: '5000+', label: 'Startups' },
-  { value: '200+', label: 'Mentors' },
-  { value: '24/7', label: 'Support' },
+const FEATURES = [
+  {
+    title: 'Idea Validation & Mentorship',
+    desc: 'Validate your ideas and get guidance from industry experts.',
+    icon: <Lightbulb className="text-red-500" size={24} />
+  },
+  {
+    title: 'Funding & Investor Access',
+    desc: 'Connect with investors and secure the funding you need to grow.',
+    icon: <DollarSign className="text-red-500" size={24} />
+  },
+  {
+    title: 'Incubation & Market Growth',
+    desc: 'Scale your startup with incubation support and go-to-market help.',
+    icon: <Users className="text-red-500" size={24} />
+  }
 ];
 
 export default function NetworkHero() {
   const sectionRef = useRef(null);
   const [textIndex, setTextIndex] = useState(0);
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0, rawX: 0, rawY: 0 });
 
   useEffect(() => {
-    setIsLoaded(true);
     const handleMouseMove = (e) => {
       const { clientX, clientY } = e;
       const moveX = (clientX - window.innerWidth / 2) / 50;
       const moveY = (clientY - window.innerHeight / 2) / 50;
-      setMousePosition({ x: moveX, y: moveY });
+      setMousePosition({ x: moveX, y: moveY, rawX: clientX, rawY: clientY });
     };
     window.addEventListener('mousemove', handleMouseMove);
     return () => window.removeEventListener('mousemove', handleMouseMove);
@@ -44,10 +54,40 @@ export default function NetworkHero() {
     return () => clearInterval(interval);
   }, []);
 
-
-
   return (
     <section className="network-hero" ref={sectionRef}>
+      {/* Background FX */}
+      <div className="hero-background-fx">
+        <div className="plexus-mesh" />
+        <div className="ambient-glows">
+          <div className="glow-1" />
+          <div className="glow-2" />
+        </div>
+        <div className="particles-container">
+          {[...Array(20)].map((_, i) => (
+            <motion.div 
+              key={i} 
+              className="hero-particle"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: [0, 0.15, 0] }}
+              transition={{ 
+                duration: Math.random() * 10 + 10, 
+                repeat: Infinity,
+                ease: "linear"
+              }}
+              style={{
+                width: Math.random() * 3 + 1 + 'px',
+                height: Math.random() * 3 + 1 + 'px',
+                left: Math.random() * 100 + '%',
+                top: Math.random() * 100 + '%'
+              }}
+            />
+          ))}
+        </div>
+        <div className="bottom-glow-arc" />
+      </div>
+
+      {/* Hero Content Wrapper */}
       <motion.div 
         className="hero-content-wrapper"
         initial={{ opacity: 0, y: 20 }}
@@ -57,104 +97,106 @@ export default function NetworkHero() {
           x: mousePosition.x * 0.5,
           y: mousePosition.y * 0.5
         }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
+        transition={{ duration: 1 }}
       >
+        {/* Top Badge */}
         <motion.div 
-          className="hero-tag"
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ 
-            opacity: 1, 
-            x: 0,
-            boxShadow: ["0 0 10px rgba(255,255,255,0.1)", "0 0 20px rgba(255,255,255,0.2)", "0 0 10px rgba(255,255,255,0.1)"]
-          }}
-          transition={{ 
-            opacity: { delay: 0.2 },
-            x: { delay: 0.2 },
-            boxShadow: { duration: 2, repeat: Infinity, ease: "easeInOut" }
-          }}
+          className="hero-tag-pill"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.8 }}
         >
-          EXPERT MENTORSHIP
+          <Rocket size={14} className="text-red-500" />
+          <span>WELCOME TO <span className="text-red-500">STARTUPSINDIA</span></span>
         </motion.div>
 
-        <motion.h1 
-          className="hero-title"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
-          Start your innovation and <br />
-          <div className="h-[1.2em] relative inline-block min-w-[300px]">
-            <AnimatePresence mode="wait">
-              <motion.span
-                key={textIndex}
-                initial={{ opacity: 0, y: 20, filter: 'blur(10px)' }}
-                animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                exit={{ opacity: 0, y: -20, filter: 'blur(10px)' }}
-                transition={{ duration: 0.5, ease: "circOut" }}
-                className="highlight-red absolute left-0 right-0"
-              >
-                {PHRASES[textIndex]}
-              </motion.span>
-            </AnimatePresence>
-          </div>
-        </motion.h1>
-
+        {/* Subtitle Divider */}
         <motion.div 
-          className="hero-pills"
+          className="hero-subtitle-container"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.5, staggerChildren: 0.1 }}
+          transition={{ delay: 0.4, duration: 0.8 }}
         >
-          {['Fast-Track Programs', 'Expert Mentors Network', 'Grants & Funding Support'].map((pill, i) => (
-            <motion.div 
-              key={pill}
-              className="hero-pill"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.6 + (i * 0.1) }}
-              whileHover={{ y: -5, scale: 1.05 }}
-            >
-              {i === 0 && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>}
-              {i === 1 && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>}
-              {i === 2 && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>}
-              {pill}
-            </motion.div>
-          ))}
+          <div className="subtitle-line" />
+          <span className="hero-subtitle-text">FULLSTACK STARTUP ECOSYSTEM PLATFORM</span>
+          <div className="subtitle-line" />
         </motion.div>
 
+        {/* Main Heading */}
+        <div className="hero-title-premium">
+          <motion.h1 
+            className="hero-static-line"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5, duration: 0.8 }}
+          >
+            Where Founders Transform
+          </motion.h1>
+          <div className="rotating-text-container">
+            <AnimatePresence mode="wait">
+              <motion.div 
+                key={textIndex}
+                className="dynamic-rotating-line"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.8 }}
+              >
+                {PHRASES[textIndex]}
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        </div>
+
+        {/* Feature Cards Grid */}
+        <div className="hero-feature-grid">
+          {FEATURES.map((feature, i) => (
+            <motion.div 
+              key={i}
+              className="feature-card-minimal"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.8 + (i * 0.1), duration: 0.8 }}
+            >
+              <div className="feature-icon-circle">
+                {feature.icon}
+              </div>
+              <div className="feature-text-stack">
+                <h3>{feature.title}</h3>
+                <p>{feature.desc}</p>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Action Buttons */}
         <motion.div 
-          className="hero-ctas"
+          className="hero-actions-container"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8 }}
+          transition={{ delay: 1.2, duration: 0.8 }}
         >
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Link href="/programs" className="hero-btn-primary">
-              Start Your Journey
-            </Link>
-          </motion.div>
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Link href="/programs" className="hero-btn-secondary">
-              View Programs
-            </Link>
-          </motion.div>
+          <Link href="/programs" className="no-underline">
+            <button className="btn-primary-premium">
+              Start Your Journey <ArrowRight size={20} />
+            </button>
+          </Link>
+          <Link href="/programs" className="no-underline">
+            <button className="btn-secondary-premium">
+              Explore Programs <ArrowRight size={20} />
+            </button>
+          </Link>
         </motion.div>
       </motion.div>
 
-      {/* Decorative Parallax Circles */}
+      {/* Cursor Responsive Glow */}
       <motion.div 
-        className="absolute top-1/4 left-1/4 w-64 h-64 bg-red-600/10 rounded-full blur-[100px]"
+        className="hero-cursor-glow"
         animate={{ 
-          x: mousePosition.x * -1,
-          y: mousePosition.y * -1
+          left: mousePosition.rawX,
+          top: mousePosition.rawY
         }}
-      />
-      <motion.div 
-        className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-red-900/10 rounded-full blur-[120px]"
-        animate={{ 
-          x: mousePosition.x * 1.5,
-          y: mousePosition.y * 1.5
-        }}
+        transition={{ type: "tween", ease: "linear", duration: 0 }}
       />
     </section>
   );

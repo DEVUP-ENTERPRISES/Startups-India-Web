@@ -1,7 +1,8 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import { GraduationCap, Rocket, Globe, Landmark, ArrowRight } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import { GraduationCap, Rocket, Globe, Landmark, ArrowRight, X, CheckCircle2, MessageSquare } from 'lucide-react';
 import '../styles/collaboration-framework.css';
 
 const pillars = [
@@ -9,12 +10,13 @@ const pillars = [
     number: '01',
     title: 'Academia',
     tagline: 'Research & Talent Pipeline',
-    description:
-      'We nurture an innovative mindset within academic institutions through structured workshops, training programs, and deep institutional collaboration.',
+    description: 'We nurture an innovative mindset within academic institutions through structured workshops, training programs, and deep institutional collaboration.',
+    details: 'Our academic collaboration model is designed to bridge the gap between classroom learning and real-world entrepreneurship. We work with leading universities to create a sustainable pipeline of talent and research-driven startups.',
     points: [
-      'Innovation & entrepreneurship workshops',
+      'Innovation & entrepreneurship workshops for students',
       'Faculty development & curriculum integration',
       'Student startup incubation pathways',
+      'Joint research projects & technology transfer'
     ],
     icon: <GraduationCap size={28} strokeWidth={1.8} />,
   },
@@ -22,12 +24,13 @@ const pillars = [
     number: '02',
     title: 'Startups Ecosystem',
     tagline: 'Incubation & Acceleration',
-    description:
-      'We create launchpads for disruptive ventures — supporting startups from ideation to scale with mentorship, funding access, and ecosystem connections.',
+    description: 'We create launchpads for disruptive ventures — supporting startups from ideation to scale with mentorship, funding access, and ecosystem connections.',
+    details: 'The core of our platform is the startup incubator. We provide early-stage ventures with the resources, knowledge, and network needed to transform bold ideas into market-leading companies.',
     points: [
       '6–12 month structured incubation tracks',
       'Access to 200+ mentors & investor network',
       'Demo days, pitch events & grant programs',
+      'Co-working spaces & technical resources'
     ],
     icon: <Rocket size={28} strokeWidth={1.8} />,
   },
@@ -35,12 +38,13 @@ const pillars = [
     number: '03',
     title: 'Corporates & International',
     tagline: 'Partnerships & Global Reach',
-    description:
-      'We propel growth by establishing meaningful connections with corporates and cultivating international partnerships that open global doors for startups.',
+    description: 'We propel growth by establishing meaningful connections with corporates and cultivating international partnerships that open global doors for startups.',
+    details: 'We facilitate high-impact partnerships between established corporate entities and agile startups. Our international network extends across major global innovation hubs.',
     points: [
       'B2B intros to 100+ corporate partners',
       'International delegation & exchange programs',
       'CSR-backed innovation initiatives',
+      'Market expansion support in 10+ countries'
     ],
     icon: <Globe size={28} strokeWidth={1.8} />,
   },
@@ -48,175 +52,224 @@ const pillars = [
     number: '04',
     title: 'Government',
     tagline: 'Policy & Ecosystem Support',
-    description:
-      'We bridge the gap between innovation and policy by working closely with state and central governments to scale high-impact initiatives.',
+    description: 'We bridge the gap between innovation and policy by working closely with state and central governments to scale high-impact initiatives.',
+    details: 'We act as a catalyst for government-led innovation policies. By working with regulatory bodies and policy makers, we ensure a conducive environment for startup growth at a national scale.',
     points: [
       'Strategic partnership with Startup India & MeitY',
       'Policy advocacy & institutional frameworks',
       'Pan-India ecosystem scale-up programs',
+      'Government grant management & distribution'
     ],
     icon: <Landmark size={28} strokeWidth={1.8} />,
   },
 ];
 
-const containerVariants = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.13 } },
-};
+const PillarCard = ({ pillar, onOpen }) => {
+  const cardRef = useRef(null);
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
 
-const cardVariants = {
-  hidden: { opacity: 0, y: 44 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] } },
+  const mouseXSpring = useSpring(x);
+  const mouseYSpring = useSpring(y);
+
+  const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ['10deg', '-10deg']);
+  const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ['-10deg', '10deg']);
+
+  const handleMouseMove = (e) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    const width = rect.width;
+    const height = rect.height;
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+
+    const xPct = mouseX / width - 0.5;
+    const yPct = mouseY / height - 0.5;
+
+    x.set(xPct);
+    y.set(yPct);
+
+    // Set CSS variables for spotlight effect
+    cardRef.current.style.setProperty('--mouse-x', `${mouseX}px`);
+    cardRef.current.style.setProperty('--mouse-y', `${mouseY}px`);
+  };
+
+  const handleMouseLeave = () => {
+    x.set(0);
+    y.set(0);
+  };
+
+  return (
+    <motion.div
+      ref={cardRef}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      onClick={() => onOpen(pillar)}
+      style={{
+        rotateX,
+        rotateY,
+        transformStyle: 'preserve-3d',
+      }}
+      initial={{ opacity: 0, y: 50 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+      className="collab-card group"
+    >
+      <div className="collab-step-badge">{pillar.number}</div>
+      
+      <div className="collab-icon-box">
+        {pillar.icon}
+      </div>
+
+      <div className="collab-card-content">
+        <p className="collab-tagline">{pillar.tagline}</p>
+        <h3 className="collab-card-title">{pillar.title}</h3>
+        <p className="collab-card-desc">{pillar.description}</p>
+      </div>
+
+      <div className="collab-read-more">
+        <span>Read More</span>
+        <ArrowRight size={16} />
+      </div>
+    </motion.div>
+  );
 };
 
 export default function CollaborationFrameworkSection() {
+  const [selectedPillar, setSelectedPillar] = useState(null);
+
+  // Close modal on ESC key
+  useEffect(() => {
+    const handleEsc = (e) => {
+      if (e.key === 'Escape') setSelectedPillar(null);
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, []);
+
   return (
     <section className="collab-section">
-      {/* ── Background decorative blobs (help glass effect "pop") ── */}
-      <div className="collab-bg-blob collab-bg-blob--1" aria-hidden="true" />
-      <div className="collab-bg-blob collab-bg-blob--2" aria-hidden="true" />
-      <div className="collab-bg-blob collab-bg-blob--3" aria-hidden="true" />
+      {/* Background Elements */}
+      <div className="collab-bg-blob collab-bg-blob--1" />
+      <div className="collab-bg-blob collab-bg-blob--2" />
+      <div className="collab-bg-blob collab-bg-blob--3" />
+      
+      {/* Background Particles */}
+      {[...Array(6)].map((_, i) => (
+        <div 
+          key={i} 
+          className="collab-particle"
+          style={{
+            left: `${Math.random() * 100}%`,
+            width: `${Math.random() * 8 + 4}px`,
+            height: `${Math.random() * 8 + 4}px`,
+            animationDuration: `${Math.random() * 10 + 10}s`,
+            animationDelay: `${Math.random() * 5}s`,
+          }}
+        />
+      ))}
 
-      <div className="iec-container" style={{ position: 'relative', zIndex: 1 }}>
-        {/* ── Header ── */}
+      <div className="iec-container">
         <motion.div
           className="collab-header"
-          initial={{ opacity: 0, y: 28 }}
+          initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-60px' }}
-          transition={{ duration: 0.6, ease: 'easeOut' }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
         >
-          <div className="section-label-premium mb-4">
-            Our Model
-          </div>
           <h2 className="collab-title">
-            Collaboration <span className="collab-title-red">Framework</span>
+            Collaboration <span className="collab-title-red">
+              Framework
+              <span className="collab-title-underline" />
+            </span>
           </h2>
           <p className="collab-subtitle">
-            Building bridges across academia, startups, corporates, and government to create a
-            thriving innovation ecosystem.
+            Building bridges across academia, startups, corporates, and government to create a thriving innovation ecosystem.
           </p>
         </motion.div>
 
-        {/* ── Card Grid ── */}
-        <motion.div
-          className="collab-grid"
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: '-40px' }}
-        >
-          {pillars.map(pillar => (
-            <motion.div
-              key={pillar.number}
-              variants={cardVariants}
-              className="collab-card group"
-              whileHover={{ 
-                y: -12,
-                rotateX: 4,
-                rotateY: -2,
-                transition: { type: 'spring', stiffness: 400, damping: 20 }
-              }}
-              style={{ transformStyle: 'preserve-3d', perspective: '1000px' }}
-            >
-              {/* Shine effect overlay */}
-              <div className="collab-card-shine" />
-
-              {/* Step badge */}
-              <div className="collab-step-badge">{pillar.number}</div>
-
-              {/* Icon with float animation */}
-              <motion.div 
-                className="collab-icon"
-                whileHover={{ 
-                  scale: 1.1, 
-                  rotate: [0, -5, 5, 0],
-                  transition: { duration: 0.4 }
-                }}
-              >
-                {pillar.icon}
-              </motion.div>
-
-              {/* Title block */}
-              <div className="collab-text">
-                <p className="collab-tagline">{pillar.tagline}</p>
-                <h3 className="collab-card-title">{pillar.title}</h3>
-                <p className="collab-card-desc">{pillar.description}</p>
-              </div>
-
-              {/* Bullet points with staggered hover effect */}
-              <ul className="collab-points">
-                {pillar.points.map((pt, i) => (
-                  <motion.li 
-                    key={i} 
-                    className="collab-point"
-                    whileHover={{ x: 6, color: '#dc2626' }}
-                    transition={{ type: 'spring', stiffness: 300 }}
-                  >
-                    <span className="collab-point-dot" aria-hidden="true" />
-                    {pt}
-                  </motion.li>
-                ))}
-              </ul>
-
-              {/* Divider */}
-              <div className="collab-divider" />
-
-              {/* CTA */}
-              <div className="collab-cta">
-                <span>Read More</span>
-                <motion.svg
-                  className="collab-cta-arrow"
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.4"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  animate={{ x: [0, 5, 0] }}
-                  transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-                >
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                  <polyline points="12 5 19 12 12 19" />
-                </motion.svg>
-              </div>
-
-              {/* Inner top-edge highlight (glass rim light) */}
-              <div className="collab-rim-light" aria-hidden="true" />
-            </motion.div>
+        <div className="collab-grid">
+          {pillars.map((pillar) => (
+            <PillarCard 
+              key={pillar.number} 
+              pillar={pillar} 
+              onOpen={setSelectedPillar}
+            />
           ))}
-        </motion.div>
+        </div>
 
-        {/* ── Bottom connector ── */}
-        <motion.div
-          className="collab-connector"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
+        {/* Premium CTA at bottom */}
+        <motion.div 
+          className="collab-cta-footer"
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.55 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
         >
-          <div className="collab-connector-line" />
-          <div className="collab-connector-badge">
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+          <div className="collab-cta-card">
+            <h4 className="collab-cta-title">Let’s Build Innovation Together</h4>
+            <motion.button 
+              className="collab-cta-btn"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
-              <circle cx="12" cy="12" r="3" />
-              <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83" />
-            </svg>
-            IEC Ecosystem Hub
+              <MessageSquare size={20} />
+              <span>Get in Touch</span>
+            </motion.button>
           </div>
-          <div className="collab-connector-line" />
         </motion.div>
       </div>
+
+      {/* Pillar Details Modal */}
+      <AnimatePresence>
+        {selectedPillar && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="collab-modal-overlay"
+            onClick={() => setSelectedPillar(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="collab-modal"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button 
+                className="collab-modal-close" 
+                onClick={() => setSelectedPillar(null)}
+              >
+                <X size={20} />
+              </button>
+              
+              <div className="collab-modal-icon-box mb-6 text-red-500">
+                {selectedPillar.icon}
+              </div>
+              
+              <h3 className="collab-modal-title">{selectedPillar.title}</h3>
+              <p className="collab-modal-desc">{selectedPillar.details}</p>
+              
+              <div className="collab-modal-points">
+                {selectedPillar.points.map((point, i) => (
+                  <motion.div 
+                    key={i} 
+                    className="collab-modal-point"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.1 * i }}
+                  >
+                    <CheckCircle2 size={18} />
+                    <span>{point}</span>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 }

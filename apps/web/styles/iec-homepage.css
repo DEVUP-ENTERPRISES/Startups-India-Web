@@ -21,7 +21,7 @@
 
 @media (max-width: 768px) {
   .iec-container {
-    padding: 0 1rem;
+    padding: 0 1.5rem !important;
   }
 }
 
@@ -59,6 +59,13 @@
   font-weight: 700;
   color: #111;
   margin-bottom: 1rem;
+}
+
+/* Ensure white text in dark sections overrides the base heading color */
+.bg-\[\#050505\] h3,
+.iec-bg-gray h3,
+.impact-roadmap-card h3 {
+  color: white !important;
 }
 
 .iec-text-red {
@@ -504,8 +511,9 @@
   }
   .iec-stats-grid,
   .iec-programs-grid,
-  .iec-steps {
-    grid-template-columns: 1fr;
+  .iec-steps,
+  .stats-grid {
+    grid-template-columns: 1fr !important;
   }
   .iec-testimonial {
     padding: 2rem;
@@ -517,4 +525,63 @@
     width: 40%;
     margin-bottom: 1rem;
   }
+}
+
+/* Event Badges and CTA */
+.event-badge-group {
+  position: absolute;
+  bottom: 24px;
+  left: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 5;
+}
+
+.event-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.4);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  font-size: 13px;
+  font-weight: 700;
+  color: #1a1a1a;
+  letter-spacing: 0.5px;
+  transition: transform 0.3s ease;
+}
+
+.event-badge:hover {
+  transform: translateY(-2px);
+}
+
+.event-badge svg {
+  color: #e53935;
+}
+
+.event-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 32px;
+  background: linear-gradient(135deg, #e53935 0%, #d32f2f 100%);
+  color: white;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 15px;
+  border: 1px solid rgba(255,255,255,0.1);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 10px 30px rgba(229, 57, 53, 0.3);
+}
+
+.event-cta:hover {
+  background: linear-gradient(135deg, #ef5350 0%, #c62828 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 15px 35px rgba(229, 57, 53, 0.4);
 }

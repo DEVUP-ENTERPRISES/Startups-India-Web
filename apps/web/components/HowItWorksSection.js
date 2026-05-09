@@ -2,33 +2,33 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Rocket, FileEdit, UserCheck, Zap, TrendingUp, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Rocket, FileEdit, Users, Zap, TrendingUp, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Reveal, StaggerContainer, StaggerItem } from './ScrollReveal';
 import '../styles/how-it-works.css';
 
 const steps = [
   {
     number: '1',
-    title: 'Apply',
-    description: 'Submit your startup details for evaluation by our core team.',
+    title: 'Apply Your Startup',
+    description: 'Present your startup idea and business vision to begin your entrepreneurial journey.',
     icon: <FileEdit size={24} />,
   },
   {
     number: '2',
-    title: 'Get Selected',
-    description: 'Pass the screening process to join our exclusive platform.',
-    icon: <UserCheck size={24} />,
+    title: 'Join the Ecosystem',
+    description: 'Get selected to access mentorship, founder networks, and startup-building resources.',
+    icon: <Users size={24} />,
   },
   {
     number: '3',
-    title: 'Build & Mentorship',
-    description: 'Work directly with leading industry experts and refine your model.',
+    title: 'Validate & Build',
+    description: 'Refine your business model, product strategy, and market approach with expert guidance.',
     icon: <Zap size={24} />,
   },
   {
     number: '4',
-    title: 'Scale & Access Funding',
-    description: 'Pitch to investors, secure funding, and scale your growth rapidly.',
+    title: 'Launch, Scale & Raise',
+    description: 'Access investors, partnerships, grants, and growth opportunities to scale successfully.',
     icon: <TrendingUp size={24} />,
   },
 ];
@@ -55,15 +55,12 @@ export default function HowItWorksSection() {
   const handleMouseMove = useCallback((e) => {
     if (!axisRef.current || isMobile) return;
     const rect = axisRef.current.getBoundingClientRect();
-    // cursor X relative to the left edge of the axis element itself
     const rawX = e.clientX - rect.left;
-    // clamp to [0, rect.width] then convert to percentage
     const clamped = Math.max(0, Math.min(rawX, rect.width));
     const pct = (clamped / rect.width) * 100;
 
     setRocketPct(pct);
 
-    // Snap active step to whichever node is closest
     const nearest = NODE_POSITIONS_PCT.reduce((best, pos, idx) =>
       Math.abs(pct - pos) < Math.abs(pct - NODE_POSITIONS_PCT[best]) ? idx : best
     , 0);
@@ -77,7 +74,6 @@ export default function HowItWorksSection() {
     setActiveStep(0);
   }, []);
 
-  // When hovering a card, snap the rocket to that step
   const handleCardHover = useCallback((idx) => {
     setActiveStep(idx);
     setRocketPct(NODE_POSITIONS_PCT[idx]);
@@ -112,7 +108,7 @@ export default function HowItWorksSection() {
 
   return (
     <section className="how-it-works-modern">
-      <div className="iec-container">
+      <div className="startup-journey-section">
         {/* Header */}
         <div className="roadmap-header">
           <motion.span 
@@ -133,14 +129,25 @@ export default function HowItWorksSection() {
           </motion.span>
           
           <motion.h2 
-            className="text-transparent bg-clip-text bg-gradient-to-r from-[#ffffff] to-[#9ca3af] drop-shadow-[0_2px_10px_rgba(0,0,0,0.5)] block mt-2"
+            className="journey-title"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.2 }}
           >
-            A Strategic Trajectory for Founders
+            Your Startup Journey<br />
+            <span className="highlight">Starts Here</span>
           </motion.h2>
+
+          <motion.p
+            className="journey-subtitle"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.3 }}
+          >
+            From idea validation to funding and scale — we help founders build high-impact startups with mentorship, resources, and investor access.
+          </motion.p>
         </div>
 
         <div className="roadmap-container">
@@ -180,11 +187,11 @@ export default function HowItWorksSection() {
               </div>
 
                 <StaggerContainer>
-                  <div className="roadmap-cards-grid">
+                  <div className="journey-card-grid">
                     {steps.map((step, idx) => (
                       <StaggerItem key={idx}>
                         <motion.div
-                          className={`roadmap-step-card-glass${activeStep === idx ? ' focused' : ''}`}
+                          className={`journey-card${activeStep === idx ? ' focused' : ''}`}
                           onMouseEnter={() => handleCardHover(idx)}
                           whileHover={{ 
                             y: -12,
@@ -192,8 +199,10 @@ export default function HowItWorksSection() {
                           }}
                         >
                           <div className="step-card-icon">{step.icon}</div>
-                          <h4 className="step-card-title !text-white">{step.title}</h4>
-                          <p className="step-card-desc !text-white/70">{step.description}</p>
+                          <div className="journey-card-step-label">{step.number}.</div>
+                          <h4 className="journey-card-title">{step.title}</h4>
+                          <p className="journey-card-desc">{step.description}</p>
+                          <div className="journey-card-accent-line" />
                         </motion.div>
                       </StaggerItem>
                     ))}
@@ -230,7 +239,7 @@ export default function HowItWorksSection() {
                 </AnimatePresence>
               </div>
 
-              {/* Carousel Controls matching reference */}
+              {/* Carousel Controls */}
               <div className="mobile-carousel-controls">
                 <div className="mobile-progress-wrapper">
                   <span className="mobile-progress-text">0{mobileStep + 1}</span>
@@ -239,7 +248,6 @@ export default function HowItWorksSection() {
                       className="mobile-progress-fill" 
                       style={{ width: `${((mobileStep + 1) / steps.length) * 100}%` }}
                     />
-                    {/* Rocket Cursor for mobile progress bar - perfectly centered */}
                     <div
                       className="rocket-pilot visible"
                       style={{ 

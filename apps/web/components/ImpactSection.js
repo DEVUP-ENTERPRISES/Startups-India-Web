@@ -18,6 +18,7 @@ import {
   Scale,
 } from 'lucide-react';
 import { StaggerContainer, StaggerItem } from './ScrollReveal';
+import '../styles/impact-section.css';
 
 const iconMap = {
   users: Users,
@@ -161,7 +162,6 @@ const itemVariants = {
 
 const MetricCard = ({ metric, index }) => {
   const cardRef = useRef(null);
-  const [isHovered, setIsHovered] = useState(false);
   const isInView = useInView(cardRef, { once: true, amount: 0.3 });
 
   const Icon = metric.icon;
@@ -170,56 +170,40 @@ const MetricCard = ({ metric, index }) => {
     <motion.div
       variants={itemVariants}
       ref={cardRef}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
       className="relative group h-full"
-      style={{ borderRadius: '24px' }}
     >
-      {/* Background card with strict inline padding to avoid CSS overrides */}
-      <div
-        className="relative h-full flex flex-col transition-all duration-500 bg-[#121212] hover:bg-[#1a1a1a] border border-white/10 hover:border-white/20 group-hover:-translate-y-2 group-hover:shadow-[0_20px_40px_-15px_rgba(229,57,53,0.3)]"
-        style={{ borderRadius: '24px', padding: '32px' }}
-      >
-
-        {/* Top: Icon - pushes bottom content down evenly across all cards */}
-        <div className="flex justify-between items-start mb-auto relative z-10">
-          <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${metric.gradient} p-[1px] shadow-lg`}>
-            <div className="w-full h-full rounded-2xl bg-[#000000] flex items-center justify-center relative overflow-hidden">
-              <div className={`absolute inset-0 bg-gradient-to-br ${metric.gradient} opacity-20`} />
-              <Icon className="w-6 h-6 !text-white relative z-10" />
-            </div>
+      <div className="impact-card-premium relative h-full transition-all duration-500 rounded-[28px] overflow-hidden">
+        
+        {/* [Top Row]: Icon & Card Number */}
+        <div className="card-top-row">
+          <div className="icon-container-premium">
+            <div className={`icon-glow-bg bg-gradient-to-br ${metric.gradient} opacity-20`} />
+            <Icon className="icon-element !text-white" />
           </div>
-          <div className="!text-[#444444] font-mono text-xl font-bold opacity-50 group-hover:opacity-100 transition-opacity">
+          <div className="card-index-premium">
             0{index + 1}
           </div>
         </div>
 
-        {/* Bottom: Content - Tightly grouped to prevent unequal gaps */}
-        <div className="relative z-10 mt-8 flex flex-col">
-          {/* Numbers */}
-          <div className="flex items-baseline flex-wrap gap-x-1 mb-4">
-            {metric.prefix && (
-              <span className="text-3xl font-bold !text-white/70">{metric.prefix}</span>
-            )}
-            <span className="text-5xl font-black !text-white tracking-tighter leading-none">
-              <AnimatedCounter value={metric.value} trigger={isInView} duration={1600} />
-            </span>
-            {metric.suffix && (
-              <span className="text-3xl font-bold !text-[#e53935]">{metric.suffix}</span>
-            )}
-          </div>
-
-          {/* Title */}
-          <h3 className="text-sm md:text-base font-bold !text-white tracking-widest uppercase mt-0 mb-2">
-            {metric.label}
-          </h3>
-
-          {/* Subtitle */}
-          <p className="text-sm leading-relaxed font-medium !text-[#9ca3af] m-0">
-            {metric.sub}
-          </p>
+        {/* [Main Metric] */}
+        <div className="metric-value-premium">
+          {metric.prefix && <span className="metric-prefix">{metric.prefix}</span>}
+          <AnimatedCounter value={metric.value} trigger={isInView} duration={1600} />
+          {metric.suffix && <span className="metric-suffix">{metric.suffix}</span>}
         </div>
 
+        {/* [Card Title] */}
+        <h3 className="metric-label-premium">
+          {metric.label}
+        </h3>
+
+        {/* [Description] */}
+        <p className="metric-desc-premium">
+          {metric.sub}
+        </p>
+
+        {/* Subtle Glass Reflection Overlay */}
+        <div className="card-reflection-premium" />
       </div>
     </motion.div>
   );
@@ -252,33 +236,25 @@ export default function ImpactSection() {
         initial="hidden"
         whileInView="show"
         viewport={{ once: true, amount: 0.1 }}
-        className="iec-container relative z-10 w-full flex flex-col items-center"
+        className="hero-impact-section z-10"
       >
         {/* HEADER */}
         <div className="text-center relative w-full flex flex-col items-center" style={{ marginBottom: '48px' }}>
           <motion.div variants={headerVariants}>
-            <motion.span 
-              className="section-label-premium mb-8 inline-block"
-              animate={{ 
-                boxShadow: ["0 0 15px rgba(229,57,53,0.1)", "0 0 25px rgba(229,57,53,0.2)", "0 0 15px rgba(229,57,53,0.1)"]
-              }}
-              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-            >
-              Our Impact
-            </motion.span>
+            <div className="impact-badge">
+              <span className="text-[#ef4444] mr-2">★</span>
+              <span className="text-[#ef4444] font-bold tracking-wider text-xs uppercase">Our Impact</span>
+            </div>
           </motion.div>
 
           <motion.div variants={headerVariants}>
-            <h2 className="font-display text-5xl md:text-6xl font-black tracking-tight leading-[1.1] !text-white max-w-4xl z-10 relative mb-6">
-              Empowering The Next Era of{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#e53935] to-[#ff7b72]">
-                Innovation
-              </span>
+            <h2 className="hero-impact-title">
+              Empowering The Next Era of <span className="highlight">Innovation</span>
             </h2>
           </motion.div>
 
           <motion.div variants={headerVariants}>
-            <p className="!text-[#a1a1aa] max-w-[700px] text-xl mx-auto leading-relaxed z-10 font-medium">
+            <p className="hero-impact-subtitle">
               Driving transformational growth across the startup landscape with measurable results, capital infusion, and lasting partnerships.
             </p>
           </motion.div>
@@ -286,7 +262,7 @@ export default function ImpactSection() {
 
         {/* GRID */}
         <StaggerContainer>
-          <div className="w-full grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8">
+          <div className="impact-grid">
             {impactMetrics.map((metric, index) => (
               <StaggerItem key={metric.id}>
                 <MetricCard metric={metric} index={index} />
