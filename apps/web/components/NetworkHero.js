@@ -128,16 +128,12 @@ export default function NetworkHero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.8 }}
         >
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Link href="/programs" className="hero-btn-primary">
-              Start Your Journey
-            </Link>
-          </motion.div>
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Link href="/programs" className="hero-btn-secondary">
-              View Programs
-            </Link>
-          </motion.div>
+          <Link href="/programs" className="hero-btn-primary">
+            Start Your Journey
+          </Link>
+          <Link href="/programs" className="hero-btn-secondary">
+            View Programs
+          </Link>
         </motion.div>
       </motion.div>
 
