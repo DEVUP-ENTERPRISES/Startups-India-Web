@@ -90,7 +90,7 @@ export default function Header() {
         { 
           label: 'Pre-Incubation', 
           href: '/programs/pre-incubation',
-          description: '4-week intensive program for idea validation'
+          description: '8-week intensive program for idea validation'
         },
         { 
           label: 'Incubation', 

@@ -129,7 +129,7 @@ export default function MentorsSection() {
           {mentors.map((mentor, index) => (
             <motion.div
               key={mentor.id}
-              className={`mentor-card mentor-card-${index + 1}`}
+              className={`program-mentor-card program-mentor-card-${index + 1}`}
               initial={{ opacity: 0, y: 40, scale: 0.97 }}
               whileInView={{ opacity: 1, y: 0, scale: 1 }}
               viewport={{ once: true }}
@@ -153,7 +153,7 @@ export default function MentorsSection() {
               }}
             >
               <div
-                className="mentor-card-inner"
+                className="program-mentor-card-inner"
                 style={{ display: 'flex', flexDirection: 'column', gap: 12, height: '100%' }}
               >
                 {/* Photo */}

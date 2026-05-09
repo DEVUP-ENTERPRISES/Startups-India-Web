@@ -1007,7 +1007,7 @@ export default function ExplorePage() {
                           <circle cx="12" cy="12" r="10" />
                           <polyline points="12 6 12 12 16 14" />
                         </svg>
-                        {course.duration || '4 weeks'}
+                        {course.duration || '8 weeks'}
                       </div>
                     </div>
 
@@ -1468,7 +1468,7 @@ export default function ExplorePage() {
                           <circle cx="12" cy="12" r="10" />
                           <polyline points="12 6 12 12 16 14" />
                         </svg>
-                        {course.duration || '4 weeks'}
+                        {course.duration || '8 weeks'}
                       </span>
                       <span style={{ fontSize: '0.8rem', color: '#6b7280', fontWeight: 600 }}>
                         {course.lessonsCount || course.modulesCount || 8} modules
