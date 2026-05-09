@@ -13,34 +13,14 @@ export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
+  const [programsDropdownOpen, setProgramsDropdownOpen] = useState(false);
   const [mobileDropdowns, setMobileDropdowns] = useState({});
   const [hoveredNav, setHoveredNav] = useState(null);
-  const [activeDropdown, setActiveDropdown] = useState(null);
   const pathname = usePathname();
 
   const menuItems = [
     { label: 'Home', href: '/' },
-    { 
-      label: 'About Us', 
-      href: '/about',
-      dropdown: [
-        {
-          label: 'About the Company',
-          href: '/about',
-          description: 'Learn about the StartupsIndia ecosystem and mission',
-        },
-        {
-          label: 'Vision & Mission',
-          href: '/about/vision',
-          description: 'Driving innovation and empowering founders nationwide',
-        },
-        {
-          label: 'Team Profiles',
-          href: '/about/team',
-          description: 'Meet the leadership, advisers, and core team',
-        },
-      ]
-    },
+    { label: 'About Us', href: '/about' },
     {
       label: 'Our Programs',
       href: '/programs',
@@ -196,7 +176,7 @@ export default function Header() {
                   key={index}
                   className="nav-dropdown-container"
                   onMouseEnter={(e) => {
-                    setActiveDropdown(item.label);
+                    setProgramsDropdownOpen(true);
                     const rect = e.currentTarget.getBoundingClientRect();
                     const parentRect = e.currentTarget.parentElement.getBoundingClientRect();
                     setHoveredNav({
@@ -206,21 +186,21 @@ export default function Header() {
                       height: rect.height,
                     });
                   }}
-                  onMouseLeave={() => setActiveDropdown(null)}
+                  onMouseLeave={() => setProgramsDropdownOpen(false)}
                 >
                   <button
                     className={`nav-link dropdown-toggle ${pathname.startsWith(item.href) ? 'active' : ''}`}
                   >
                     {item.label}
                     <ChevronDown
-                      size={14}
-                      className={`dropdown-arrow ${activeDropdown === item.label ? 'rotated' : ''}`}
+                      size={16}
+                      className={`dropdown-arrow ${programsDropdownOpen ? 'rotated' : ''}`}
                     />
                   </button>
                   <AnimatePresence>
-                    {activeDropdown === item.label && (
+                    {programsDropdownOpen && (
                       <motion.div
-                        className="nav-dropdown-panel"
+                        className="programs-dropdown"
                         initial={{ opacity: 0, y: 15, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.95 }}

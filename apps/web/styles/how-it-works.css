@@ -6,7 +6,7 @@
   padding: 10px 0 60px;
   background: #0a0a0a; /* Force dark background for premium look and visibility */
   position: relative;
-  overflow: visible;
+  overflow: hidden;
 }
 
 @media (max-width: 768px) {
@@ -84,12 +84,13 @@
   left: 0;
   top: 50%;
   height: 3px;
-  background: linear-gradient(90deg, #ff5a5a, #ef4444);
+  background: linear-gradient(90deg, #E53935, rgba(255, 120, 80, 0.6), transparent);
   border-radius: 999px;
   transform: translateY(-50%);
   z-index: 2;
-  box-shadow: 0 0 20px rgba(239, 68, 68, 0.35);
-  transition: width 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  box-shadow: 0 0 12px rgba(229, 57, 53, 0.4);
+  /* Fast transition for real-time cursor tracking */
+  transition: width 0.05s linear;
 }
 
 /* Step Nodes */
@@ -102,7 +103,7 @@
   display: flex;
   justify-content: space-between;
   /* Nodes must be above the rocket */
-  z-index: 10;
+  z-index: 5;
   pointer-events: all;
 }
 
@@ -118,8 +119,6 @@
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
-  z-index: 10;
-  box-shadow: 0 0 25px rgba(239, 68, 68, 0.28);
 }
 
 .node-number {
@@ -127,15 +126,13 @@
   font-weight: 800;
   color: #E53935;
   transition: color 0.3s ease;
-  z-index: 11; /* Always on top of everything */
 }
 
 .roadmap-node-item:hover,
 .roadmap-node-item.active {
   background: #E53935;
   transform: scale(1.1);
-  box-shadow: 0 0 35px rgba(239, 68, 68, 0.6);
-  border-color: #ffffff;
+  box-shadow: 0 0 15px rgba(229, 57, 53, 0.4);
 }
 
 .roadmap-node-item:hover .node-number,
@@ -146,52 +143,31 @@
 /* Rocket Pilot — sits exactly on the line, never overlaps nodes */
 .rocket-pilot {
   position: absolute;
+  /* Vertically centered on the line axis */
   top: 50%;
+  /* Horizontally driven by JS left% */
   transform: translate(-50%, -50%);
-  z-index: 3;
-  color: #ffffff;
-  background: linear-gradient(135deg, #ff5a5a, #ef4444);
-  width: 42px;
-  height: 42px;
+  z-index: 3; /* below nodes (z:5) but above flame trail (z:2) */
+  color: #E53935;
+  background: #0a0a0a;
+  width: 34px;
+  height: 34px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
+  border: 2px solid rgba(229,57,53,0.4);
+  box-shadow: 0 0 12px rgba(229,57,53,0.3), 0 2px 8px rgba(0,0,0,0.08);
+  /* Hidden until cursor enters the axis */
   opacity: 0;
-  transition: 
-    left 0.45s cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 0.3s ease,
-    transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  /* Near-real-time movement, tiny lag for smoothness */
+  transition: left 0.05s linear, opacity 0.2s ease;
   pointer-events: none;
-  animation: rocketFloat 3s infinite ease-in-out;
 }
 
+/* Rocket becomes visible when cursor is over the axis */
 .rocket-pilot.visible {
   opacity: 1;
-}
-
-/* Rocket Trail Effect */
-.rocket-pilot::before {
-  content: '';
-  position: absolute;
-  right: 100%;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 120px;
-  height: 24px;
-  background: linear-gradient(90deg, rgba(239, 68, 68, 0.45), transparent);
-  filter: blur(12px);
-  opacity: 0.28;
-  pointer-events: none;
-  border-radius: 50%;
-  z-index: -1;
-}
-
-@keyframes rocketFloat {
-  0%, 100% { margin-top: 0; }
-  50% { margin-top: -5px; }
 }
 
 .rocket-icon-svg {
@@ -219,10 +195,10 @@
 
 .roadmap-step-card-glass:hover,
 .roadmap-step-card-glass.focused {
-  transform: translateY(-12px);
-  box-shadow: 0 20px 50px rgba(239, 68, 68, 0.12);
-  border-color: rgba(239, 68, 68, 0.45);
-  background: rgba(255, 255, 255, 0.08);
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  border-color: rgba(230, 57, 70, 0.3);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .step-card-icon {

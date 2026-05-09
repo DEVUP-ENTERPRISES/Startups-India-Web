@@ -427,7 +427,74 @@ export default function InvestorsPage() {
         </div>
       </section>
 
+      {/* Important Note Section - Premium UI */}
+      <section className="note-premium-section">
+        <div className="container">
+          <motion.div
+            className="note-card-premium"
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+          >
+            <motion.div 
+              className="note-lock-icon"
+              whileHover="open"
+              initial="closed"
+            >
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="#ff5252">
+                {/* Lock Shackle */}
+                <motion.path 
+                  d="M7 11V7a5 5 0 0 1 10 0v4" 
+                  fill="none" 
+                  stroke="#ff5252" 
+                  strokeWidth="3.5"
+                  variants={{
+                    closed: { y: 0 },
+                    open: { y: -3 }
+                  }}
+                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                />
+                {/* Lock Body */}
+                <rect x="5" y="10" width="14" height="11" rx="2" />
+              </svg>
+            </motion.div>
+            
+            <h3 style={{ fontSize: '28px' }}>Important Note on Interaction & Investments</h3>
+            <p className="note-subtitle" style={{ fontSize: '14px', marginBottom: '32px' }}>
+              Investors do not directly interact with startups through the website.
+            </p>
 
+            <ul className="note-list-premium">
+              <li>No direct messaging, deal flow, or pitch uploads via the platform</li>
+              <li>No funding guarantees or commitments</li>
+              <li>
+                All investor engagement occurs only through Startups India–managed programs, <br />
+                demo days, and curated events
+              </li>
+            </ul>
+
+            <div className="note-benefits-grid">
+              <div className="benefit-box-premium">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M20 6 9 17l-5-5"/></svg>
+                COMPLIANCE & TRANSPARENCY
+              </div>
+              <div className="benefit-box-premium">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M20 6 9 17l-5-5"/></svg>
+                STRUCTURED INTERACTIONS
+              </div>
+              <div className="benefit-box-premium">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M20 6 9 17l-5-5"/></svg>
+                QUALITY CONTROL
+              </div>
+              <div className="benefit-box-premium">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M20 6 9 17l-5-5"/></svg>
+                PROFESSIONAL ENGAGEMENT
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
 
       {/* Investors Grid */}
       {/* Investors Premium Section */}
