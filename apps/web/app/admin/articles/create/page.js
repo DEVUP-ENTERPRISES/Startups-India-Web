@@ -21,7 +21,7 @@ function ImageUploadField({ label, fieldKey, storedUrl, previewUrl, uploading, o
       {uploading && (
         <div style={{ fontSize: 13, color: '#60a5fa', marginTop: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
           <span style={{ display: 'inline-block', width: 12, height: 12, border: '2px solid #60a5fa', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
-          Uploading...
+          Uploading to S3...
         </div>
       )}
       {displayUrl && !uploading && (
@@ -30,15 +30,7 @@ function ImageUploadField({ label, fieldKey, storedUrl, previewUrl, uploading, o
             src={displayUrl}
             alt="Preview"
             style={{ width: '100%', height: 130, objectFit: 'cover', borderRadius: 8, display: 'block', border: '1px solid rgba(255,255,255,0.1)' }}
-            onError={e => {
-              e.target.style.display = 'none';
-              e.target.nextSibling.style.display = 'flex';
-            }}
           />
-          <div style={{ display: 'none', width: '100%', height: 130, borderRadius: 8, background: 'rgba(255,255,255,0.04)', border: '1px dashed rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 4 }}>
-            <span style={{ fontSize: 20 }}>🖼️</span>
-            <span style={{ fontSize: 11, color: '#64748b', textAlign: 'center', padding: '0 8px' }}>Image saved — not previewable (S3 private bucket)</span>
-          </div>
           <button
             type="button"
             onClick={onRemove}
@@ -110,6 +102,8 @@ export default function CreateArticlePage() {
       });
 
       if (!uploadResponse.ok) throw new Error(`S3 upload failed (${uploadResponse.status})`);
+      // Switch preview from blob URL to live S3 URL
+      setPreviews(prev => ({ ...prev, [fieldKey]: data.fileUrl }));
       return data.fileUrl;
     } catch (error) {
       console.error('Upload Error:', error);
