@@ -106,7 +106,7 @@
 .search-bar:focus {
   background: #ffffff;
   border-color: transparent;
-  box-shadow: 
+  box-shadow:
     0 10px 30px rgba(230, 57, 70, 0.1),
     0 0 0 1.5px rgba(230, 57, 70, 0.3);
   transform: translateY(-3px) scale(1.02);
@@ -227,8 +227,12 @@
 }
 
 @keyframes gemini-shimmer {
-  0% { background-position: 100% 0%; }
-  100% { background-position: -100% 0%; }
+  0% {
+    background-position: 100% 0%;
+  }
+  100% {
+    background-position: -100% 0%;
+  }
 }
 
 .nav-link {
@@ -343,7 +347,6 @@
     padding: 24px;
     flex: 1;
   }
-
 
   .mobile-nav-list {
     list-style: none;
@@ -464,7 +467,7 @@
   flex-direction: column;
   gap: 16px;
   margin-top: auto;
-  background: linear-gradient(to top, rgba(255,255,255,0.8), transparent);
+  background: linear-gradient(to top, rgba(255, 255, 255, 0.8), transparent);
 }
 
 .mobile-btn {
@@ -553,7 +556,9 @@
   border-radius: 20px;
   padding: 12px;
   min-width: 320px;
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.12), 0 0 1px rgba(0, 0, 0, 0.1);
+  box-shadow:
+    0 25px 60px rgba(0, 0, 0, 0.12),
+    0 0 1px rgba(0, 0, 0, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.4);
   z-index: 1000;
 }
@@ -568,16 +573,25 @@
   margin-bottom: 6px;
 }
 
-.dropdown-item:hover {
-  background: rgba(230, 57, 70, 0.05);
-  color: #e63946;
-  transform: translateX(6px);
+.dropdown-item:hover,
+.dropdown-item.active {
+  background: rgba(230, 57, 70, 0.1);
+  border-color: rgba(230, 57, 70, 0.2);
+  transform: translateX(8px);
+  box-shadow: -10px 0 20px rgba(230, 57, 70, 0.1);
 }
 
 .dropdown-item-title {
   font-weight: 800;
-  font-size: 15px;
-  margin-bottom: 4px;
+  font-size: 15.5px;
+  margin-bottom: 5px;
+  color: #ffffff;
+  transition: color 0.3s ease;
+}
+
+.dropdown-item:hover .dropdown-item-title,
+.dropdown-item.active .dropdown-item-title {
+  color: #ff4b5c;
 }
 
 .dropdown-item-description {
@@ -623,9 +637,11 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
 }
 
-.mobile-dropdown-item:hover {
-  background: rgba(230, 57, 70, 0.04);
-  border-color: rgba(230, 57, 70, 0.1);
+.mobile-dropdown-item:active,
+.mobile-dropdown-item.active {
+  transform: scale(0.97);
+  background: rgba(230, 57, 70, 0.05);
+  border-color: rgba(230, 57, 70, 0.2);
 }
 
 .mobile-dropdown-title {

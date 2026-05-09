@@ -55,7 +55,7 @@ export default function AboutUs() {
 
       <div className="about-page">
         {/* Who We Are - Dark */}
-        <section className="who-section">
+        <section className="who-section" id="about-company">
           <div className="container">
             <motion.div
               initial={{ opacity: 0, y: 30 }}
@@ -190,7 +190,7 @@ export default function AboutUs() {
         </section>
 
         {/* Mission & Vision - Light */}
-        <section className="mission-section">
+        <section className="mission-section" id="vision-mission">
           <div className="container">
             <div>
               <div className="mission-grid">

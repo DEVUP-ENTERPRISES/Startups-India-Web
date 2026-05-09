@@ -16,7 +16,48 @@ export default function Header() {
   const [programsDropdownOpen, setProgramsDropdownOpen] = useState(false);
   const [mobileDropdowns, setMobileDropdowns] = useState({});
   const [hoveredNav, setHoveredNav] = useState(null);
+  const [activeDropdown, setActiveDropdown] = useState(null);
+  const [currentHash, setCurrentHash] = useState('');
   const pathname = usePathname();
+
+  // 🧱 TRACK ACTIVE SECTION FOR DROPDOWN HIGHLIGHT
+  useEffect(() => {
+    if (pathname !== '/about') {
+      setCurrentHash('');
+      return;
+    }
+
+    const sections = ['about-company', 'vision-mission', 'team-profiles'];
+    const observerOptions = {
+      root: null,
+      rootMargin: '-20% 0px -70% 0px',
+      threshold: 0
+    };
+
+    const observerCallback = (entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const newHash = `#${entry.target.id}`;
+          setCurrentHash(newHash);
+        }
+      });
+    };
+
+    const observer = new IntersectionObserver(observerCallback, observerOptions);
+    sections.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    });
+
+    return () => observer.disconnect();
+  }, [pathname]);
+
+  // Update hash state when window hash changes
+  useEffect(() => {
+    const handleHashChange = () => setCurrentHash(window.location.hash);
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
 
   const menuItems = [
     { label: 'Home', href: '/', icon: Home },
@@ -25,8 +66,21 @@ export default function Header() {
       href: '/about', 
       icon: Info,
       dropdown: [
-        { label: 'About Us', href: '/about' },
-        { label: 'Team', href: '/team' }
+        {
+          label: 'About the Company',
+          href: '/about#about-company',
+          description: 'Learn about the StartupsIndia ecosystem and mission',
+        },
+        {
+          label: 'Vision & Mission',
+          href: '/about#vision-mission',
+          description: 'Driving innovation and empowering founders nationwide',
+        },
+        {
+          label: 'Team Profiles',
+          href: '/about#team-profiles',
+          description: 'Meet the leadership, advisers, and core team',
+        },
       ]
     },
     { 
@@ -225,7 +279,8 @@ export default function Header() {
                           <Link
                             key={dropdownIndex}
                             href={dropdownItem.href}
-                            className="dropdown-item"
+                            className={`dropdown-item ${pathname + currentHash === dropdownItem.href ? 'active' : ''}`}
+                            onClick={() => setActiveDropdown(null)}
                           >
                             <div className="dropdown-item-title">{dropdownItem.label}</div>
                             <div className="dropdown-item-description">
@@ -312,12 +367,18 @@ export default function Header() {
                       className={`mobile-nav-item ${pathname === item.href ? 'active' : ''}`}
                       onClick={closeMobileMenu}
                     >
-                      <span className="menu-left">
-                        <Icon size={20} className="menu-icon" />
-                        {item.label}
-                      </span>
-                      <ChevronRight size={18} />
-                    </Link>
+                        {item.dropdown.map((dropdownItem, dropdownIndex) => (
+                          <Link
+                            key={dropdownIndex}
+                            href={dropdownItem.href}
+                            className={`mobile-dropdown-item ${pathname + currentHash === dropdownItem.href ? 'active' : ''}`}
+                            onClick={closeMobileMenu}
+                          >
+                            <div className="mobile-dropdown-title">{dropdownItem.label}</div>
+                            <div className="mobile-dropdown-description">{dropdownItem.description}</div>
+                          </Link>
+                        ))}
+                    </motion.div>
                   )}
                 </li>
               );

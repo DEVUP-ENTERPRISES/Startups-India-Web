@@ -1,8 +1,42 @@
 'use client';
 
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
+import { getCurrentUser } from '@/lib/auth';
 
 export default function MentorsSection() {
+  const router = useRouter();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
+
+  useEffect(() => {
+    async function checkAuth() {
+      try {
+        const { data } = await getCurrentUser();
+        if (data?.user) {
+          setIsLoggedIn(true);
+        }
+      } catch (err) {
+        console.error('Auth check failed:', err);
+      }
+    }
+    checkAuth();
+  }, []);
+
+  const handleApplyClick = () => {
+    setIsRedirecting(true);
+    // Add a slight delay for the premium "loading" transition feel
+    setTimeout(() => {
+      if (isLoggedIn) {
+        router.push('/courses');
+      } else {
+        // Pass the returnUrl to redirect back after sign in
+        router.push('/login?returnUrl=/courses');
+      }
+    }, 800);
+  };
+
   const mentors = [
     {
       id: 1,
@@ -231,21 +265,34 @@ export default function MentorsSection() {
         >
           <div className="mentor-cta-content">
             <div className="mentor-cta-text">
-              <h3>Want to Mentor the Next Generation?</h3>
-              <p>Share your expertise and help student founders build the future</p>
+              <h3>One-on-One Sessions with Mentors</h3>
+              <p>Connect with experienced mentors, get personalized guidance, and accelerate your startup journey.</p>
             </div>
-            <button className="mentor-apply-btn">
-              <span>Apply Here</span>
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-              >
-                <path d="M5 12h14M12 5l7 7-7 7" />
-              </svg>
+            <button 
+              className="mentor-apply-btn"
+              onClick={handleApplyClick}
+              disabled={isRedirecting}
+            >
+              {isRedirecting ? (
+                <>
+                  <span>Redirecting...</span>
+                  <div className="btn-loader"></div>
+                </>
+              ) : (
+                <>
+                  <span>Apply Here</span>
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                  >
+                    <path d="M5 12h14M12 5l7 7-7 7" />
+                  </svg>
+                </>
+              )}
             </button>
           </div>
         </motion.div>
