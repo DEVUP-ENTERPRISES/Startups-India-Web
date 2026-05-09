@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -18,6 +18,22 @@ export default function EventsPage() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const scrollRef = useRef(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+
+  const updateScrollState = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 4);
+    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
+  };
+
+  const scrollBy = (dir) => {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollBy({ left: dir * 240, behavior: 'smooth' });
+  };
 
   const formatPrice = event => {
     const rawPrice = event?.price;
@@ -496,7 +512,18 @@ export default function EventsPage() {
           </motion.div>
 
           <div className="categories-scroll-wrapper">
-            <div className="categories-horizontal">
+            {/* Left fade + arrow */}
+            <div className={`scroll-edge scroll-edge-left ${canScrollLeft ? 'visible' : ''}`}>
+              <button className="scroll-arrow scroll-arrow-left" onClick={() => scrollBy(-1)} aria-label="Scroll left">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+              </button>
+            </div>
+
+            <div
+              className="categories-horizontal"
+              ref={scrollRef}
+              onScroll={updateScrollState}
+            >
               {categories.map((category, index) => (
                 <motion.div
                   key={category.id}
@@ -505,7 +532,8 @@ export default function EventsPage() {
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.4, delay: index * 0.05 }}
-                  whileHover={{ y: -4 }}
+                  whileHover={{ y: -4, scale: 1.04 }}
+                  whileTap={{ scale: 0.97 }}
                   onClick={() => setSelectedCategory(category.id)}
                 >
                   <div className="chip-icon">{category.icon}</div>
@@ -514,6 +542,22 @@ export default function EventsPage() {
                 </motion.div>
               ))}
             </div>
+
+            {/* Right fade + arrow */}
+            <div className={`scroll-edge scroll-edge-right ${canScrollRight ? 'visible' : ''}`}>
+              <button className="scroll-arrow scroll-arrow-right" onClick={() => scrollBy(1)} aria-label="Scroll right">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </button>
+            </div>
+
+            {/* Swipe hint shown only once */}
+            {canScrollRight && (
+              <div className="swipe-hint">
+                <span className="swipe-hint-arrow">›</span>
+                <span>More categories</span>
+                <span className="swipe-hint-arrow">›</span>
+              </div>
+            )}
           </div>
         </div>
       </section>
