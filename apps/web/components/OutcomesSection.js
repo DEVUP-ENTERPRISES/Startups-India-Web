@@ -21,7 +21,7 @@ export default function OutcomesSection() {
     {
       id: 2,
       title: 'Master Critical Skills',
-      subtitle: 'Learn What Takes Years in Just 4 Weeks',
+      subtitle: 'Learn What Takes Years in Just 8 Weeks',
       description: 'Learn customer discovery, MVP development, pitching, and fundraising—skills that take most founders years to develop. Our framework condenses years of startup wisdom into an intensive, hands-on learning experience.',
       highlights: ['Customer Discovery', 'MVP Development', 'Pitch Mastery', 'Fundraising Strategy'],
       icon: (

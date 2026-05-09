@@ -7,7 +7,7 @@ export default function ProgramTimelineSection() {
   const [isInView, setIsInView] = useState(false);
   const weeks = [
     {
-      week: 'Week 1',
+      week: 'Weeks 1-2',
       title: 'Idea & Problem Validation',
       description: 'Learn to identify real market problems, validate your assumptions through customer interviews, and ensure your idea solves a genuine need.',
       icon: (
@@ -18,7 +18,7 @@ export default function ProgramTimelineSection() {
       highlights: ['Customer Discovery', 'Market Research', 'Problem-Solution Fit']
     },
     {
-      week: 'Week 2',
+      week: 'Weeks 3-4',
       title: 'Business Model & Value Prop',
       description: 'Design your business model canvas, craft a compelling value proposition, and identify your revenue streams and key partnerships.',
       icon: (
@@ -31,7 +31,7 @@ export default function ProgramTimelineSection() {
       highlights: ['Business Model Canvas', 'Value Proposition', 'Revenue Strategy']
     },
     {
-      week: 'Week 3',
+      week: 'Weeks 5-6',
       title: 'MVP & Marketing',
       description: 'Build your minimum viable product using lean principles, develop go-to-market strategies, and create effective marketing campaigns.',
       icon: (
@@ -42,7 +42,7 @@ export default function ProgramTimelineSection() {
       highlights: ['MVP Development', 'Go-to-Market', 'Growth Hacking']
     },
     {
-      week: 'Week 4',
+      week: 'Weeks 7-8',
       title: 'Finance, Legal & Pitch Mastery',
       description: 'Master financial projections, understand legal frameworks, and perfect your investor pitch to secure funding for your venture.',
       icon: (
@@ -78,11 +78,11 @@ export default function ProgramTimelineSection() {
           </div>
           
           <h2 className="timeline-title">
-            Your <span className="timeline-highlight">4-Week Transformation</span>
+            Your <span className="timeline-highlight">8-Week Transformation</span>
           </h2>
           
           <p className="timeline-subtitle">
-            A structured, hands-on curriculum designed to take you from idea to investment-ready startup in just 4 weeks.
+            A structured, hands-on curriculum designed to take you from idea to investment-ready startup in just 8 weeks.
           </p>
         </motion.div>
 

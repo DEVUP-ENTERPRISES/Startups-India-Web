@@ -10,7 +10,7 @@ export default function ProgramsPage() {
     {
       title: 'Pre-Incubation',
       description:
-        '4-week intensive program for idea validation, MVP development, and investor-ready pitch preparation.',
+        '8-week intensive program for idea validation, MVP development, and investor-ready pitch preparation.',
       href: '/programs/pre-incubation',
       icon: Target,
       features: ['Idea Validation', 'MVP Development', 'Mentorship', 'Funding Access'],

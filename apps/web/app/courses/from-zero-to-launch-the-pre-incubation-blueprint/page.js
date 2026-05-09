@@ -172,7 +172,7 @@ export default function PreIncubationBlueprintPage() {
               >
                 <div className="float-card-icon">🚀</div>
                 <div className="float-card-title">FAST-TRACK PROGRAM</div>
-                <div className="float-card-subtitle">4-week intensive Pre Incubation Program</div>
+                <div className="float-card-subtitle">8-week intensive Pre Incubation Program</div>
               </motion.div>
             </div>
 

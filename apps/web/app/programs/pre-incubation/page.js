@@ -249,7 +249,7 @@ export default function PreIncubationPage() {
                   </svg>
                 </div>
                 <div className="float-card-title">FAST-TRACK PROGRAM</div>
-                <div className="float-card-subtitle">4-week intensive Pre Incubation Program</div>
+                <div className="float-card-subtitle">8-week intensive Pre Incubation Program</div>
               </motion.div>
             </div>
 
@@ -386,7 +386,7 @@ export default function PreIncubationPage() {
       {/* 10. Why Join Program Section - Premium dark glassmorphism */}
       <WhyJoinProgramSection />
 
-      {/* 12. Program Timeline Section - 4-week journey */}
+      {/* 12. Program Timeline Section - 8-week journey */}
       <ProgramTimelineSection />
 
       {/* 13. Modules Section - Light theme modules */}

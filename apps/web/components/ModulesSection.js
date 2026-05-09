@@ -19,7 +19,7 @@ export default function ModulesSection() {
     {
       number: '02',
       title: 'Problem Discovery & Idea Generation',
-      week: 'Week 1',
+      week: 'Week 2',
       description: 'Uncover real problems worth solving. Master root-cause analysis, validate pain points, and generate breakthrough ideas that matter.',
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -31,7 +31,7 @@ export default function ModulesSection() {
     {
       number: '03',
       title: 'Idea Validation & Customer Discovery',
-      week: 'Week 2',
+      week: 'Week 3',
       description: 'Talk to real customers. Conduct interviews, measure market size (TAM/SAM/SOM), and test if your idea has legs before you build anything.',
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -45,7 +45,7 @@ export default function ModulesSection() {
     {
       number: '04',
       title: 'Business Model & Value Proposition',
-      week: 'Week 2',
+      week: 'Week 4',
       description: 'Design your business engine. Use the Business Model Canvas, define your unique value, and analyze competitors strategically.',
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -57,7 +57,7 @@ export default function ModulesSection() {
     {
       number: '05',
       title: 'MVP & Prototype Development',
-      week: 'Week 3',
+      week: 'Week 5',
       description: 'Stop overthinking — start building. Learn to create a Minimum Viable Product that tests your core assumption fast and cheap.',
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -69,7 +69,7 @@ export default function ModulesSection() {
     {
       number: '06',
       title: 'Marketing & Go-to-Market Strategy',
-      week: 'Week 3',
+      week: 'Week 6',
       description: 'Get your first 100 customers. Master branding, storytelling, customer acquisition channels, and create a GTM plan that works.',
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -81,7 +81,7 @@ export default function ModulesSection() {
     {
       number: '07',
       title: 'Finance & Legal Foundations',
-      week: 'Week 4',
+      week: 'Week 7',
       description: 'Understand the money. Build revenue models, forecast financials, choose the right legal structure, and protect your intellectual property.',
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -93,7 +93,7 @@ export default function ModulesSection() {
     {
       number: '08',
       title: 'Pitching & Demo Day',
-      week: 'Week 4',
+      week: 'Week 8',
       description: 'Nail your pitch. Craft a compelling pitch deck, master storytelling and body language, then present to investors and mentors on Demo Day.',
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -125,7 +125,7 @@ export default function ModulesSection() {
           </div>
 
           <h2 className="modules-title">
-            4 Weeks. <span className="modules-highlight">8 Game-Changing Modules</span>.
+            8 Weeks. <span className="modules-highlight">8 Game-Changing Modules</span>.
           </h2>
         </motion.div>
 
