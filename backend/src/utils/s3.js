@@ -23,6 +23,11 @@ function getS3Client() {
       accessKeyId: env.AWS_ACCESS_KEY_ID,
       secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
     },
+    // Prevent SDK from adding CRC32 checksum to presigned PUT URLs.
+    // Browsers cannot compute checksums, causing S3 to reject the request
+    // before sending CORS headers (appearing as a CORS error).
+    requestChecksumCalculation: 'WHEN_REQUIRED',
+    responseChecksumValidation: 'WHEN_REQUIRED',
   });
 
   return s3Client;
@@ -54,7 +59,6 @@ async function generateUploadUrl({ key, contentType, expiresIn = 300 }) {
     Bucket: env.AWS_S3_BUCKET,
     Key: key,
     ContentType: contentType || 'application/octet-stream',
-    ChecksumAlgorithm: undefined,
   });
 
   const uploadUrl = await getSignedUrl(client, command, { expiresIn });
