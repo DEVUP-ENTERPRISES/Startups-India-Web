@@ -289,10 +289,10 @@
   position: fixed;
   top: 0;
   right: -100%;
-  width: 100%;
-  max-width: 400px;
+  width: 88%;
+  max-width: 360px;
   height: 100dvh;
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(25px) saturate(180%);
   -webkit-backdrop-filter: blur(25px) saturate(180%);
   padding: 0;
@@ -317,18 +317,19 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 24px;
+  padding: 16px 20px;
+  padding-top: max(16px, env(safe-area-inset-top));
   position: sticky;
   top: 0;
-  background: rgba(255, 255, 255, 0.5);
-  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(15px);
   z-index: 10;
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .mobile-menu-close {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   background: #f3f4f6;
   border: none;
@@ -336,6 +337,12 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mobile-menu-close:active {
+  transform: scale(0.9);
+  background: #e5e7eb;
 }
 
 /* 📱 MOBILE MENU FINAL UPGRADE (767px) */
@@ -344,8 +351,10 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
-    padding: 24px;
+    padding: 12px 16px;
     flex: 1;
+    overflow-y: auto;
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
   }
 
   .mobile-nav-list {
@@ -362,11 +371,13 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 14px 16px;
-    background: rgba(0, 0, 0, 0.03);
-    border-radius: 12px;
+    padding: 0 16px;
+    height: 56px;
+    background: rgba(0, 0, 0, 0.02);
+    border-radius: 16px;
     text-decoration: none;
     color: #1f2937;
+    font-size: 16px;
     font-weight: 600;
     transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     cursor: pointer;
@@ -375,8 +386,8 @@
 
   .mobile-nav-item:active,
   .menu-parent:active {
-    transform: scale(0.97);
-    background: rgba(0, 0, 0, 0.06);
+    transform: scale(0.98);
+    background: rgba(0, 0, 0, 0.05);
   }
 
   .mobile-nav-item.active,
@@ -395,6 +406,9 @@
   .menu-icon {
     color: #ef4444;
     opacity: 0.8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .mobile-nav-item.active .menu-icon,
@@ -407,34 +421,53 @@
     max-height: 0;
     overflow: hidden;
     list-style: none;
-    padding-left: 32px;
+    padding-left: 0;
+    margin: 0 4px;
     transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     opacity: 0;
     pointer-events: none;
   }
 
   .has-submenu.open .submenu {
-    max-height: 300px;
-    padding-top: 8px;
-    padding-bottom: 8px;
+    max-height: 500px;
+    padding-top: 4px;
+    padding-bottom: 4px;
     opacity: 1;
     pointer-events: auto;
   }
 
   .submenu-link {
-    display: block;
-    padding: 10px 16px;
+    display: flex;
+    flex-direction: column;
+    padding: 12px 16px;
     color: #4b5563;
     text-decoration: none;
-    font-size: 14px;
-    font-weight: 500;
-    border-radius: 8px;
+    border-radius: 12px;
     transition: all 0.2s ease;
+    gap: 4px;
+    margin-bottom: 4px;
+  }
+
+  .submenu-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1f2937;
+  }
+
+  .submenu-desc {
+    font-size: 13px;
+    color: #6b7280;
+    line-height: 1.4;
   }
 
   .submenu-link:hover {
-    background: rgba(0, 0, 0, 0.02);
+    background: rgba(0, 0, 0, 0.03);
     color: #e53935;
+  }
+
+  .submenu-link:active {
+    transform: scale(0.98);
+    background: rgba(0, 0, 0, 0.05);
   }
 
   .arrow {
@@ -462,12 +495,11 @@
 }
 
 .mobile-drawer-actions {
-  padding: 30px 24px 40px;
+  padding: 24px 0 32px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
   margin-top: auto;
-  background: linear-gradient(to top, rgba(255, 255, 255, 0.8), transparent);
 }
 
 .mobile-btn {
@@ -706,8 +738,4 @@
   }
 }
 
-@media (max-width: 480px) {
-  .mobile-menu {
-    width: 100%;
-  }
-}
+/* Removed 480px full width mobile-menu media query to maintain max-width: 360px and width: 88% */

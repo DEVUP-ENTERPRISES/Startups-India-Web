@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import '../styles/network-hero.css';
 
 const PHRASES = [
   'real-world exposure',
@@ -161,52 +160,79 @@ export default function MarketAccessHero() {
     <section className={`network-hero ${isLoaded ? 'loaded' : ''}`} ref={sectionRef}>
       <canvas ref={canvasRef} className="network-canvas" />
       <div
-        className="cursor-glow"
+        className="hero-cursor-glow"
         style={{
-          left: `${mousePos.x}%`,
-          top: `${mousePos.y}%`,
+          left: `${mousePos.rawX}px`,
+          top: `${mousePos.rawY}px`,
         }}
       />
       <div className="hero-content-wrapper">
-        <div className="hero-tag fade-in-element">MARKET ACCESS</div>
+        <div className="hero-tag-pill fade-in-element">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-500" style={{ color: '#ef4444' }}>
+            <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2l.5-.5a10 10 0 0 0 6.64-10l.5-.5A2.12 2.12 0 0 0 12.15 5l-.5.5a10 10 0 0 0-10 6.64l-.5.5Z"/>
+            <path d="m12 15-3-3"/>
+          </svg>
+          <span>WELCOME TO <span style={{ color: '#ef4444' }}>MARKET ACCESS</span></span>
+        </div>
 
-        <h1 className={`hero-title ${isLoaded ? 'animate' : ''}`}>
-          From Idea Validation to <br />
-          <span className={`highlight-red dynamic-text anim-${animState}`}>
-            {PHRASES[textIndex]}
-          </span>
-        </h1>
-
-        <div className="hero-pills fade-in-element" style={{ animationDelay: '0.1s' }}>
-          <div className="hero-pill">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="10"/>
-              <path d="M12 6v6l4 2"/>
-            </svg>
-            Structured Process
-          </div>
-          <div className="hero-pill">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-              <circle cx="9" cy="7" r="4"/>
-              <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
-              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-            </svg>
-            Industry Partners
-          </div>
-          <div className="hero-pill">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="12" y1="20" x2="12" y2="10"/>
-              <line x1="18" y1="20" x2="18" y2="4"/>
-              <line x1="6" y1="20" x2="6" y2="16"/>
-            </svg>
-            Validation & Feedback
+        <div className="hero-title-premium fade-in-element" style={{ animationDelay: '0.1s' }}>
+          <h1 className="hero-static-line">
+            From Idea Validation <br className="mobile-break" /> to
+          </h1>
+          <div className="rotating-text-container">
+            <div className={`dynamic-rotating-line anim-${animState}`}>
+              {PHRASES[textIndex]}
+            </div>
           </div>
         </div>
 
-        <div className="hero-ctas fade-in-element" style={{ animationDelay: '0.2s' }}>
-          <Link href="/signup" className="hero-btn-primary">
-            Apply for Market Access
+        <div className="hero-feature-grid fade-in-element" style={{ animationDelay: '0.2s' }}>
+          <div className="feature-card-minimal">
+            <div className="feature-icon-circle">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 6v6l4 2"/>
+              </svg>
+            </div>
+            <div className="feature-text-stack">
+              <h3>Structured Process</h3>
+              <p>Step-by-step guidance</p>
+            </div>
+          </div>
+          <div className="feature-card-minimal">
+            <div className="feature-icon-circle">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+            </div>
+            <div className="feature-text-stack">
+              <h3>Industry Partners</h3>
+              <p>Top-tier networks</p>
+            </div>
+          </div>
+          <div className="feature-card-minimal">
+            <div className="feature-icon-circle">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="12" y1="20" x2="12" y2="10"/>
+                <line x1="18" y1="20" x2="18" y2="4"/>
+                <line x1="6" y1="20" x2="6" y2="16"/>
+              </svg>
+            </div>
+            <div className="feature-text-stack">
+              <h3>Validation & Feedback</h3>
+              <p>Real-world exposure</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="hero-actions-container fade-in-element" style={{ animationDelay: '0.3s' }}>
+          <Link href="/signup" className="no-underline">
+            <button className="btn-primary-premium">
+              Apply for Market Access
+            </button>
           </Link>
         </div>
       </div>

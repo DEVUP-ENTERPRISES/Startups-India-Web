@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import MarketAccessHero from '../../components/MarketAccessHero';
 import '../../styles/market-access.css';
+import '../../styles/network-hero.css';
 
 export default function MarketAccessPage() {
   return (
@@ -37,15 +38,18 @@ export default function MarketAccessPage() {
                   transition={{ duration: 0.6, delay: 0.1 }}
                   viewport={{ once: true, margin: "-50px" }}
                 >
-                  <div className="card-header">
-                    <div className="card-icon-box">
-                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                  <div className="card-bg-number">01</div>
+                  <div className="card-header-main">
+                    <div className="card-icon-floating">
+                      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                     </div>
-                    <div className="card-number">01</div>
                   </div>
-                  <div className="card-content">
-                    <h3 className="card-title">Early Customers</h3>
-                    <p className="card-desc">Eliminate the adoption void. We secure your first high-value customers through a curated network of early adopters and design partners.</p>
+                  <div className="card-divider-glow">
+                    <div className="glow-dot"></div>
+                  </div>
+                  <div className="card-body-content">
+                    <h3 className="card-title-premium">Early Customers</h3>
+                    <p className="card-description-premium">Eliminate the adoption void. We secure your first high-value customers through a curated network of early adopters and design partners.</p>
                   </div>
                 </motion.div>
 
@@ -56,15 +60,18 @@ export default function MarketAccessPage() {
                   transition={{ duration: 0.6, delay: 0.2 }}
                   viewport={{ once: true, margin: "-50px" }}
                 >
-                  <div className="card-header">
-                    <div className="card-icon-box">
-                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                  <div className="card-bg-number">02</div>
+                  <div className="card-header-main">
+                    <div className="card-icon-floating">
+                      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
                     </div>
-                    <div className="card-number">02</div>
                   </div>
-                  <div className="card-content">
-                    <h3 className="card-title">Market Feedback</h3>
-                    <p className="card-desc">Bypass the guesswork. Gain direct, unfiltered insights from decision-makers who define your industry's future.</p>
+                  <div className="card-divider-glow">
+                    <div className="glow-dot"></div>
+                  </div>
+                  <div className="card-body-content">
+                    <h3 className="card-title-premium">Market Feedback</h3>
+                    <p className="card-description-premium">Bypass the guesswork. Gain direct, unfiltered insights from decision-makers who define your industry's future.</p>
                   </div>
                 </motion.div>
 
@@ -75,15 +82,18 @@ export default function MarketAccessPage() {
                   transition={{ duration: 0.6, delay: 0.3 }}
                   viewport={{ once: true, margin: "-50px" }}
                 >
-                  <div className="card-header">
-                    <div className="card-icon-box">
-                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3m0 14v3m10-10h-3M5 12H2m14.24-7.24-2.12 2.12m-8.48 8.48-2.12 2.12m12.72 0-2.12-2.12M7.76 7.76 5.64 5.64"/></svg>
+                  <div className="card-bg-number">03</div>
+                  <div className="card-header-main">
+                    <div className="card-icon-floating">
+                      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3m0 14v3m10-10h-3M5 12H2m14.24-7.24-2.12 2.12m-8.48 8.48-2.12 2.12m12.72 0-2.12-2.12M7.76 7.76 5.64 5.64"/></svg>
                     </div>
-                    <div className="card-number">03</div>
                   </div>
-                  <div className="card-content">
-                    <h3 className="card-title">Industry Exposure</h3>
-                    <p className="card-desc">Scale through authority. We place your product in front of industry leaders, removing the traditional barriers to entry.</p>
+                  <div className="card-divider-glow">
+                    <div className="glow-dot"></div>
+                  </div>
+                  <div className="card-body-content">
+                    <h3 className="card-title-premium">Industry Exposure</h3>
+                    <p className="card-description-premium">Scale through authority. We place your product in front of industry leaders, removing the traditional barriers to entry.</p>
                   </div>
                 </motion.div>
 
@@ -94,15 +104,18 @@ export default function MarketAccessPage() {
                   transition={{ duration: 0.6, delay: 0.4 }}
                   viewport={{ once: true, margin: "-50px" }}
                 >
-                  <div className="card-header">
-                    <div className="card-icon-box">
-                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+                  <div className="card-bg-number">04</div>
+                  <div className="card-header-main">
+                    <div className="card-icon-floating">
+                      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
                     </div>
-                    <div className="card-number">04</div>
                   </div>
-                  <div className="card-content">
-                    <h3 className="card-title">Validation Opportunities</h3>
-                    <p className="card-desc">Accelerate to product-market fit. Access pilot programs and technical validation tracks designed for high-growth potential.</p>
+                  <div className="card-divider-glow">
+                    <div className="glow-dot"></div>
+                  </div>
+                  <div className="card-body-content">
+                    <h3 className="card-title-premium">Validation Opportunities</h3>
+                    <p className="card-description-premium">Accelerate to product-market fit. Access pilot programs and technical validation tracks designed for high-growth potential.</p>
                   </div>
                 </motion.div>
               </div>

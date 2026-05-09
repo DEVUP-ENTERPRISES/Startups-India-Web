@@ -6,7 +6,6 @@ import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Menu, X, ChevronRight, Home, Info, LayoutGrid, Calendar, Users, Coins, Rocket, ChevronDown } from 'lucide-react';
 import { getCurrentUser } from '@/lib/auth';
-import '../styles/header.css';
 
 export default function Header() {
   const [user, setUser] = useState(null);
@@ -367,8 +366,10 @@ export default function Header() {
                       className={`mobile-nav-item ${pathname === item.href ? 'active' : ''}`}
                       onClick={closeMobileMenu}
                     >
-                      <Icon size={20} className="menu-icon" />
-                      {item.label}
+                      <span className="menu-left">
+                        <Icon size={20} className="menu-icon" />
+                        {item.label}
+                      </span>
                     </Link>
                   )}
                 </li>
