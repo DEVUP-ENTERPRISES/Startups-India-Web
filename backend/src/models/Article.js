@@ -19,6 +19,7 @@ const articleSchema = new mongoose.Schema(
 
     // Article Content
     content: { type: String, required: true }, // Rich HTML from Tiptap
+    keyPoints: { type: [String], default: [] },
     coverImage: { type: String, default: '' },
     thumbnailImage: { type: String, default: '' },
     galleryImages: { type: [String], default: [] },

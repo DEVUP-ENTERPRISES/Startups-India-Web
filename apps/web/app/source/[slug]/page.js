@@ -130,10 +130,40 @@ export default function SingleArticlePage() {
           </motion.div>
         )}
 
-        <motion.article 
+        {article.keyPoints?.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.35 }}
+            style={{
+              background: 'linear-gradient(135deg, rgba(59,130,246,0.08) 0%, rgba(139,92,246,0.08) 100%)',
+              border: '1px solid rgba(59,130,246,0.25)',
+              borderRadius: 16,
+              padding: '24px 28px',
+              marginBottom: 48,
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+              <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#3b82f6', flexShrink: 0 }} />
+              <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#93c5fd', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                Key Takeaways
+              </h3>
+            </div>
+            <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
+              {article.keyPoints.map((point, i) => (
+                <li key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', marginBottom: i < article.keyPoints.length - 1 ? 12 : 0 }}>
+                  <span style={{ color: '#3b82f6', fontWeight: 700, fontSize: 18, lineHeight: '26px', flexShrink: 0 }}>•</span>
+                  <span style={{ fontSize: 16, color: '#cbd5e1', lineHeight: 1.65 }}>{point}</span>
+                </li>
+              ))}
+            </ul>
+          </motion.div>
+        )}
+
+        <motion.article
           className="tiptap-content-render"
-          initial={{ opacity: 0 }} 
-          animate={{ opacity: 1 }} 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.4 }}
           dangerouslySetInnerHTML={{ __html: article.content }}
           style={{ fontSize: 18, lineHeight: 1.8, color: '#cbd5e1' }}
@@ -142,14 +172,22 @@ export default function SingleArticlePage() {
         {/* Basic CSS for the HTML content rendered from Tiptap */}
         <style dangerouslySetInnerHTML={{__html: `
           .tiptap-content-render p { margin-bottom: 1.5em; }
-          .tiptap-content-render h2 { font-size: 32px; margin-top: 2em; margin-bottom: 0.8em; color: #f8fafc; }
-          .tiptap-content-render h3 { font-size: 24px; margin-top: 1.5em; margin-bottom: 0.8em; color: #f8fafc; }
-          .tiptap-content-render img { max-width: 100%; border-radius: 12px; margin: 2em 0; }
-          .tiptap-content-render iframe { width: 100%; aspect-ratio: 16/9; border-radius: 12px; margin: 2em 0; }
-          .tiptap-content-render blockquote { border-left: 4px solid #3b82f6; padding-left: 20px; font-style: italic; color: #94a3b8; font-size: 22px; margin: 2em 0; }
+          .tiptap-content-render h1 { font-size: 38px; margin-top: 2em; margin-bottom: 0.8em; color: #f8fafc; font-weight: 800; }
+          .tiptap-content-render h2 { font-size: 30px; margin-top: 2em; margin-bottom: 0.8em; color: #f8fafc; font-weight: 700; }
+          .tiptap-content-render h3 { font-size: 22px; margin-top: 1.5em; margin-bottom: 0.6em; color: #e2e8f0; font-weight: 600; }
+          .tiptap-content-render img { max-width: 100%; border-radius: 12px; margin: 2em auto; display: block; }
+          .tiptap-content-render iframe { width: 100%; aspect-ratio: 16/9; border-radius: 12px; margin: 2em 0; border: none; }
+          .tiptap-content-render blockquote { border-left: 4px solid #3b82f6; padding-left: 20px; font-style: italic; color: #94a3b8; font-size: 20px; margin: 2em 0; background: rgba(59,130,246,0.05); padding: 16px 20px; border-radius: 0 8px 8px 0; }
           .tiptap-content-render a { color: #60a5fa; text-decoration: underline; text-underline-offset: 4px; }
-          .tiptap-content-render ul, .tiptap-content-render ol { margin-left: 20px; margin-bottom: 1.5em; }
-          .tiptap-content-render li { margin-bottom: 0.5em; }
+          .tiptap-content-render ul { list-style-type: disc; padding-left: 1.8em; margin-bottom: 1.5em; }
+          .tiptap-content-render ol { list-style-type: decimal; padding-left: 1.8em; margin-bottom: 1.5em; }
+          .tiptap-content-render li { margin-bottom: 0.6em; line-height: 1.7; }
+          .tiptap-content-render li p { margin-bottom: 0.2em; }
+          .tiptap-content-render ul ul { list-style-type: circle; margin-top: 0.4em; margin-bottom: 0.4em; }
+          .tiptap-content-render pre { background: rgba(255,255,255,0.05); padding: 1.2em; border-radius: 8px; overflow-x: auto; font-family: monospace; font-size: 14px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 1.5em; }
+          .tiptap-content-render code { background: rgba(255,255,255,0.08); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 0.9em; color: #93c5fd; }
+          .tiptap-content-render strong { color: #f1f5f9; font-weight: 700; }
+          .tiptap-content-render em { color: #cbd5e1; }
         `}} />
 
         <div style={{ marginTop: 60, padding: 30, background: 'rgba(255,255,255,0.03)', borderRadius: 16, border: '1px solid rgba(255,255,255,0.05)' }}>

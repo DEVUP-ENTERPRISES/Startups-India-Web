@@ -6,10 +6,58 @@ import { apiPost } from '@/lib/api';
 import TiptapEditor from '@/components/TiptapEditor';
 import '@/styles/admin-panel.css';
 
+function ImageUploadField({ label, fieldKey, storedUrl, previewUrl, uploading, onFileChange, onRemove }) {
+  const displayUrl = previewUrl || storedUrl;
+
+  return (
+    <div className="admin-form-group">
+      <label>{label}</label>
+      <input
+        type="file"
+        accept="image/*"
+        disabled={uploading}
+        onChange={onFileChange}
+      />
+      {uploading && (
+        <div style={{ fontSize: 13, color: '#60a5fa', marginTop: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span style={{ display: 'inline-block', width: 12, height: 12, border: '2px solid #60a5fa', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+          Uploading...
+        </div>
+      )}
+      {displayUrl && !uploading && (
+        <div style={{ position: 'relative', marginTop: 8 }}>
+          <img
+            src={displayUrl}
+            alt="Preview"
+            style={{ width: '100%', height: 130, objectFit: 'cover', borderRadius: 8, display: 'block', border: '1px solid rgba(255,255,255,0.1)' }}
+            onError={e => {
+              e.target.style.display = 'none';
+              e.target.nextSibling.style.display = 'flex';
+            }}
+          />
+          <div style={{ display: 'none', width: '100%', height: 130, borderRadius: 8, background: 'rgba(255,255,255,0.04)', border: '1px dashed rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 4 }}>
+            <span style={{ fontSize: 20 }}>🖼️</span>
+            <span style={{ fontSize: 11, color: '#64748b', textAlign: 'center', padding: '0 8px' }}>Image saved — not previewable (S3 private bucket)</span>
+          </div>
+          <button
+            type="button"
+            onClick={onRemove}
+            style={{ position: 'absolute', top: 6, right: 6, background: 'rgba(0,0,0,0.75)', border: 'none', color: '#fff', borderRadius: 4, padding: '3px 8px', cursor: 'pointer', fontSize: 11 }}
+          >
+            Remove
+          </button>
+        </div>
+      )}
+      <style dangerouslySetInnerHTML={{ __html: `@keyframes spin { to { transform: rotate(360deg); } }` }} />
+    </div>
+  );
+}
+
 export default function CreateArticlePage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadingFields, setUploadingFields] = useState({});
+  const [previews, setPreviews] = useState({ cover: '', thumbnail: '', authorProfile: '' });
   const [form, setForm] = useState({
     title: '',
     subtitle: '',
@@ -27,6 +75,7 @@ export default function CreateArticlePage() {
     thumbnailImage: '',
     category: 'Startup',
     tags: '',
+    keyPoints: '',
     seo: {
       metaTitle: '',
       metaDescription: '',
@@ -38,17 +87,21 @@ export default function CreateArticlePage() {
     isFeatured: false,
   });
 
-  const handleImageUpload = async (file) => {
+  const handleImageUpload = async (file, fieldKey) => {
+    // Show instant local preview via blob URL
+    const blobUrl = URL.createObjectURL(file);
+    setPreviews(prev => ({ ...prev, [fieldKey]: blobUrl }));
+
     try {
-      setUploadingImage(true);
-      const { data } = await apiPost('/api/v1/admin/upload-url', {
+      setUploadingFields(prev => ({ ...prev, [fieldKey]: true }));
+      const { data, error } = await apiPost('/api/v1/admin/upload-url', {
         fileName: file.name,
         fileType: file.type,
         fileSize: file.size,
         folder: 'articles'
       });
 
-      if (!data || !data.uploadUrl) throw new Error('Failed to get upload URL');
+      if (error || !data?.uploadUrl) throw new Error(error?.message || 'Failed to get upload URL');
 
       const uploadResponse = await fetch(data.uploadUrl, {
         method: 'PUT',
@@ -56,16 +109,15 @@ export default function CreateArticlePage() {
         headers: { 'Content-Type': file.type },
       });
 
-      if (uploadResponse.ok) {
-        return data.fileUrl || data.url;
-      }
-      throw new Error('Upload failed');
+      if (!uploadResponse.ok) throw new Error(`S3 upload failed (${uploadResponse.status})`);
+      return data.fileUrl;
     } catch (error) {
       console.error('Upload Error:', error);
-      alert('Failed to upload image.');
+      alert(`Image upload failed: ${error.message}`);
+      setPreviews(prev => ({ ...prev, [fieldKey]: '' }));
       return null;
     } finally {
-      setUploadingImage(false);
+      setUploadingFields(prev => ({ ...prev, [fieldKey]: false }));
     }
   };
 
@@ -76,6 +128,7 @@ export default function CreateArticlePage() {
       const payload = {
         ...form,
         tags: form.tags.split(',').map(t => t.trim()).filter(Boolean),
+        keyPoints: form.keyPoints.split('\n').map(k => k.trim()).filter(Boolean),
         seo: {
           ...form.seo,
           keywords: form.seo.keywords.split(',').map(k => k.trim()).filter(Boolean),
@@ -93,6 +146,8 @@ export default function CreateArticlePage() {
     }
   };
 
+  const isAnyUploading = Object.values(uploadingFields).some(Boolean);
+
   return (
     <div className="admin-page">
       <div className="admin-page-header" style={{ marginBottom: 24 }}>
@@ -103,108 +158,164 @@ export default function CreateArticlePage() {
       </div>
 
       <form onSubmit={handleSave} style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: 24, alignItems: 'start' }}>
-        
+
         {/* Main Content Area */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-          
+
           <div className="admin-card" style={{ padding: 24, borderRadius: 12, background: 'var(--admin-card-bg)' }}>
             <h3 style={{ marginBottom: 16, borderBottom: '1px solid #333', paddingBottom: 8 }}>Basic Information</h3>
-            
+
             <div className="admin-form-group">
               <label>Article Title *</label>
-              <input required value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder="Enter article title" />
+              <input required value={form.title} onChange={e => setForm(prev => ({ ...prev, title: e.target.value }))} placeholder="Enter article title" />
             </div>
 
             <div className="admin-form-group">
               <label>Subtitle / Short Summary *</label>
-              <textarea required rows={2} value={form.subtitle} onChange={e => setForm({ ...form, subtitle: e.target.value })} placeholder="A brief summary of the article..." />
+              <textarea required rows={2} value={form.subtitle} onChange={e => setForm(prev => ({ ...prev, subtitle: e.target.value }))} placeholder="A brief summary of the article..." />
             </div>
 
             <div className="admin-form-group">
               <label>Slug (Optional, auto-generated if empty)</label>
-              <input value={form.slug} onChange={e => setForm({ ...form, slug: e.target.value })} placeholder="my-awesome-article" />
+              <input value={form.slug} onChange={e => setForm(prev => ({ ...prev, slug: e.target.value }))} placeholder="my-awesome-article" />
             </div>
           </div>
 
           <div className="admin-card" style={{ padding: 24, borderRadius: 12, background: 'var(--admin-card-bg)' }}>
             <h3 style={{ marginBottom: 16, borderBottom: '1px solid #333', paddingBottom: 8 }}>Article Content *</h3>
-            <TiptapEditor 
-              content={form.content} 
-              onChange={content => setForm({ ...form, content })} 
-              onImageUpload={handleImageUpload} 
+            <TiptapEditor
+              content={form.content}
+              onChange={content => setForm(prev => ({ ...prev, content }))}
+              onImageUpload={async (file) => {
+                const blobUrl = URL.createObjectURL(file);
+                try {
+                  setUploadingFields(prev => ({ ...prev, content: true }));
+                  const { data, error } = await apiPost('/api/v1/admin/upload-url', {
+                    fileName: file.name,
+                    fileType: file.type,
+                    fileSize: file.size,
+                    folder: 'articles'
+                  });
+                  if (error || !data?.uploadUrl) throw new Error(error?.message || 'Failed to get upload URL');
+                  const res = await fetch(data.uploadUrl, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } });
+                  if (!res.ok) throw new Error(`S3 upload failed (${res.status})`);
+                  return data.fileUrl;
+                } catch (err) {
+                  alert(`Image upload failed: ${err.message}`);
+                  return blobUrl; // fallback: show local preview in editor
+                } finally {
+                  setUploadingFields(prev => ({ ...prev, content: false }));
+                }
+              }}
             />
+            {uploadingFields.content && <p style={{ fontSize: 13, color: '#60a5fa', marginTop: 8 }}>Uploading image to content...</p>}
+          </div>
+
+          <div className="admin-card" style={{ padding: 24, borderRadius: 12, background: 'var(--admin-card-bg)' }}>
+            <h3 style={{ marginBottom: 16, borderBottom: '1px solid #333', paddingBottom: 8 }}>Key Takeaways</h3>
+            <p style={{ color: '#94a3b8', fontSize: 13, marginBottom: 12 }}>
+              Add bullet points shown as a highlighted box on the article. One point per line.
+            </p>
+            <div className="admin-form-group" style={{ marginBottom: 0 }}>
+              <label>Key Points (one per line)</label>
+              <textarea
+                rows={5}
+                value={form.keyPoints}
+                onChange={e => setForm(prev => ({ ...prev, keyPoints: e.target.value }))}
+                placeholder={"Startups can apply for DPIIT recognition online\nFunding schemes available up to ₹10 crore\nMentorship from industry leaders included"}
+                style={{ fontFamily: 'inherit', lineHeight: 1.6 }}
+              />
+            </div>
           </div>
 
           <div className="admin-card" style={{ padding: 24, borderRadius: 12, background: 'var(--admin-card-bg)' }}>
             <h3 style={{ marginBottom: 16, borderBottom: '1px solid #333', paddingBottom: 8 }}>Author Details</h3>
-            
+
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
               <div className="admin-form-group">
                 <label>Author Name *</label>
-                <input required value={form.author.name} onChange={e => setForm({ ...form, author: { ...form.author, name: e.target.value }})} placeholder="Dr. Priya Sharma" />
+                <input required value={form.author.name} onChange={e => setForm(prev => ({ ...prev, author: { ...prev.author, name: e.target.value }}))} placeholder="Dr. Priya Sharma" />
               </div>
               <div className="admin-form-group">
                 <label>Role / Designation</label>
-                <input value={form.author.role} onChange={e => setForm({ ...form, author: { ...form.author, role: e.target.value }})} placeholder="Founder & CEO" />
+                <input value={form.author.role} onChange={e => setForm(prev => ({ ...prev, author: { ...prev.author, role: e.target.value }}))} placeholder="Founder & CEO" />
               </div>
               <div className="admin-form-group">
                 <label>Company / Organization</label>
-                <input value={form.author.company} onChange={e => setForm({ ...form, author: { ...form.author, company: e.target.value }})} placeholder="DevUp" />
+                <input value={form.author.company} onChange={e => setForm(prev => ({ ...prev, author: { ...prev.author, company: e.target.value }}))} placeholder="DevUp" />
               </div>
               <div className="admin-form-group">
                 <label>LinkedIn URL</label>
-                <input value={form.author.linkedinUrl} onChange={e => setForm({ ...form, author: { ...form.author, linkedinUrl: e.target.value }})} placeholder="https://linkedin.com/in/..." />
+                <input value={form.author.linkedinUrl} onChange={e => setForm(prev => ({ ...prev, author: { ...prev.author, linkedinUrl: e.target.value }}))} placeholder="https://linkedin.com/in/..." />
               </div>
             </div>
 
             <div className="admin-form-group" style={{ marginTop: 16 }}>
               <label>Author Profile Image</label>
-              <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                <input type="file" accept="image/*" disabled={uploadingImage} onChange={async (e) => {
-                  if (e.target.files && e.target.files[0]) {
-                    const url = await handleImageUpload(e.target.files[0]);
-                    if (url) setForm({ ...form, author: { ...form.author, profileImage: url } });
-                  }
-                }} style={{ flex: 1 }} />
-                {form.author.profileImage && (
-                  <img src={form.author.profileImage} alt="Preview" style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: '50%' }} />
+              <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                <div style={{ flex: 1 }}>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    disabled={isAnyUploading}
+                    onChange={async (e) => {
+                      if (e.target.files?.[0]) {
+                        const url = await handleImageUpload(e.target.files[0], 'authorProfile');
+                        if (url) setForm(prev => ({ ...prev, author: { ...prev.author, profileImage: url } }));
+                      }
+                    }}
+                    style={{ width: '100%' }}
+                  />
+                  {uploadingFields.authorProfile && <span style={{ fontSize: 12, color: '#60a5fa' }}>Uploading...</span>}
+                </div>
+                {(previews.authorProfile || form.author.profileImage) && (
+                  <div style={{ position: 'relative', flexShrink: 0 }}>
+                    <img
+                      src={previews.authorProfile || form.author.profileImage}
+                      alt="Preview"
+                      style={{ width: 52, height: 52, objectFit: 'cover', borderRadius: '50%', border: '2px solid #3b82f6', display: 'block' }}
+                      onError={e => { e.target.src = ''; e.target.style.background = '#1e3a5f'; }}
+                    />
+                    <button type="button" onClick={() => { setForm(prev => ({ ...prev, author: { ...prev.author, profileImage: '' } })); setPreviews(prev => ({ ...prev, authorProfile: '' })); }}
+                      style={{ position: 'absolute', top: -4, right: -4, width: 18, height: 18, borderRadius: '50%', background: '#ef4444', border: 'none', color: '#fff', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
+                  </div>
                 )}
               </div>
             </div>
 
             <div className="admin-form-group" style={{ marginTop: 16 }}>
               <label>Author Bio</label>
-              <textarea rows={2} value={form.author.bio} onChange={e => setForm({ ...form, author: { ...form.author, bio: e.target.value }})} placeholder="Short bio..." />
+              <textarea rows={2} value={form.author.bio} onChange={e => setForm(prev => ({ ...prev, author: { ...prev.author, bio: e.target.value }}))} placeholder="Short bio..." />
             </div>
           </div>
-          
+
           <div className="admin-card" style={{ padding: 24, borderRadius: 12, background: 'var(--admin-card-bg)' }}>
             <h3 style={{ marginBottom: 16, borderBottom: '1px solid #333', paddingBottom: 8 }}>SEO Optimization</h3>
             <div className="admin-form-group">
               <label>Meta Title</label>
-              <input value={form.seo.metaTitle} onChange={e => setForm({ ...form, seo: { ...form.seo, metaTitle: e.target.value }})} placeholder="Title for search engines" />
+              <input value={form.seo.metaTitle} onChange={e => setForm(prev => ({ ...prev, seo: { ...prev.seo, metaTitle: e.target.value }}))} placeholder="Title for search engines" />
             </div>
             <div className="admin-form-group">
               <label>Meta Description</label>
-              <textarea rows={2} value={form.seo.metaDescription} onChange={e => setForm({ ...form, seo: { ...form.seo, metaDescription: e.target.value }})} placeholder="Description for search engines" />
+              <textarea rows={2} value={form.seo.metaDescription} onChange={e => setForm(prev => ({ ...prev, seo: { ...prev.seo, metaDescription: e.target.value }}))} placeholder="Description for search engines" />
             </div>
             <div className="admin-form-group">
               <label>Keywords (comma separated)</label>
-              <input value={form.seo.keywords} onChange={e => setForm({ ...form, seo: { ...form.seo, keywords: e.target.value }})} placeholder="startup, funding, devup" />
+              <input value={form.seo.keywords} onChange={e => setForm(prev => ({ ...prev, seo: { ...prev.seo, keywords: e.target.value }}))} placeholder="startup, funding, devup" />
             </div>
           </div>
 
         </div>
 
-        {/* Sidebar Settings Area */}
+        {/* Sidebar */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-          
+
           <div className="admin-card" style={{ padding: 24, borderRadius: 12, background: 'var(--admin-card-bg)' }}>
             <h3 style={{ marginBottom: 16, borderBottom: '1px solid #333', paddingBottom: 8 }}>Publishing</h3>
-            
+
             <div className="admin-form-group">
               <label>Status</label>
-              <select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })}>
+              <select value={form.status} onChange={e => setForm(prev => ({ ...prev, status: e.target.value }))}>
                 <option value="draft">Draft</option>
                 <option value="published">Published</option>
                 <option value="scheduled">Scheduled</option>
@@ -212,43 +323,51 @@ export default function CreateArticlePage() {
               </select>
             </div>
 
-            <button type="submit" disabled={loading} className="admin-btn-primary" style={{ width: '100%', padding: '12px', fontSize: 16, marginTop: 16 }}>
-              {loading ? 'Saving...' : 'Save Article'}
+            <button type="submit" disabled={loading || isAnyUploading} className="admin-btn-primary" style={{ width: '100%', padding: '12px', fontSize: 16, marginTop: 16 }}>
+              {loading ? 'Saving...' : isAnyUploading ? 'Uploading image...' : 'Save Article'}
             </button>
           </div>
 
           <div className="admin-card" style={{ padding: 24, borderRadius: 12, background: 'var(--admin-card-bg)' }}>
             <h3 style={{ marginBottom: 16, borderBottom: '1px solid #333', paddingBottom: 8 }}>Media</h3>
-            
-            <div className="admin-form-group">
-              <label>Cover Image (Hero)</label>
-              <input type="file" accept="image/*" disabled={uploadingImage} onChange={async (e) => {
-                if (e.target.files && e.target.files[0]) {
-                  const url = await handleImageUpload(e.target.files[0]);
-                  if (url) setForm({ ...form, coverImage: url });
-                }
-              }} />
-              {form.coverImage && <img src={form.coverImage} alt="Cover" style={{ width: '100%', height: 120, objectFit: 'cover', marginTop: 8, borderRadius: 8 }} />}
-            </div>
 
-            <div className="admin-form-group">
-              <label>Thumbnail Image (Cards)</label>
-              <input type="file" accept="image/*" disabled={uploadingImage} onChange={async (e) => {
-                if (e.target.files && e.target.files[0]) {
-                  const url = await handleImageUpload(e.target.files[0]);
-                  if (url) setForm({ ...form, thumbnailImage: url });
+            <ImageUploadField
+              label="Cover Image (Hero)"
+              fieldKey="cover"
+              storedUrl={form.coverImage}
+              previewUrl={previews.cover}
+              uploading={uploadingFields.cover}
+              onFileChange={async (e) => {
+                if (e.target.files?.[0]) {
+                  const url = await handleImageUpload(e.target.files[0], 'cover');
+                  if (url) setForm(prev => ({ ...prev, coverImage: url }));
                 }
-              }} />
-              {form.thumbnailImage && <img src={form.thumbnailImage} alt="Thumb" style={{ width: '100%', height: 120, objectFit: 'cover', marginTop: 8, borderRadius: 8 }} />}
-            </div>
+              }}
+              onRemove={() => { setForm(prev => ({ ...prev, coverImage: '' })); setPreviews(prev => ({ ...prev, cover: '' })); }}
+            />
+
+            <ImageUploadField
+              label="Thumbnail Image (Cards)"
+              fieldKey="thumbnail"
+              storedUrl={form.thumbnailImage}
+              previewUrl={previews.thumbnail}
+              uploading={uploadingFields.thumbnail}
+              onFileChange={async (e) => {
+                if (e.target.files?.[0]) {
+                  const url = await handleImageUpload(e.target.files[0], 'thumbnail');
+                  if (url) setForm(prev => ({ ...prev, thumbnailImage: url }));
+                }
+              }}
+              onRemove={() => { setForm(prev => ({ ...prev, thumbnailImage: '' })); setPreviews(prev => ({ ...prev, thumbnail: '' })); }}
+            />
           </div>
 
           <div className="admin-card" style={{ padding: 24, borderRadius: 12, background: 'var(--admin-card-bg)' }}>
             <h3 style={{ marginBottom: 16, borderBottom: '1px solid #333', paddingBottom: 8 }}>Categorization</h3>
-            
+
             <div className="admin-form-group">
               <label>Category</label>
-              <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}>
+              <select value={form.category} onChange={e => setForm(prev => ({ ...prev, category: e.target.value }))}>
                 <option value="Startup">Startup</option>
                 <option value="AI">AI</option>
                 <option value="Technology">Technology</option>
@@ -262,16 +381,16 @@ export default function CreateArticlePage() {
 
             <div className="admin-form-group">
               <label>Tags (comma separated)</label>
-              <input value={form.tags} onChange={e => setForm({ ...form, tags: e.target.value })} placeholder="Founder, Tech, B2B" />
+              <input value={form.tags} onChange={e => setForm(prev => ({ ...prev, tags: e.target.value }))} placeholder="Founder, Tech, B2B" />
             </div>
           </div>
 
           <div className="admin-card" style={{ padding: 24, borderRadius: 12, background: 'var(--admin-card-bg)' }}>
             <h3 style={{ marginBottom: 16, borderBottom: '1px solid #333', paddingBottom: 8 }}>Reading Settings</h3>
-            
+
             <div className="admin-form-group">
               <label>Visibility</label>
-              <select value={form.visibility} onChange={e => setForm({ ...form, visibility: e.target.value })}>
+              <select value={form.visibility} onChange={e => setForm(prev => ({ ...prev, visibility: e.target.value }))}>
                 <option value="public">Public</option>
                 <option value="members">Members Only</option>
                 <option value="admin">Admin Only</option>
@@ -280,11 +399,11 @@ export default function CreateArticlePage() {
 
             <div className="admin-form-group">
               <label>Read Time (minutes)</label>
-              <input type="number" value={form.readTime} onChange={e => setForm({ ...form, readTime: e.target.value })} placeholder="Auto-calculated if empty" />
+              <input type="number" value={form.readTime} onChange={e => setForm(prev => ({ ...prev, readTime: e.target.value }))} placeholder="Auto-calculated if empty" />
             </div>
 
             <div className="admin-form-group" style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 16 }}>
-              <input type="checkbox" id="isFeatured" checked={form.isFeatured} onChange={e => setForm({ ...form, isFeatured: e.target.checked })} style={{ width: 18, height: 18 }} />
+              <input type="checkbox" id="isFeatured" checked={form.isFeatured} onChange={e => setForm(prev => ({ ...prev, isFeatured: e.target.checked }))} style={{ width: 18, height: 18 }} />
               <label htmlFor="isFeatured" style={{ margin: 0 }}>Mark as Featured</label>
             </div>
           </div>

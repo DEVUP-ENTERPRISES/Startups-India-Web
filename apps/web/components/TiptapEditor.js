@@ -157,11 +157,15 @@ export default function TiptapEditor({ content, onChange, onImageUpload }) {
         }
         .ProseMirror p { margin-bottom: 1em; }
         .ProseMirror h1, .ProseMirror h2, .ProseMirror h3 { margin-top: 1.5em; margin-bottom: 0.5em; color: #0f172a; }
-        .ProseMirror img { max-width: 100%; height: auto; border-radius: 8px; margin: 1em 0; }
+        .ProseMirror img { max-width: 100%; height: auto; border-radius: 8px; margin: 1em 0; display: block; }
         .ProseMirror iframe { max-width: 100%; border-radius: 8px; margin: 1em 0; }
         .ProseMirror blockquote { border-left: 3px solid #3b82f6; padding-left: 1em; margin-left: 0; color: #64748b; font-style: italic; }
         .ProseMirror pre { background: #f8fafc; color: #1e293b; padding: 1em; border-radius: 8px; overflow-x: auto; font-family: monospace; border: 1px solid #e2e8f0; }
         .ProseMirror a { color: #3b82f6; text-decoration: underline; }
+        .ProseMirror ul { list-style-type: disc; padding-left: 1.5em; margin-bottom: 1em; }
+        .ProseMirror ol { list-style-type: decimal; padding-left: 1.5em; margin-bottom: 1em; }
+        .ProseMirror li { margin-bottom: 0.4em; }
+        .ProseMirror li p { margin-bottom: 0.2em; }
       `}} />
     </div>
   );
