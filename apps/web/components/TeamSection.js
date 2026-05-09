@@ -221,7 +221,7 @@ export default function TeamSection() {
   const [activeTab, setActiveTab] = useState('core');
 
   return (
-    <section className="team-section">
+    <section className="team-section" id="team-profiles">
       <div className="team-container">
         <div className="team-header">
           <h2 className="team-title">Meet Our Team</h2>
