@@ -367,18 +367,9 @@ export default function Header() {
                       className={`mobile-nav-item ${pathname === item.href ? 'active' : ''}`}
                       onClick={closeMobileMenu}
                     >
-                        {item.dropdown.map((dropdownItem, dropdownIndex) => (
-                          <Link
-                            key={dropdownIndex}
-                            href={dropdownItem.href}
-                            className={`mobile-dropdown-item ${pathname + currentHash === dropdownItem.href ? 'active' : ''}`}
-                            onClick={closeMobileMenu}
-                          >
-                            <div className="mobile-dropdown-title">{dropdownItem.label}</div>
-                            <div className="mobile-dropdown-description">{dropdownItem.description}</div>
-                          </Link>
-                        ))}
-                    </motion.div>
+                      <Icon size={20} className="menu-icon" />
+                      {item.label}
+                    </Link>
                   )}
                 </li>
               );
