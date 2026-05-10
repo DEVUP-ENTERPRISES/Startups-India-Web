@@ -17,7 +17,6 @@ import {
   Briefcase,
   Scale,
 } from 'lucide-react';
-import { StaggerContainer, StaggerItem } from './ScrollReveal';
 import '../styles/impact-section.css';
 
 const iconMap = {
@@ -260,16 +259,34 @@ export default function ImpactSection() {
           </motion.div>
         </div>
 
-        {/* GRID */}
-        <StaggerContainer>
-          <div className="impact-grid">
-            {impactMetrics.map((metric, index) => (
-              <StaggerItem key={metric.id}>
-                <MetricCard metric={metric} index={index} />
-              </StaggerItem>
+        {/* DOUBLE-ROW INFINITE MARQUEE SECTION */}
+        <div className="impact-marquee-wrapper">
+          {/* Row 1: Metrics 1-4 */}
+          <div className="impact-marquee-track row-1">
+            {[...impactMetrics.slice(0, 4), ...impactMetrics.slice(0, 4)].map((metric, index) => (
+              <div key={`row1-${metric.id}-${index}`} className="impact-marquee-item">
+                <MetricCard metric={metric} index={index % 4} />
+              </div>
             ))}
           </div>
-        </StaggerContainer>
+
+          {/* Row 2: Metrics 5-8 */}
+          <div className="impact-marquee-track row-2">
+            {[...impactMetrics.slice(4, 8), ...impactMetrics.slice(4, 8)].map((metric, index) => (
+              <div key={`row2-${metric.id}-${index}`} className="impact-marquee-item">
+                <MetricCard metric={metric} index={(index % 4) + 4} />
+              </div>
+            ))}
+          </div>
+
+          {/* Premium Gradient Overlays */}
+          <div className="marquee-overlay-left" />
+          <div className="marquee-overlay-right" />
+        </div>
+
+
+
+
       </motion.div>
     </section>
   );
