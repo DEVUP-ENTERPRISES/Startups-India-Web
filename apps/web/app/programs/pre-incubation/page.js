@@ -8,7 +8,6 @@ import CTAStripSection from '@/components/CTAStripSection';
 import ProgramTimelineSection from '@/components/ProgramTimelineSection';
 import ModulesSection from '@/components/ModulesSection';
 import HowItWorksSection from '@/components/HowItWorksSection';
-import OutcomesSection from '@/components/OutcomesSection';
 import MentorsSection from '@/components/MentorsSection';
 import FoundersTestimonialsSection from '@/components/FoundersTestimonialsSection';
 import FAQSection from '@/components/FAQSection';
@@ -25,6 +24,7 @@ import '../../../styles/mentors-section.css';
 import '../../../styles/testimonials-section.css';
 import '../../../styles/faq-section.css';
 import '../../../styles/demo-classes.css';
+import '../../../styles/pre-incubation-spacing.css';
 
 export default function PreIncubationPage() {
   const [isMounted, setIsMounted] = useState(false);
@@ -46,8 +46,8 @@ export default function PreIncubationPage() {
 
       {/* Hero Section */}
       <section className="hero-section" style={{ position: 'relative', padding: '120px 0 80px', overflow: 'hidden', zIndex: 10 }}>
-        <div className="container">
-          <div className="hero-content-wrapper-new" style={{ textAlign: 'center', maxWidth: '1000px', margin: '0 auto' }}>
+        <div className="container" style={{ maxWidth: '1300px', margin: '0 auto', padding: '0 32px' }}>
+          <div style={{ textAlign: 'center', maxWidth: '1000px', margin: '0 auto' }}>
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
@@ -57,17 +57,17 @@ export default function PreIncubationPage() {
                 <span style={{ fontSize: '12px', fontWeight: '900', letterSpacing: '0.15em', color: '#E53935', textTransform: 'uppercase' }}>Accelerator Program</span>
               </div>
               
-              <h1 className="hero-title-center" style={{ fontSize: 'clamp(42px, 7vw, 72px)', fontWeight: '950', color: '#0F172A', lineHeight: '1', marginBottom: '28px', letterSpacing: '-0.04em' }}>
+              <h1 style={{ fontSize: 'clamp(42px, 7vw, 72px)', fontWeight: '950', color: '#0F172A', lineHeight: '1', marginBottom: '28px', letterSpacing: '-0.04em' }}>
                 Transform Your Startup Vision Into <span style={{ color: '#E53935' }}>Reality</span>
               </h1>
 
-              <p className="hero-description-center" style={{ fontSize: '19px', color: '#64748B', lineHeight: '1.6', maxWidth: '750px', margin: '0 auto 40px' }}>
+              <p style={{ fontSize: '19px', color: '#64748B', lineHeight: '1.6', maxWidth: '750px', margin: '0 auto 40px' }}>
                 Join the elite Pre-Incubation Program. Get world-class mentorship, idea validation, and build your MVP. Designed exclusively for student founders and early-stage entrepreneurs.
               </p>
 
-              <div className="hero-actions-center" style={{ display: 'flex', justifyContent: 'center', gap: '20px' }}>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '20px' }}>
                 <Link href="/signup">
-                  <button className="btn-hero-primary" style={{ background: '#E53935', color: '#FFFFFF', padding: '18px 40px', borderRadius: '14px', fontSize: '16px', fontWeight: '800', border: 'none', cursor: 'pointer', display: 'flex', alignItems: center, gap: '12px', boxShadow: '0 15px 35px rgba(229, 57, 53, 0.25)', transition: 'all 0.3s ease' }}>
+                  <button style={{ background: '#E53935', color: '#FFFFFF', padding: '18px 40px', borderRadius: '14px', fontSize: '16px', fontWeight: '800', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px', boxShadow: '0 15px 35px rgba(229, 57, 53, 0.25)', transition: 'all 0.3s ease' }}>
                     <span>Start Your Journey</span>
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
                   </button>
@@ -120,18 +120,6 @@ export default function PreIncubationPage() {
       <CTAStripSection />
       <FoundersTestimonialsSection />
       <FAQSection />
-      
-      {/* ── CUSTOM STYLES OVERRIDE ─────────────────────────────────── */}
-      <style jsx global>{`
-        .pre-incubation-page .container {
-          max-width: 1300px;
-          margin: 0 auto;
-          padding: 0 32px;
-        }
-        @media (max-width: 768px) {
-          .pre-incubation-page .container { padding: 0 24px; }
-        }
-      `}</style>
     </div>
   );
 }

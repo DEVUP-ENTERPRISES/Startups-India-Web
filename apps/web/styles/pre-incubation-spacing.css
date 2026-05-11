@@ -1,0 +1,51 @@
+/* ==========================================
+   PRE-INCUBATION SPACING OVERRIDES
+   Reduces gaps between all sections for a tighter, 
+   more cohesive Masterpiece layout.
+   ========================================== */
+
+/* Target all major sections within the pre-incubation page */
+.pre-incubation-page > section,
+.pre-incubation-page .why-join-section,
+.pre-incubation-page .program-timeline-section,
+.pre-incubation-page .modules-section,
+.pre-incubation-page .demo-classes-section,
+.pre-incubation-page .how-it-works-section,
+.pre-incubation-page .outcomes-section,
+.pre-incubation-page .mentors-section,
+.pre-incubation-page .cta-strip-section,
+.pre-incubation-page .testimonials-section,
+.pre-incubation-page .faq-section {
+  padding-top: 50px !important;
+  padding-bottom: 50px !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+/* Keep the Hero Section's top padding so it doesn't collide with the navbar */
+.pre-incubation-page .hero-section {
+  padding-top: 80px !important;
+  padding-bottom: 40px !important;
+}
+
+/* Even tighter on mobile devices */
+@media (max-width: 768px) {
+  .pre-incubation-page > section,
+  .pre-incubation-page .why-join-section,
+  .pre-incubation-page .program-timeline-section,
+  .pre-incubation-page .modules-section,
+  .pre-incubation-page .demo-classes-section,
+  .pre-incubation-page .how-it-works-section,
+  .pre-incubation-page .outcomes-section,
+  .pre-incubation-page .mentors-section,
+  .pre-incubation-page .cta-strip-section,
+  .pre-incubation-page .testimonials-section,
+  .pre-incubation-page .faq-section {
+    padding-top: 40px !important;
+    padding-bottom: 40px !important;
+  }
+  
+  .pre-incubation-page .hero-section {
+    padding-top: 60px !important;
+  }
+}

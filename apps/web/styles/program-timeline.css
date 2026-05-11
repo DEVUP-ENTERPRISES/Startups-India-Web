@@ -166,6 +166,8 @@
 
 .week-card-wrapper {
   position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Timeline Dot */
@@ -483,6 +485,7 @@
   min-height: 520px;
   display: flex;
   flex-direction: column;
+  flex-grow: 1;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
 }
 
@@ -657,13 +660,12 @@
 }
 
 .week-glass-card:hover {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%);
-  border-color: rgba(255, 255, 255, 0.25);
+  background: #FFFFFF;
+  border-color: rgba(229, 57, 53, 0.2);
   transform: translateY(-12px);
   box-shadow:
-    0 30px 80px rgba(0, 0, 0, 0.5),
-    0 0 0 1px rgba(255, 255, 255, 0.15) inset,
-    0 12px 40px rgba(220, 20, 60, 0.12);
+    0 20px 40px rgba(0, 0, 0, 0.08),
+    0 0 0 1px rgba(229, 57, 53, 0.05) inset;
 }
 
 /* Week Icon */
@@ -674,13 +676,13 @@
 .week-icon {
   width: 64px;
   height: 64px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
-  border: 2px solid rgba(255, 255, 255, 0.15);
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
   border-radius: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #ffffff;
+  color: #E53935;
   position: relative;
   transition: all 0.4s ease;
 }
@@ -712,7 +714,7 @@
 .week-number {
   font-size: 13px;
   font-weight: 700;
-  color: rgba(220, 20, 60, 0.8);
+  color: #E53935;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   margin-bottom: 12px;
@@ -721,7 +723,7 @@
 .week-title {
   font-size: 22px;
   font-weight: 800;
-  color: rgba(100, 100, 100, 0.5);
+  color: #64748B;
   margin: 0 0 16px 0;
   letter-spacing: -0.02em;
   line-height: 1.3;
@@ -747,16 +749,16 @@
 
 @keyframes activate-title {
   0% {
-    color: rgba(100, 100, 100, 0.5);
+    color: #64748B;
   }
   100% {
-    color: #ffffff;
+    color: #0F172A;
   }
 }
 
 .week-description {
   font-size: 14px;
-  color: #b0b0b0;
+  color: #64748B;
   line-height: 1.7;
   margin: 0 0 24px 0;
 }
@@ -774,11 +776,11 @@
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
   border-radius: 8px;
   font-size: 12px;
-  color: #c0c0c0;
+  color: #64748B;
   font-weight: 500;
   transition: all 0.3s ease;
 }
@@ -790,8 +792,8 @@
 }
 
 .week-glass-card:hover .highlight-tag {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.12);
+  background: #F8FAFC;
+  border-color: rgba(229, 57, 53, 0.2);
 }
 
 /* Week Number Badge */
@@ -801,15 +803,15 @@
   right: 32px;
   width: 48px;
   height: 48px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 18px;
   font-weight: 800;
-  color: rgba(255, 255, 255, 0.3);
+  color: #94A3B8;
   transition: all 0.3s ease;
 }
 
@@ -831,9 +833,9 @@
   align-items: center;
   gap: 12px;
   padding: 20px 40px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%);
-  color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: #E53935;
+  color: #FFFFFF;
+  border: none;
   border-radius: 14px;
   font-size: 16px;
   font-weight: 600;
@@ -873,12 +875,9 @@
 }
 
 .curriculum-btn:hover {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.06) 100%);
-  border-color: rgba(255, 255, 255, 0.3);
+  background: #D32F2F;
   transform: translateY(-2px);
-  box-shadow:
-    0 20px 50px rgba(0, 0, 0, 0.4),
-    0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+  box-shadow: 0 15px 30px rgba(229, 57, 53, 0.3);
 }
 
 .curriculum-btn svg {
