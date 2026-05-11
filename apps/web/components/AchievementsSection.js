@@ -110,10 +110,11 @@ export default function AchievementsSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
+            <Award size={14} className="mr-2" />
             Our Journey
           </motion.span>
           <motion.h2 
-            className="text-5xl md:text-6xl font-black mb-8 !text-white mt-8 tracking-tight"
+            className="section-title-premium !text-white mt-8"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}

@@ -513,7 +513,9 @@ export default function MentorsPage() {
             transition={{ duration: 0.8 }}
             viewport={{ once: true }}
           >
-            <h2 className="section-title-center">Mentor Onboarding Process</h2>
+            <h2 className="section-title-center">
+              Mentor <span className="highlight-red">Onboarding</span> Process
+            </h2>
             <p className="section-subtitle-center">
               Join our verified mentor network in three simple steps
             </p>
@@ -801,7 +803,9 @@ export default function MentorsPage() {
       <section className="mentors-grid-section">
         <div className="container">
           <div className="section-header">
-            <h2 className="section-title">Our Expert Mentors</h2>
+            <h2 className="section-title">
+              Our Expert <span className="highlight-red">Mentors</span>
+            </h2>
             <p className="section-subtitle">Industry leaders ready to guide your startup journey</p>
           </div>
 
@@ -1002,7 +1006,7 @@ export default function MentorsPage() {
                     transition={{ duration: 0.7, delay: 0.1 }}
                     viewport={{ once: true }}
                   >
-                    Become a Mentor
+                    Become a <span className="highlight-red">Mentor</span>
                   </motion.h2>
 
                   <motion.p

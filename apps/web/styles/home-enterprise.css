@@ -72,7 +72,7 @@
   width: 120px;
   height: 120px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #e63946 0%, #ff6b9d 100%);
+  background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
   top: 15%;
   left: 8%;
   filter: blur(30px);
@@ -82,7 +82,7 @@
   width: 180px;
   height: 180px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #ff6b9d 0%, #e63946 100%);
+  background: linear-gradient(135deg, #991b1b 0%, #dc2626 100%);
   bottom: 20%;
   right: 10%;
   filter: blur(40px);
@@ -193,7 +193,7 @@
 }
 
 .red-card {
-  background: linear-gradient(135deg, #e63946 0%, #ff6b9d 100%);
+  background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
   border: 2px solid rgba(255, 255, 255, 0.2);
   box-shadow: 0 8px 30px rgba(230, 57, 70, 0.3);
 }
@@ -256,7 +256,7 @@
 }
 
 .title-underline {
-  background: linear-gradient(135deg, #e63946 0%, #ff6b9d 100%);
+  background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -284,7 +284,7 @@
   padding: 0.85rem 1.65rem;
   font-size: 0.95rem;
   font-weight: 600;
-  background: linear-gradient(135deg, #e63946 0%, #ff6b9d 100%);
+  background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
   color: white;
   border: none;
   border-radius: 10px;

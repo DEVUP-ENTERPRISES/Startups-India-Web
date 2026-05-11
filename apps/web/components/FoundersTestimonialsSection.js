@@ -72,7 +72,10 @@ export default function FoundersTestimonialsSection() {
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
         >
-          <span className="ecosystem-impact-tag">ECOSYSTEM IMPACT</span>
+          <div className="ecosystem-impact-badge">
+            <Rocket className="badge-icon" size={14} />
+            <span>ECOSYSTEM IMPACT</span>
+          </div>
           <h2 className="founders-title-modern">
             Hear From Our <span className="accent-red">Successful Founders</span>
           </h2>

@@ -13,13 +13,13 @@
 .network-hero {
   position: relative;
   width: 100%;
-  min-height: 70vh; /* REDUCED further */
+  min-height: 60vh; /* Reduced from 70vh for tighter feel */
   display: flex;
   align-items: center;
   justify-content: center;
   background: #000;
   overflow: hidden;
-  padding: 40px 24px; /* AGGRESSIVE reduction */
+  padding: 40px 24px 20px; /* Reduced bottom padding aggressively */
   box-sizing: border-box;
 }
 
@@ -141,19 +141,50 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 6px 16px;
+  padding: 8px 20px;
   width: fit-content;
-  margin: 0 auto 0; /* ZERO margin-bottom */
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  margin: 0 auto 0;
+  background: linear-gradient(135deg, rgba(229, 57, 53, 0.12) 0%, rgba(229, 57, 53, 0.05) 100%);
+  border: 1px solid rgba(229, 57, 53, 0.3);
   border-radius: 100px;
   color: #fff;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  backdrop-filter: blur(18px);
-  box-shadow: 0 10px 40px rgba(229, 57, 53, 0.05);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 
+    0 4px 20px rgba(229, 57, 53, 0.15),
+    inset 0 1px 1px rgba(255, 255, 255, 0.1);
   transition: var(--hero-transition);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-tag-pill::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transform: skewX(-20deg);
+  animation: badge-shine 4s infinite;
+}
+
+@keyframes badge-shine {
+  0% { left: -100%; }
+  20% { left: 200%; }
+  100% { left: 200%; }
+}
+
+.hero-tag-pill:hover {
+  background: rgba(229, 57, 53, 0.2);
+  border-color: rgba(229, 57, 53, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(229, 57, 53, 0.3);
 }
 
 /* ─── 2. Micro Label Divider ─── */

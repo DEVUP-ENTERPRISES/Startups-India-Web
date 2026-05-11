@@ -3,7 +3,7 @@
     ════════════════════════════════════════════════════════════════════════════ */
 
 .how-it-works-modern {
-  padding: 10px 0 60px;
+  padding: 0 0 40px; /* Reduced from 10px 0 60px */
   background: #0a0a0a;
   position: relative;
   overflow: hidden;
@@ -20,7 +20,7 @@
   position: relative;
   max-width: 1440px;
   margin: 0 auto;
-  padding: 120px 40px;
+  padding: 60px 40px; /* Reduced from 120px 40px */
   overflow: hidden;
 }
 
@@ -51,10 +51,10 @@
   max-width: 1000px;
   margin: 0 auto;
   text-align: center;
-  font-size: clamp(56px, 6vw, 92px);
+  font-size: clamp(34px, 5vw, 64px); /* Unified with premium scale */
   font-weight: 800;
-  line-height: 1.02;
-  letter-spacing: -3px;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
   color: #ffffff !important;
 }
 

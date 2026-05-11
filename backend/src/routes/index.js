@@ -16,6 +16,7 @@ const { settingsRouter } = require('../modules/settings/settings.routes');
 const { mediaRouter } = require('../modules/media/media.routes');
 const { eventsRouter } = require('../modules/events/events.routes');
 const articleRouter = require('../modules/public/article.routes');
+const { publicRouter } = require('../modules/public/public.routes');
 const { asyncHandler } = require('../utils/asyncHandler');
 const { authRequired } = require('../middlewares/authMiddleware');
 const { getActivities } = require('../utils/activityLogger');
@@ -39,6 +40,7 @@ function registerRoutes(app) {
   app.use('/api/v1/media', mediaRouter);
   app.use('/api/v1/events', eventsRouter);
   app.use('/api/v1/articles', articleRouter);
+  app.use('/api/v1/public', publicRouter);
 
   // Public upload URL endpoint (alias to media/upload-url)
   const mediaController = require('../modules/media/media.controller');

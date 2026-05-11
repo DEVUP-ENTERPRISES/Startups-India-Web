@@ -31,11 +31,11 @@ export default function Navbar() {
         { label: 'Growth Programs', href: '/programs/growth' }
       ]
     },
-    { label: 'Events', href: '/events', hasDropdown: true },
-    { label: 'Mentors', href: '/mentors', hasDropdown: true },
-    { label: 'Investors', href: '/investors', hasDropdown: true },
-    { label: 'Market Access', href: '/market-access', hasDropdown: true },
-    // { label: 'Source', href: '/source', hasDropdown: true },
+    { label: 'Events', href: '/events' },
+    { label: 'Mentors', href: '/mentors' },
+    { label: 'Investors', href: '/investors' },
+    { label: 'Market Access', href: '/market-access' },
+    { label: 'Source', href: '/source' },
   ];
 
   return (

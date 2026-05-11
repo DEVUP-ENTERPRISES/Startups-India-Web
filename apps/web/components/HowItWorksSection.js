@@ -125,6 +125,7 @@ export default function HowItWorksSection() {
             }}
             viewport={{ once: true }}
           >
+            <Zap size={14} className="mr-2" />
             THE INSTITUTIONAL PATHWAY
           </motion.span>
           

@@ -337,6 +337,116 @@
   box-shadow: 0 8px 25px rgba(229, 57, 53, 0.4);
 }
 
+.apply-now-btn:disabled {
+  opacity: 0.8;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ── SUCCESS MESSAGE ───────────────────────────────────────────────────────── */
+.success-message-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px 20px;
+  background: rgba(229, 57, 53, 0.03);
+  border-radius: 16px;
+  border: 1px solid rgba(229, 57, 53, 0.1);
+}
+
+.success-icon-wrapper {
+  margin-bottom: 24px;
+}
+
+.success-icon-bg {
+  width: 80px;
+  height: 80px;
+  background: rgba(229, 57, 53, 0.1);
+  border: 2px solid rgba(229, 57, 53, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #E53935;
+  box-shadow: 0 0 30px rgba(229, 57, 53, 0.15);
+}
+
+.success-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #FFFFFF;
+  margin-bottom: 12px;
+}
+
+.success-text {
+  font-size: 15px;
+  color: #9CA3AF;
+  line-height: 1.6;
+  max-width: 320px;
+  margin-bottom: 24px;
+}
+
+.success-timeline {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 10px 16px;
+  border-radius: 30px;
+  margin-bottom: 32px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.timeline-dot {
+  width: 8px;
+  height: 8px;
+  background: #E53935;
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(229, 57, 53, 0.8);
+}
+
+.timeline-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: #FFFFFF;
+}
+
+.reset-form-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #9CA3AF;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.reset-form-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #FFFFFF;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Loader */
+.btn-loader {
+  width: 24px;
+  height: 24px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #FFFFFF;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 /* ── RESPONSIVE ───────────────────────────────────────────────────────────── */
 
 @media (max-width: 1100px) {

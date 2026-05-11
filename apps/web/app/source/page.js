@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
+import { Send } from 'lucide-react';
 import { apiGet } from '@/lib/api';
 import '@/styles/source-new.css';
 
@@ -168,6 +169,7 @@ export default function SourcePage() {
                     )}
                     <div className="card-image-overlay"></div>
                     <span className={`category-badge-floating ${article.isFeatured ? 'highlight' : ''}`}>
+                      <Send size={10} fill="currentColor" style={{ opacity: 0.9 }} />
                       {article.category}
                     </span>
                   </div>

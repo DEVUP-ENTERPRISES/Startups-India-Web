@@ -5,9 +5,9 @@
 .impact-section {
   position: relative;
   background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%);
-  padding: 80px 0 100px; /* TIGHTENED TOP/BOTTOM */
+  padding: 40px 0 60px; /* Reduced from 80px 0 100px */
   overflow: hidden;
-  min-height: auto; /* REMOVED VIEWPORT DEPENDENCY */
+  min-height: auto;
 }
 
 /* ... background decoration styles ... */
@@ -37,12 +37,12 @@
 
 .hero-impact-title {
   max-width: 1100px;
-  margin: 0 auto 28px; /* TIGHTER BOTTOM MARGIN */
+  margin: 0 auto 28px;
   text-align: center;
-  font-size: clamp(48px, 6vw, 84px);
+  font-size: clamp(34px, 5vw, 64px); /* Unified with premium scale */
   font-weight: 800;
-  line-height: 0.95; /* TIGHTER LINE HEIGHT */
-  letter-spacing: -3px;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
   color: #ffffff !important;
 }
 

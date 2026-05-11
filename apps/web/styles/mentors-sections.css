@@ -10,7 +10,7 @@
 - `[x]` Final visualization and walkthrough 
 - `[x]` Implement premium "Become a Mentor" CTA section with tech-pattern bg */
 .role-section {
-  padding: 120px 0 40px; /* Reduced bottom padding from 120px */
+  padding: 40px 0 30px; /* Ultra-tight padding */
   background: #000000;
   position: relative;
   overflow: hidden;
@@ -24,7 +24,7 @@
 .role-header {
   text-align: center;
   max-width: 800px;
-  margin: 0 auto 64px;
+  margin: 0 auto 32px; /* Reduced from 64px */
 }
 
 .impact-badge {
@@ -53,7 +53,7 @@
 }
 
 .role-section h2 {
-  font-size: 64px;
+  font-size: clamp(36px, 7vw, 64px);
   font-weight: 800;
   color: white;
   margin-bottom: 24px;
@@ -63,9 +63,9 @@
 
 .role-section h2 .highlight-red {
   display: block;
-  color: #dc2626;
+  color: #dc2626; /* Restored Maroon Red */
   font-style: italic;
-  font-size: 88px;
+  font-size: clamp(48px, 10vw, 72px); 
   font-weight: 900;
   letter-spacing: -5px;
   margin-top: -5px;
@@ -128,7 +128,7 @@
 }
 
 .role-card h3 {
-  font-size: 22px;
+  font-size: clamp(18px, 3vw, 22px);
   font-weight: 700;
   color: white;
   margin-bottom: 16px;
@@ -142,7 +142,7 @@
 
 /* Onboarding Process Section */
 .onboarding-section {
-  padding: 40px 0 120px; /* Reduced top padding from 120px */
+  padding: 40px 0; /* Ultra-tight padding */
   background: #000000;
   position: relative;
   overflow: hidden;
@@ -227,7 +227,7 @@
 }
 
 .step-content h3 {
-  font-size: 24px;
+  font-size: clamp(20px, 4vw, 24px);
   font-weight: 700;
   color: white;
   margin-bottom: 20px;
@@ -355,8 +355,11 @@
 
 .onboarding-section .section-title-center {
   color: white !important;
-  font-size: 56px !important;
+  font-size: clamp(28px, 5vw, 40px) !important; /* Standardized to 40px */
+  font-weight: 800 !important;
   margin-bottom: 16px !important;
+  letter-spacing: -1px !important;
+  line-height: 1.1 !important;
 }
 
 .onboarding-section .section-subtitle-center {
@@ -370,18 +373,19 @@
 
 /* Who Can Apply Section — Premium Dark */
 .who-can-apply-section {
-  padding: 40px 0 100px; /* Reduced top padding from 100px */
+  padding: 40px 0; /* Ultra-tight padding */
   background: #000000; /* Unified with rest of the page */
   position: relative;
 }
 
 .wca-title {
-  font-size: 48px;
+  font-size: clamp(28px, 5vw, 40px); /* Standardized to 40px */
   font-weight: 800;
   color: #ffffff;
   text-align: center;
   margin-bottom: 16px;
-  letter-spacing: -1.5px;
+  letter-spacing: -1px;
+  line-height: 1.1;
 }
 
 .wca-subtitle {
@@ -497,7 +501,7 @@
 }
 
 .commitment-heading {
-  font-size: 32px;
+  font-size: clamp(24px, 5vw, 32px);
   font-weight: 700;
   color: #ffffff;
   line-height: 1.25;
@@ -619,7 +623,7 @@
    ========================================== */
 
 .become-mentor-cta {
-  padding: 140px 0;
+  padding: 50px 0; /* Ultra-tight padding */
   background: #0a0a0b;
   position: relative;
   overflow: hidden;
@@ -703,12 +707,16 @@
 
 /* Main heading */
 .bmc-title {
-  font-size: 88px;
+  font-size: clamp(28px, 5vw, 40px); 
   font-weight: 800;
   color: #ffffff;
-  line-height: 1;
-  letter-spacing: -4px;
+  line-height: 1.1;
+  letter-spacing: -1px;
   margin-bottom: 20px;
+}
+
+.bmc-title .highlight-red {
+  color: #dc2626;
 }
 
 /* Subtitle */
@@ -948,12 +956,12 @@
 
 /* Inline variant — breaks out of parent container to go full viewport width */
 .bmc-inline-wrapper {
-  padding: 140px 0 40px; /* Reduced bottom padding from 140px */
+  padding: 50px 0 20px; /* Ultra-tight padding */
   background: #000000; /* Unified with rest of the page */
   position: relative;
   overflow: hidden;
   text-align: center;
-  margin-top: 48px;
+  margin-top: 0; /* Removed excessive margin */
   /* Break out of parent container */
   width: 100vw;
   left: 50%;

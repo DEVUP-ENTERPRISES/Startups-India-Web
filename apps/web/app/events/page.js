@@ -93,64 +93,7 @@ export default function EventsPage() {
     fetchEvents();
   }, [fetchEvents]);
 
-  const heroBubbles = [
-    { type: 'text', content: '+18%\ndemand spike', size: 110, x: -48, y: -5, delay: 0 },
-    { type: 'text', content: '~13%', size: 70, x: -32, y: 20, delay: 0.5 },
-    { type: 'text', content: 'Supply Risk', size: 100, x: -45, y: 48, delay: 1 },
-    {
-      type: 'image',
-      content: 'https://randomuser.me/api/portraits/women/44.jpg',
-      size: 65,
-      x: -36,
-      y: -38,
-      delay: 0.8,
-    },
-    {
-      type: 'image',
-      content: 'https://randomuser.me/api/portraits/women/32.jpg',
-      size: 75,
-      x: -22,
-      y: 52,
-      delay: 1.2,
-    },
-    { type: 'icon', content: 'chart', size: 50, x: -16, y: -48, delay: 1.5 },
 
-    // Right side
-    { type: 'text', content: 'Probability\n72%', size: 100, x: 45, y: 2, delay: 0.2 },
-    {
-      type: 'image',
-      content: 'https://randomuser.me/api/portraits/women/68.jpg',
-      size: 55,
-      x: 38,
-      y: 35,
-      delay: 0.7,
-    },
-    {
-      type: 'image',
-      content: 'https://randomuser.me/api/portraits/men/32.jpg',
-      size: 85,
-      x: 48,
-      y: 45,
-      delay: 1.1,
-    },
-    { type: 'icon', content: 'book', size: 60, x: 28, y: 48, delay: 0.9 },
-    { type: 'icon', content: 'coins', size: 50, x: 42, y: -25, delay: 1.4 },
-    { type: 'icon', content: 'star', size: 40, x: 24, y: -42, delay: 1.8 },
-    {
-      type: 'image',
-      content: 'https://randomuser.me/api/portraits/men/44.jpg',
-      size: 60,
-      x: 35,
-      y: -50,
-      delay: 2.1,
-    },
-
-    // Abstract bubbles (no content)
-    { type: 'empty', size: 140, x: -54, y: 18, delay: 0.3 },
-    { type: 'empty', size: 120, x: 52, y: -20, delay: 0.6 },
-    { type: 'empty', size: 90, x: -40, y: 32, delay: 1.3 },
-    { type: 'empty', size: 130, x: 44, y: 18, delay: 1.6 },
-  ];
 
   const categories = [
     {
@@ -319,90 +262,7 @@ export default function EventsPage() {
         <div className="events-hero-bg">
           <div className="hero-radial-glow"></div>
 
-          <div className="bubbles-container">
-            {heroBubbles.map((bubble, i) => (
-              <motion.div
-                key={i}
-                className={`floating-bubble bubble-${bubble.type}`}
-                style={{
-                  width: bubble.size,
-                  height: bubble.size,
-                  left: `calc(50% + ${bubble.x}vw)`,
-                  top: `calc(50% + ${bubble.y}vh)`,
-                }}
-                animate={{
-                  y: [0, -15, 0],
-                  x: [0, 10, 0],
-                }}
-                transition={{
-                  duration: 4 + Math.random() * 2,
-                  repeat: Infinity,
-                  ease: 'easeInOut',
-                  delay: bubble.delay,
-                }}
-              >
-                {bubble.type === 'image' && (
-                  <img src={bubble.content} alt="" className="bubble-img" />
-                )}
-                {bubble.type === 'text' && <div className="bubble-text">{bubble.content}</div>}
-                {bubble.type === 'icon' && (
-                  <div className="bubble-icon">
-                    {bubble.content === 'chart' && (
-                      <svg
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
-                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
-                      </svg>
-                    )}
-                    {bubble.content === 'book' && (
-                      <svg
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
-                        <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path>
-                      </svg>
-                    )}
-                    {bubble.content === 'coins' && (
-                      <svg
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
-                        <line x1="12" y1="1" x2="12" y2="23"></line>
-                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-                      </svg>
-                    )}
-                    {bubble.content === 'star' && (
-                      <svg
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <line x1="12" y1="8" x2="12" y2="16"></line>
-                        <line x1="8" y1="12" x2="16" y2="12"></line>
-                      </svg>
-                    )}
-                  </div>
-                )}
-              </motion.div>
-            ))}
-          </div>
+
         </div>
 
         <div className="container">

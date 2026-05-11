@@ -38,9 +38,35 @@ export default function ApplyDarkSection() {
     };
   }, []);
 
-  const handleSubmit = (e) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Form submitted:', form);
+    setIsSubmitting(true);
+    
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/v1/public/inquiry`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(form),
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        setSubmitted(true);
+      } else {
+        throw new Error(result.message || 'Submission failed');
+      }
+    } catch (error) {
+      console.error('Submission error:', error);
+      alert('Something went wrong. Please try again or contact us directly.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const selectProgram = (program) => {
@@ -120,117 +146,144 @@ export default function ApplyDarkSection() {
                 </div>
               </div>
             </div>
-
-            {/* <div className="apply-stats-horizontal">
-              <div className="apply-stat-box">
-                <span className="stat-number">500+</span>
-                <span className="stat-label">STARTUPS</span>
-              </div>
-              <div className="apply-stat-box">
-                <span className="stat-number">200+</span>
-                <span className="stat-label">MENTORS</span>
-              </div>
-            </div> */}
           </div>
 
           {/* RIGHT COLUMN: Form */}
           <div className="apply-right-col">
             <div className="apply-form-wrapper">
-              <form className="apply-form-glass" onSubmit={handleSubmit}>
-                <div className="form-row">
-                  <div className="form-group-glass">
-                    <label>NAME</label>
-                    <input 
-                      type="text" 
-                      placeholder="John Doe"
-                      value={form.name}
-                      onChange={(e) => setForm({...form, name: e.target.value})}
-                      required
-                    />
-                  </div>
-                  <div className="form-group-glass">
-                    <label>EMAIL</label>
-                    <input 
-                      type="email" 
-                      placeholder="john@example.com"
-                      value={form.email}
-                      onChange={(e) => setForm({...form, email: e.target.value})}
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="form-row">
-                  <div className="form-group-glass">
-                    <label>PHONE</label>
-                    <input 
-                      type="tel" 
-                      placeholder="+91 00000 00000"
-                      value={form.phone}
-                      onChange={(e) => setForm({...form, phone: e.target.value})}
-                      required
-                    />
-                  </div>
-                  <div className="form-group-glass">
-                    <label>STARTUP / COMPANY</label>
-                    <input 
-                      type="text" 
-                      placeholder="Acme Inc."
-                      value={form.company}
-                      onChange={(e) => setForm({...form, company: e.target.value})}
-                    />
-                  </div>
-                </div>
-
-                <div className="form-group-glass">
-                  <label>PROGRAM INTEREST</label>
-                  <div className="custom-dropdown" ref={dropdownRef}>
-                    <div 
-                      className={`dropdown-trigger ${isDropdownOpen ? 'active' : ''}`}
-                      onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                    >
-                      <span>{form.program || 'Select a program'}</span>
-                      <ChevronDown size={18} className={`arrow-icon ${isDropdownOpen ? 'rotate' : ''}`} />
+              <AnimatePresence mode="wait">
+                {submitted ? (
+                  <motion.div 
+                    className="success-message-container"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                  >
+                    <div className="success-icon-wrapper">
+                      <div className="success-icon-bg">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                          <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                      </div>
                     </div>
-                    
-                    <AnimatePresence>
-                      {isDropdownOpen && (
-                        <motion.div 
-                          className="dropdown-menu"
-                          initial={{ opacity: 0, y: -10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -10 }}
-                          transition={{ duration: 0.2 }}
+                    <h3 className="success-title">Application Received!</h3>
+                    <p className="success-text">
+                      Thank you for applying to Startups India. Your vision is being reviewed by our strategic board.
+                    </p>
+                    <div className="success-timeline">
+                      <div className="timeline-dot"></div>
+                      <span className="timeline-text">Our team will connect with you within 24 hours.</span>
+                    </div>
+                    <button 
+                      className="reset-form-btn"
+                      onClick={() => {
+                        setSubmitted(false);
+                        setForm({ name: '', email: '', phone: '', company: '', program: '', message: '' });
+                      }}
+                    >
+                      SEND ANOTHER MESSAGE
+                    </button>
+                  </motion.div>
+                ) : (
+                  <form className="apply-form-glass" onSubmit={handleSubmit}>
+                    <div className="form-row">
+                      <div className="form-group-glass">
+                        <label>NAME</label>
+                        <input 
+                          type="text" 
+                          placeholder="John Doe"
+                          value={form.name}
+                          onChange={(e) => setForm({...form, name: e.target.value})}
+                          required
+                        />
+                      </div>
+                      <div className="form-group-glass">
+                        <label>EMAIL</label>
+                        <input 
+                          type="email" 
+                          placeholder="john@example.com"
+                          value={form.email}
+                          onChange={(e) => setForm({...form, email: e.target.value})}
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="form-row">
+                      <div className="form-group-glass">
+                        <label>PHONE</label>
+                        <input 
+                          type="tel" 
+                          placeholder="+91 00000 00000"
+                          value={form.phone}
+                          onChange={(e) => setForm({...form, phone: e.target.value})}
+                          required
+                        />
+                      </div>
+                      <div className="form-group-glass">
+                        <label>STARTUP / COMPANY</label>
+                        <input 
+                          type="text" 
+                          placeholder="Acme Inc."
+                          value={form.company}
+                          onChange={(e) => setForm({...form, company: e.target.value})}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="form-group-glass">
+                      <label>PROGRAM INTEREST</label>
+                      <div className="custom-dropdown" ref={dropdownRef}>
+                        <div 
+                          className={`dropdown-trigger ${isDropdownOpen ? 'active' : ''}`}
+                          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                         >
-                          {programs.map((item) => (
-                            <div 
-                              key={item.id}
-                              className={`dropdown-option ${form.program === item.label ? 'selected' : ''}`}
-                              onClick={() => selectProgram(item)}
+                          <span>{form.program || 'Select a program'}</span>
+                          <ChevronDown size={18} className={`arrow-icon ${isDropdownOpen ? 'rotate' : ''}`} />
+                        </div>
+                        
+                        <AnimatePresence>
+                          {isDropdownOpen && (
+                            <motion.div 
+                              className="dropdown-menu"
+                              initial={{ opacity: 0, y: -10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -10 }}
+                              transition={{ duration: 0.2 }}
                             >
-                              {item.label}
-                            </div>
-                          ))}
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                </div>
+                              {programs.map((item) => (
+                                <div 
+                                  key={item.id}
+                                  className={`dropdown-option ${form.program === item.label ? 'selected' : ''}`}
+                                  onClick={() => selectProgram(item)}
+                                >
+                                  {item.label}
+                                </div>
+                              ))}
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    </div>
 
-                <div className="form-group-glass">
-                  <label>MESSAGE</label>
-                  <textarea 
-                    placeholder="Tell us about your vision..."
-                    rows={4}
-                    value={form.message}
-                    onChange={(e) => setForm({...form, message: e.target.value})}
-                  />
-                </div>
+                    <div className="form-group-glass">
+                      <label>MESSAGE</label>
+                      <textarea 
+                        placeholder="Tell us about your vision..."
+                        rows={4}
+                        value={form.message}
+                        onChange={(e) => setForm({...form, message: e.target.value})}
+                      />
+                    </div>
 
-                <button type="submit" className="apply-now-btn">
-                  APPLY NOW
-                </button>
-              </form>
+                    <button type="submit" className="apply-now-btn" disabled={isSubmitting}>
+                      {isSubmitting ? (
+                        <div className="btn-loader"></div>
+                      ) : 'APPLY NOW'}
+                    </button>
+                  </form>
+                )}
+              </AnimatePresence>
             </div>
           </div>
         </motion.div>

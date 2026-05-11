@@ -30,6 +30,7 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.6.2",
     "morgan": "^1.10.0",
+    "nodemailer": "^8.0.7",
     "razorpay": "^2.9.6",
     "redis": "^5.11.0",
     "stripe": "^22.1.1",

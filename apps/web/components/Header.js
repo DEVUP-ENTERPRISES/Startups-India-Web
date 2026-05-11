@@ -100,7 +100,7 @@ export default function Header() {
         {
           label: 'Master Classes',
           href: '/programs/master-classes',
-          description: 'Advanced training and skill development',
+          description: 'Exclusive cinematic learning experience — Enroll now for early access',
         },
       ]
     },

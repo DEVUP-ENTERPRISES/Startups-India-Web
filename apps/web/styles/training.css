@@ -1,7 +1,7 @@
 /* Base Section Styles */
 .training-section {
   background: linear-gradient(180deg, #ffffff 0%, #f9fafb 100%);
-  padding: 4rem 2rem;
+  padding: 2rem 2rem; /* Reduced from 4rem 2rem */
   font-family: inherit;
 }
 
@@ -30,11 +30,12 @@
 }
 
 .training-header h2 {
-  font-size: 2.5rem;
-  font-weight: 700;
+  font-size: clamp(34px, 5vw, 64px); /* Unified with premium scale */
+  font-weight: 800;
   color: #0f172a;
   margin-bottom: 1rem;
-  letter-spacing: -0.02em;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
 }
 
 .training-header .highlight-red {

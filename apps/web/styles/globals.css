@@ -105,6 +105,25 @@ body {
   font-display: swap;
 }
 
+/* Standardized Premium Typography */
+.section-title-premium {
+  font-size: clamp(34px, 5vw, 56px); /* Fluid scaling: 34px to 56px */
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  color: #111827;
+  margin-bottom: 1.5rem;
+}
+
+/* Dark mode override for section titles */
+.bg-black .section-title-premium,
+.bg-\[\#050505\] .section-title-premium,
+.how-it-works-modern .section-title-premium,
+.impact-section .section-title-premium,
+.programs-dark-section .section-title-premium {
+  color: #ffffff !important;
+}
+
 a {
   color: inherit;
   text-decoration: none;

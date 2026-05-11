@@ -36,7 +36,10 @@ export default function NetworkHero() {
   const [textIndex, setTextIndex] = useState(0);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0, rawX: 0, rawY: 0 });
 
+  const [isClient, setIsClient] = useState(false);
+
   useEffect(() => {
+    setIsClient(true);
     const handleMouseMove = (e) => {
       const { clientX, clientY } = e;
       const moveX = (clientX - window.innerWidth / 2) / 50;
@@ -64,7 +67,7 @@ export default function NetworkHero() {
           <div className="glow-2" />
         </div>
         <div className="particles-container">
-          {[...Array(20)].map((_, i) => (
+          {isClient && [...Array(20)].map((_, i) => (
             <motion.div 
               key={i} 
               className="hero-particle"
