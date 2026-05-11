@@ -27,7 +27,7 @@
   }
 
   .dot-inner {
-    background: rgba(255, 255, 255, 0.4) !important;
+    background: #E53935 !important;
     box-shadow: none !important;
     animation: none !important;
   }
@@ -43,21 +43,21 @@
 
   /* MOBILE: Simple white-bordered cards */
   .week-glass-card {
-    background: rgba(255, 255, 255, 0.05) !important;
-    border: 2px solid rgba(255, 255, 255, 0.15) !important;
+    background: #FFFFFF !important;
+    border: 1px solid #E2E8F0 !important;
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
     margin-top: 2.5rem;
     min-height: auto;
     padding: 1.5rem;
-    box-shadow: none !important;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05) !important;
     animation: none !important;
   }
 
   .week-glass-card:hover {
     transform: none;
-    border-color: rgba(255, 255, 255, 0.25) !important;
-    box-shadow: none !important;
+    border-color: rgba(229, 57, 53, 0.2) !important;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.08) !important;
   }
 
   /* Disable all card glow effects */
@@ -71,11 +71,11 @@
     display: none !important;
   }
 
-  /* MOBILE: White icon */
+  /* MOBILE: Crimson icon on light bg */
   .week-icon {
-    background: rgba(255, 255, 255, 0.1) !important;
-    border-color: rgba(255, 255, 255, 0.15) !important;
-    color: #ffffff !important;
+    background: #F8FAFC !important;
+    border-color: #E2E8F0 !important;
+    color: #E53935 !important;
   }
 
   .week-glass-card:hover .week-icon {
@@ -87,49 +87,42 @@
     display: none;
   }
 
-  /* MOBILE: White text for WEEK labels */
+  /* MOBILE: Crimson text for WEEK labels */
   .week-number {
-    color: rgba(255, 255, 255, 0.6) !important;
+    color: #E53935 !important;
   }
 
-  /* MOBILE: White card titles (NO animation) */
+  /* MOBILE: Charcoal card titles */
   .week-title {
-    color: #ffffff !important;
+    color: #0F172A !important;
     font-size: 1.125rem;
     animation: none !important;
   }
 
   .week-description {
-    color: rgba(255, 255, 255, 0.6);
+    color: #64748B !important;
     font-size: 0.875rem;
   }
 
-  /* MOBILE: White highlight tags */
+  /* MOBILE: Slate highlight tags */
   .highlight-tag {
-    background: rgba(255, 255, 255, 0.05) !important;
-    border-color: rgba(255, 255, 255, 0.1) !important;
-    color: rgba(255, 255, 255, 0.7) !important;
+    background: #F8FAFC !important;
+    border-color: #E2E8F0 !important;
+    color: #64748B !important;
   }
 
   .highlight-tag svg {
-    color: rgba(255, 255, 255, 0.5) !important;
+    color: #E53935 !important;
   }
 
-  /* MOBILE: White number badge */
+  /* MOBILE: Slate number badge */
   .week-number-badge {
-    background: rgba(255, 255, 255, 0.05) !important;
-    border-color: rgba(255, 255, 255, 0.1) !important;
-    color: rgba(255, 255, 255, 0.4) !important;
+    background: #F8FAFC !important;
+    border-color: #E2E8F0 !important;
+    color: #94A3B8 !important;
     width: 2.5rem;
     height: 2.5rem;
     font-size: 0.875rem;
-  }
-
-  .week-glass-card:hover .week-number-badge {
-    transform: none;
-    background: rgba(255, 255, 255, 0.08) !important;
-    border-color: rgba(255, 255, 255, 0.15) !important;
-    color: rgba(255, 255, 255, 0.6) !important;
   }
 
   /* Disable all activation animations */
@@ -154,11 +147,18 @@
     justify-content: center;
     padding: 1rem 1.5rem;
     font-size: 0.9375rem;
+    background: #E53935 !important;
+    color: #FFFFFF !important;
+    border-radius: 12px;
+    font-weight: 700;
   }
 
   .cta-note {
     font-size: 0.8125rem;
-    padding: 0 1rem;
+    padding: 0.5rem 1rem;
+    color: #64748B !important;
+    text-align: center;
+    display: block;
   }
 
   /* Reduce background gradient opacity */
