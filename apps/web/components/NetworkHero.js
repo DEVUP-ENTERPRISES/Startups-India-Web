@@ -179,7 +179,7 @@ export default function NetworkHero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1.2, duration: 0.8 }}
         >
-          <Link href="/programs" className="no-underline">
+          <Link href="/login" className="no-underline">
             <button className="btn-primary-premium">
               Start Your Journey <ArrowRight size={20} />
             </button>

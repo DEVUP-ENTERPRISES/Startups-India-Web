@@ -141,14 +141,14 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 8px 20px;
+  padding: 10px 24px;
   width: fit-content;
   margin: 0 auto 0;
   background: linear-gradient(135deg, rgba(229, 57, 53, 0.12) 0%, rgba(229, 57, 53, 0.05) 100%);
   border: 1px solid rgba(229, 57, 53, 0.3);
   border-radius: 100px;
   color: #fff;
-  font-size: 0.75rem;
+  font-size: 1.125rem;
   font-weight: 800;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -202,9 +202,9 @@
 }
 
 .hero-subtitle-text {
-  font-size: 0.75rem; /* Slightly smaller */
+  font-size: 0.9375rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.55);
   letter-spacing: 0.25em;
   text-transform: uppercase;
 }

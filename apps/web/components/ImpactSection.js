@@ -241,8 +241,8 @@ export default function ImpactSection() {
         <div className="text-center relative w-full flex flex-col items-center" style={{ marginBottom: '48px' }}>
           <motion.div variants={headerVariants}>
             <div className="impact-badge">
-              <TrendingUp size={14} className="text-[#ef4444] mr-2" />
-              <span className="text-[#ef4444] font-bold tracking-wider text-xs uppercase">Our Impact</span>
+              <TrendingUp size={16} className="text-[#ef4444]" style={{ marginRight: '10px' }} />
+              <span className="text-[#ef4444] font-bold tracking-wider uppercase" style={{ fontSize: '13px', letterSpacing: '0.1em' }}>Our Impact</span>
             </div>
           </motion.div>
 

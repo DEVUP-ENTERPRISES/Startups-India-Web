@@ -20,9 +20,11 @@ export default function ApplyDarkSection() {
 
   const programs = [
     { id: 'incubation', label: 'Incubation Program' },
+    { id: 'pre-incubation', label: 'Pre-Incubation Cohort' },
     { id: 'acceleration', label: 'Acceleration Program' },
     { id: 'mentorship', label: 'Mentorship' },
     { id: 'funding', label: 'Institutional Funding' },
+    { id: 'other', label: 'Other' },
   ];
 
   // Close dropdown when clicking outside
@@ -224,7 +226,7 @@ export default function ApplyDarkSection() {
                         <label>STARTUP / COMPANY</label>
                         <input 
                           type="text" 
-                          placeholder="Acme Inc."
+                          placeholder="XYZ Pvt. Ltd."
                           value={form.company}
                           onChange={(e) => setForm({...form, company: e.target.value})}
                         />

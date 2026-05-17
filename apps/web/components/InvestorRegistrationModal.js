@@ -26,6 +26,7 @@ export default function InvestorRegistrationModal({ isOpen, onClose }) {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   const investorTypes = ['Angel', 'VC', 'Fund', 'Individual', 'Corporate', 'Family Office'];
 
@@ -391,8 +392,22 @@ export default function InvestorRegistrationModal({ isOpen, onClose }) {
             </div>
           </div>
 
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', padding: '16px', background: 'rgba(0,0,0,0.03)', borderRadius: '10px', marginBottom: '8px', border: '1.5px solid rgba(0,0,0,0.06)' }}>
+            <input
+              type="checkbox"
+              id="investor-terms"
+              checked={termsAccepted}
+              onChange={e => setTermsAccepted(e.target.checked)}
+              required
+              style={{ width: '18px', height: '18px', accentColor: '#dc2626', marginTop: '2px', flexShrink: 0, cursor: 'pointer' }}
+            />
+            <label htmlFor="investor-terms" style={{ fontSize: '13px', color: '#475569', lineHeight: '1.5', cursor: 'pointer' }}>
+              I agree to the <a href="/terms" target="_blank" style={{ color: '#dc2626', fontWeight: '600', textDecoration: 'underline' }}>Terms & Conditions</a> and <a href="/privacy" target="_blank" style={{ color: '#dc2626', fontWeight: '600', textDecoration: 'underline' }}>Privacy Policy</a>. I confirm that all information provided is accurate and that investor participation is program-led and subject to review.
+            </label>
+          </div>
+
           <div className="modal-footer">
-            <button type="submit" className="submit-btn" disabled={loading}>
+            <button type="submit" className="submit-btn" disabled={loading || !termsAccepted} style={{ opacity: !termsAccepted ? 0.6 : 1 }}>
               {loading ? (
                 <>
                   <span>Submitting...</span>

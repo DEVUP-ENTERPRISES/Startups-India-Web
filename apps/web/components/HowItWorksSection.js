@@ -171,7 +171,7 @@ export default function HowItWorksSection() {
                   className={`rocket-pilot${isHovering ? ' visible' : ''}`}
                   style={{ left: `${rocketPct}%` }}
                 >
-                  <Rocket size={18} style={{ transform: 'rotate(90deg)' }} />
+                  <Rocket size={18} />
                 </div>
 
                 <div className="roadmap-nodes-wrapper">
@@ -268,7 +268,7 @@ export default function HowItWorksSection() {
                         zIndex: 10
                       }}
                     >
-                      <Rocket size={14} color="#e53935" style={{ transform: 'rotate(90deg)' }} />
+                      <Rocket size={14} color="#e53935" />
                     </div>
                   </div>
                   <span className="mobile-progress-text">0{steps.length}</span>

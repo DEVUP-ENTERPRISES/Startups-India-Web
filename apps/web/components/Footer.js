@@ -6,11 +6,13 @@ import { useState } from 'react';
 
 export default function Footer() {
   const [email, setEmail] = useState('');
+  const [newsletterSuccess, setNewsletterSuccess] = useState(false);
 
   const handleNewsletterSubmit = e => {
     e.preventDefault();
-    console.log('Newsletter signup:', email);
+    setNewsletterSuccess(true);
     setEmail('');
+    setTimeout(() => setNewsletterSuccess(false), 5000);
   };
 
   const footerLinks = {
@@ -33,8 +35,7 @@ export default function Footer() {
       { name: 'Market Research', href: '#' },
     ],
     company: [
-      // { name: 'About Us', href: '/about' },
-      { name: 'Contact', href: '/contact' },
+      { name: 'About Us', href: '/about' },
       { name: 'Privacy Policy', href: '/privacy' },
       { name: 'Terms of Service', href: '/terms' },
       { name: 'Cookie Policy', href: '/cookies' },
@@ -104,29 +105,36 @@ export default function Footer() {
               development, mobile apps, and cutting-edge technologies.
             </p>
 
-            <form onSubmit={handleNewsletterSubmit} className="newsletter-form">
-              <input
-                type="email"
-                placeholder="Enter your email address"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                className="newsletter-input"
-                required
-              />
-              <button type="submit" className="newsletter-button">
-                <span>Get Free Resources</span>
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                >
-                  <path d="M5 12h14M12 5l7 7-7 7" />
-                </svg>
-              </button>
-            </form>
+            {newsletterSuccess ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'rgba(34, 197, 94, 0.15)', border: '1px solid rgba(34, 197, 94, 0.4)', borderRadius: '12px', padding: '16px 24px', marginTop: '8px' }}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                <p style={{ color: '#22c55e', fontWeight: '600', margin: 0 }}>You're subscribed! Thank you for joining our newsletter.</p>
+              </div>
+            ) : (
+              <form onSubmit={handleNewsletterSubmit} className="newsletter-form">
+                <input
+                  type="email"
+                  placeholder="Enter your email address"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  className="newsletter-input"
+                  required
+                />
+                <button type="submit" className="newsletter-button">
+                  <span>Get Free Resources</span>
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                  >
+                    <path d="M5 12h14M12 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </form>
+            )}
 
             <div className="newsletter-microcopy">
               <svg
@@ -201,26 +209,6 @@ export default function Footer() {
                 </div>
               </div>
 
-              <div className="footer-contact">
-                <div className="footer-contact-item">
-                  <span className="footer-contact-label">
-                    <strong>Call:</strong>
-                  </span>
-                  <a href="tel:+919014878887" className="footer-contact-text">
-                    {' '}
-                    9014878887
-                  </a>
-                </div>
-                <div className="footer-contact-item">
-                  <span className="footer-contact-label">
-                    <strong>Email:</strong>
-                  </span>
-                  <a href="mailto:info@startupsindia.in" className="footer-contact-text">
-                    {' '}
-                    info@startupsindia.in
-                  </a>
-                </div>
-              </div>
             </motion.div>
 
             {/* Links Sections (Direct children of footer-grid) */}

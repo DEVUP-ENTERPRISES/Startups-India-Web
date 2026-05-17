@@ -1,23 +1,52 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Menu, X, ChevronRight, Home, Info, LayoutGrid, Calendar, Users, Coins, Rocket, ChevronDown } from 'lucide-react';
+import { Search, Menu, X, ChevronRight, Home, Info, LayoutGrid, Calendar, Users, Coins, Rocket, ChevronDown, BookOpen, TrendingUp, Zap, GraduationCap, ArrowRight } from 'lucide-react';
 import { getCurrentUser } from '@/lib/auth';
+
+const SEARCH_DATA = [
+  { title: 'Pre-Incubation Program', desc: '8-week intensive startup validation program', href: '/programs/pre-incubation', category: 'Programs', color: '#e63946' },
+  { title: 'Incubation Program', desc: 'Full incubation support for early-stage startups', href: '/programs/incubation', category: 'Programs', color: '#e63946' },
+  { title: 'Master Classes', desc: 'Elite cinematic learning experience', href: '/programs/master-classes', category: 'Programs', color: '#e63946' },
+  { title: 'Growth Programs', desc: 'Scale your startup to the next level', href: '/programs/growth', category: 'Programs', color: '#e63946' },
+  { title: 'About Us', desc: 'Our story, mission and vision', href: '/about', category: 'Company', color: '#7c3aed' },
+  { title: 'Our Team', desc: 'Meet the leaders behind StartupsIndia', href: '/team', category: 'Company', color: '#7c3aed' },
+  { title: 'Mentors', desc: 'Connect with 50+ industry expert mentors', href: '/mentors', category: 'Network', color: '#0ea5e9' },
+  { title: 'Investors', desc: 'Investor network and funding access', href: '/investors', category: 'Network', color: '#0ea5e9' },
+  { title: 'Events', desc: 'Upcoming startup events and workshops', href: '/events', category: 'Community', color: '#10b981' },
+  { title: 'Market Access', desc: 'Expand your startup to new markets', href: '/market-access', category: 'Resources', color: '#f59e0b' },
+  { title: 'Source Hub', desc: 'Resources, guides and templates', href: '/source', category: 'Resources', color: '#f59e0b' },
+  { title: 'Sign Up', desc: 'Join the StartupsIndia ecosystem', href: '/signup', category: 'Account', color: '#6366f1' },
+  { title: 'Login', desc: 'Access your dashboard', href: '/login', category: 'Account', color: '#6366f1' },
+];
+
+const QUICK_LINKS = [
+  { title: 'Pre-Incubation', href: '/programs/pre-incubation', color: '#e63946' },
+  { title: 'Mentors', href: '/mentors', color: '#0ea5e9' },
+  { title: 'Investors', href: '/investors', color: '#10b981' },
+  { title: 'Events', href: '/events', color: '#f59e0b' },
+];
 
 export default function Header() {
   const [user, setUser] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
   const [openDropdown, setOpenDropdown] = useState(null);
   const [mobileDropdowns, setMobileDropdowns] = useState({});
   const [hoveredNav, setHoveredNav] = useState(null);
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [currentHash, setCurrentHash] = useState('');
   const pathname = usePathname();
+  const router = useRouter();
+  const searchRef = useRef(null);
+  const inputRef = useRef(null);
 
   // 🧱 TRACK ACTIVE SECTION FOR DROPDOWN HIGHLIGHT
   useEffect(() => {
@@ -58,6 +87,77 @@ export default function Header() {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
+  // Search filtering
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      setSelectedIndex(-1);
+      return;
+    }
+    const q = searchQuery.toLowerCase();
+    const filtered = SEARCH_DATA.filter(
+      item => item.title.toLowerCase().includes(q) || item.desc.toLowerCase().includes(q) || item.category.toLowerCase().includes(q)
+    );
+    setSearchResults(filtered);
+    setSelectedIndex(-1);
+  }, [searchQuery]);
+
+  // Ctrl+K / Cmd+K to open search
+  useEffect(() => {
+    const handleKeydown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        inputRef.current?.focus();
+        setSearchFocused(true);
+      }
+      if (e.key === 'Escape') {
+        setSearchFocused(false);
+        setSearchQuery('');
+        inputRef.current?.blur();
+      }
+    };
+    window.addEventListener('keydown', handleKeydown);
+    return () => window.removeEventListener('keydown', handleKeydown);
+  }, []);
+
+  // Keyboard navigation inside search results
+  const handleSearchKeyDown = (e) => {
+    const list = searchQuery ? searchResults : QUICK_LINKS;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setSelectedIndex(i => Math.min(i + 1, list.length - 1));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setSelectedIndex(i => Math.max(i - 1, -1));
+    } else if (e.key === 'Enter' && selectedIndex >= 0) {
+      e.preventDefault();
+      const item = list[selectedIndex];
+      if (item?.href) {
+        router.push(item.href);
+        setSearchFocused(false);
+        setSearchQuery('');
+      }
+    }
+  };
+
+  // Click outside to close
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (searchRef.current && !searchRef.current.contains(e.target)) {
+        setSearchFocused(false);
+        setSearchQuery('');
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const groupedResults = searchResults.reduce((acc, item) => {
+    if (!acc[item.category]) acc[item.category] = [];
+    acc[item.category].push(item);
+    return acc;
+  }, {});
+
   const menuItems = [
     { label: 'Home', href: '/', icon: Home },
     { 
@@ -67,7 +167,7 @@ export default function Header() {
       dropdown: [
         {
           label: 'About the Company',
-          href: '/about#about-company',
+          href: '/about',
           description: 'Learn about the StartupsIndia ecosystem and mission',
         },
         {
@@ -173,17 +273,110 @@ export default function Header() {
             </div>
           </Link>
 
-          <div className={`header-search ${searchFocused ? 'focused' : ''}`}>
-            <input
-              type="text"
-              placeholder="What do you want to learn?"
-              className="search-bar"
-              onFocus={() => setSearchFocused(true)}
-              onBlur={() => setSearchFocused(false)}
-            />
-            <button className="search-button" aria-label="Search">
-              <Search size={18} />
-            </button>
+          {/* ⚡ ELITE SEARCH BAR */}
+          <div className={`header-search-elite ${searchFocused ? 'focused' : ''}`} ref={searchRef}>
+            <div className="search-input-wrap">
+              <Search size={16} className="search-icon-left" />
+              <input
+                ref={inputRef}
+                type="text"
+                placeholder="Search programs, mentors, events..."
+                className="search-bar-elite"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                onFocus={() => setSearchFocused(true)}
+                onKeyDown={handleSearchKeyDown}
+                autoComplete="off"
+              />
+              {searchQuery ? (
+                <button className="search-clear-btn" onClick={() => { setSearchQuery(''); inputRef.current?.focus(); }} aria-label="Clear">
+                  <X size={14} />
+                </button>
+              ) : (
+                <kbd className="search-kbd">
+                  <span>⌘</span>K
+                </kbd>
+              )}
+            </div>
+
+            <AnimatePresence>
+              {searchFocused && (
+                <motion.div
+                  className="search-dropdown-elite"
+                  initial={{ opacity: 0, y: -6, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -6, scale: 0.98 }}
+                  transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
+                >
+                  {/* ── IDLE STATE ── */}
+                  {!searchQuery && (
+                    <>
+                      <p className="search-section-title">Quick Navigate</p>
+                      <div className="search-quick-grid">
+                        {QUICK_LINKS.map((item, i) => (
+                          <Link
+                            key={i}
+                            href={item.href}
+                            className={`search-quick-chip ${selectedIndex === i ? 'selected' : ''}`}
+                            onClick={() => { setSearchFocused(false); setSearchQuery(''); }}
+                          >
+                            <span className="chip-dot" style={{ background: item.color }} />
+                            {item.title}
+                          </Link>
+                        ))}
+                      </div>
+                      <div className="search-idle-hint">
+                        <Search size={12} style={{ opacity: 0.35 }} />
+                        <span>Type to search programs, mentors, investors…</span>
+                      </div>
+                    </>
+                  )}
+
+                  {/* ── TYPING STATE ── */}
+                  {searchQuery && searchResults.length > 0 && (
+                    <>
+                      {Object.entries(groupedResults).map(([cat, items]) => (
+                        <div key={cat}>
+                          <div className="search-cat-label">{cat}</div>
+                          {items.map((item) => {
+                            const globalIdx = searchResults.indexOf(item);
+                            return (
+                              <Link
+                                key={item.href}
+                                href={item.href}
+                                className={`search-result-row ${selectedIndex === globalIdx ? 'selected' : ''}`}
+                                onClick={() => { setSearchFocused(false); setSearchQuery(''); }}
+                              >
+                                <span className="result-color-bar" style={{ background: item.color }} />
+                                <div className="search-result-text">
+                                  <div className="search-result-title">{item.title}</div>
+                                  <div className="search-result-desc">{item.desc}</div>
+                                </div>
+                                <ArrowRight size={13} className="search-result-arrow" />
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      ))}
+                      <div className="search-footer-hint">
+                        <span><kbd>↑</kbd><kbd>↓</kbd></span>
+                        <span><kbd>↵</kbd> open</span>
+                        <span style={{ marginLeft: 'auto' }}><kbd>Esc</kbd> close</span>
+                      </div>
+                    </>
+                  )}
+
+                  {/* ── NO RESULTS ── */}
+                  {searchQuery && searchResults.length === 0 && (
+                    <div className="search-empty-state">
+                      <Search size={26} style={{ opacity: 0.18, marginBottom: '8px' }} />
+                      <p>No results for <strong>"{searchQuery}"</strong></p>
+                      <span>Try: programs, mentors, events</span>
+                    </div>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           <div className="header-actions">

@@ -209,14 +209,16 @@ export default function CollaborationFrameworkSection() {
         >
           <div className="collab-cta-card">
             <h4 className="collab-cta-title">Let’s Build Innovation Together</h4>
-            <motion.button 
-              className="collab-cta-btn"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <MessageSquare size={20} />
-              <span>Get in Touch</span>
-            </motion.button>
+            <a href="#apply-ecosystem" style={{ textDecoration: 'none' }} onClick={(e) => { e.preventDefault(); document.querySelector('.apply-dark-section')?.scrollIntoView({ behavior: 'smooth' }); }}>
+              <motion.button
+                className="collab-cta-btn"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <MessageSquare size={20} />
+                <span>Get in Touch</span>
+              </motion.button>
+            </a>
           </div>
         </motion.div>
       </div>
@@ -245,7 +247,7 @@ export default function CollaborationFrameworkSection() {
                 <X size={20} />
               </button>
               
-              <div className="collab-modal-icon-box mb-6 text-red-500">
+              <div className="collab-modal-icon-box">
                 {selectedPillar.icon}
               </div>
               

@@ -27,12 +27,17 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 24px; /* TIGHTER BADGE SPACING */
-  padding: 12px 24px;
+  margin-bottom: 24px;
+  padding: 10px 22px;
   border-radius: 999px;
-  background: rgba(239, 68, 68, 0.08);
-  border: 1px solid rgba(239, 68, 68, 0.18);
+  background: rgba(229, 57, 53, 0.12);
+  border: 1px solid rgba(229, 57, 53, 0.3);
   backdrop-filter: blur(10px);
+  box-shadow: 0 0 20px rgba(229, 57, 53, 0.12);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #ef4444;
 }
 
 .hero-impact-title {

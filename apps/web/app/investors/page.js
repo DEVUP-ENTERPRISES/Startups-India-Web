@@ -67,7 +67,7 @@ export default function InvestorsPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.4 }}
             >
-              <button className="hero-cta-primary">
+              <button className="hero-cta-primary" onClick={() => setShowModal(true)}>
                 Explore Investors
                 <svg
                   width="20"

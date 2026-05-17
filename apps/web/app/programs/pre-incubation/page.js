@@ -54,7 +54,7 @@ export default function PreIncubationPage() {
               transition={{ duration: 0.8 }}
             >
               <div style={{ display: 'inline-flex', background: '#FFFFFF', padding: '10px 24px', borderRadius: '100px', marginBottom: '24px', border: '1px solid rgba(0,0,0,0.05)', boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
-                <span style={{ fontSize: '12px', fontWeight: '900', letterSpacing: '0.15em', color: '#E53935', textTransform: 'uppercase' }}>Accelerator Program</span>
+                <span style={{ fontSize: '12px', fontWeight: '900', letterSpacing: '0.15em', color: '#E53935', textTransform: 'uppercase' }}>Pre Incubation Cohort</span>
               </div>
               
               <h1 style={{ fontSize: 'clamp(42px, 7vw, 72px)', fontWeight: '950', color: '#0F172A', lineHeight: '1', marginBottom: '28px', letterSpacing: '-0.04em' }}>
@@ -66,9 +66,9 @@ export default function PreIncubationPage() {
               </p>
 
               <div style={{ display: 'flex', justifyContent: 'center', gap: '20px' }}>
-                <Link href="/signup">
+                <Link href="/login">
                   <button style={{ background: '#E53935', color: '#FFFFFF', padding: '18px 40px', borderRadius: '14px', fontSize: '16px', fontWeight: '800', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px', boxShadow: '0 15px 35px rgba(229, 57, 53, 0.25)', transition: 'all 0.3s ease' }}>
-                    <span>Start Your Journey</span>
+                    <span>Book a Session</span>
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
                   </button>
                 </Link>

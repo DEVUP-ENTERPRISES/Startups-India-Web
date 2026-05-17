@@ -349,7 +349,9 @@ export default function AboutUs() {
               <p>
                 Join our ecosystem and take your first step toward building something meaningful.
               </p>
-              <button className="cta-button">Join Our Ecosystem</button>
+              <a href="/login" style={{ textDecoration: 'none' }}>
+                <button className="cta-button">Start Your Journey</button>
+              </a>
             </motion.div>
           </div>
         </section>
