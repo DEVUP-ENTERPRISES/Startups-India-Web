@@ -4,6 +4,17 @@ import { ChevronLeft, ChevronRight, Award, Calendar, ExternalLink } from 'lucide
 import '../styles/achievements.css';
 
 const achievementsData = [
+    {
+    id: 'SEAP',
+    label: 'Innovation Event',
+    title: 'Startup Awareness Program at Vidya Jyothi Institute of Technology',
+    description:
+      'StartupsIndia.in successfully conducted a Startup Awareness Program at Vidya Jyothi Institute of Technology with the objective of encouraging students to explore entrepreneurship, innovation, and the rapidly growing startup ecosystem in India.',
+    year: '2025',
+    category: 'Innovation Event',
+    index: '01',
+    image: '/assets/images/inspirex-new.jpg',
+  },
   {
     id: 'inspirex',
     label: 'Innovation Event',
