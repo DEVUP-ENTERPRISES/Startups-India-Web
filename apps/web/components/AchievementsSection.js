@@ -25,7 +25,7 @@ const achievementsData = [
     category: 'Hackathon',
     index: '02',
     image:
-      'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80',
+      '/assets/images/inspirex-new.jpg',
   },
   {
     id: 'pitchfest',
