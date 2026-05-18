@@ -5,6 +5,8 @@ const { logger } = require('./infrastructure/observability/logger');
 const { seedAdmin } = require('./utils/seedAdmin');
 const { connectRedis, disconnectRedis } = require('./infrastructure/cache/redis');
 const { warmCache } = require('./infrastructure/cache/cacheWarmer');
+const { jobQueue } = require('./infrastructure/jobs/jobQueue');
+const { reconcileOrphanedPayments } = require('./modules/enrollments/enrollments.service');
 
 const isPM2 = !!process.env.PM2_HOME || !!process.env.pm_id;
 let server = null;
@@ -23,6 +25,7 @@ async function bootstrap() {
   await connectRedis();
   await seedAdmin();
   await warmCache();
+  await reconcileOrphanedPayments();
 
   server = app.listen(env.PORT, '0.0.0.0', () => {
     logger.info('Backend listening', {
@@ -52,7 +55,14 @@ async function gracefulShutdown(signal) {
     logger.info('HTTP server closed — no more new connections');
   }
 
-  // 2. Close Redis
+  // 2. Drain in-flight background jobs
+  if (jobQueue.pendingCount > 0) {
+    logger.info('Draining job queue', { pending: jobQueue.pendingCount });
+    await jobQueue.drain(10000);
+    logger.info('Job queue drained');
+  }
+
+  // 3. Close Redis
   await disconnectRedis();
 
   // 3. Close MongoDB

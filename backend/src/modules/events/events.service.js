@@ -21,11 +21,16 @@ async function listEvents({ page = 1, limit = 20, category, status = 'upcoming',
     .limit(limit)
     .lean();
 
-  if (userId) {
-    events.forEach(event => {
-      event.isRegistered = event.registrations && event.registrations.some(r => r.toString() === userId.toString());
-    });
-  }
+  events.forEach(event => {
+    const isRegistered =
+      userId != null &&
+      event.registrations != null &&
+      event.registrations.some(r => r.toString() === userId.toString());
+    event.isRegistered = !!isRegistered;
+    if (!isRegistered) {
+      delete event.meetingLink;
+    }
+  });
 
   return {
     events,

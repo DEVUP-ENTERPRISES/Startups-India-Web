@@ -1,0 +1,160 @@
+{
+  "projectName": "Startup India Incubation Platform",
+  "lastScanned": "2026-05-18",
+  "techStack": {
+    "frontend": "Next.js 14, React 18, Tailwind CSS 4, Framer Motion 12",
+    "backend": "Node.js, Express 4, PM2",
+    "database": "MongoDB (Mongoose 8)",
+    "cache": "Redis (optional, graceful fallback)",
+    "auth": "JWT (access 15m, refresh 30d), Google OAuth2, bcryptjs",
+    "payments": "Stripe + Razorpay",
+    "storage": "AWS S3 (ap-south-1)",
+    "deployment": "Vercel (frontend), Docker+Nginx (backend)"
+  },
+  "entryPoints": {
+    "frontend": "apps/web/app/layout.js → app/page.js",
+    "backend": "backend/src/server.js",
+    "backendApp": "backend/src/app.js",
+    "routes": "backend/src/routes/index.js"
+  },
+  "backendModules": [
+    "auth", "users", "courses", "enrollments", "payments",
+    "certificates", "learning", "assessments", "achievements",
+    "community", "events", "media", "mentors", "profiles",
+    "admin", "analytics", "settings", "public"
+  ],
+  "apiBase": "/api/v1",
+  "apiGroups": {
+    "/auth": "signup, login, google OAuth, refresh, logout",
+    "/users": "profile CRUD, wishlist",
+    "/courses": "course catalog, modules, lessons",
+    "/enrollments": "enrollment lifecycle",
+    "/payments": "Stripe + Razorpay + webhooks",
+    "/learn": "learning engine (lesson access, completion)",
+    "/learning": "live/recorded classes, notes, progress",
+    "/certificates": "generation + public verification",
+    "/assessments": "exams, quizzes, assignments",
+    "/achievements": "badges, leaderboard",
+    "/community": "discussions, groups, Q&A",
+    "/events": "events + registration (free+paid)",
+    "/media": "S3 presigned upload URLs",
+    "/profiles": "mentor + investor profiles (approval flow)",
+    "/admin": "admin dashboard data",
+    "/analytics": "learning analytics",
+    "/settings": "platform settings",
+    "/public": "public articles, testimonials, leads"
+  },
+  "roles": ["admin", "instructor", "mentor", "investor", "user"],
+  "models": {
+    "User": "backend/src/modules/users/user.model.js",
+    "Course": "backend/src/modules/courses/course.model.js",
+    "Module": "backend/src/modules/courses/course.model.js",
+    "Lesson": "backend/src/modules/courses/course.model.js",
+    "Enrollment": "backend/src/modules/enrollments/enrollment.model.js",
+    "LessonProgress": "backend/src/modules/enrollments/enrollment.model.js",
+    "ModuleQuizAttempt": "backend/src/modules/enrollments/enrollment.model.js",
+    "Payment": "backend/src/modules/payments/payment.model.js",
+    "Subscription": "backend/src/modules/payments/subscription.model.js",
+    "Certificate": "backend/src/modules/certificates/certificate.model.js",
+    "Article": "backend/src/models/Article.js",
+    "ArticleAnalytics": "backend/src/models/ArticleAnalytics.js",
+    "Event": "backend/src/models/Event.js",
+    "EventRegistration": "backend/src/models/EventRegistration.js",
+    "Discussion": "backend/src/modules/community/community.model.js",
+    "Group": "backend/src/modules/community/community.model.js",
+    "Question": "backend/src/modules/community/community.model.js",
+    "Badge": "backend/src/modules/achievements/achievements.model.js",
+    "Mentor": "backend/src/modules/profiles/mentor.model.js",
+    "Investor": "backend/src/modules/profiles/investor.model.js",
+    "Lead": "backend/src/models/Lead.js",
+    "Notification": "backend/src/models/Notification.js",
+    "Settings": "backend/src/models/Settings.js",
+    "Testimonial": "backend/src/models/Testimonial.js"
+  },
+  "keyMiddleware": {
+    "auth": "backend/src/middlewares/authMiddleware.js",
+    "error": "backend/src/middlewares/errorMiddleware.js",
+    "cache": "backend/src/middlewares/cache.middleware.js",
+    "rateLimit": "backend/src/middlewares/rateLimit.middleware.js",
+    "validateBody": "backend/src/middlewares/validateBody.js"
+  },
+  "infrastructure": {
+    "redis": "backend/src/infrastructure/cache/redis.js",
+    "jobQueue": "backend/src/infrastructure/jobs/jobQueue.js",
+    "logger": "backend/src/infrastructure/observability/logger.js",
+    "metrics": "backend/src/infrastructure/observability/metrics.js"
+  },
+  "utils": {
+    "emailService": "backend/src/utils/emailService.js",
+    "s3": "backend/src/utils/s3.js",
+    "token": "backend/src/utils/token.js",
+    "apiError": "backend/src/utils/apiError.js",
+    "asyncHandler": "backend/src/utils/asyncHandler.js",
+    "sanitizer": "backend/src/utils/sanitizer.js",
+    "activityLogger": "backend/src/utils/activityLogger.js"
+  },
+  "frontendPages": {
+    "public": [
+      "/", "/about", "/courses", "/courses/[slug]",
+      "/events", "/events/[id]", "/mentors", "/investors",
+      "/programs", "/programs/pre-incubation", "/programs/incubation",
+      "/programs/growth", "/programs/master-classes",
+      "/source", "/source/[slug]", "/team", "/market-access",
+      "/verify/[certificateNumber]", "/terms", "/privacy", "/refund", "/cookies"
+    ],
+    "auth": ["/login", "/signup"],
+    "userDashboard": [
+      "/dashboard", "/dashboard/courses", "/dashboard/my-courses",
+      "/dashboard/explore-courses", "/dashboard/certificates",
+      "/dashboard/achievements", "/dashboard/payments",
+      "/dashboard/community/discussions", "/dashboard/community/groups",
+      "/dashboard/community/doubts", "/dashboard/analytics/*",
+      "/dashboard/assessment/*", "/dashboard/learning/live",
+      "/dashboard/learning/recorded", "/dashboard/learning/notes",
+      "/dashboard/settings", "/dashboard/wishlist"
+    ],
+    "learning": ["/learn", "/learn/[courseId]", "/checkout", "/quiz/[id]", "/certificate"],
+    "admin": [
+      "/admin/dashboard", "/admin/users", "/admin/courses", "/admin/enrollments",
+      "/admin/payments", "/admin/events", "/admin/articles", "/admin/certificates",
+      "/admin/assessments", "/admin/leads", "/admin/notifications",
+      "/admin/testimonials", "/admin/monitoring", "/admin/settings", "/admin/login"
+    ]
+  },
+  "businessRules": {
+    "paymentFlow": "Razorpay (primary) + Stripe → payment.succeeded job → upsertEnrollment",
+    "courseCompletion": "100% lessonProgress → Enrollment.completed=true → Certificate auto-generated",
+    "eventMeetingLink": "Hidden unless user is registered for event",
+    "certVerification": "Public URL /verify/:certificateNumber",
+    "refreshTokenTTL": "30 days",
+    "accessTokenTTL": "15 minutes",
+    "quizPassingScore": "75%",
+    "rateLimit": "500 req/min per IP (Redis), 20 req/15min on auth endpoints"
+  },
+  "knownRisks": [
+    "No refresh token rotation",
+    "Duplicate wishlist field in User schema",
+    "In-process job queue (not persistent across crashes)",
+    "Facebook login not implemented (501)",
+    "No CSRF protection on cookie auth"
+  ],
+  "envVarsRequired": ["MONGODB_URI", "JWT_ACCESS_SECRET", "JWT_REFRESH_SECRET"],
+  "envVarsOptional": [
+    "STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET",
+    "RAZORPAY_KEY_ID", "RAZORPAY_KEY_SECRET", "RAZORPAY_WEBHOOK_SECRET",
+    "GOOGLE_CLIENT_ID", "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY",
+    "AWS_S3_BUCKET", "REDIS_URL", "ADMIN_EMAIL", "ADMIN_PASSWORD"
+  ],
+  "architectureFiles": {
+    "projectMap": "architecture/project-map.md",
+    "systemDesign": "architecture/system-design.md",
+    "apiMap": "architecture/api-map.md",
+    "schemaMap": "architecture/schema-map.md",
+    "businessLogic": "architecture/business-logic.md",
+    "securityMap": "architecture/security-map.md",
+    "infrastructure": "architecture/infrastructure.md",
+    "codePatterns": "architecture/code-patterns.md",
+    "gapsAndRisks": "architecture/gaps-and-risks.md",
+    "onboardingGuide": "architecture/onboarding-guide.md"
+  }
+}

@@ -11,8 +11,9 @@ const router = express.Router();
 
 const authCookieOptions = {
   httpOnly: true,
-  sameSite: 'lax',
+  sameSite: 'strict',
   secure: env.NODE_ENV === 'production',
+  path: '/',
 };
 
 router.post(
@@ -25,7 +26,7 @@ router.post(
     })
   ),
   asyncHandler(async (req, res) => {
-    const result = await authService.signup(req.body, env);
+    const result = await authService.signup(req.body);
 
     res.cookie('accessToken', result.accessToken, { ...authCookieOptions, maxAge: 15 * 60 * 1000 });
     res.cookie('refreshToken', result.refreshToken, {
@@ -58,7 +59,7 @@ router.post(
     })
   ),
   asyncHandler(async (req, res) => {
-    const result = await authService.login(req.body, env);
+    const result = await authService.login(req.body);
 
     res.cookie('accessToken', result.accessToken, { ...authCookieOptions, maxAge: 15 * 60 * 1000 });
     res.cookie('refreshToken', result.refreshToken, {

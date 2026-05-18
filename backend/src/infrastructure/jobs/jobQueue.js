@@ -5,6 +5,7 @@ class InMemoryJobQueue {
     this.queue = [];
     this.processing = false;
     this.handlers = new Map();
+    this._drainPromise = null;
   }
 
   register(jobName, handler) {
@@ -45,15 +46,46 @@ class InMemoryJobQueue {
         if (job.attempts < job.maxAttempts) {
           this.queue.push(job);
         } else {
-          logger.error('Job failed after retries', error, {
+          logger.error('Job failed after max retries', {
             jobName: job.jobName,
             attempts: job.attempts,
+            error: error.message,
+            payload: job.payload,
           });
         }
       }
     }
 
     this.processing = false;
+
+    // Resolve any pending drain waiter
+    if (this._drainResolve) {
+      this._drainResolve();
+      this._drainResolve = null;
+    }
+  }
+
+  // Wait for all in-flight jobs to complete — used in graceful shutdown
+  drain(timeoutMs = 10000) {
+    if (this.queue.length === 0 && !this.processing) {
+      return Promise.resolve();
+    }
+    return new Promise((resolve) => {
+      this._drainResolve = resolve;
+      setTimeout(() => {
+        if (this._drainResolve) {
+          logger.warn('Job queue drain timeout — forcing shutdown', {
+            remainingJobs: this.queue.length,
+          });
+          this._drainResolve = null;
+          resolve();
+        }
+      }, timeoutMs);
+    });
+  }
+
+  get pendingCount() {
+    return this.queue.length;
   }
 }
 

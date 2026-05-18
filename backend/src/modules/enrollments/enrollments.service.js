@@ -1,6 +1,7 @@
 const { Enrollment, LessonProgress, ModuleQuizAttempt } = require('./enrollment.model');
 const { ApiError } = require('../../utils/apiError');
 const { cacheGet, cacheSet, cacheDel } = require('../../infrastructure/cache/redis');
+const { logger } = require('../../infrastructure/observability/logger');
 
 async function listEnrollments(userId, courseId, status) {
   if (courseId && !status) {
@@ -90,8 +91,50 @@ async function upsertLessonProgress(userId, input) {
   return result;
 }
 
+// On startup: find succeeded payments that have no matching enrollment and
+// create those enrollments. Guards against crashes between payment.succeeded
+// and the job queue handler running.
+async function reconcileOrphanedPayments() {
+  try {
+    const { Payment } = require('../payments/payment.model');
+    const orphaned = await Payment.find({
+      status: 'succeeded',
+      courseId: { $exists: true, $ne: null },
+    }).lean();
+
+    if (orphaned.length === 0) return;
+
+    let fixed = 0;
+    for (const payment of orphaned) {
+      const exists = await Enrollment.findOne({
+        userId: payment.userId,
+        courseId: payment.courseId,
+      }).lean();
+      if (!exists) {
+        await upsertEnrollment(payment.userId, {
+          courseId: String(payment.courseId),
+          paymentVerified: true,
+          paymentStatus: 'completed',
+          paymentId: String(payment._id),
+          stripePaymentId: payment.paymentIntentId || payment.paymentId || null,
+          paymentMethod: payment.provider,
+          amountPaid: payment.amount,
+        });
+        fixed++;
+      }
+    }
+
+    if (fixed > 0) {
+      logger.info('Reconciled orphaned payment enrollments on startup', { fixed });
+    }
+  } catch (err) {
+    logger.error('Payment reconciliation failed', { error: err.message });
+  }
+}
+
 module.exports = {
   listEnrollments,
   upsertEnrollment,
   upsertLessonProgress,
+  reconcileOrphanedPayments,
 };

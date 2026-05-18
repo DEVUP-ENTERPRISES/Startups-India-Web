@@ -2,10 +2,17 @@ const mongoose = require('mongoose');
 
 const courseSchema = new mongoose.Schema(
   {
-    slug: { type: String, required: true, unique: true, trim: true },
-    title: { type: String, required: true, trim: true },
-    subtitle: { type: String, trim: true },
-    description: { type: String, trim: true },
+    slug: {
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
+      lowercase: true,
+      match: [/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Slug must be lowercase alphanumeric with hyphens only'],
+    },
+    title: { type: String, required: true, trim: true, maxlength: 200 },
+    subtitle: { type: String, trim: true, maxlength: 300 },
+    description: { type: String, trim: true, maxlength: 5000 },
     introCopy: { type: String, trim: true },
     structureDescription: { type: String, trim: true },
     durationWeeks: { type: Number, default: 0 },

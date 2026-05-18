@@ -13,9 +13,9 @@ const userSchema = new mongoose.Schema(
     },
     authProviders: { type: [String], default: ['email'] },
     role: { type: String, enum: ['admin', 'user', 'mentor', 'investor'], default: 'user' },
-    headline: { type: String, trim: true },
-    missionStatement: { type: String, trim: true },
-    bio: { type: String, trim: true },
+    headline: { type: String, trim: true, maxlength: 200 },
+    missionStatement: { type: String, trim: true, maxlength: 500 },
+    bio: { type: String, trim: true, maxlength: 2000 },
     city: { type: String, trim: true },
     phone: { type: String, trim: true },
     state: { type: String, trim: true },
@@ -37,7 +37,6 @@ const userSchema = new mongoose.Schema(
     isActive: { type: Boolean, default: true },
     wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Course' }],
     refreshTokenHash: { type: String, default: null },
-    wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Course' }],
   },
   { timestamps: true }
 );

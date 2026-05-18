@@ -54,26 +54,6 @@ app.use((req, res, next) => {
 // Trust first proxy for correct client IPs (if behind a proxy)
 app.set('trust proxy', env.NODE_ENV === 'production' ? 1 : false);
 
-// app.use(
-//   cors({
-//     origin: env.CORS_ORIGIN ? env.CORS_ORIGIN.split(',') : '*',
-//     credentials: true,
-//     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
-//     allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-Id'],
-//     maxAge: 86400,
-//   })
-// );
-
-// Parse CORS origins from environment variable or use defaults
-// const corsOriginsList = env.CORS_ORIGIN
-//   ? env.CORS_ORIGIN.split(',').map(origin => origin.trim())
-//   : [
-//       'https://learning-startups-india.vercel.app',
-//       'https://startupsindia.in',
-//       'https://www.startupsindia.in',
-//       'http://localhost:3000',
-//     ];
-
 const allowedOrigins = [
   'https://learning-startups-india.vercel.app',
   'https://startupsindia.in',
@@ -176,17 +156,17 @@ app.use('/api/v1/auth/login', authLimiter);
 app.use('/api/v1/auth/signup', authLimiter);
 app.use('/api/v1/auth/forgot-password', authLimiter);
 
-// Stricter rate limiting on auth endpoints to prevent brute-force attacks
-// app.use(
-//   '/api/v1/auth',
-//   rateLimit({
-//     windowMs: 15 * 60 * 1000,
-//     max: 20,
-//     standardHeaders: true,
-//     legacyHeaders: false,
-//     message: { success: false, message: 'Too many attempts, please try again later' },
-//   })
-// );
+// Stricter rate limit for admin panel — 120 req/min per IP
+app.use(
+  '/api/v1/admin',
+  rateLimit({
+    windowMs: 60 * 1000,
+    max: 120,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { success: false, message: 'Too many admin requests, please slow down' },
+  })
+);
 
 registerRoutes(app);
 app.use(errorMiddleware);
