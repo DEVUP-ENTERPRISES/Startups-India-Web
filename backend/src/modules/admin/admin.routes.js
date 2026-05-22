@@ -2,12 +2,14 @@ const { Router } = require('express');
 const { authRequired, requireRole } = require('../../middlewares/authMiddleware');
 const { asyncHandler } = require('../../utils/asyncHandler');
 const { cacheMiddleware } = require('../../middlewares/cache.middleware');
+const { auditLogMiddleware } = require('../../middlewares/auditLog.middleware');
 const ctrl = require('./admin.controller');
+const obs = require('./observability.controller');
 
 const adminRouter = Router();
 
-// All admin routes require authentication + admin role
-adminRouter.use(authRequired, requireRole('admin'));
+// All admin routes require authentication + admin role, and log every write action
+adminRouter.use(authRequired, requireRole('admin'), auditLogMiddleware);
 
 // Dashboard analytics (cached 60s)
 adminRouter.get('/dashboard', cacheMiddleware('dashboard:stats', 60), asyncHandler(ctrl.dashboard));
@@ -104,5 +106,26 @@ adminRouter.delete('/notifications/:id', asyncHandler(ctrl.deleteNotification));
 adminRouter.get('/settings', asyncHandler(ctrl.getSettings));
 adminRouter.post('/settings', asyncHandler(ctrl.upsertSetting));
 adminRouter.delete('/settings/:key', asyncHandler(ctrl.deleteSetting));
+
+// ─── OBSERVABILITY & COMMAND CENTER ───────────────────────────────────
+// Security events
+adminRouter.get('/observability/security/events', asyncHandler(obs.getSecurityEvents));
+adminRouter.get('/observability/security/summary', asyncHandler(obs.getSecuritySummaryRoute));
+adminRouter.get('/observability/security/feed', asyncHandler(obs.getLiveSecurityFeed));
+adminRouter.patch('/observability/security/events/:id/resolve', asyncHandler(obs.resolveSecurityEvent));
+
+// Audit logs
+adminRouter.get('/observability/audit-logs', asyncHandler(obs.getAuditLogs));
+adminRouter.get('/observability/audit-logs/summary', asyncHandler(obs.getAuditSummary));
+
+// Incidents
+adminRouter.get('/observability/incidents', asyncHandler(obs.getIncidents));
+adminRouter.post('/observability/incidents', asyncHandler(obs.createIncident));
+adminRouter.patch('/observability/incidents/:id', asyncHandler(obs.updateIncident));
+adminRouter.delete('/observability/incidents/:id', asyncHandler(obs.deleteIncident));
+
+// System health + SSE stream
+adminRouter.get('/observability/health', asyncHandler(obs.getSystemHealth));
+adminRouter.get('/observability/stream', obs.streamMetrics);
 
 module.exports = { adminRouter };

@@ -38,6 +38,15 @@ const navSections = [
       { id: 'settings', label: 'Settings', href: '/admin/settings', icon: 'settings' },
     ],
   },
+  {
+    title: 'Command Center',
+    items: [
+      { id: 'security', label: 'Security', href: '/admin/security', icon: 'shield' },
+      { id: 'audit-logs', label: 'Audit Logs', href: '/admin/audit-logs', icon: 'log' },
+      { id: 'incidents', label: 'Incidents', href: '/admin/incidents', icon: 'alert' },
+      { id: 'infrastructure', label: 'Infrastructure', href: '/admin/infrastructure', icon: 'server' },
+    ],
+  },
 ];
 
 function NavIcon({ name, size = 18 }) {
@@ -156,6 +165,34 @@ function NavIcon({ name, size = 18 }) {
     activity: (
       <svg {...props}>
         <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+      </svg>
+    ),
+    shield: (
+      <svg {...props}>
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+      </svg>
+    ),
+    log: (
+      <svg {...props}>
+        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+        <polyline points="14 2 14 8 20 8" />
+        <line x1="16" y1="13" x2="8" y2="13" />
+        <line x1="16" y1="17" x2="8" y2="17" />
+      </svg>
+    ),
+    alert: (
+      <svg {...props}>
+        <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+        <line x1="12" y1="9" x2="12" y2="13" />
+        <line x1="12" y1="17" x2="12.01" y2="17" />
+      </svg>
+    ),
+    server: (
+      <svg {...props}>
+        <rect x="2" y="2" width="20" height="8" rx="2" ry="2" />
+        <rect x="2" y="14" width="20" height="8" rx="2" ry="2" />
+        <line x1="6" y1="6" x2="6.01" y2="6" />
+        <line x1="6" y1="18" x2="6.01" y2="18" />
       </svg>
     ),
   };

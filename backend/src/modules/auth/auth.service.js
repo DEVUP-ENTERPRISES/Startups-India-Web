@@ -4,6 +4,7 @@ const { OAuth2Client } = require('google-auth-library');
 const { User } = require('../users/user.model');
 const env = require('../../config/env');
 const { ApiError } = require('../../utils/apiError');
+const { recordFailedLogin, recordInvalidToken } = require('../../infrastructure/observability/securityEvents');
 
 // Generates access + refresh tokens and persists a bcrypt hash of the
 // refresh token so it can be validated and rotated on the next /refresh call.
@@ -33,11 +34,29 @@ async function signup({ email, password, fullName }) {
   return { user, ...tokens };
 }
 
-async function login({ email, password }) {
+async function login({ email, password }, req) {
   const user = await User.findOne({ email });
-  if (!user || !user.passwordHash) throw new ApiError(401, 'Invalid credentials');
+  if (!user || !user.passwordHash) {
+    // Record security event — use best-effort, don't fail the auth flow
+    recordFailedLogin(
+      req?.ip || 'unknown',
+      email,
+      req?.get?.('user-agent') || '',
+      '/api/v1/auth/login'
+    ).catch(() => {});
+    throw new ApiError(401, 'Invalid credentials');
+  }
   const valid = await bcrypt.compare(password, user.passwordHash);
-  if (!valid) throw new ApiError(401, 'Invalid credentials');
+  if (!valid) {
+    recordFailedLogin(
+      req?.ip || 'unknown',
+      email,
+      req?.get?.('user-agent') || '',
+      '/api/v1/auth/login'
+    ).catch(() => {});
+    throw new ApiError(401, 'Invalid credentials');
+  }
+  if (!user.isActive) throw new ApiError(403, 'Account suspended');
   const tokens = await generateAndStoreTokens(user);
   return { user, ...tokens };
 }

@@ -1,4 +1,5 @@
 const { cacheIncr, isRedisReady } = require('../infrastructure/cache/redis');
+const { recordRateLimit } = require('../infrastructure/observability/securityEvents');
 
 /**
  * Redis-backed sliding-window rate limiter middleware.
@@ -25,6 +26,7 @@ function redisRateLimit({ windowSeconds = 60, max = 100, prefix = 'rl', keyGener
     res.setHeader('X-RateLimit-Remaining', Math.max(0, max - count));
 
     if (count > max) {
+      recordRateLimit(req.ip, req.originalUrl, req.get('user-agent') || '').catch(() => {});
       return res.status(429).json({
         success: false,
         message: 'Too many requests. Please try again later.',

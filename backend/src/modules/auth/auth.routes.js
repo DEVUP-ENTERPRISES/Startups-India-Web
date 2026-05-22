@@ -59,7 +59,7 @@ router.post(
     })
   ),
   asyncHandler(async (req, res) => {
-    const result = await authService.login(req.body);
+    const result = await authService.login(req.body, req);
 
     res.cookie('accessToken', result.accessToken, { ...authCookieOptions, maxAge: 15 * 60 * 1000 });
     res.cookie('refreshToken', result.refreshToken, {
