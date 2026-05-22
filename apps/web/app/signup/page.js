@@ -39,7 +39,7 @@ function SignupContent() {
   const handleNavigation = (e, path) => {
     e.preventDefault();
     setIsSwitching(true);
-    setTimeout(() => { router.push(path); }, 500);
+    router.push(path);
   };
 
   const googleBtnRef = useRef(null);
@@ -62,7 +62,7 @@ function SignupContent() {
         }
         if (data) {
           setSuccess(true);
-          setTimeout(() => router.push(returnUrl), 1500);
+          router.push(returnUrl);
         }
       });
     }

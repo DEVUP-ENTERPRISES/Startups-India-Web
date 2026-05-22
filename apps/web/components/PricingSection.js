@@ -1,8 +1,10 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 
 export default function PricingSection() {
+  const router = useRouter();
   const pricingTiers = [
     {
       id: 1,
@@ -138,7 +140,10 @@ export default function PricingSection() {
                 </div>
               )}
 
-              <button className={`pricing-cta ${tier.popular ? 'pricing-cta-primary' : 'pricing-cta-secondary'}`}>
+              <button 
+                className={`pricing-cta ${tier.popular ? 'pricing-cta-primary' : 'pricing-cta-secondary'}`}
+                onClick={() => router.push('/signup')}
+              >
                 <span>{tier.cta}</span>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <path d="M5 12h14M12 5l7 7-7 7"/>
@@ -198,7 +203,7 @@ export default function PricingSection() {
             <h3>Have questions about pricing?</h3>
             <p>Our team is here to help you find the right plan and answer any questions about scholarships or payment options.</p>
           </div>
-          <button className="pricing-help-cta">
+          <button className="pricing-help-cta" onClick={() => window.location.href = 'mailto:info@startupsindia.in'}>
             <span>Contact Us</span>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>

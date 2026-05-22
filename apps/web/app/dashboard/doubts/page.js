@@ -363,9 +363,9 @@ export default function DoubtsPage() {
             </div>
             <div className="ask-actions">
               <div className="action-buttons">
-                <button type="button">{Icons.image} Add Image</button>
-                <button type="button">{Icons.code} Add Code</button>
-                <button type="button">{Icons.file} Add Document</button>
+                <button type="button" onClick={() => alert('Image upload coming soon!')}>{Icons.image} Add Image</button>
+                <button type="button" onClick={() => alert('Code snippets coming soon!')}>{Icons.code} Add Code</button>
+                <button type="button" onClick={() => alert('Document upload coming soon!')}>{Icons.file} Add Document</button>
               </div>
               <div className="submit-group">
                 <div className="topic-select">
@@ -523,14 +523,14 @@ export default function DoubtsPage() {
                  <path d="M0 30 Q 30 10, 60 30 T 120 30 T 180 30 T 200 25" fill="none" stroke="#e9d5ff" strokeWidth="2" opacity="0.5" />
                </svg>
             </div>
-            <button className="btn-outline-full">View My Impact</button>
+            <button className="btn-outline-full" onClick={() => alert('Impact report coming soon!')}>View My Impact</button>
           </div>
 
           {/* Top Experts */}
           <div className="side-card experts-card">
             <div className="card-header">
               <h3>Top Experts This Month</h3>
-              <button className="link-btn">View All</button>
+              <button className="link-btn" onClick={() => alert('Full directory coming soon!')}>View All</button>
             </div>
             <div className="experts-list">
               {TOP_EXPERTS.map((ex, i) => (
@@ -551,7 +551,7 @@ export default function DoubtsPage() {
           <div className="side-card trending-card">
             <div className="card-header">
               <h3>Trending Topics</h3>
-              <button className="link-btn">View All</button>
+              <button className="link-btn" onClick={() => alert('Topics directory coming soon!')}>View All</button>
             </div>
             <div className="topics-list">
               {TRENDING_TOPICS.map(topic => (

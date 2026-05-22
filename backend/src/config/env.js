@@ -28,6 +28,8 @@ const env = {
   REDIS_URL: process.env.REDIS_URL || 'redis://127.0.0.1:6379',
   ADMIN_EMAIL: process.env.ADMIN_EMAIL || '',
   ADMIN_PASSWORD: process.env.ADMIN_PASSWORD || '',
+  // Secret path segment for all admin API routes. Must not be 'admin' or any common slug.
+  ADMIN_SLUG: process.env.ADMIN_SLUG || 'ctrl-x9k2m3-panel',
 };
 
 const required = ['MONGODB_URI', 'JWT_ACCESS_SECRET', 'JWT_REFRESH_SECRET'];

@@ -4,14 +4,14 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import '../styles/investor-modal-premium.css';
 
-export default function InvestorRegistrationModal({ isOpen, onClose }) {
+export default function InvestorRegistrationModal({ isOpen, onClose, user }) {
   // Support both isOpen prop and direct rendering
   const shouldShow = isOpen !== undefined ? isOpen : true;
   const [formData, setFormData] = useState({
-    full_name: '',
+    full_name: user?.name || '',
     organization_name: '',
     investor_type: '',
-    email: '',
+    email: user?.email || '',
     phone: '',
     linkedin_url: '',
     website_url: '',
@@ -71,18 +71,31 @@ export default function InvestorRegistrationModal({ isOpen, onClose }) {
     setError('');
 
     try {
-      // Registration submission will be connected to backend API
-      await new Promise(resolve => setTimeout(resolve, 500));
+      const token = localStorage.getItem('token');
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+      const res = await fetch(`${apiUrl}/api/v1/investors/request`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify(formData)
+      });
+      
+      const data = await res.json();
+      if (!data.success) {
+        throw new Error(data.message || 'Failed to submit request');
+      }
 
       setSuccess(true);
       setTimeout(() => {
         onClose();
         setSuccess(false);
         setFormData({
-          full_name: '',
+          full_name: user?.name || '',
           organization_name: '',
           investor_type: '',
-          email: '',
+          email: user?.email || '',
           phone: '',
           linkedin_url: '',
           website_url: '',

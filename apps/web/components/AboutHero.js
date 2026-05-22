@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import '../styles/about-hero.css';
 
@@ -25,6 +26,17 @@ export default function AboutHero() {
   const [animState, setAnimState] = useState('in');
   const [mousePos, setMousePos] = useState({ x: 50, y: 50 });
   const [isLoaded, setIsLoaded] = useState(false);
+  const router = useRouter();
+
+  const handleStartJourney = (e) => {
+    e.preventDefault();
+    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+    if (token) {
+      router.push('/programs');
+    } else {
+      router.push('/login');
+    }
+  };
 
   useEffect(() => {
     setIsLoaded(true);
@@ -204,9 +216,9 @@ export default function AboutHero() {
         </div>
 
         <div className="hero-ctas fade-in-element" style={{ animationDelay: '0.2s' }}>
-          <Link href="/programs" className="hero-btn-primary">
+          <button onClick={handleStartJourney} className="hero-btn-primary">
             Start Your Journey
-          </Link>
+          </button>
           <Link href="/programs" className="hero-btn-secondary">
             View Programs
           </Link>

@@ -2,49 +2,55 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+
+// The admin panel is served at /{ADMIN_SLUG}/* via Next.js middleware rewrite.
+// All in-app navigations (router.push/replace) must use the slug path so the
+// browser URL never exposes /admin. The middleware rewrites it to /admin/* internally.
+const ADMIN_SLUG = process.env.NEXT_PUBLIC_ADMIN_SLUG || 'ctrl-x9k2m3-panel';
+const ADMIN_BASE = `/${ADMIN_SLUG}`;
 import '../../styles/admin-panel.css';
 
 const navSections = [
   {
     title: 'Overview',
     items: [
-      { id: 'dashboard', label: 'Dashboard', href: '/admin/dashboard', icon: 'grid' },
-      { id: 'monitoring', label: 'Monitoring', href: '/admin/monitoring', icon: 'activity' },
+      { id: 'dashboard', label: 'Dashboard', href: `${ADMIN_BASE}/dashboard`, icon: 'grid' },
+      { id: 'monitoring', label: 'Monitoring', href: `${ADMIN_BASE}/monitoring`, icon: 'activity' },
     ],
   },
   {
     title: 'Management',
     items: [
-      { id: 'users', label: 'Users', href: '/admin/users', icon: 'users' },
-      { id: 'courses', label: 'Courses', href: '/admin/courses', icon: 'book' },
-      { id: 'enrollments', label: 'Enrollments', href: '/admin/enrollments', icon: 'clipboard' },
-      { id: 'payments', label: 'Payments', href: '/admin/payments', icon: 'credit-card' },
-      { id: 'certificates', label: 'Certificates', href: '/admin/certificates', icon: 'award' },
+      { id: 'users', label: 'Users', href: `${ADMIN_BASE}/users`, icon: 'users' },
+      { id: 'courses', label: 'Courses', href: `${ADMIN_BASE}/courses`, icon: 'book' },
+      { id: 'enrollments', label: 'Enrollments', href: `${ADMIN_BASE}/enrollments`, icon: 'clipboard' },
+      { id: 'payments', label: 'Payments', href: `${ADMIN_BASE}/payments`, icon: 'credit-card' },
+      { id: 'certificates', label: 'Certificates', href: `${ADMIN_BASE}/certificates`, icon: 'award' },
     ],
   },
   {
     title: 'Content',
     items: [
-      { id: 'articles', label: 'Sources / Articles', href: '/admin/articles', icon: 'edit' },
-      { id: 'events', label: 'Events', href: '/admin/events', icon: 'calendar' },
-      { id: 'testimonials', label: 'Testimonials', href: '/admin/testimonials', icon: 'star' },
+      { id: 'articles', label: 'Sources / Articles', href: `${ADMIN_BASE}/articles`, icon: 'edit' },
+      { id: 'events', label: 'Events', href: `${ADMIN_BASE}/events`, icon: 'calendar' },
+      { id: 'testimonials', label: 'Testimonials', href: `${ADMIN_BASE}/testimonials`, icon: 'star' },
     ],
   },
   {
     title: 'Operations',
     items: [
-      { id: 'leads', label: 'Leads / CRM', href: '/admin/leads', icon: 'target' },
-      { id: 'notifications', label: 'Notifications', href: '/admin/notifications', icon: 'bell' },
-      { id: 'settings', label: 'Settings', href: '/admin/settings', icon: 'settings' },
+      { id: 'leads', label: 'Leads / CRM', href: `${ADMIN_BASE}/leads`, icon: 'target' },
+      { id: 'notifications', label: 'Notifications', href: `${ADMIN_BASE}/notifications`, icon: 'bell' },
+      { id: 'settings', label: 'Settings', href: `${ADMIN_BASE}/settings`, icon: 'settings' },
     ],
   },
   {
     title: 'Command Center',
     items: [
-      { id: 'security', label: 'Security', href: '/admin/security', icon: 'shield' },
-      { id: 'audit-logs', label: 'Audit Logs', href: '/admin/audit-logs', icon: 'log' },
-      { id: 'incidents', label: 'Incidents', href: '/admin/incidents', icon: 'alert' },
-      { id: 'infrastructure', label: 'Infrastructure', href: '/admin/infrastructure', icon: 'server' },
+      { id: 'security', label: 'Security', href: `${ADMIN_BASE}/security`, icon: 'shield' },
+      { id: 'audit-logs', label: 'Audit Logs', href: `${ADMIN_BASE}/audit-logs`, icon: 'log' },
+      { id: 'incidents', label: 'Incidents', href: `${ADMIN_BASE}/incidents`, icon: 'alert' },
+      { id: 'infrastructure', label: 'Infrastructure', href: `${ADMIN_BASE}/infrastructure`, icon: 'server' },
     ],
   },
 ];
@@ -199,6 +205,14 @@ function NavIcon({ name, size = 18 }) {
   return icons[name] || null;
 }
 
+// Helper to clear all admin session data
+function clearAdminSession() {
+  localStorage.removeItem('access_token');
+  localStorage.removeItem('admin_session');
+  localStorage.removeItem('admin_session_expiry');
+  localStorage.removeItem('refresh_token');
+}
+
 export default function AdminLayout({ children }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -207,38 +221,54 @@ export default function AdminLayout({ children }) {
   const [checking, setChecking] = useState(true);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
+  // Detect login page — usePathname() may return either the rewritten or slug path
+  const isLoginPage = pathname === '/admin/login' || pathname === `/${ADMIN_SLUG}/login`;
+
   useEffect(() => {
-    if (pathname === '/admin/login') {
+    if (isLoginPage) {
       setChecking(false);
       setIsAdmin(true);
       return;
     }
 
-    async function verifySession() {
-      const token = localStorage.getItem('access_token');
-      const adminFlag = localStorage.getItem('admin_session');
-      const expiry = Number(localStorage.getItem('admin_session_expiry') || '0');
+    const API_BASE =
+      process.env.NEXT_PUBLIC_API_BASE_URL ||
+      process.env.NEXT_PUBLIC_API_URL ||
+      'http://localhost:5000';
 
-      // 24hr session expired — force re-login
-      if (!adminFlag || (expiry > 0 && Date.now() > expiry)) {
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('admin_session');
-        localStorage.removeItem('admin_session_expiry');
-        localStorage.removeItem('refresh_token');
-        router.replace('/admin/login');
+    // Server-side admin role verification — never trust localStorage alone
+    async function verifyAdminRole(accessToken) {
+      try {
+        const res = await fetch(`${API_BASE}/api/v1/auth/me`, {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        const json = await res.json();
+        if (res.ok && json.data?.user?.role === 'admin') {
+          return true;
+        }
+      } catch {
+        /* verification failed */
+      }
+      return false;
+    }
+
+    async function verifySession() {
+      let token = localStorage.getItem('access_token');
+
+      // Fast client-side check: 24hr session expiry
+      const expiry = Number(localStorage.getItem('admin_session_expiry') || '0');
+      if (expiry > 0 && Date.now() > expiry) {
+        clearAdminSession();
+        router.replace(`${ADMIN_BASE}/login`);
         setChecking(false);
         return;
       }
 
-      // Try refreshing access token if missing or expired
+      // Try refreshing access token if missing
       if (!token) {
         const refreshToken = localStorage.getItem('refresh_token');
         if (refreshToken) {
           try {
-            const API_BASE =
-              process.env.NEXT_PUBLIC_API_BASE_URL ||
-              process.env.NEXT_PUBLIC_API_URL ||
-              'http://localhost:5000';
             const res = await fetch(`${API_BASE}/api/v1/auth/refresh`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -247,19 +277,31 @@ export default function AdminLayout({ children }) {
             });
             const json = await res.json();
             if (res.ok && json.data?.session?.access_token) {
-              localStorage.setItem('access_token', json.data.session.access_token);
+              token = json.data.session.access_token;
+              localStorage.setItem('access_token', token);
               if (json.data.session.refresh_token) {
                 localStorage.setItem('refresh_token', json.data.session.refresh_token);
               }
-              setIsAdmin(true);
-              setChecking(false);
-              return;
             }
           } catch {
-            /* fall through to redirect */
+            /* fall through */
           }
         }
-        router.replace('/admin/login');
+      }
+
+      // No token even after refresh attempt → redirect
+      if (!token) {
+        clearAdminSession();
+        router.replace(`${ADMIN_BASE}/login`);
+        setChecking(false);
+        return;
+      }
+
+      // ✅ Server-side verification: confirm role === 'admin' via JWT
+      const isVerifiedAdmin = await verifyAdminRole(token);
+      if (!isVerifiedAdmin) {
+        clearAdminSession();
+        router.replace(`${ADMIN_BASE}/login`);
         setChecking(false);
         return;
       }
@@ -269,7 +311,7 @@ export default function AdminLayout({ children }) {
     }
 
     verifySession();
-  }, [pathname, router]);
+  }, [pathname, router, isLoginPage]);
 
   if (checking) {
     return (
@@ -279,7 +321,7 @@ export default function AdminLayout({ children }) {
     );
   }
 
-  if (pathname === '/admin/login') {
+  if (isLoginPage) {
     return <>{children}</>;
   }
 
@@ -290,11 +332,14 @@ export default function AdminLayout({ children }) {
     localStorage.removeItem('admin_session');
     localStorage.removeItem('admin_session_expiry');
     localStorage.removeItem('refresh_token');
-    router.push('/admin/login');
+    router.push(`${ADMIN_BASE}/login`);
   };
 
+  // pathname from usePathname() is the rewritten /admin/* path (what Next.js sees internally).
+  // navSections hrefs are slug-based, so normalise before comparing.
+  const normPathname = pathname.replace('/admin', ADMIN_BASE);
   const activeId =
-    navSections.flatMap(s => s.items).find(i => pathname.startsWith(i.href))?.id || 'dashboard';
+    navSections.flatMap(s => s.items).find(i => normPathname.startsWith(i.href))?.id || 'dashboard';
 
   return (
     <div className="admin-layout">

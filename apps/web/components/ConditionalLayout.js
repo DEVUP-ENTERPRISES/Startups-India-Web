@@ -5,6 +5,9 @@ import Header from './Header';
 import Footer from './Footer';
 import { MAINTENANCE_MODE } from '@/config/maintenance';
 
+// Admin slug used in browser URL (middleware rewrites to /admin internally)
+const ADMIN_SLUG = process.env.NEXT_PUBLIC_ADMIN_SLUG || 'ctrl-x9k2m3-panel';
+
 export default function ConditionalLayout({ children }) {
   const pathname = usePathname();
   
@@ -33,7 +36,8 @@ export default function ConditionalLayout({ children }) {
   const isMentorDashboard = pathname?.startsWith('/mentor/dashboard');
   
   // Admin pages should NOT have Header/Footer (completely standalone)
-  const isAdminPage = pathname?.startsWith('/admin');
+  // Check both rewritten path (/admin) AND slug-based browser URL (/{ADMIN_SLUG})
+  const isAdminPage = pathname?.startsWith('/admin') || pathname?.startsWith(`/${ADMIN_SLUG}`);
   
   // If it's an auth page, dashboard page, course detail, learn, checkout, mentor dashboard, or admin page, render without Header/Footer
   if (isAuthPage || isDashboardPage || isCourseDetailPage || isLearnPage || isCheckoutPage || isMentorDashboard || isAdminPage) {

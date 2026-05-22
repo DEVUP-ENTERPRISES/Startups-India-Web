@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
 import { ArrowRight, Play, Rocket, Users, Target, Zap } from 'lucide-react';
+import Link from 'next/link';
 import '../styles/startup-hero-premium.css';
 
 const RotatingText = () => {
@@ -186,10 +187,12 @@ export default function StartupHeroPremium() {
 
         {/* Actions */}
         <motion.div variants={itemVariants} className="hero-actions-premium">
-          <button className="btn-primary-hero">
-            Start Your Journey
-            <ArrowRight size={20} />
-          </button>
+          <Link href="/login" className="no-underline">
+            <button className="btn-primary-hero">
+              Start Your Journey
+              <ArrowRight size={20} />
+            </button>
+          </Link>
           <button className="btn-secondary-hero">
             View Programs
           </button>

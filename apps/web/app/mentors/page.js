@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Rocket,
@@ -22,23 +22,52 @@ import {
 } from 'lucide-react';
 import MentorRegistrationModal from '@/components/MentorRegistrationModal';
 import ExploreMentorsModal from '@/components/ExploreMentorsModal';
+import BookSessionModal from '@/components/BookSessionModal';
 import ScrollToTop from '@/components/ScrollToTop';
 import '../../styles/mentors-final.css';
 import '../../styles/mentors-sections.css';
 import '../../styles/modal.css';
 
-function FindMentorModal({ onClose }) {
-  const [form, setForm] = useState({ name: '', email: '', phone: '', area: '', message: '' });
-  const [submitted, setSubmitted] = useState(false);
+import { getCurrentUser } from '@/lib/auth';
+import { useRouter, usePathname } from 'next/navigation';
 
-  const handleSubmit = (e) => {
+function FindMentorModal({ onClose, user }) {
+  const [form, setForm] = useState({ name: user?.name || '', email: user?.email || '', phone: '', area: '', message: '' });
+  const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmitted(true);
-    setTimeout(() => { onClose(); }, 2500);
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+      const res = await fetch(`${apiUrl}/api/v1/mentors/find`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify(form)
+      });
+      
+      const data = await res.json();
+      if (data.success) {
+        setSubmitted(true);
+        setTimeout(() => { onClose(); }, 2500);
+      } else {
+        alert(data.message || 'Failed to submit request');
+      }
+    } catch (error) {
+      console.error('Error submitting find mentor request:', error);
+      alert('An error occurred while submitting. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }} onClick={onClose}>
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 999999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }} onClick={onClose}>
       <motion.div
         style={{ background: '#fff', borderRadius: '20px', padding: '40px', maxWidth: '520px', width: '100%', position: 'relative', maxHeight: '90vh', overflowY: 'auto' }}
         onClick={e => e.stopPropagation()}
@@ -89,9 +118,9 @@ function FindMentorModal({ onClose }) {
                   style={{ width: '100%', padding: '12px 16px', border: '1.5px solid #e2e8f0', borderRadius: '10px', fontSize: '14px', outline: 'none', resize: 'vertical', boxSizing: 'border-box', color: '#0f172a' }}
                 />
               </div>
-              <button type="submit" style={{ background: '#dc2626', color: '#fff', padding: '14px', borderRadius: '12px', fontSize: '15px', fontWeight: '700', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                Submit Request
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              <button type="submit" disabled={loading} style={{ background: '#dc2626', color: '#fff', padding: '14px', borderRadius: '12px', fontSize: '15px', fontWeight: '700', border: 'none', cursor: loading ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', opacity: loading ? 0.7 : 1 }}>
+                {loading ? 'Submitting...' : 'Submit Request'}
+                {!loading && <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>}
               </button>
             </form>
           </>
@@ -102,11 +131,38 @@ function FindMentorModal({ onClose }) {
 }
 
 export default function MentorsPage() {
+  const router = useRouter();
+  const pathname = usePathname();
   const [showModal, setShowModal] = useState(false);
   const [showExploreModal, setShowExploreModal] = useState(false);
   const [showUserRegModal, setShowUserRegModal] = useState(false);
+  const [bookSessionMentor, setBookSessionMentor] = useState(null);
   const [mentors, setMentors] = useState([]);
+  const [user, setUser] = useState(null);
   const loading = false;
+  
+  useEffect(() => {
+    const checkAuth = () => {
+      const currentUser = getCurrentUser();
+      setUser(currentUser);
+      
+      if (window.location.hash === '#find-mentor' && currentUser) {
+        setShowUserRegModal(true);
+      }
+    };
+    checkAuth();
+    
+    window.addEventListener('auth-change', checkAuth);
+    return () => window.removeEventListener('auth-change', checkAuth);
+  }, [pathname]);
+
+  const handleFindMentorClick = () => {
+    if (!user) {
+      router.push(`/login?returnUrl=${encodeURIComponent(pathname + '#find-mentor')}`);
+      return;
+    }
+    setShowUserRegModal(true);
+  };
 
   const defaultMentors = [
     {
@@ -314,7 +370,7 @@ export default function MentorsPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.6 }}
             >
-              <button className="hero-cta-primary" onClick={() => setShowUserRegModal(true)}>
+              <button className="hero-cta-primary" onClick={handleFindMentorClick}>
                 Find Your Mentor
                 <svg
                   width="20"
@@ -1009,7 +1065,7 @@ export default function MentorsPage() {
                               </svg>
                               <span>LinkedIn Profile</span>
                             </a>
-                            <button className="action-btn-glass">
+                            <button className="action-btn-glass" onClick={() => setBookSessionMentor(mentor)}>
                               {/* Calendar SVG */}
                               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                 <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
@@ -1424,18 +1480,15 @@ export default function MentorsPage() {
                 transition={{ duration: 0.5, delay: 0.1 }}
                 viewport={{ once: true }}
               >
-                <svg className="quote-icon" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M4.583 17.321C3.553 16.227 3 15 3 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311 1.804.167 3.226 1.648 3.226 3.489a3.5 3.5 0 01-3.5 3.5c-1.073 0-2.099-.49-2.748-1.179zm10 0C13.553 16.227 13 15 13 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311 1.804.167 3.226 1.648 3.226 3.489a3.5 3.5 0 01-3.5 3.5c-1.073 0-2.099-.49-2.748-1.179z" />
-                </svg>
+                <div className="quote-mark-large">“</div>
                 <p className="testimonial-text">
-                  "The mentorship I received at Startups India transformed how I approach my startup. My mentor helped me validate my idea and pivot at the right time. Within 3 months, we secured our first paying customers."
+                  "The mentorship I received at Startups India completely changed the trajectory of my business. My mentor not only helped me validate my core idea but also guided me to pivot at exactly the right moment. Thanks to their extensive network and actionable advice, we secured our first 100 paying customers within just three months."
                 </p>
                 <div className="testimonial-author">
                   <img
-                    src="https://api.dicebear.com/7.x/avataaars/svg?seed=Priya&backgroundColor=b6e3f4"
+                    src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=100&h=100&q=80"
                     alt="Priya Sharma"
                     className="author-avatar"
-                    style={{ background: '#e8f4fd', borderRadius: '50%' }}
                   />
                   <div className="author-info">
                     <h4 className="author-name">Priya Sharma</h4>
@@ -1451,18 +1504,15 @@ export default function MentorsPage() {
                 transition={{ duration: 0.5, delay: 0.2 }}
                 viewport={{ once: true }}
               >
-                <svg className="quote-icon" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M4.583 17.321C3.553 16.227 3 15 3 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311 1.804.167 3.226 1.648 3.226 3.489a3.5 3.5 0 01-3.5 3.5c-1.073 0-2.099-.49-2.748-1.179zm10 0C13.553 16.227 13 15 13 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311 1.804.167 3.226 1.648 3.226 3.489a3.5 3.5 0 01-3.5 3.5c-1.073 0-2.099-.49-2.748-1.179z" />
-                </svg>
+                <div className="quote-mark-large">“</div>
                 <p className="testimonial-text">
-                  "Being part of the StartupsIndia ecosystem gave me access to mentors with deep industry experience. The guidance on go-to-market strategy was incredibly practical and actionable. Highly recommend!"
+                  "Being part of the StartupsIndia ecosystem gave me unparalleled access to mentors with deep industry experience. The 1-on-1 sessions on go-to-market strategy were incredibly practical, shedding light on blind spots we hadn't even considered. I highly recommend this to any founder looking to scale."
                 </p>
                 <div className="testimonial-author">
                   <img
-                    src="https://api.dicebear.com/7.x/avataaars/svg?seed=Arjun&backgroundColor=c0aede"
+                    src="https://images.unsplash.com/photo-1556157382-97eda2d62296?auto=format&fit=crop&w=100&h=100&q=80"
                     alt="Arjun Mehta"
                     className="author-avatar"
-                    style={{ background: '#f0ecfd', borderRadius: '50%' }}
                   />
                   <div className="author-info">
                     <h4 className="author-name">Arjun Mehta</h4>
@@ -1478,18 +1528,15 @@ export default function MentorsPage() {
                 transition={{ duration: 0.5, delay: 0.3 }}
                 viewport={{ once: true }}
               >
-                <svg className="quote-icon" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M4.583 17.321C3.553 16.227 3 15 3 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311 1.804.167 3.226 1.648 3.226 3.489a3.5 3.5 0 01-3.5 3.5c-1.073 0-2.099-.49-2.748-1.179zm10 0C13.553 16.227 13 15 13 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311 1.804.167 3.226 1.648 3.226 3.489a3.5 3.5 0 01-3.5 3.5c-1.073 0-2.099-.49-2.748-1.179z" />
-                </svg>
+                <div className="quote-mark-large">“</div>
                 <p className="testimonial-text">
-                  "The pre-incubation program connected me with a mentor who had built and exited two startups. His guidance on fundraising was invaluable. We raised our seed round within 6 months of the program."
+                  "The pre-incubation program connected me with a mentor who had successfully built and exited two startups in my exact sector. His strategic guidance on our pitch deck and fundraising approach was invaluable. We successfully closed our seed round within 6 months of completing the program."
                 </p>
                 <div className="testimonial-author">
                   <img
-                    src="https://api.dicebear.com/7.x/avataaars/svg?seed=Kavitha&backgroundColor=ffd5dc"
+                    src="https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=100&h=100&q=80"
                     alt="Kavitha Reddy"
                     className="author-avatar"
-                    style={{ background: '#fff0f3', borderRadius: '50%' }}
                   />
                   <div className="author-info">
                     <h4 className="author-name">Kavitha Reddy</h4>
@@ -1505,18 +1552,15 @@ export default function MentorsPage() {
                 transition={{ duration: 0.5, delay: 0.4 }}
                 viewport={{ once: true }}
               >
-                <svg className="quote-icon" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M4.583 17.321C3.553 16.227 3 15 3 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311 1.804.167 3.226 1.648 3.226 3.489a3.5 3.5 0 01-3.5 3.5c-1.073 0-2.099-.49-2.748-1.179zm10 0C13.553 16.227 13 15 13 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311 1.804.167 3.226 1.648 3.226 3.489a3.5 3.5 0 01-3.5 3.5c-1.073 0-2.099-.49-2.748-1.179z" />
-                </svg>
+                <div className="quote-mark-large">“</div>
                 <p className="testimonial-text">
-                  "StartupsIndia's mentors don't just advise — they co-create with you. My mentor helped me rethink our business model from scratch. That one conversation saved us months of going in the wrong direction."
+                  "StartupsIndia's mentors don't just give high-level advice — they roll up their sleeves and co-create with you. My mentor helped me rethink our entire business model from scratch. That one pivotal conversation saved us months of going in the wrong direction and burning through capital."
                 </p>
                 <div className="testimonial-author">
                   <img
-                    src="https://api.dicebear.com/7.x/avataaars/svg?seed=Rohit&backgroundColor=d1f0d1"
+                    src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=100&h=100&q=80"
                     alt="Rohit Nair"
                     className="author-avatar"
-                    style={{ background: '#edfaed', borderRadius: '50%' }}
                   />
                   <div className="author-info">
                     <h4 className="author-name">Rohit Nair</h4>
@@ -1541,8 +1585,16 @@ export default function MentorsPage() {
 
       {/* Find Your Mentor - User Contact Form Modal */}
       <AnimatePresence>
-        {showUserRegModal && <FindMentorModal onClose={() => setShowUserRegModal(false)} />}
+        {showUserRegModal && <FindMentorModal onClose={() => setShowUserRegModal(false)} user={user} />}
       </AnimatePresence>
+
+      {/* Book a Session Modal */}
+      {bookSessionMentor && (
+        <BookSessionModal
+          mentor={bookSessionMentor}
+          onClose={() => setBookSessionMentor(null)}
+        />
+      )}
 
       {/* Scroll to Top Button */}
       <ScrollToTop />

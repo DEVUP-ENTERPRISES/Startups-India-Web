@@ -57,7 +57,7 @@ export default function PaymentsPage() {
           <h1 className="header-title-main">Billing & Purchases</h1>
           <p className="header-subtitle-main">Monitor your active subscriptions, course investments, and financial history.</p>
         </div>
-        <button className="settings-btn-secondary mobile-full-width">
+        <button className="settings-btn-secondary mobile-full-width" onClick={() => alert('Exporting records...')}>
           <Icon name="download" size={18} /> Export Records
         </button>
       </div>
@@ -93,7 +93,7 @@ export default function PaymentsPage() {
             </div>
             <p className="pro-subtitle">Auto-renewing: {new Date(activeSubscription.currentPeriodEnd).toLocaleDateString()} · ₹{activeSubscription.planId?.price || '4,999'} / month</p>
           </div>
-          <button className="pro-manage-btn">
+          <button className="pro-manage-btn" onClick={() => alert('Manage subscription...')}>
             Manage Subscription
           </button>
         </div>
@@ -160,7 +160,7 @@ export default function PaymentsPage() {
                   <div className="col-id">{b.paymentIntentId || b._id}</div>
                   <div className="col-status">
                     <span className={`paid-badge-pill ${b.status === 'succeeded' ? '' : 'failed'}`}>{b.status === 'succeeded' ? 'Paid' : b.status}</span>
-                    <button className="btn-invoice-download">
+                    <button className="btn-invoice-download" onClick={() => alert('Downloading invoice...')}>
                       <Icon name="download" size={14} color="#ef4444" />
                     </button>
                   </div>

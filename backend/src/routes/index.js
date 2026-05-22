@@ -20,6 +20,7 @@ const { publicRouter } = require('../modules/public/public.routes');
 const { asyncHandler } = require('../utils/asyncHandler');
 const { authRequired } = require('../middlewares/authMiddleware');
 const { getActivities } = require('../utils/activityLogger');
+const env = require('../config/env');
 
 function registerRoutes(app) {
   app.use('/api/v1/auth', authRouter);
@@ -32,7 +33,12 @@ function registerRoutes(app) {
   app.use('/api/v1/learning', learningRouter);
   app.use('/api/v1/learn', learnRouter);
   app.use('/api/v1/assessments', assessmentsRouter);
-  app.use('/api/v1/admin', adminRouter);
+
+  // Admin routes mounted under the secret slug — /api/v1/admin returns 404
+  app.use(`/api/v1/${env.ADMIN_SLUG}`, adminRouter);
+
+  // Harden: explicitly 404 any attempt to reach the old /admin path
+  app.use('/api/v1/admin', (req, res) => res.status(404).json({ success: false, message: 'Not found' }));
   app.use('/api/v1/analytics', analyticsRouter);
   app.use('/api/v1/achievements', achievementsRouter);
   app.use('/api/v1/community', communityRouter);
@@ -41,6 +47,14 @@ function registerRoutes(app) {
   app.use('/api/v1/events', eventsRouter);
   app.use('/api/v1/articles', articleRouter);
   app.use('/api/v1/public', publicRouter);
+
+  // Mentors routes
+  const mentorsRouter = require('../modules/mentors/mentors.routes');
+  app.use('/api/v1/mentors', mentorsRouter);
+
+  // Investors routes
+  const investorsRouter = require('../modules/investors/investors.routes');
+  app.use('/api/v1/investors', investorsRouter);
 
   // Public upload URL endpoint (alias to media/upload-url)
   const mediaController = require('../modules/media/media.controller');

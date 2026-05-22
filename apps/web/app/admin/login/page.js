@@ -4,6 +4,9 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { signIn } from '@/lib/auth';
 
+const ADMIN_SLUG = process.env.NEXT_PUBLIC_ADMIN_SLUG || 'ctrl-x9k2m3-panel';
+const ADMIN_BASE = `/${ADMIN_SLUG}`;
+
 export default function AdminLogin() {
   const router = useRouter();
   const [email, setEmail] = useState('');
@@ -29,7 +32,7 @@ export default function AdminLogin() {
         if (data.session?.refresh_token) {
           localStorage.setItem('refresh_token', data.session.refresh_token);
         }
-        router.push('/admin/dashboard');
+        router.push(`${ADMIN_BASE}/dashboard`);
       } else {
         localStorage.removeItem('access_token');
         setError('Access denied. Admin credentials required.');

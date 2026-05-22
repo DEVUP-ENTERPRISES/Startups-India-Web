@@ -1291,15 +1291,15 @@ div.stat-card .stat-number,
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 28px;
-  max-width: 1200px;
+  max-width: 1040px;
   margin: 0 auto;
   padding: 0 24px;
 }
 
 .testimonial-card {
   background: #111112;
-  padding: 40px;
-  border-radius: 28px;
+  padding: 32px;
+  border-radius: 20px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
   border: 1px solid rgba(255, 255, 255, 0.08);
   transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
@@ -1329,15 +1329,19 @@ div.stat-card .stat-number,
   background: #121214;
 }
 
-.quote-icon {
-  color: rgba(220, 38, 38, 0.2);
-  margin-bottom: 16px;
+.quote-mark-large {
+  font-family: Georgia, serif;
+  font-size: 56px;
+  color: #dc2626;
+  line-height: 0.8;
+  margin-bottom: 8px;
+  opacity: 0.9;
 }
 
 .testimonial-text {
-  font-size: 15px;
+  font-size: 14px;
   color: rgba(255, 255, 255, 0.7);
-  line-height: 1.8;
+  line-height: 1.7;
   margin-bottom: 24px;
   font-weight: 400;
   font-style: italic;

@@ -1,16 +1,157 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useRouter, usePathname } from 'next/navigation';
+import { getCurrentUser } from '@/lib/auth';
 import InvestorRegistrationModal from '@/components/InvestorRegistrationModal';
 import ScrollToTop from '@/components/ScrollToTop';
 import '../../styles/investors.css';
 import '../../styles/modal.css';
 
+function ExploreInvestorsModal({ onClose, user }) {
+  const [form, setForm] = useState({ name: user?.name || '', email: user?.email || '', phone: '', startup_name: '', sector: '', funding_amount: '', pitch: '' });
+  const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+      const res = await fetch(`${apiUrl}/api/v1/investors/explore`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify(form)
+      });
+      
+      const data = await res.json();
+      if (data.success) {
+        setSubmitted(true);
+        setTimeout(() => { onClose(); }, 2500);
+      } else {
+        alert(data.message || 'Failed to submit request');
+      }
+    } catch (error) {
+      console.error('Error submitting explore request:', error);
+      alert('An error occurred while submitting. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 999999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }} onClick={onClose}>
+      <motion.div
+        style={{ background: '#fff', borderRadius: '20px', padding: '40px', maxWidth: '520px', width: '100%', position: 'relative', maxHeight: '90vh', overflowY: 'auto' }}
+        onClick={e => e.stopPropagation()}
+        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.9, y: 20 }}
+        transition={{ duration: 0.3 }}
+      >
+        <button onClick={onClose} style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+        {submitted ? (
+          <div style={{ textAlign: 'center', padding: '20px 0' }}>
+            <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2" style={{ marginBottom: '16px', display: 'inline-block' }}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <h3 style={{ fontSize: '22px', fontWeight: '700', color: '#0f172a', marginBottom: '8px' }}>Request Submitted!</h3>
+            <p style={{ color: '#64748b' }}>We'll review your startup and match you with suitable investors.</p>
+          </div>
+        ) : (
+          <>
+            <h2 style={{ fontSize: '24px', fontWeight: '800', color: '#0f172a', marginBottom: '6px' }}>Explore Investors</h2>
+            <p style={{ color: '#64748b', marginBottom: '24px', fontSize: '14px' }}>Share details about your startup to connect with our investor network.</p>
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {[
+                { label: 'Full Name *', name: 'name', type: 'text', placeholder: 'Your full name', required: true },
+                { label: 'Email *', name: 'email', type: 'email', placeholder: 'your@email.com', required: true },
+                { label: 'Phone Number', name: 'phone', type: 'tel', placeholder: '+91 98765 43210', required: false },
+                { label: 'Startup Name *', name: 'startup_name', type: 'text', placeholder: 'Your company name', required: true },
+                { label: 'Sector / Industry *', name: 'sector', type: 'text', placeholder: 'e.g. FinTech, SaaS, HealthTech', required: true },
+                { label: 'Funding Required (INR) *', name: 'funding_amount', type: 'text', placeholder: 'e.g. 50 Lakhs, 2 Crores', required: true },
+              ].map(field => (
+                <div key={field.name}>
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '6px' }}>{field.label}</label>
+                  <input
+                    type={field.type}
+                    placeholder={field.placeholder}
+                    required={field.required}
+                    value={form[field.name]}
+                    onChange={e => setForm(prev => ({ ...prev, [field.name]: e.target.value }))}
+                    style={{ width: '100%', padding: '12px 16px', border: '1.5px solid #e2e8f0', borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box', color: '#0f172a' }}
+                  />
+                </div>
+              ))}
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '6px' }}>Pitch Summary (optional)</label>
+                <textarea
+                  placeholder="A brief overview of your startup and why you're raising funds..."
+                  value={form.pitch}
+                  onChange={e => setForm(prev => ({ ...prev, pitch: e.target.value }))}
+                  rows={3}
+                  style={{ width: '100%', padding: '12px 16px', border: '1.5px solid #e2e8f0', borderRadius: '10px', fontSize: '14px', outline: 'none', resize: 'vertical', boxSizing: 'border-box', color: '#0f172a' }}
+                />
+              </div>
+              <button type="submit" disabled={loading} style={{ background: '#dc2626', color: '#fff', padding: '14px', borderRadius: '12px', fontSize: '15px', fontWeight: '700', border: 'none', cursor: loading ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', opacity: loading ? 0.7 : 1 }}>
+                {loading ? 'Submitting...' : 'Submit Request'}
+                {!loading && <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>}
+              </button>
+            </form>
+          </>
+        )}
+      </motion.div>
+    </div>
+  );
+}
+
 export default function InvestorsPage() {
+  const router = useRouter();
+  const pathname = usePathname();
   const [showModal, setShowModal] = useState(false);
+  const [showExploreModal, setShowExploreModal] = useState(false);
+  const [user, setUser] = useState(null);
   const [investors, setInvestors] = useState([]);
   const loading = false;
+
+  useEffect(() => {
+    const checkAuth = () => {
+      const currentUser = getCurrentUser();
+      setUser(currentUser);
+      
+      if (window.location.hash === '#explore-investors' && currentUser) {
+        setShowExploreModal(true);
+      }
+      if (window.location.hash === '#become-investor' && currentUser) {
+        setShowModal(true);
+      }
+    };
+    checkAuth();
+    
+    window.addEventListener('auth-change', checkAuth);
+    return () => window.removeEventListener('auth-change', checkAuth);
+  }, [pathname]);
+
+  const handleExploreClick = () => {
+    if (!user) {
+      router.push(`/login?returnUrl=${encodeURIComponent(pathname + '#explore-investors')}`);
+      return;
+    }
+    setShowExploreModal(true);
+  };
+
+  const handleBecomeClick = () => {
+    if (!user) {
+      router.push(`/login?returnUrl=${encodeURIComponent(pathname + '#become-investor')}`);
+      return;
+    }
+    setShowModal(true);
+  };
 
   const displayInvestors = investors.slice(0, 4);
 
@@ -67,7 +208,7 @@ export default function InvestorsPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.4 }}
             >
-              <button className="hero-cta-primary" onClick={() => setShowModal(true)}>
+              <button className="hero-cta-primary" onClick={handleExploreClick}>
                 Explore Investors
                 <svg
                   width="20"
@@ -81,7 +222,7 @@ export default function InvestorsPage() {
                   <path d="m21 21-4.35-4.35" />
                 </svg>
               </button>
-              <button className="hero-cta-secondary" onClick={() => setShowModal(true)}>
+              <button className="hero-cta-secondary" onClick={handleBecomeClick}>
                 Become an Investor
                 <svg
                   width="20"
@@ -239,7 +380,15 @@ export default function InvestorsPage() {
                   </p>
                 </div>
               </div>
-              <button className="review-btn-premium">Review Criteria</button>
+              <button 
+                className="review-btn-premium"
+                onClick={() => {
+                  const el = document.getElementById('who-can-join');
+                  if (el) el.scrollIntoView({ behavior: 'smooth' });
+                }}
+              >
+                Review Criteria
+              </button>
             </div>
           </motion.div>
         </div>
@@ -309,7 +458,7 @@ export default function InvestorsPage() {
 
                     <button 
                       className="apply-btn-premium"
-                      onClick={() => setShowModal(true)}
+                      onClick={handleBecomeClick}
                     >
                       APPLY AS AN INVESTOR
                     </button>
@@ -522,7 +671,7 @@ export default function InvestorsPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8 }}
                 viewport={{ once: true }}
-                onClick={() => setShowModal(true)}
+                onClick={handleBecomeClick}
               >
                 <div className="card-badge-top">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -568,7 +717,7 @@ export default function InvestorsPage() {
 
 
       {/* Who Can Join Section - Premium Overhaul */}
-      <section className="who-can-join-premium">
+      <section id="who-can-join" className="who-can-join-premium">
         <div className="container">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -701,7 +850,8 @@ export default function InvestorsPage() {
 
       {/* Registration Modal */}
       <AnimatePresence>
-        {showModal && <InvestorRegistrationModal onClose={() => setShowModal(false)} />}
+        {showModal && <InvestorRegistrationModal user={user} onClose={() => setShowModal(false)} />}
+        {showExploreModal && <ExploreInvestorsModal user={user} onClose={() => setShowExploreModal(false)} />}
       </AnimatePresence>
 
       {/* Scroll to Top Button */}

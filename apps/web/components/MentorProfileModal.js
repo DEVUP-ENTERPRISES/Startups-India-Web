@@ -1,5 +1,7 @@
 'use client';
 
+import { useState } from 'react';
+
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   X, 
@@ -18,8 +20,10 @@ import {
   ChevronRight
 } from 'lucide-react';
 import '../styles/mentor-profile-modal.css';
+import BookSessionModal from '@/components/BookSessionModal';
 
 export default function MentorProfileModal({ mentor, onClose }) {
+  const [showBookSession, setShowBookSession] = useState(false);
   if (!mentor) return null;
 
   // Mock data for missing fields
@@ -44,6 +48,7 @@ export default function MentorProfileModal({ mentor, onClose }) {
   };
 
   return (
+    <>
     <AnimatePresence>
       <motion.div 
         className="mentor-profile-overlay"
@@ -249,11 +254,19 @@ export default function MentorProfileModal({ mentor, onClose }) {
 
             <div className="footer-actions-main">
               <button className="btn-secondary-premium">Send Request</button>
-              <button className="btn-primary-premium">Book a Session</button>
+              <button className="btn-primary-premium" onClick={() => setShowBookSession(true)}>Book a Session</button>
             </div>
           </footer>
         </motion.div>
       </motion.div>
     </AnimatePresence>
+
+    {showBookSession && (
+      <BookSessionModal
+        mentor={mentor}
+        onClose={() => setShowBookSession(false)}
+      />
+    )}
+    </>
   );
 }

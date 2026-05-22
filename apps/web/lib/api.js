@@ -5,6 +5,16 @@ const API_BASE =
   process.env.NEXT_PUBLIC_API_URL ||
   'http://localhost:5000';
 
+// Transparently rewrite /api/v1/admin/* → /api/v1/{slug}/* so no admin page
+// needs updating. The literal string '/api/v1/admin' is never sent to the server.
+const ADMIN_SLUG = process.env.NEXT_PUBLIC_ADMIN_SLUG || 'ctrl-x9k2m3-panel';
+function resolveAdminPath(path) {
+  if (path.startsWith('/api/v1/admin')) {
+    return path.replace('/api/v1/admin', `/api/v1/${ADMIN_SLUG}`);
+  }
+  return path;
+}
+
 function getToken() {
   return typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
 }
@@ -56,9 +66,11 @@ export async function apiFetch(path, options = {}) {
     ...options.headers,
   };
 
+  const resolvedPath = resolveAdminPath(path);
+
   let res;
   try {
-    res = await fetch(`${API_BASE}${path}`, {
+    res = await fetch(`${API_BASE}${resolvedPath}`, {
       ...options,
       headers,
       credentials: 'include',
@@ -77,7 +89,7 @@ export async function apiFetch(path, options = {}) {
         ...(newToken ? { Authorization: `Bearer ${newToken}` } : {}),
       };
       try {
-        res = await fetch(`${API_BASE}${path}`, {
+        res = await fetch(`${API_BASE}${resolvedPath}`, {
           ...options,
           _retried: true,
           headers: retryHeaders,

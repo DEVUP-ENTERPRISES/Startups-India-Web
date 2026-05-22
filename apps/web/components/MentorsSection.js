@@ -4,11 +4,13 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { getCurrentUser } from '@/lib/auth';
+import BookSessionModal from '@/components/BookSessionModal';
 
 export default function MentorsSection() {
   const router = useRouter();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const [bookSessionMentor, setBookSessionMentor] = useState(null);
 
   useEffect(() => {
     async function checkAuth() {
@@ -26,15 +28,11 @@ export default function MentorsSection() {
 
   const handleApplyClick = () => {
     setIsRedirecting(true);
-    // Add a slight delay for the premium "loading" transition feel
-    setTimeout(() => {
-      if (isLoggedIn) {
-        router.push('/courses');
-      } else {
-        // Pass the returnUrl to redirect back after sign in
-        router.push('/login?returnUrl=/courses');
-      }
-    }, 800);
+    if (isLoggedIn) {
+      router.push('/courses');
+    } else {
+      router.push('/login?returnUrl=/courses');
+    }
   };
 
   const mentors = [
@@ -101,6 +99,7 @@ export default function MentorsSection() {
   ];
 
   return (
+    <>
     <section className="mentors-section">
       <div className="mentors-container">
         {/* Header */}
@@ -237,7 +236,7 @@ export default function MentorsSection() {
                 </div>
 
                 {/* CTA */}
-                <button className="mentor-cta">
+                <button className="mentor-cta" onClick={() => setBookSessionMentor(mentor)}>
                   <span style={{ fontWeight: 700, fontSize: 15 }}>Book a Session</span>
                   <svg
                     width="16"
@@ -298,5 +297,14 @@ export default function MentorsSection() {
         </motion.div>
       </div>
     </section>
+
+    {/* Book Session Modal */}
+    {bookSessionMentor && (
+      <BookSessionModal
+        mentor={bookSessionMentor}
+        onClose={() => setBookSessionMentor(null)}
+      />
+    )}
+    </>
   );
 }

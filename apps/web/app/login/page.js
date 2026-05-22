@@ -45,9 +45,7 @@ function LoginContent() {
   const handleNavigation = (e, path) => {
     e.preventDefault();
     setIsSwitching(true);
-    setTimeout(() => {
-      router.push(path);
-    }, 500); // match animation duration
+    router.push(path);
   };
 
   // Redirect if already logged in
@@ -68,7 +66,7 @@ function LoginContent() {
         }
         if (data) {
           setSuccess(true);
-          setTimeout(() => router.push(returnUrl), 1500);
+          router.push(returnUrl);
         }
       });
     }
@@ -90,9 +88,7 @@ function LoginContent() {
 
       if (data) {
         setSuccess(true);
-        setTimeout(() => {
-          router.push(returnUrl);
-        }, 2000);
+        router.push(returnUrl);
       }
     } catch (err) {
       setError('An unexpected error occurred. Please try again.');

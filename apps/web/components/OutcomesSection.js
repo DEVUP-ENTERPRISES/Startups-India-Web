@@ -1,8 +1,10 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 
 export default function OutcomesSection() {
+  const router = useRouter();
   const outcomes = [
     {
       id: 1,
@@ -169,7 +171,7 @@ export default function OutcomesSection() {
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.6 }}
         >
-          <button className="outcomes-btn">
+          <button className="outcomes-btn" onClick={() => router.push('/programs')}>
             <span>See What You'll Build</span>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <path d="M5 12h14M12 5l7 7-7 7"/>
