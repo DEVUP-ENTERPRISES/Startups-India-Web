@@ -29,9 +29,17 @@ export default function MentorsSection() {
   const handleApplyClick = () => {
     setIsRedirecting(true);
     if (isLoggedIn) {
-      router.push('/courses');
+      router.push('/mentors#become-mentor');
     } else {
-      router.push('/login?returnUrl=/courses');
+      router.push('/login?returnUrl=/mentors#become-mentor');
+    }
+  };
+
+  const handleBookSessionClick = (mentor) => {
+    if (isLoggedIn) {
+      setBookSessionMentor(mentor);
+    } else {
+      router.push('/login?returnUrl=/');
     }
   };
 
@@ -236,7 +244,7 @@ export default function MentorsSection() {
                 </div>
 
                 {/* CTA */}
-                <button className="mentor-cta" onClick={() => setBookSessionMentor(mentor)}>
+                <button className="mentor-cta" onClick={() => handleBookSessionClick(mentor)}>
                   <span style={{ fontWeight: 700, fontSize: 15 }}>Book a Session</span>
                   <svg
                     width="16"
