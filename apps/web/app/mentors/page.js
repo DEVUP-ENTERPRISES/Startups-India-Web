@@ -133,12 +133,21 @@ export default function MentorsPage() {
   const loading = false;
   
   useEffect(() => {
-    const checkAuth = () => {
-      const currentUser = getCurrentUser();
-      setUser(currentUser);
-      
-      if (window.location.hash === '#find-mentor' && currentUser) {
-        setShowUserRegModal(true);
+    const checkAuth = async () => {
+      try {
+        const { data } = await getCurrentUser();
+        const currentUser = data?.user || null;
+        setUser(currentUser);
+        
+        if (window.location.hash === '#find-mentor' && currentUser) {
+          setShowUserRegModal(true);
+        }
+        if (window.location.hash === '#become-mentor' && currentUser) {
+          setShowModal(true);
+        }
+      } catch (err) {
+        console.error('Auth check failed:', err);
+        setUser(null);
       }
     };
     checkAuth();

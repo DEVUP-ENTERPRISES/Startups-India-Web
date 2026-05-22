@@ -111,15 +111,21 @@ export default function InvestorsPage() {
   const loading = false;
 
   useEffect(() => {
-    const checkAuth = () => {
-      const currentUser = getCurrentUser();
-      setUser(currentUser);
-      
-      if (window.location.hash === '#explore-investors' && currentUser) {
-        setShowExploreModal(true);
-      }
-      if (window.location.hash === '#become-investor' && currentUser) {
-        setShowModal(true);
+    const checkAuth = async () => {
+      try {
+        const { data } = await getCurrentUser();
+        const currentUser = data?.user || null;
+        setUser(currentUser);
+        
+        if (window.location.hash === '#explore-investors' && currentUser) {
+          setShowExploreModal(true);
+        }
+        if (window.location.hash === '#become-investor' && currentUser) {
+          setShowModal(true);
+        }
+      } catch (err) {
+        console.error('Auth check failed:', err);
+        setUser(null);
       }
     };
     checkAuth();
