@@ -11,6 +11,7 @@ const { registerRoutes } = require('./routes');
 const { metricsMiddleware, getMetricsSnapshot } = require('./infrastructure/observability/metrics');
 const { redisRateLimit } = require('./middlewares/rateLimit.middleware');
 const { getCacheStats, isRedisReady } = require('./infrastructure/cache/redis');
+const { stripMongoOperators } = require('./utils/sanitizer');
 const mongoose = require('mongoose');
 
 const app = express();
@@ -102,6 +103,14 @@ app.use('/api/v1/payments/webhook', express.raw({ type: 'application/json' }));
 app.use('/api/v1/payments/razorpay/webhook', express.raw({ type: 'application/json' }));
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));
+
+// Strip MongoDB operator keys ($gt, $where, etc.) from request bodies to prevent NoSQL injection
+app.use((req, res, next) => {
+  if (req.body && typeof req.body === 'object') {
+    req.body = stripMongoOperators(req.body);
+  }
+  next();
+});
 app.use(morgan(env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 app.use(metricsMiddleware);
 
@@ -117,29 +126,43 @@ app.use(
 // Redis-backed rate limiter (100 req/min per IP, graceful fallback to in-memory above)
 app.use(redisRateLimit({ windowSeconds: 60, max: 500, prefix: 'rl:global' }));
 
+// Internal-only health check — public response is minimal; full details require internal token
 app.get('/health', (req, res) => {
-  const mongoState = mongoose.connection.readyState; // 0=disconnected,1=connected,2=connecting,3=disconnecting
-  const mongoStatus =
-    ['disconnected', 'connected', 'connecting', 'disconnecting'][mongoState] || 'unknown';
+  const mongoState = mongoose.connection.readyState;
+  const ok = mongoState === 1;
 
-  res.json({
-    status: mongoState === 1 ? 'ok' : 'degraded',
-    uptime: process.uptime(),
-    timestamp: new Date().toISOString(),
-    environment: env.NODE_ENV,
-    worker: process.env.pm_id || 'standalone',
-    pid: process.pid,
-    memory: {
-      rss: Math.round(process.memoryUsage().rss / 1024 / 1024) + 'MB',
-      heap: Math.round(process.memoryUsage().heapUsed / 1024 / 1024) + 'MB',
-    },
-    mongo: mongoStatus,
-    redis: isRedisReady() ? 'connected' : 'disconnected',
-    cache: getCacheStats(),
-  });
+  const internalToken = req.headers['x-internal-token'];
+  const isInternal = internalToken && internalToken === env.INTERNAL_API_KEY;
+
+  if (isInternal) {
+    const mongoStatus = ['disconnected', 'connected', 'connecting', 'disconnecting'][mongoState] || 'unknown';
+    return res.json({
+      status: ok ? 'ok' : 'degraded',
+      uptime: process.uptime(),
+      timestamp: new Date().toISOString(),
+      environment: env.NODE_ENV,
+      worker: process.env.pm_id || 'standalone',
+      pid: process.pid,
+      memory: {
+        rss: Math.round(process.memoryUsage().rss / 1024 / 1024) + 'MB',
+        heap: Math.round(process.memoryUsage().heapUsed / 1024 / 1024) + 'MB',
+      },
+      mongo: mongoStatus,
+      redis: isRedisReady() ? 'connected' : 'disconnected',
+      cache: getCacheStats(),
+    });
+  }
+
+  // Public: status only
+  res.status(ok ? 200 : 503).json({ status: ok ? 'ok' : 'degraded' });
 });
 
+// Metrics endpoint restricted to internal consumers
 app.get('/metrics', (req, res) => {
+  const internalToken = req.headers['x-internal-token'];
+  if (!internalToken || internalToken !== env.INTERNAL_API_KEY) {
+    return res.status(403).json({ success: false, message: 'Forbidden' });
+  }
   res.json({ success: true, data: getMetricsSnapshot() });
 });
 
@@ -155,6 +178,7 @@ const authLimiter = rateLimit({
 app.use('/api/v1/auth/login', authLimiter);
 app.use('/api/v1/auth/signup', authLimiter);
 app.use('/api/v1/auth/forgot-password', authLimiter);
+app.use('/api/v1/auth/refresh', authLimiter);
 
 // Stricter rate limit for admin panel — 120 req/min per IP
 app.use(

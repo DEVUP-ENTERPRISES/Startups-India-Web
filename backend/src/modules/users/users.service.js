@@ -5,15 +5,26 @@ async function updateCurrentUser(userId, input) {
   const user = await User.findById(userId);
   if (!user) throw new ApiError(404, 'User not found');
 
-  if (typeof input.full_name !== 'undefined') {
-    user.fullName = input.full_name;
-  }
+  // Explicit field mapping — no mass assignment
+  if (typeof input.full_name === 'string') user.fullName = input.full_name.trim().slice(0, 120);
+  if (typeof input.headline === 'string') user.headline = input.headline.trim().slice(0, 200);
+  if (typeof input.bio === 'string') user.bio = input.bio.trim().slice(0, 2000);
+  if (typeof input.city === 'string') user.city = input.city.trim();
+  if (typeof input.phone === 'string') user.phone = input.phone.trim();
+  if (typeof input.state === 'string') user.state = input.state.trim();
+  if (typeof input.avatarUrl === 'string') user.avatarUrl = input.avatarUrl.trim();
 
-  user.metadata = {
-    emailNotifications: input.email_notifications ?? user.metadata?.emailNotifications,
-    courseUpdates: input.course_updates ?? user.metadata?.courseUpdates,
-    marketingEmails: input.marketing_emails ?? user.metadata?.marketingEmails,
-  };
+  // Map legacy preference keys to schema fields (notificationPrefs)
+  if (typeof input.email_notifications === 'boolean') {
+    user.notificationPrefs.learning = input.email_notifications;
+    user.notificationPrefs.assessments = input.email_notifications;
+  }
+  if (typeof input.course_updates === 'boolean') {
+    user.notificationPrefs.community = input.course_updates;
+  }
+  if (typeof input.marketing_emails === 'boolean') {
+    user.notificationPrefs.marketing = input.marketing_emails;
+  }
 
   await user.save();
 
@@ -24,9 +35,9 @@ async function updateCurrentUser(userId, input) {
     role: user.role,
     user_metadata: {
       full_name: user.fullName,
-      email_notifications: user.metadata.emailNotifications,
-      course_updates: user.metadata.courseUpdates,
-      marketing_emails: user.metadata.marketingEmails,
+      email_notifications: user.notificationPrefs.learning,
+      course_updates: user.notificationPrefs.community,
+      marketing_emails: user.notificationPrefs.marketing,
     },
   };
 }

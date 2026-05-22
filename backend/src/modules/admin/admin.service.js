@@ -17,6 +17,7 @@ const mediaService = require('../media/media.service');
 const { Media } = require('../media/media.model');
 const { cacheDel, cacheFlushPattern } = require('../../infrastructure/cache/redis');
 const { extractS3Key } = require('../../utils/s3');
+const { escapeRegex, sanitizeSort } = require('../../utils/sanitizer');
 
 function normalizeAttachments(attachments = []) {
   if (!Array.isArray(attachments)) return [];
@@ -130,20 +131,23 @@ async function getDashboardAnalytics() {
 }
 
 // ─── USERS ──────────────────────────────────────────────────────
+const USER_SORT_FIELDS = ['createdAt', 'updatedAt', 'fullName', 'email', 'role'];
 async function listUsers({ page = 1, limit = 20, search, role, sort = '-createdAt' }) {
   const query = {};
   if (search) {
+    const safe = escapeRegex(search);
     query.$or = [
-      { fullName: { $regex: search, $options: 'i' } },
-      { email: { $regex: search, $options: 'i' } },
+      { fullName: { $regex: safe, $options: 'i' } },
+      { email: { $regex: safe, $options: 'i' } },
     ];
   }
   if (role) query.role = role;
 
+  const safeSort = sanitizeSort(sort, USER_SORT_FIELDS, '-createdAt');
   const total = await User.countDocuments(query);
   const users = await User.find(query)
     .select('-passwordHash -refreshTokenHash')
-    .sort(sort)
+    .sort(safeSort)
     .skip((page - 1) * limit)
     .limit(limit);
 
@@ -179,15 +183,17 @@ async function deleteUser(id) {
 }
 
 // ─── COURSES ────────────────────────────────────────────────────
+const COURSE_SORT_FIELDS = ['createdAt', 'updatedAt', 'title', 'priceInr', 'enrolledCount'];
 async function listCourses({ page = 1, limit = 20, search, status, sort = '-createdAt' }) {
   const query = {};
-  if (search) query.title = { $regex: search, $options: 'i' };
+  if (search) query.title = { $regex: escapeRegex(search), $options: 'i' };
   if (status === 'published') query.isPublished = true;
   if (status === 'draft') query.isPublished = false;
 
+  const safeSort = sanitizeSort(sort, COURSE_SORT_FIELDS, '-createdAt');
   const total = await Course.countDocuments(query);
   const courses = await Course.find(query)
-    .sort(sort)
+    .sort(safeSort)
     .skip((page - 1) * limit)
     .limit(limit);
 
@@ -368,22 +374,25 @@ async function refundPayment(id) {
 }
 
 // ─── ENROLLMENTS ────────────────────────────────────────────────
+const ENROLLMENT_SORT_FIELDS = ['createdAt', 'updatedAt', 'completionPercent'];
 async function listEnrollments({ page = 1, limit = 20, search, sort = '-createdAt' }) {
   const query = {};
   if (search) {
+    const safe = escapeRegex(search);
     const users = await User.find({
       $or: [
-        { fullName: { $regex: search, $options: 'i' } },
-        { email: { $regex: search, $options: 'i' } },
+        { fullName: { $regex: safe, $options: 'i' } },
+        { email: { $regex: safe, $options: 'i' } },
       ],
     }).select('_id');
     query.userId = { $in: users.map(u => u._id) };
   }
+  const safeSort = sanitizeSort(sort, ENROLLMENT_SORT_FIELDS, '-createdAt');
   const total = await Enrollment.countDocuments(query);
   const enrollments = await Enrollment.find(query)
     .populate('userId', 'fullName email')
     .populate('courseId', 'title slug')
-    .sort(sort)
+    .sort(safeSort)
     .skip((page - 1) * limit)
     .limit(limit);
 
@@ -419,19 +428,22 @@ async function revokeCertificate(id) {
 }
 
 // ─── ARTICLES ───────────────────────────────────────────────────────
+const ARTICLE_SORT_FIELDS = ['createdAt', 'updatedAt', 'publishedAt', 'title', 'metrics.viewsCount'];
 async function listArticles({ page = 1, limit = 20, status, category, search, sort = '-createdAt' }) {
   const query = {};
   if (status) query.status = status;
   if (category) query.category = category;
   if (search) {
+    const safe = escapeRegex(search);
     query.$or = [
-      { title: { $regex: search, $options: 'i' } },
-      { 'author.name': { $regex: search, $options: 'i' } }
+      { title: { $regex: safe, $options: 'i' } },
+      { 'author.name': { $regex: safe, $options: 'i' } },
     ];
   }
+  const safeSort = sanitizeSort(sort, ARTICLE_SORT_FIELDS, '-createdAt');
   const total = await Article.countDocuments(query);
   const articles = await Article.find(query)
-    .sort(sort)
+    .sort(safeSort)
     .skip((page - 1) * limit)
     .limit(limit);
   return { articles, total, page, pages: Math.ceil(total / limit) };
@@ -585,16 +597,19 @@ async function duplicateEvent(id, userId) {
   return newEvent;
 }
 
+const EVENT_REG_SORT_FIELDS = ['createdAt', 'fullName', 'email', 'attendanceStatus', 'paymentStatus'];
 async function getEventRegistrations(id, { page = 1, limit = 20, search, status, paymentStatus, sort = '-createdAt' }) {
   const query = { event: id };
   if (search) {
+    const safe = escapeRegex(search);
     query.$or = [
-      { fullName: { $regex: search, $options: 'i' } },
-      { email: { $regex: search, $options: 'i' } },
+      { fullName: { $regex: safe, $options: 'i' } },
+      { email: { $regex: safe, $options: 'i' } },
     ];
   }
   if (status) query.attendanceStatus = status;
   if (paymentStatus) query.paymentStatus = paymentStatus;
+  sort = sanitizeSort(sort, EVENT_REG_SORT_FIELDS, '-createdAt');
 
   const total = await EventRegistration.countDocuments(query);
   const registrations = await EventRegistration.find(query)

@@ -255,6 +255,53 @@ function validateAndSanitize(formData, schema) {
   };
 }
 
+/**
+ * Escape special regex characters to prevent ReDoS attacks.
+ * Use when passing user input into a MongoDB $regex query.
+ * @param {string} str
+ * @returns {string}
+ */
+function escapeRegex(str) {
+  if (typeof str !== 'string') return '';
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * Recursively remove keys that start with '$' from an object.
+ * Prevents NoSQL operator injection via user-controlled request bodies.
+ * @param {*} value
+ * @returns {*}
+ */
+function stripMongoOperators(value) {
+  if (Array.isArray(value)) {
+    return value.map(stripMongoOperators);
+  }
+  if (value !== null && typeof value === 'object') {
+    const cleaned = {};
+    for (const [k, v] of Object.entries(value)) {
+      if (!k.startsWith('$')) {
+        cleaned[k] = stripMongoOperators(v);
+      }
+    }
+    return cleaned;
+  }
+  return value;
+}
+
+/**
+ * Return a safe sort string that only allows known field names and a leading '-'.
+ * Falls back to the provided default if the input is invalid.
+ * @param {string} sort - raw sort param from req.query
+ * @param {string[]} allowed - whitelisted field names
+ * @param {string} defaultSort
+ * @returns {string}
+ */
+function sanitizeSort(sort, allowed, defaultSort) {
+  if (typeof sort !== 'string') return defaultSort;
+  const field = sort.startsWith('-') ? sort.slice(1) : sort;
+  return allowed.includes(field) ? sort : defaultSort;
+}
+
 module.exports = {
   sanitizeInput,
   sanitizeHTML,
@@ -264,5 +311,8 @@ module.exports = {
   escapeHTML,
   isValidEmail,
   isValidPhone,
-  validateAndSanitize
+  validateAndSanitize,
+  escapeRegex,
+  stripMongoOperators,
+  sanitizeSort,
 };
