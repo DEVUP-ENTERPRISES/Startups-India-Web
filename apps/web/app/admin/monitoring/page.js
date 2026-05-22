@@ -231,7 +231,17 @@ export default function MonitoringPage() {
   const [autoRefresh, setAutoRefresh] = useState(true);
 
   const loadData = useCallback(async () => {
-    const { data: result } = await apiGet('/api/v1/admin/monitoring');
+    if (typeof window !== 'undefined' && !localStorage.getItem('access_token')) {
+      setAutoRefresh(false);
+      setLoading(false);
+      return;
+    }
+    const { data: result, error } = await apiGet('/api/v1/admin/monitoring');
+    if (error?.message === 'Authentication failed' || !localStorage.getItem('access_token')) {
+      setAutoRefresh(false);
+      setLoading(false);
+      return;
+    }
     if (result) {
       setData(result);
       setLastRefresh(new Date());

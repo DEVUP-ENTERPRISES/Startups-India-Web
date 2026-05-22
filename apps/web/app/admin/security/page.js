@@ -95,6 +95,12 @@ export default function SecurityCommandCenter() {
   liveRef.current = liveMode;
 
   const fetchData = useCallback(async (p = 1) => {
+    if (typeof window !== 'undefined' && !localStorage.getItem('access_token')) {
+      setLiveMode(false);
+      setLoading(false);
+      return;
+    }
+
     const params = new URLSearchParams({ page: p, limit: 30 });
     if (filter.type) params.set('type', filter.type);
     if (filter.severity) params.set('severity', filter.severity);
@@ -105,6 +111,13 @@ export default function SecurityCommandCenter() {
       apiGet(`/api/v1/admin/observability/security/events?${params}`),
       apiGet('/api/v1/admin/observability/security/feed'),
     ]);
+    
+    if (sumRes.error || evRes.error) {
+      if (sumRes.error?.message === 'Authentication failed' || evRes.error?.message === 'Authentication failed' || !localStorage.getItem('access_token')) {
+        setLiveMode(false);
+      }
+    }
+    
     if (sumRes.data) setSummary(sumRes.data);
     if (evRes.data) { setEvents(evRes.data.events || []); setTotal(evRes.data.total || 0); }
     if (feedRes.data) setFeed(Array.isArray(feedRes.data) ? feedRes.data.slice(0, 20) : []);

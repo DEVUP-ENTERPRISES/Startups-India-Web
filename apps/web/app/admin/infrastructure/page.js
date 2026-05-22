@@ -111,7 +111,17 @@ export default function InfrastructurePage() {
     // SSE doesn't support custom headers — use a short-lived fetch to seed data instead,
     // then fall back to 10s polling so auth stays secure (token stays in Authorization header).
     const poll = setInterval(async () => {
+      if (!localStorage.getItem('access_token')) {
+        clearInterval(poll);
+        setSseActive(false);
+        return;
+      }
       const res = await apiGet('/api/v1/admin/observability/health');
+      if (res.error?.message === 'Authentication failed') {
+        clearInterval(poll);
+        setSseActive(false);
+        return;
+      }
       if (res.data) { setHealth(res.data); setSseActive(true); }
     }, 10000);
 
