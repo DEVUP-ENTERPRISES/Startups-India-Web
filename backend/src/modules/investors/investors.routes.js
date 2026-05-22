@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const investorsController = require('./investors.controller');
-const { auth } = require('../../middleware/auth');
+const { authRequired } = require('../../middlewares/authMiddleware');
 
-router.post('/request', auth, investorsController.submitRequest);
-router.post('/explore', auth, investorsController.exploreRequest);
+router.post('/request', authRequired, investorsController.submitRequest);
+router.post('/explore', authRequired, investorsController.exploreRequest);
 
 module.exports = router;
