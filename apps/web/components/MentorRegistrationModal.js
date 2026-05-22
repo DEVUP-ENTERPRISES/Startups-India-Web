@@ -313,16 +313,11 @@ export default function MentorRegistrationModal({ onClose }) {
     setLoading(true);
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-      const res = await fetch(`${apiUrl}/api/v1/mentors/apply`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      });
-      const data = await res.json();
+      const { apiPost } = await import('@/lib/api');
+      const { data, error } = await apiPost('/api/v1/mentors/apply', formData);
       
-      if (!res.ok || !data.success) {
-        throw new Error(data.message || 'Registration failed');
+      if (error) {
+        throw new Error(error.message || 'Registration failed');
       }
 
       // Success!

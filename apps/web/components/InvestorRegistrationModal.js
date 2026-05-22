@@ -71,20 +71,11 @@ export default function InvestorRegistrationModal({ isOpen, onClose, user }) {
     setError('');
 
     try {
-      const token = localStorage.getItem('token');
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-      const res = await fetch(`${apiUrl}/api/v1/investors/request`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-        },
-        body: JSON.stringify(formData)
-      });
+      const { apiPost } = await import('@/lib/api');
+      const { data, error } = await apiPost('/api/v1/investors/request', formData);
       
-      const data = await res.json();
-      if (!data.success) {
-        throw new Error(data.message || 'Failed to submit request');
+      if (error) {
+        throw new Error(error.message || 'Failed to submit request');
       }
 
       setSuccess(true);

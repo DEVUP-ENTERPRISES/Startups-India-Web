@@ -40,23 +40,14 @@ function FindMentorModal({ onClose, user }) {
     e.preventDefault();
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-      const res = await fetch(`${apiUrl}/api/v1/mentors/find`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-        },
-        body: JSON.stringify(form)
-      });
+      const { apiPost } = await import('@/lib/api');
+      const { data, error } = await apiPost('/api/v1/mentors/find', form);
       
-      const data = await res.json();
-      if (data.success) {
+      if (!error) {
         setSubmitted(true);
         setTimeout(() => { onClose(); }, 2500);
       } else {
-        alert(data.message || 'Failed to submit request');
+        alert(error.message || 'Failed to submit request');
       }
     } catch (error) {
       console.error('Error submitting find mentor request:', error);
