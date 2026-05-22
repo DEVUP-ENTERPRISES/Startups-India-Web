@@ -5,18 +5,6 @@ import '../styles/training.css';
 const trainingData = [
   {
     id: 1,
-    title: 'Why Pre-incubation is Important',
-    description:
-      'Understand the significance of pre-incubation and how it sets the foundation for startup success.',
-    instructorName: 'Ravi Tilekar',
-    instructorRole: 'Pre-incubation Specialist',
-    instructorAvatar: '/assets/images/Ravi Tilekar.jpg',
-    tags: ['Clarity', 'Mindset', 'Entrepreneurship'],
-    views: '12.5K Views',
-    image: '/assets/images/Demo-class.jpg',
-  },
-  {
-    id: 2,
     title: 'Idea Validation',
     description:
       'Learn systematic approaches to validate your startup idea before investing significant resources.',
@@ -24,26 +12,45 @@ const trainingData = [
     instructorRole: 'Product & Tech Advisor',
     instructorAvatar: '/assets/images/Vishwaraj.jpg',
     tags: ['Idea Validation', 'Audience', 'Market'],
+    views: '12.5K Views',
+    image: 'https://drive.google.com/thumbnail?id=1F3yg7-FX0o-dgZUeBTaV58_4byptKFzi&sz=w1000',
+    videoUrl: 'https://drive.google.com/file/d/1lKCjQY8BX6Fud1KcfJjp5ZT2vHBn01LO/view?usp=drive_link',
+  },
+  {
+    id: 2,
+    title: 'Market Understanding',
+    description:
+      'Understand your target market, audience needs, and opportunities before building your startup.',
+    instructorName: 'Vishwaraj Saude',
+    instructorRole: 'Product & Tech Advisor',
+    instructorAvatar: '/assets/images/Vishwaraj.jpg',
+    tags: ['Market', 'Audience', 'Research'],
     views: '15.2K Views',
-    image: '/assets/images/IDEAX PITCHFEST.JPG',
+    image: 'https://drive.google.com/thumbnail?id=1-oIQT24y9HUyJyG2AU-UPwt6V41spGYE&sz=w1000',
+    videoUrl: 'https://drive.google.com/file/d/1PTcaoaKlN7IOJrcHmfd35j18WTdyJNQ2/view?usp=drive_link',
   },
   {
     id: 3,
-    title: 'Business Model',
+    title: 'Marketing and Go To Market Strategy',
     description:
-      'Structure your roadmap with a solid business plan that attracts investors and guides growth.',
-    instructorName: 'Avinash Tilekar',
-    instructorRole: 'Business Model Expert',
-    instructorAvatar: '/assets/images/Avinash Tilekar.jpg',
-    tags: ['Structure', 'Roadmap', 'Business Plan'],
+      'Plan your marketing approach and go-to-market strategy to reach customers effectively.',
+    instructorName: 'Vishwaraj Saude',
+    instructorRole: 'Product & Tech Advisor',
+    instructorAvatar: '/assets/images/Vishwaraj.jpg',
+    tags: ['Marketing', 'Strategy', 'Go To Market'],
     views: '18.7K Views',
-    image: '/assets/images/Mentoring  .jpg',
+    image: 'https://drive.google.com/thumbnail?id=1PKoxBY9efZ5wgV9aE1lBj8cR8tWMxKyd&sz=w1000',
+    videoUrl: 'https://drive.google.com/file/d/1mQUJSxCDhPa3mvDjqSyuWqo9oImsWYkW/view?usp=drive_link',
   },
 ];
 
 export default function TrainingSection() {
   const scrollRef = useRef(null);
   const [activeIndex, setActiveIndex] = useState(0);
+
+  const openVideo = videoUrl => {
+    window.open(videoUrl, '_blank', 'noopener,noreferrer');
+  };
 
   const handleScroll = () => {
     if (scrollRef.current) {
@@ -143,7 +150,7 @@ export default function TrainingSection() {
             {trainingData.map(course => (
               <div key={course.id} className="training-card">
                 {/* Top - Video Thumbnail */}
-                <div className="training-thumbnail-container">
+                <div className="training-thumbnail-container" onClick={() => openVideo(course.videoUrl)}>
                   <img src={course.image} alt={course.title} className="training-thumbnail" />
                   <div className="training-overlay"></div>
                   <div className="play-button">
@@ -181,7 +188,7 @@ export default function TrainingSection() {
                 {/* Footer */}
                 <div className="training-footer">
                   <span className="training-views">{course.views}</span>
-                  <button className="training-cta">Watch Demo</button>
+                  <button className="training-cta" onClick={() => openVideo(course.videoUrl)}>Watch Demo</button>
                 </div>
               </div>
             ))}
