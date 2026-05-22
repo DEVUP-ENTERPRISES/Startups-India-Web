@@ -273,46 +273,6 @@ export default function MentorsPage() {
 
   const displayMentors = mentors.length > 0 ? mentors : defaultMentors;
 
-  // Mentor expertise cards data
-  const mentorCards = [
-    {
-      name: 'Dr. Priya S.',
-      expertise: 'AI/ML Expert',
-      company: 'Google',
-      gender: 'female',
-      delay: 0,
-    },
-    { name: 'Rahul K.', expertise: 'Growth Hacking', company: 'Meta', gender: 'male', delay: 1.5 },
-    {
-      name: 'Anita D.',
-      expertise: 'Product Strategy',
-      company: 'Apple',
-      gender: 'female',
-      delay: 3,
-    },
-    {
-      name: 'Vikram S.',
-      expertise: 'Enterprise Sales',
-      company: 'Salesforce',
-      gender: 'male',
-      delay: 4.5,
-    },
-    {
-      name: 'Meera P.',
-      expertise: 'Tech Leadership',
-      company: 'Netflix',
-      gender: 'female',
-      delay: 6,
-    },
-    {
-      name: 'Arjun M.',
-      expertise: 'Fundraising Pro',
-      company: 'Sequoia',
-      gender: 'male',
-      delay: 7.5,
-    },
-  ];
-
   return (
     <div className="mentors-page">
       {/* Hero Section */}
@@ -423,65 +383,6 @@ export default function MentorsPage() {
             </motion.div>
           </div>
 
-          {/* Floating Mentor Cards */}
-          <div className="mentor-cards-container">
-            {mentorCards.map((card, index) => (
-              <motion.div
-                key={index}
-                className={`mentor-card mentor-card-${index + 1}`}
-                initial={{ opacity: 0, x: -50, y: 50 }}
-                animate={{
-                  opacity: [0, 1, 1, 0],
-                  x: [-50, 0, 0, 50],
-                  y: [50, 0, -30, -80],
-                }}
-                transition={{
-                  duration: 4,
-                  delay: card.delay,
-                  repeat: Infinity,
-                  repeatDelay: 2,
-                  ease: [0.43, 0.13, 0.23, 0.96],
-                }}
-              >
-                <div className="mentor-card-avatar">
-                  {card.gender === 'female' ? (
-                    <svg
-                      width="28"
-                      height="28"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                      <circle cx="12" cy="7" r="4" />
-                    </svg>
-                  ) : (
-                    <svg
-                      width="28"
-                      height="28"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                      <circle cx="12" cy="7" r="4" />
-                    </svg>
-                  )}
-                </div>
-                <div className="mentor-card-content">
-                  <div className="mentor-card-name">{card.name}</div>
-                  <div className="mentor-card-expertise">{card.expertise}</div>
-                  <div className="mentor-card-company">@ {card.company}</div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
         </div>
       </section>
 
