@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
+import { getCurrentUser } from '@/lib/auth';
 import WhyJoinProgramSection from '@/components/WhyJoinProgramSection';
 import CTAStripSection from '@/components/CTAStripSection';
 import ProgramTimelineSection from '@/components/ProgramTimelineSection';
@@ -27,10 +29,23 @@ import '../../../styles/demo-classes.css';
 import '../../../styles/pre-incubation-spacing.css';
 
 export default function PreIncubationPage() {
+  const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
+    async function checkAuth() {
+      try {
+        const { data } = await getCurrentUser();
+        if (data?.user) {
+          setIsLoggedIn(true);
+        }
+      } catch (err) {
+        console.error('Auth check failed:', err);
+      }
+    }
+    checkAuth();
   }, []);
 
   if (!isMounted) return null;
@@ -66,12 +81,19 @@ export default function PreIncubationPage() {
               </p>
 
               <div style={{ display: 'flex', justifyContent: 'center', gap: '20px' }}>
-                <Link href="/login">
-                  <button style={{ background: '#E53935', color: '#FFFFFF', padding: '18px 40px', borderRadius: '14px', fontSize: '16px', fontWeight: '800', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px', boxShadow: '0 15px 35px rgba(229, 57, 53, 0.25)', transition: 'all 0.3s ease' }}>
-                    <span>Book a Session</span>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
-                  </button>
-                </Link>
+                <button
+                  onClick={() => {
+                    if (isLoggedIn) {
+                      router.push('/signup');
+                    } else {
+                      router.push('/login?returnUrl=/signup');
+                    }
+                  }}
+                  style={{ background: '#E53935', color: '#FFFFFF', padding: '18px 40px', borderRadius: '14px', fontSize: '16px', fontWeight: '800', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px', boxShadow: '0 15px 35px rgba(229, 57, 53, 0.25)', transition: 'all 0.3s ease' }}
+                >
+                  <span>Book a Session</span>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+                </button>
               </div>
             </motion.div>
 

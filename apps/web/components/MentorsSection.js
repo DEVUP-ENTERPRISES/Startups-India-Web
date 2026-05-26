@@ -1,13 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { getCurrentUser } from '@/lib/auth';
 import BookSessionModal from '@/components/BookSessionModal';
 
 export default function MentorsSection() {
   const router = useRouter();
+  const pathname = usePathname();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [bookSessionMentor, setBookSessionMentor] = useState(null);
@@ -36,10 +37,19 @@ export default function MentorsSection() {
   };
 
   const handleBookSessionClick = (mentor) => {
-    if (isLoggedIn) {
-      setBookSessionMentor(mentor);
+    const isOurProgramsPage = pathname?.startsWith('/programs');
+    if (isOurProgramsPage) {
+      if (isLoggedIn) {
+        router.push('/signup');
+      } else {
+        router.push('/login?returnUrl=/signup');
+      }
     } else {
-      router.push('/login?returnUrl=/');
+      if (isLoggedIn) {
+        setBookSessionMentor(mentor);
+      } else {
+        router.push('/login?returnUrl=/');
+      }
     }
   };
 
