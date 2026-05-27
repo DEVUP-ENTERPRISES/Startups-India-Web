@@ -1,0 +1,918 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap');
+
+/* =======================================================
+   PROGRAM TIMELINE SECTION — CSS MODULE
+   Luxury dark futuristic multi-phase timeline and podiums
+   ======================================================= */
+
+.sectionWrapper {
+  position: relative;
+  background: #050505;
+  padding: 120px 7% 110px;
+  overflow: hidden;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  font-family: 'Poppins', sans-serif;
+}
+
+/* ─── Background Gradients & Grids ─── */
+.bgGlow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: 
+    radial-gradient(circle at 80% 20%, rgba(255, 30, 30, 0.04) 0%, transparent 50%),
+    radial-gradient(circle at 20% 80%, rgba(255, 30, 30, 0.04) 0%, transparent 50%);
+  z-index: 0;
+}
+
+.bgGrid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: 
+    radial-gradient(rgba(255, 255, 255, 0.015) 1.2px, transparent 1.2px);
+  background-size: 30px 30px;
+  mask-image: radial-gradient(circle at 50% 50%, black 50%, transparent 95%);
+  z-index: 0;
+  opacity: 0.8;
+}
+
+.container {
+  position: relative;
+  z-index: 2;
+  max-width: 1280px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* ─── Header ─── */
+.header {
+  text-align: center;
+  margin-bottom: 70px;
+}
+
+.badgeWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.badgeLine {
+  height: 1px;
+  flex: 1;
+  max-width: 80px;
+  background: linear-gradient(90deg, transparent, rgba(255, 30, 30, 0.5), transparent);
+}
+
+.pillBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 24px;
+  background: rgba(255, 30, 30, 0.04);
+  border: 1px solid rgba(255, 30, 30, 0.25);
+  border-radius: 30px;
+  color: #ff1e1e;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  box-shadow: 
+    0 0 15px rgba(255, 30, 30, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(12px);
+}
+
+.title {
+  font-size: clamp(2.25rem, 4vw, 3.5rem);
+  font-weight: 900;
+  color: #ffffff;
+  line-height: 1.2;
+  letter-spacing: -0.8px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.titleGradient {
+  background: linear-gradient(90deg, #ff1e1e 25%, #ff5c5c 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.subtext {
+  font-size: 16px;
+  line-height: 1.7;
+  color: #b7b7b7;
+  text-align: center;
+  max-width: 900px;
+  margin: 20px auto 0;
+  font-weight: 500;
+}
+
+/* ─── Layout: Left Timeline, Right Content ─── */
+.layoutGrid {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+/* ─── Left Side: Glowing Vertical Timeline ─── */
+.timelineCol {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  height: 100%;
+  padding-top: 40px;
+}
+
+.dashedLine {
+  position: absolute;
+  top: 40px;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  border-left: 2px dashed rgba(255, 30, 30, 0.25);
+  box-shadow: 0 0 10px rgba(255, 30, 30, 0.1);
+  z-index: 1;
+}
+
+/* Timeline Nodes */
+.timelineNode {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 240px; /* Aligns visually with spacing of phase cards */
+}
+
+.timelineNode:last-child {
+  margin-bottom: 0;
+}
+
+.nodeCircle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 66px;
+  height: 66px;
+  border-radius: 50%;
+  background: #050505;
+  border: 2px solid #ff1e1e;
+  color: #ff1e1e;
+  box-shadow: 
+    0 0 20px rgba(255, 30, 30, 0.35),
+    inset 0 0 10px rgba(255, 30, 30, 0.2);
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
+}
+
+.timelineNode:hover .nodeCircle {
+  transform: scale(1.1);
+  box-shadow: 
+    0 0 30px rgba(255, 30, 30, 0.6),
+    inset 0 0 15px rgba(255, 30, 30, 0.35);
+}
+
+.nodeLabel {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.nodeLabelText {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #b7b7b7;
+  text-transform: uppercase;
+}
+
+.nodeLabelNum {
+  font-size: 26px;
+  font-weight: 900;
+  color: #ff1e1e;
+  line-height: 1;
+  text-shadow: 0 0 8px rgba(255, 30, 30, 0.3);
+}
+
+/* ─── Right Side: Phase Cards Column ─── */
+.contentCol {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+/* ─── Spotlight Card Base Framework ─── */
+.spotlightCard {
+  position: relative;
+  background: rgba(15, 15, 16, 0.7); /* Translucent dark overlay */
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  overflow: hidden;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  transition: 
+    transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  box-shadow: 
+    0 20px 45px rgba(0, 0, 0, 0.65),
+    inset 0 1px 0 rgba(255, 255, 255, 0.015);
+  will-change: transform;
+}
+
+.spotlightCard:hover {
+  background: rgba(20, 16, 16, 0.82); /* Brightens slightly with glass red reflection */
+  border-color: rgba(255, 30, 30, 0.3); /* Neon red border glow */
+  box-shadow: 
+    0 30px 65px rgba(0, 0, 0, 0.8),
+    0 0 35px rgba(255, 30, 30, 0.08),
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.04),
+    inset 0 0 15px rgba(255, 30, 30, 0.03); /* Subtle inner red glow */
+}
+
+/* Mouse radial follow glow (beneath content) */
+.glowOverlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    circle 240px at var(--glow-x, -999px) var(--glow-y, -999px),
+    rgba(255, 30, 30, 0.18) 0%,
+    rgba(255, 80, 80, 0.10) 40%,
+    transparent 100%
+  );
+  opacity: var(--glow-a, 0);
+  transition: opacity 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  z-index: 1;
+}
+
+/* Crystalline reflection light streak overlay */
+.borderPulseGlow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 30, 30, 0.03) 0%,
+    transparent 50%,
+    rgba(255, 30, 30, 0.02) 100%
+  );
+  opacity: 0;
+  transition: opacity 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  z-index: 2;
+}
+
+.spotlightCard:hover .borderPulseGlow {
+  opacity: 1;
+}
+
+/* Dynamic Neon Border Spotlight */
+.spotlightCard::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: radial-gradient(
+    circle 140px at var(--glow-x, -999px) var(--glow-y, -999px),
+    rgba(255, 30, 30, 0.48) 0%,
+    rgba(255, 80, 80, 0.15) 50%,
+    transparent 100%
+  );
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  -webkit-mask-composite: xor;
+  opacity: var(--glow-a, 0);
+  transition: opacity 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+  z-index: 3;
+}
+
+@keyframes borderPulse {
+  0% {
+    opacity: 0.85;
+  }
+  50% {
+    opacity: 1;
+    filter: brightness(1.15) drop-shadow(0 0 2px rgba(255, 30, 30, 0.3));
+  }
+  100% {
+    opacity: 0.85;
+  }
+}
+
+.spotlightCard:hover::after {
+  animation: borderPulse 3s infinite ease-in-out;
+}
+
+/* Content layer z-index guarantee */
+.cardContentWrap {
+  position: relative;
+  z-index: 4;
+  width: 100%;
+  height: 100%;
+}
+
+/* Large Phase Card Layout override */
+.phaseCard {
+  border-radius: 28px;
+  padding: 40px;
+}
+
+/* Base highlight gradient corner details */
+.phaseCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 250px;
+  height: 250px;
+  background: radial-gradient(circle at 100% 0%, rgba(255, 30, 30, 0.055) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.cardInner {
+  position: relative;
+  z-index: 1;
+}
+
+/* Phase Badge */
+.phaseBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 16px;
+  background: #ff1e1e;
+  border-radius: 6px;
+  color: #ffffff;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 12px rgba(255, 30, 30, 0.25);
+}
+
+.cardTitle {
+  font-size: 28px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 28px 0;
+  letter-spacing: -0.5px;
+  line-height: 1.3;
+}
+
+/* Metric Grid (Phase 1) */
+.metricGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-bottom: 28px;
+}
+
+.metricCard {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.015);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+/* ─── Immersive Card Typography & Icon Animations on Hover ─── */
+.metricVal, .cardTitle, .benefitText {
+  transition: 
+    color 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    text-shadow 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+
+.metricLabel, .bodyText {
+  transition: 
+    color 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+
+/* Content lifts by exactly 1-2px, brightens to white, secondary text increases opacity */
+.spotlightCard:hover .metricVal,
+.spotlightCard:hover .cardTitle,
+.spotlightCard:hover .benefitText {
+  color: #ffffff;
+  transform: translateY(-2px);
+  text-shadow: 0 0 15px rgba(255, 255, 255, 0.12);
+}
+
+.spotlightCard:hover .metricLabel,
+.spotlightCard:hover .bodyText {
+  color: #ffffff; /* Brighter opacity */
+  transform: translateY(-1px);
+}
+
+/* Icons softly glow, scale up 1.08x, rotate 2.5 degrees, and increase brightness */
+.spotlightCard:hover .metricIconCircle,
+.spotlightCard:hover .benefitIconCircle {
+  transform: scale(1.08) rotate(2.5deg) !important;
+  border-color: #ff1e1e !important;
+  background: rgba(255, 30, 30, 0.12) !important;
+  box-shadow: 
+    0 0 20px rgba(255, 30, 30, 0.45),
+    inset 0 0 10px rgba(255, 30, 30, 0.2) !important;
+  filter: brightness(1.2);
+}
+
+.spotlightCard:hover .metricIconCircle svg,
+.spotlightCard:hover .benefitIconCircle svg {
+  transform: scale(1.05);
+  filter: drop-shadow(0 0 5px rgba(255, 30, 30, 0.65));
+}
+
+
+.metricIconCircle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 30, 30, 0.35);
+  background: rgba(255, 30, 30, 0.05);
+  color: #ff1e1e;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 10px rgba(255, 30, 30, 0.08);
+}
+
+.metricCard:hover .metricIconCircle {
+  transform: scale(1.08);
+  border-color: #ff1e1e;
+  box-shadow: 0 0 15px rgba(255, 30, 30, 0.25);
+}
+
+.metricTextWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.metricVal {
+  font-size: 18px;
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1.2;
+}
+
+.metricLabel {
+  font-size: 12px;
+  font-weight: 500;
+  color: #b7b7b7;
+}
+
+.bodyText {
+  font-size: 15.5px;
+  line-height: 1.75;
+  color: #b7b7b7;
+  font-weight: 500;
+  margin: 0;
+  letter-spacing: 0.1px;
+}
+
+.paragraphSpace {
+  margin-top: 18px;
+}
+
+/* ─── Phase 2 Internal Layout (Content + Podiums split) ─── */
+.phase2Split {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 32px;
+  align-items: center;
+}
+
+.p2Left {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+}
+
+/* Sub-Badge */
+.subBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 18px;
+  background: rgba(255, 30, 30, 0.04);
+  border: 1px solid rgba(255, 30, 30, 0.25);
+  border-radius: 8px;
+  color: #ff1e1e;
+  font-size: 13.5px;
+  font-weight: 700;
+  margin-bottom: 24px;
+  box-shadow: 0 0 10px rgba(255, 30, 30, 0.06);
+}
+
+.subBadge svg {
+  color: #ff1e1e;
+  flex-shrink: 0;
+}
+
+/* ─── Prize Pool 3D Podium Concept ─── */
+.prizeRight {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.prizeHeader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.prizeLine {
+  height: 1px;
+  width: 40px;
+  background: linear-gradient(90deg, transparent, rgba(255, 30, 30, 0.5), transparent);
+}
+
+.prizeTitle {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: #ff1e1e;
+  text-transform: uppercase;
+}
+
+/* Podiums Grid */
+.podiumContainer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 100%;
+  gap: 14px;
+  height: 250px;
+  position: relative;
+}
+
+/* Individual Podium Pillar */
+.podiumPillar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 90px;
+  position: relative;
+  transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.podiumPillar:hover {
+  transform: translateY(-8px);
+}
+
+/* Medal Badges */
+.medalBadge {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 800;
+  margin-bottom: 12px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+  position: relative;
+  z-index: 5;
+}
+
+/* Gold (1st) */
+.medalGold {
+  background: linear-gradient(135deg, #ffe066 0%, #e6a100 100%);
+  color: #5c3b00;
+  border: 2.5px solid #fff5cc;
+  box-shadow: 
+    0 0 20px rgba(230, 161, 0, 0.6),
+    0 0 35px rgba(255, 30, 30, 0.15);
+}
+
+/* Silver (2nd) */
+.medalSilver {
+  background: linear-gradient(135deg, #e5e7eb 0%, #9ca3af 100%);
+  color: #1f2937;
+  border: 2.5px solid #f9fafb;
+  box-shadow: 0 0 15px rgba(156, 163, 175, 0.5);
+}
+
+/* Bronze (3rd) */
+.medalBronze {
+  background: linear-gradient(135deg, #fcd34d 0%, #b45309 100%);
+  color: #451a03;
+  border: 2.5px solid #fef3c7;
+  box-shadow: 0 0 15px rgba(180, 83, 9, 0.5);
+}
+
+/* 3D Box Pillar */
+.pillarBox {
+  width: 100%;
+  border-radius: 12px 12px 0 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 8px;
+  box-shadow: 
+    0 15px 30px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: none;
+}
+
+/* Gold */
+.goldBox {
+  height: 140px;
+  background: linear-gradient(180deg, rgba(230, 161, 0, 0.15) 0%, rgba(255, 30, 30, 0.15) 100%);
+  border-color: rgba(230, 161, 0, 0.4);
+  box-shadow: 
+    0 0 25px rgba(230, 161, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+/* Silver */
+.silverBox {
+  height: 100px;
+  background: linear-gradient(180deg, rgba(156, 163, 175, 0.08) 0%, rgba(8, 8, 12, 0.6) 100%);
+  border-color: rgba(156, 163, 175, 0.2);
+}
+
+/* Bronze */
+.bronzeBox {
+  height: 80px;
+  background: linear-gradient(180deg, rgba(180, 83, 9, 0.08) 0%, rgba(8, 8, 12, 0.6) 100%);
+  border-color: rgba(180, 83, 9, 0.2);
+}
+
+/* Podium Typography */
+.podiumRank {
+  font-size: 11px;
+  font-weight: 700;
+  color: #b7b7b7;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.podiumCash {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.goldBox .podiumCash {
+  font-size: 15.5px;
+  color: #ffe066;
+  text-shadow: 0 0 10px rgba(255, 224, 102, 0.4);
+}
+
+/* ─── Bottom Benefits Row ─── */
+.benefitsSection {
+  margin-top: 60px;
+  text-align: center;
+}
+
+.benefitsTitleWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 36px;
+}
+
+.benefitsTitleLine {
+  height: 1px;
+  flex: 1;
+  max-width: 140px;
+  background: linear-gradient(90deg, transparent, rgba(255, 30, 30, 0.35), transparent);
+}
+
+.benefitsHeader {
+  font-size: 16.5px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.1px;
+  margin: 0;
+  text-shadow: 0 0 12px rgba(255, 30, 30, 0.1);
+}
+
+/* Benefits Grid */
+.benefitsGrid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+}
+
+.benefitCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: center;
+  padding: 28px 18px 24px;
+  border-radius: 20px;
+}
+
+
+.benefitIconCircle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 30, 30, 0.25);
+  background: rgba(255, 30, 30, 0.04);
+  color: #ff1e1e;
+  margin-bottom: 16px;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 10px rgba(255, 30, 30, 0.06);
+}
+
+.benefitCard:hover .benefitIconCircle {
+  transform: scale(1.08);
+  border-color: #ff1e1e;
+  box-shadow: 0 0 15px rgba(255, 30, 30, 0.25);
+}
+
+.benefitIconCircle svg {
+  width: 20px;
+  height: 20px;
+  color: #ff1e1e;
+  transition: transform 0.3s ease;
+}
+
+.benefitCard:hover .benefitIconCircle svg {
+  transform: scale(1.05);
+}
+
+.benefitText {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #e5e7eb;
+  line-height: 1.4;
+  margin: 0;
+  letter-spacing: -0.1px;
+}
+
+/* ─── RESPONSIVE BREAKPOINTS ─── */
+
+/* Desktop & Medium Screens (≤ 1200px) */
+@media (max-width: 1200px) {
+  .sectionWrapper {
+    padding: 85px 24px 80px;
+  }
+
+  .benefitsGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Tablet Screens (≤ 1024px) */
+@media (max-width: 1024px) {
+  .layoutGrid {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  /* Hide vertical timeline on tablet/mobile */
+  .timelineCol {
+    display: none;
+  }
+
+  .phase2Split {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  .prizeRight {
+    margin-top: 10px;
+  }
+}
+
+/* Mobile Screens (≤ 768px) */
+@media (max-width: 768px) {
+  .sectionWrapper {
+    padding: 60px 16px 50px;
+  }
+
+  .header {
+    margin-bottom: 40px;
+  }
+
+  .badgeWrapper {
+    gap: 12px;
+  }
+
+  .badgeLine {
+    max-width: 40px;
+  }
+
+  .title {
+    font-size: 26px;
+  }
+
+  .subtext {
+    font-size: 13.5px;
+    margin-top: 18px;
+  }
+
+  .phaseCard {
+    padding: 24px 20px;
+    border-radius: 20px;
+  }
+
+  .cardTitle {
+    font-size: 22px;
+    margin-bottom: 20px;
+  }
+
+  .metricGrid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .metricCard {
+    padding: 14px 16px;
+  }
+
+  .metricVal {
+    font-size: 16px;
+  }
+
+  .bodyText {
+    font-size: 13.5px;
+    line-height: 1.6;
+  }
+
+  .subBadge {
+    font-size: 12px;
+    padding: 6px 14px;
+    margin-bottom: 16px;
+  }
+
+  .benefitsGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .benefitCard {
+    padding: 20px 12px 18px;
+    border-radius: 16px;
+  }
+
+  .benefitText {
+    font-size: 12px;
+  }
+
+  .podiumContainer {
+    height: 220px;
+  }
+
+  .podiumPillar {
+    width: 76px;
+  }
+
+  .medalBadge {
+    width: 40px;
+    height: 40px;
+    font-size: 15px;
+  }
+
+  .goldBox {
+    height: 120px;
+  }
+
+  .silverBox {
+    height: 90px;
+  }
+
+  .bronzeBox {
+    height: 70px;
+  }
+
+  .podiumCash {
+    font-size: 12px;
+  }
+}

@@ -205,13 +205,40 @@ export default function Header() {
       ]
     },
     { label: 'Events', href: '/events', icon: Calendar },
-    { label: 'Mentors', href: '/mentors', icon: Users },
+    { 
+      label: 'Mentors', 
+      href: '/mentors', 
+      icon: Users,
+      dropdown: [
+        {
+          label: 'Register as Mentor',
+          href: '/mentors#become-mentor',
+          description: 'Share your expertise and guide startup founders through mentorship and ecosystem support.',
+          subtext: 'Join the mentor ecosystem →'
+        }
+      ]
+    },
     { label: 'Investors', href: '/investors', icon: Coins },
     { label: 'Market Access', href: '/market-access', icon: Rocket },
     { label: 'Source', href: '/source', icon: Search },
   ];
 
   const [openSubmenu, setOpenSubmenu] = useState(null);
+
+  const handleDropdownItemClick = (e, dropdownItem) => {
+    if (dropdownItem.href === '/mentors#become-mentor') {
+      e.preventDefault();
+      const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+      if (token) {
+        router.push('/mentors#become-mentor');
+      } else {
+        router.push(`/login?returnUrl=${encodeURIComponent('/mentors#become-mentor')}`);
+      }
+    }
+    setActiveDropdown(null);
+    setOpenDropdown(null);
+    closeMobileMenu();
+  };
 
   const toggleSubmenu = (label) => {
     setOpenSubmenu(openSubmenu === label ? null : label);
@@ -472,12 +499,17 @@ export default function Header() {
                             key={dropdownIndex}
                             href={dropdownItem.href}
                             className={`dropdown-item ${pathname + currentHash === dropdownItem.href ? 'active' : ''}`}
-                            onClick={() => setActiveDropdown(null)}
+                            onClick={(e) => handleDropdownItemClick(e, dropdownItem)}
                           >
                             <div className="dropdown-item-title">{dropdownItem.label}</div>
                             <div className="dropdown-item-description">
                               {dropdownItem.description}
                             </div>
+                            {dropdownItem.subtext && (
+                              <div className="dropdown-item-subtext" style={{ fontSize: '11px', color: '#ff4b5c', fontWeight: '700', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                {dropdownItem.subtext}
+                              </div>
+                            )}
                           </Link>
                         ))}
                       </motion.div>
@@ -542,12 +574,17 @@ export default function Header() {
                         </span>
                         <ChevronDown size={18} className="arrow" />
                       </div>
-                      <ul className="submenu">
+                       <ul className="submenu">
                         {item.dropdown.map((sub, idx) => (
                           <li key={idx}>
-                            <Link href={sub.href} onClick={closeMobileMenu} className="submenu-link">
+                            <Link href={sub.href} onClick={(e) => handleDropdownItemClick(e, sub)} className="submenu-link">
                               <div className="submenu-title">{sub.label}</div>
                               {sub.description && <div className="submenu-desc">{sub.description}</div>}
+                              {sub.subtext && (
+                                <div className="submenu-subtext" style={{ fontSize: '11px', color: '#ff4b5c', fontWeight: '700', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                  {sub.subtext}
+                                </div>
+                              )}
                             </Link>
                           </li>
                         ))}

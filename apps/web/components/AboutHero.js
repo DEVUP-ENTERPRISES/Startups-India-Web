@@ -3,23 +3,26 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import '@/lib/i18n';
+import { useTranslation } from 'react-i18next';
 import '../styles/about-hero.css';
 
-const ABOUT_PHRASES = [
-  'innovation journey',
-  'startup ecosystem',
-  'entrepreneurial dream',
-  'business transformation',
-  'founder roadmap',
-];
-
-const ABOUT_STATS = [
-  { value: '5000+', label: 'Startups' },
-  { value: '200+', label: 'Mentors' },
-  { value: '95%', label: 'Success Rate' },
-];
-
 export default function AboutHero() {
+  const { t } = useTranslation();
+
+  const ABOUT_PHRASES = [
+    t('hero.phrases.journey'),
+    t('hero.phrases.ecosystem'),
+    t('hero.phrases.dream'),
+    t('hero.phrases.transformation'),
+    t('hero.phrases.roadmap'),
+  ];
+
+  const ABOUT_STATS = [
+    { value: '5000+', label: t('hero.stats.startups') },
+    { value: '200+', label: t('hero.stats.mentors') },
+    { value: '95%', label: t('hero.stats.successRate') },
+  ];
   const canvasRef = useRef(null);
   const sectionRef = useRef(null);
   const [textIndex, setTextIndex] = useState(0);
@@ -52,6 +55,7 @@ export default function AboutHero() {
     }, 4000);
 
     return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -186,24 +190,18 @@ export default function AboutHero() {
         }}
       />
       <div className="about-hero-content">
-        <div className="hero-tag fade-in-element">ABOUT US</div>
+        <div className="hero-tag fade-in-element">{t('hero.aboutUs')}</div>
 
         <h1 className={`hero-title ${isLoaded ? 'animate' : ''}`}>
-          Building the Future of <br />
+          {t('hero.buildingFuture')} <br />
           <span className={`highlight-red dynamic-text anim-${animState}`}>
             {ABOUT_PHRASES[textIndex]}
           </span>
         </h1>
 
         <div className="hero-description fade-in-element" style={{ animationDelay: '0.1s' }}>
-          <p>
-            We are a startup ecosystem platform connecting founders, innovators, mentors, and
-            partners to transform ideas into successful ventures.
-          </p>
-          <p>
-            From the first spark of innovation to scaling real businesses, we're here to support
-            your complete entrepreneurial journey.
-          </p>
+          <p>{t('hero.desc1')}</p>
+          <p>{t('hero.desc2')}</p>
         </div>
 
         <div className="hero-stats-row fade-in-element" style={{ animationDelay: '0.15s' }}>
@@ -217,10 +215,10 @@ export default function AboutHero() {
 
         <div className="hero-ctas fade-in-element" style={{ animationDelay: '0.2s' }}>
           <button onClick={handleStartJourney} className="hero-btn-primary">
-            Start Your Journey
+            {t('about.ctaBtn')}
           </button>
           <Link href="/programs" className="hero-btn-secondary">
-            View Programs
+            {t('hero.viewPrograms')}
           </Link>
         </div>
       </div>

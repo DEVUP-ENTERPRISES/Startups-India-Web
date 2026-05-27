@@ -18,6 +18,8 @@ import {
   Library,
   UserCheck,
 } from 'lucide-react';
+import '@/lib/i18n';
+import { useTranslation } from 'react-i18next';
 import '../../styles/about-modern.css';
 import TeamSection from '@/components/TeamSection';
 import AboutHero from '@/components/AboutHero';
@@ -25,6 +27,8 @@ import EcosystemImpactRoadmapVertical from '@/components/EcosystemImpactRoadmapV
 import '../../styles/ecosystem-roadmap-vertical.css';
 
 export default function AboutUs() {
+  const { t, i18n } = useTranslation();
+
   useEffect(() => {
     const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
     if (isTouchDevice) return;
@@ -53,6 +57,22 @@ export default function AboutUs() {
     <>
       <AboutHero />
 
+      {/* Floating Premium Language Switcher Sticky Widget */}
+      <div className="lang-switcher-sticky">
+        <button
+          className={`lang-switcher-btn ${i18n.language === 'en' ? 'active' : ''}`}
+          onClick={() => i18n.changeLanguage('en')}
+        >
+          EN
+        </button>
+        <button
+          className={`lang-switcher-btn ${i18n.language === 'hi' ? 'active' : ''}`}
+          onClick={() => i18n.changeLanguage('hi')}
+        >
+          HI
+        </button>
+      </div>
+
       <div className="about-page">
         {/* Who We Are - Dark */}
         <section className="who-section" id="about-company">
@@ -64,18 +84,17 @@ export default function AboutUs() {
               viewport={{ once: true }}
             >
               <div className="section-header">
-                <div className="section-label">Our Story</div>
-                <h2 className="section-title">Why We Built StartupsIndia</h2>
+                <div className="section-label">{t('about.ourStory')}</div>
+                <h2 className="section-title">{t('about.whyWeBuilt')}</h2>
               </div>
 
               <div className="who-content">
                 <p className="who-description">
-                  We believe talent is everywhere, but opportunities are not. StartupsIndia was built to help students, innovators, and early-stage founders turn ideas into real startups through mentorship, ecosystem support, networking, funding access, and practical guidance. Our mission is to make entrepreneurship accessible for every ambitious founder — regardless of background, city, or college.
+                  {t('about.description')}
                 </p>
                 <div className="who-highlight">
                   <p>
-                    Our mission is to make entrepreneurship accessible for every ambitious
-                    founder — regardless of background, city, or college.
+                    {t('about.highlight')}
                   </p>
                 </div>
               </div>
@@ -88,10 +107,10 @@ export default function AboutUs() {
           <div className="container">
             <div>
               <div className="section-header">
-                <div className="section-label">Our Values</div>
-                <h2 className="section-title">What We Stand For</h2>
+                <div className="section-label">{t('about.ourValues')}</div>
+                <h2 className="section-title">{t('about.whatWeStandFor')}</h2>
                 <p className="section-description">
-                  At Startups India, we stand for innovation, entrepreneurship, and impact.
+                  {t('about.valuesDescription')}
                 </p>
               </div>
 
@@ -100,31 +119,31 @@ export default function AboutUs() {
                   <div className="stand-icon">
                     <Lightbulb size={24} />
                   </div>
-                  <h3>Ideas are Encouraged</h3>
+                  <h3>{t('about.encouraged')}</h3>
                 </div>
                 <div className="icon-box">
                   <div className="stand-icon">
                     <Sprout size={24} />
                   </div>
-                  <h3>Innovation is Nurtured</h3>
+                  <h3>{t('about.nurtured')}</h3>
                 </div>
                 <div className="icon-box">
                   <div className="stand-icon">
                     <Handshake size={24} />
                   </div>
-                  <h3>Founders are Supported</h3>
+                  <h3>{t('about.supported')}</h3>
                 </div>
                 <div className="icon-box">
                   <div className="stand-icon">
                     <Rocket size={24} />
                   </div>
-                  <h3>Startups are Built with Clarity</h3>
+                  <h3>{t('about.builtWithClarity')}</h3>
                 </div>
               </div>
 
               <div className="stand-statement">
                 <p>
-                  We are not just a service provider—we are an <strong>ecosystem enabler</strong>.
+                  {t('about.ecosystemStatement')}<strong>{t('about.ecosystemEnabler')}</strong>
                 </p>
               </div>
             </div>
@@ -136,52 +155,51 @@ export default function AboutUs() {
           <div className="container">
             <div>
               <div className="section-header">
-                <div className="section-label">Our Services</div>
-                <h2 className="section-title">What We Do as a Startup Ecosystem Platform</h2>
+                <div className="section-label">{t('about.ourServices')}</div>
+                <h2 className="section-title">{t('about.whatWeDo')}</h2>
                 <p className="section-description">
-                  We help founders and aspiring entrepreneurs at every stage by providing structured
-                  support and real-world exposure.
+                  {t('about.servicesDescription')}
                 </p>
               </div>
 
               <div className="what-grid">
                 <div className="what-card">
                   <div className="what-number">01</div>
-                  <h3>For Startup Ideas & Innovation</h3>
+                  <h3>{t('about.ideasInnovation')}</h3>
                   <ul>
-                    <li>Help individuals identify real-world problems</li>
-                    <li>Support idea validation and innovation thinking</li>
-                    <li>Guide founders to convert ideas into viable startup concepts</li>
+                    <li>{t('about.ideasBullet1')}</li>
+                    <li>{t('about.ideasBullet2')}</li>
+                    <li>{t('about.ideasBullet3')}</li>
                   </ul>
                 </div>
 
                 <div className="what-card">
                   <div className="what-number">02</div>
-                  <h3>For Founders & Entrepreneurs</h3>
+                  <h3>{t('about.foundersEntrepreneurs')}</h3>
                   <ul>
-                    <li>Provide mentorship from experienced professionals</li>
-                    <li>Offer structured programs like pre-incubation and incubation</li>
-                    <li>Help founders understand business models, markets, and execution</li>
+                    <li>{t('about.foundersBullet1')}</li>
+                    <li>{t('about.foundersBullet2')}</li>
+                    <li>{t('about.foundersBullet3')}</li>
                   </ul>
                 </div>
 
                 <div className="what-card">
                   <div className="what-number">03</div>
-                  <h3>For Early-Stage Startups</h3>
+                  <h3>{t('about.earlyStageStartups')}</h3>
                   <ul>
-                    <li>Support product-market fit and go-to-market strategy</li>
-                    <li>Prepare startups for pitching and fundraising</li>
-                    <li>Enable connections with investors and ecosystem partners</li>
+                    <li>{t('about.earlyBullet1')}</li>
+                    <li>{t('about.earlyBullet2')}</li>
+                    <li>{t('about.earlyBullet3')}</li>
                   </ul>
                 </div>
 
                 <div className="what-card">
                   <div className="what-number">04</div>
-                  <h3>For Students & Institutions</h3>
+                  <h3>{t('about.studentsInstitutions')}</h3>
                   <ul>
-                    <li>Create startup awareness and entrepreneurial mindset</li>
-                    <li>Conduct workshops, bootcamps, and ecosystem programs</li>
-                    <li>Bridge the gap between academics and real startup exposure</li>
+                    <li>{t('about.studentsBullet1')}</li>
+                    <li>{t('about.studentsBullet2')}</li>
+                    <li>{t('about.studentsBullet3')}</li>
                   </ul>
                 </div>
               </div>
@@ -198,10 +216,9 @@ export default function AboutUs() {
                   <div className="mission-icon">
                     <Target size={24} />
                   </div>
-                  <h3>Our Mission</h3>
+                  <h3>{t('about.ourMission')}</h3>
                   <p>
-                    To empower founders and innovators with the right mindset, skills, mentorship,
-                    and ecosystem access so they can build sustainable and impactful startups.
+                    {t('about.missionDescription')}
                   </p>
                 </div>
 
@@ -209,11 +226,9 @@ export default function AboutUs() {
                   <div className="mission-icon">
                     <Star size={24} />
                   </div>
-                  <h3>Our Vision</h3>
+                  <h3>{t('about.ourVision')}</h3>
                   <p>
-                    To build a strong, inclusive, and future-ready startup ecosystem that supports
-                    innovation, job creation, and economic growth—especially among students and
-                    first-time founders.
+                    {t('about.visionDescription')}
                   </p>
                 </div>
               </div>
@@ -228,9 +243,9 @@ export default function AboutUs() {
           <div className="container">
             <div>
               <div className="section-header">
-                <div className="section-label">Our Methodology</div>
-                <h2 className="section-title">Our Approach</h2>
-                <p className="section-description">Our approach is simple and practical</p>
+                <div className="section-label">{t('about.ourMethodology')}</div>
+                <h2 className="section-title">{t('about.ourApproach')}</h2>
+                <p className="section-description">{t('about.approachDescription')}</p>
               </div>
 
               <div className="approach-grid">
@@ -238,36 +253,35 @@ export default function AboutUs() {
                   <div className="approach-icon">
                     <Target size={24} />
                   </div>
-                  <h3>Learn by Doing</h3>
-                  <p>Not just theory</p>
+                  <h3>{t('about.learnByDoing')}</h3>
+                  <p>{t('about.notJustTheory')}</p>
                 </div>
                 <div className="approach-card">
                   <div className="approach-icon">
                     <Users size={24} />
                   </div>
-                  <h3>Founder-First Mindset</h3>
-                  <p>Your success is our priority</p>
+                  <h3>{t('about.founderFirstMindset')}</h3>
+                  <p>{t('about.successPriority')}</p>
                 </div>
                 <div className="approach-card">
                   <div className="approach-icon">
                     <Zap size={24} />
                   </div>
-                  <h3>Execution Over Ideas</h3>
-                  <p>Action drives results</p>
+                  <h3>{t('about.executionOverIdeas')}</h3>
+                  <p>{t('about.actionDrivesResults')}</p>
                 </div>
                 <div className="approach-card">
                   <div className="approach-icon">
                     <Handshake size={24} />
                   </div>
-                  <h3>Community-Driven Growth</h3>
-                  <p>We grow together</p>
+                  <h3>{t('about.communityGrowth')}</h3>
+                  <p>{t('about.growTogether')}</p>
                 </div>
               </div>
 
               <div className="approach-statement">
                 <p>
-                  Every program, event, and initiative is designed to deliver{' '}
-                  <strong>real outcomes</strong>, not just certificates.
+                  {t('about.realOutcomes')}
                 </p>
               </div>
             </div>
@@ -279,30 +293,30 @@ export default function AboutUs() {
           <div className="container">
             <div>
               <div className="section-header">
-                <div className="section-label">Why Us</div>
-                <h2 className="section-title">Why Startups India</h2>
+                <div className="section-label">{t('about.whyUs')}</div>
+                <h2 className="section-title">{t('about.whyStartupsIndia')}</h2>
               </div>
 
               <div className="why-grid">
                 <div className="why-item">
                   <div className="why-check">✓</div>
-                  <p>Clear focus on founders, innovation, and startup ideas</p>
+                  <p>{t('about.whyBullet1')}</p>
                 </div>
                 <div className="why-item">
                   <div className="why-check">✓</div>
-                  <p>Practical ecosystem-driven programs</p>
+                  <p>{t('about.whyBullet2')}</p>
                 </div>
                 <div className="why-item">
                   <div className="why-check">✓</div>
-                  <p>Strong mentor and partner network</p>
+                  <p>{t('about.whyBullet3')}</p>
                 </div>
                 <div className="why-item">
                   <div className="why-check">✓</div>
-                  <p>Long-term support beyond one-time events</p>
+                  <p>{t('about.whyBullet4')}</p>
                 </div>
                 <div className="why-item">
                   <div className="why-check">✓</div>
-                  <p>Community that grows together</p>
+                  <p>{t('about.whyBullet5')}</p>
                 </div>
               </div>
             </div>
@@ -319,14 +333,12 @@ export default function AboutUs() {
               transition={{ duration: 0.6 }}
               viewport={{ once: true }}
             >
-              <h2>Our Commitment</h2>
+              <h2>{t('about.ourCommitment')}</h2>
               <p>
-                At Startups India, we are committed to helping people believe in their ideas, build
-                with confidence, and grow with the ecosystem.
+                {t('about.commitmentP1')}
               </p>
               <p>
-                Whether you are a student exploring entrepreneurship, a founder validating an idea,
-                or a startup ready to scale—we are here to support your journey.
+                {t('about.commitmentP2')}
               </p>
             </motion.div>
           </div>
@@ -345,12 +357,12 @@ export default function AboutUs() {
               transition={{ duration: 0.6 }}
               viewport={{ once: true }}
             >
-              <h2>Have an Idea? A Vision? A Startup Dream?</h2>
+              <h2>{t('about.ctaTitle')}</h2>
               <p>
-                Join our ecosystem and take your first step toward building something meaningful.
+                {t('about.ctaSub')}
               </p>
               <a href="/login" style={{ textDecoration: 'none' }}>
-                <button className="cta-button">Start Your Journey</button>
+                <button className="cta-button">{t('about.ctaBtn')}</button>
               </a>
             </motion.div>
           </div>
