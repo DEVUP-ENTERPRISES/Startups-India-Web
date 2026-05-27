@@ -20,32 +20,32 @@ const partnersData = [
   {
     name: 'T-Hub',
     desc: "India's pioneering innovation ecosystem enabler",
-    icon: <Network size={22} strokeWidth={1.8} />
+    logoUrl: '/assets/images/logos/t_hub.png'
   },
   {
     name: 'WE Hub',
     desc: 'Empowering & incubating women entrepreneurs',
-    icon: <Sparkles size={22} strokeWidth={1.8} />
+    logoUrl: '/assets/images/logos/we_hub.png'
   },
   {
     name: 'T-Works',
     desc: "India's largest prototyping & makerspace cell",
-    icon: <Cpu size={22} strokeWidth={1.8} />
+    logoUrl: '/assets/images/logos/t_works.png'
   },
   {
     name: 'TSIC',
     desc: 'Telangana State Innovation Cell platform',
-    icon: <Lightbulb size={22} strokeWidth={1.8} />
+    logoUrl: '/assets/images/logos/tsic.png'
   },
   {
     name: 'MSME',
     desc: 'Ministry of MSME, Government of India support',
-    icon: <Building size={22} strokeWidth={1.8} />
+    logoUrl: '/assets/images/logos/msme.png'
   },
   {
     name: 'Startup India',
     desc: 'National initiative for building growth startups',
-    icon: <Rocket size={22} strokeWidth={1.8} />
+    logoUrl: '/assets/images/logos/startup_india.png'
   },
   {
     name: 'Incubators',
@@ -116,7 +116,15 @@ export default function PartnersSlider() {
             {marqueeList.map((partner, index) => (
               <div key={index} className={styles.partnerCard}>
                 <div className={styles.iconCircle}>
-                  {partner.icon}
+                  {partner.logoUrl ? (
+                    <img 
+                      src={partner.logoUrl} 
+                      alt={`${partner.name} logo`} 
+                      className={styles.partnerLogo} 
+                    />
+                  ) : (
+                    partner.icon
+                  )}
                 </div>
                 <h4 className={styles.partnerName}>
                   {partner.name}

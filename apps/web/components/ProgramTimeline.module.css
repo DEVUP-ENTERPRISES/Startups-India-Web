@@ -8,7 +8,7 @@
 .sectionWrapper {
   position: relative;
   background: #050505;
-  padding: 120px 7% 110px;
+  padding: 80px 7% 80px;
   overflow: hidden;
   border-bottom: 1px solid rgba(255, 255, 255, 0.03);
   font-family: 'Poppins', sans-serif;
@@ -781,7 +781,7 @@
 /* Desktop & Medium Screens (≤ 1200px) */
 @media (max-width: 1200px) {
   .sectionWrapper {
-    padding: 85px 24px 80px;
+    padding: 60px 24px 50px;
   }
 
   .benefitsGrid {
@@ -814,7 +814,7 @@
 /* Mobile Screens (≤ 768px) */
 @media (max-width: 768px) {
   .sectionWrapper {
-    padding: 60px 16px 50px;
+    padding: 40px 16px 40px;
   }
 
   .header {

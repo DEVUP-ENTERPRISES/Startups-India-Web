@@ -117,7 +117,7 @@ section {
 .stats-section-premium {
   position: relative;
   background: #050505;
-  padding: 100px 24px;
+  padding: 40px 24px 80px;
   overflow: hidden;
 }
 
@@ -290,7 +290,7 @@ section {
 /* Mobile (≤ 640px) */
 @media (max-width: 640px) {
   .stats-section-premium {
-    padding: 60px 16px;
+    padding: 30px 16px 50px;
   }
   
   .stats-container-premium {

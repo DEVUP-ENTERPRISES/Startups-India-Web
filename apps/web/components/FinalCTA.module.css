@@ -6,7 +6,7 @@
 .sectionWrapper {
   position: relative;
   background: #050505;
-  padding: 120px 24px;
+  padding: 80px 24px;
   overflow: hidden;
   display: flex;
   justify-content: center;
@@ -142,7 +142,7 @@
 /* Interactive Card Styles */
 .actionCard {
   position: relative;
-  height: 170px;
+  min-height: 210px;
   border-radius: 24px;
   background: rgba(15, 15, 15, 0.78);
   border: 1px solid rgba(255, 255, 255, 0.06);
@@ -308,7 +308,7 @@
 /* Mobile Screens (≤ 768px) */
 @media (max-width: 768px) {
   .sectionWrapper {
-    padding: 60px 16px;
+    padding: 40px 16px;
   }
 
   .ctaBox {
@@ -345,7 +345,303 @@
   }
 
   .actionCard {
-    height: 140px;
+    min-height: 180px;
     border-radius: 20px;
+  }
+}
+
+/* New Card Button Styles */
+.cardButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 6px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  background: #ff2e2e;
+  border: 1px solid transparent;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  box-shadow: 0 0 10px rgba(255, 46, 46, 0);
+  z-index: 10;
+  width: auto;
+  outline: none;
+}
+
+.cardButton:hover {
+  background: #000000;
+  border-color: #ff2e2e;
+  box-shadow: 0 0 15px rgba(255, 46, 46, 0.6);
+  transform: translateY(-1px);
+}
+
+.buttonArrow {
+  transition: transform 0.3s ease;
+}
+
+.cardButton:hover .buttonArrow {
+  transform: translateX(4px);
+}
+
+/* ─── Popup Modal Styles ─── */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  padding: 20px;
+}
+
+.modalOverlayBlur {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.modalContainer {
+  position: relative;
+  width: 100%;
+  max-width: 650px;
+  background: rgba(15, 15, 15, 0.85);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border: 1.5px solid rgba(255, 46, 46, 0.45);
+  border-radius: 28px;
+  padding: 40px;
+  z-index: 10;
+  box-shadow: 
+    0 25px 60px rgba(0, 0, 0, 0.95),
+    0 0 35px rgba(255, 46, 46, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  overflow-y: auto;
+  max-height: 90vh;
+}
+
+.closeButton {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  background: transparent;
+  border: none;
+  color: #a0a0a0;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border-radius: 50%;
+}
+
+.closeButton:hover {
+  color: #ff3b3b;
+  background: rgba(255, 59, 59, 0.1);
+  transform: rotate(90deg);
+}
+
+.modalTitle {
+  font-size: 24px;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0 0 8px 0;
+  text-transform: uppercase;
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+}
+
+.redHighlight {
+  color: #ff2e2e;
+  text-shadow: 0 0 15px rgba(255, 46, 46, 0.3);
+}
+
+.modalSubtitle {
+  font-size: 14px;
+  color: #b5b5b5;
+  margin: 0 0 32px 0;
+}
+
+.modalForm {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.formGroupFull {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.formLabel {
+  font-size: 12px;
+  font-weight: 700;
+  color: #ff3b3b;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.formInput,
+.formTextarea {
+  background: rgba(25, 25, 25, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 14px;
+  color: #ffffff;
+  outline: none;
+  font-family: inherit;
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.formInput:focus,
+.formTextarea:focus {
+  border-color: rgba(255, 46, 46, 0.6);
+  background: rgba(20, 15, 15, 0.85);
+  box-shadow: 
+    0 0 15px rgba(255, 46, 46, 0.15),
+    inset 0 0 5px rgba(255, 46, 46, 0.05);
+}
+
+.formInput option {
+  background: #111111;
+  color: #ffffff;
+}
+
+.submitButton {
+  margin-top: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px 32px;
+  background: #ff2e2e;
+  color: #ffffff;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  box-shadow: 0 4px 20px rgba(255, 46, 46, 0.25);
+  width: 100%;
+}
+
+.submitButton:hover {
+  background: #000000;
+  border-color: #ff2e2e;
+  box-shadow: 0 0 25px rgba(255, 46, 46, 0.6);
+  transform: translateY(-2px);
+}
+
+.submitButton svg {
+  transition: transform 0.3s ease;
+}
+
+.submitButton:hover svg {
+  transform: translateX(4px);
+}
+
+/* Success State Screen */
+.successWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.successIconWrapper {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: rgba(255, 46, 46, 0.1);
+  border: 2px solid rgba(255, 46, 46, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+  box-shadow: 0 0 30px rgba(255, 46, 46, 0.15);
+}
+
+.successIcon {
+  color: #ff2e2e;
+  filter: drop-shadow(0 0 10px rgba(255, 46, 46, 0.4));
+}
+
+.successTitle {
+  font-size: 26px;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0 0 12px 0;
+  text-transform: uppercase;
+}
+
+.successText {
+  font-size: 15px;
+  color: #b5b5b5;
+  line-height: 1.6;
+  margin: 0 0 32px 0;
+  max-width: 420px;
+}
+
+.successCloseBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 28px;
+  background: transparent;
+  color: #ffffff;
+  border: 1px solid rgba(255, 46, 46, 0.5);
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.successCloseBtn:hover {
+  background: rgba(255, 46, 46, 0.1);
+  border-color: #ff2e2e;
+  box-shadow: 0 0 15px rgba(255, 46, 46, 0.2);
+}
+
+/* responsive modal */
+@media (max-width: 600px) {
+  .modalContainer {
+    padding: 30px 20px;
+    border-radius: 20px;
+  }
+  
+  .formRow {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .closeButton {
+    top: 16px;
+    right: 16px;
   }
 }

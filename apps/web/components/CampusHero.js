@@ -1,7 +1,8 @@
 'use client';
 
 import { useRef, useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { X, CheckCircle, ArrowRight } from 'lucide-react';
 import styles from './CampusHero.module.css';
 
 /* ── Floating particle background ── */
@@ -199,6 +200,120 @@ function StatCard({ icon, text, subtext }) {
 
 /* ── Main export ── */
 export default function CampusHero() {
+  const [isOpen, setIsOpen] = useState(false);
+  const [modalType, setModalType] = useState(''); // 'sponsor', 'college', 'movement'
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
+  // States for the 3 different forms
+  const [sponsorData, setSponsorData] = useState({
+    fullName: '',
+    email: '',
+    phone: '',
+    orgName: '',
+    sponsorType: 'Platinum Sponsor',
+    message: ''
+  });
+
+  const [collegeData, setCollegeData] = useState({
+    collegeName: '',
+    coordinatorName: '',
+    email: '',
+    phone: '',
+    studentCount: '',
+    cityState: ''
+  });
+
+  const [movementData, setMovementData] = useState({
+    fullName: '',
+    role: 'Student',
+    email: '',
+    phone: '',
+    interest: 'Startup Awareness',
+    message: ''
+  });
+
+  const handleOpenModal = (type) => {
+    setModalType(type);
+    setIsSubmitted(false);
+    
+    // Reset data
+    setSponsorData({
+      fullName: '',
+      email: '',
+      phone: '',
+      orgName: '',
+      sponsorType: 'Platinum Sponsor',
+      message: ''
+    });
+    setCollegeData({
+      collegeName: '',
+      coordinatorName: '',
+      email: '',
+      phone: '',
+      studentCount: '',
+      cityState: ''
+    });
+    setMovementData({
+      fullName: '',
+      role: 'Student',
+      email: '',
+      phone: '',
+      interest: 'Startup Awareness',
+      message: ''
+    });
+    setIsOpen(true);
+    document.body.style.overflow = 'hidden';
+  };
+
+  const handleCloseModal = () => {
+    setIsOpen(false);
+    document.body.style.overflow = 'unset';
+  };
+
+  // Keyboard accessibility: ESC key to close
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        handleCloseModal();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'unset';
+    };
+  }, []);
+
+  const handleSponsorChange = (e) => {
+    const { name, value } = e.target;
+    setSponsorData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const submitSponsor = (e) => {
+    e.preventDefault();
+    setIsSubmitted(true);
+  };
+
+  const handleCollegeChange = (e) => {
+    const { name, value } = e.target;
+    setCollegeData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const submitCollege = (e) => {
+    e.preventDefault();
+    setIsSubmitted(true);
+  };
+
+  const handleMovementChange = (e) => {
+    const { name, value } = e.target;
+    setMovementData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const submitMovement = (e) => {
+    e.preventDefault();
+    setIsSubmitted(true);
+  };
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -263,19 +378,28 @@ export default function CampusHero() {
 
           {/* CTA Buttons */}
           <motion.div className={styles.ctaGroup} variants={itemVariants}>
-            <button className={`${styles.ctaBtn} ${styles.ctaPrimary}`}>
+            <button 
+              className={`${styles.ctaBtn} ${styles.ctaPrimary}`}
+              onClick={() => handleOpenModal('sponsor')}
+            >
               <span>Become Sponsor</span>
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                 <path d="M3 8H13M13 8L9 4M13 8L9 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </button>
-            <button className={`${styles.ctaBtn} ${styles.ctaSecondary}`}>
+            <button 
+              className={`${styles.ctaBtn} ${styles.ctaSecondary}`}
+              onClick={() => handleOpenModal('college')}
+            >
               <span>Register College</span>
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                 <path d="M3 8H13M13 8L9 4M13 8L9 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </button>
-            <button className={`${styles.ctaBtn} ${styles.ctaSecondary}`}>
+            <button 
+              className={`${styles.ctaBtn} ${styles.ctaSecondary}`}
+              onClick={() => handleOpenModal('movement')}
+            >
               <span>Join Innovation Movement</span>
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                 <path d="M3 8H13M13 8L9 4M13 8L9 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -360,6 +484,398 @@ export default function CampusHero() {
           </div>
         </div>
       </motion.div>
+
+      {/* Popup Modal with Framer Motion */}
+      <AnimatePresence>
+        {isOpen && (
+          <div className={styles.modalOverlay} onClick={handleCloseModal}>
+            <motion.div
+              className={styles.modalOverlayBlur}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            />
+
+            <motion.div
+              className={styles.modalContainer}
+              onClick={(e) => e.stopPropagation()}
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            >
+              {/* Close Button top-right */}
+              <button className={styles.closeButton} onClick={handleCloseModal} aria-label="Close modal">
+                <X size={20} />
+              </button>
+
+              {!isSubmitted ? (
+                <>
+                  {modalType === 'sponsor' && (
+                    <>
+                      <h3 className={styles.modalTitle}>
+                        Sponsor <span className={styles.redHighlight}>Inquiry Form</span>
+                      </h3>
+                      <p className={styles.modalSubtitle}>
+                        Partner with us to accelerate innovation and connect with the next generation of founders.
+                      </p>
+
+                      <form className={styles.modalForm} onSubmit={submitSponsor}>
+                        <div className={styles.formRow}>
+                          <div className={styles.formGroup}>
+                            <label htmlFor="sponsorFullName" className={styles.formLabel}>Full Name</label>
+                            <input
+                              type="text"
+                              id="sponsorFullName"
+                              name="fullName"
+                              placeholder="John Doe"
+                              value={sponsorData.fullName}
+                              onChange={handleSponsorChange}
+                              required
+                              className={styles.formInput}
+                            />
+                          </div>
+                          <div className={styles.formGroup}>
+                            <label htmlFor="sponsorEmail" className={styles.formLabel}>Email Address</label>
+                            <input
+                              type="email"
+                              id="sponsorEmail"
+                              name="email"
+                              placeholder="john@example.com"
+                              value={sponsorData.email}
+                              onChange={handleSponsorChange}
+                              required
+                              className={styles.formInput}
+                            />
+                          </div>
+                        </div>
+
+                        <div className={styles.formRow}>
+                          <div className={styles.formGroup}>
+                            <label htmlFor="sponsorPhone" className={styles.formLabel}>Phone Number</label>
+                            <input
+                              type="tel"
+                              id="sponsorPhone"
+                              name="phone"
+                              placeholder="+91 98765 43210"
+                              value={sponsorData.phone}
+                              onChange={handleSponsorChange}
+                              required
+                              className={styles.formInput}
+                            />
+                          </div>
+                          <div className={styles.formGroup}>
+                            <label htmlFor="sponsorOrgName" className={styles.formLabel}>Organization Name</label>
+                            <input
+                              type="text"
+                              id="sponsorOrgName"
+                              name="orgName"
+                              placeholder="XYZ Corporation"
+                              value={sponsorData.orgName}
+                              onChange={handleSponsorChange}
+                              required
+                              className={styles.formInput}
+                            />
+                          </div>
+                        </div>
+
+                        <div className={styles.formGroupFull}>
+                          <label htmlFor="sponsorType" className={styles.formLabel}>Sponsorship Type</label>
+                          <select
+                            id="sponsorType"
+                            name="sponsorType"
+                            value={sponsorData.sponsorType}
+                            onChange={handleSponsorChange}
+                            required
+                            className={styles.formInput}
+                          >
+                            <option value="Title Sponsor">Title Sponsor</option>
+                            <option value="Platinum Sponsor">Platinum Sponsor</option>
+                            <option value="Gold Sponsor">Gold Sponsor</option>
+                            <option value="Silver Sponsor">Silver Sponsor</option>
+                            <option value="Event Partner">Event Partner</option>
+                            <option value="Other">Other</option>
+                          </select>
+                        </div>
+
+                        <div className={styles.formGroupFull}>
+                          <label htmlFor="sponsorMessage" className={styles.formLabel}>Message</label>
+                          <textarea
+                            id="sponsorMessage"
+                            name="message"
+                            placeholder="Tell us about your organization's goals for sponsorship..."
+                            value={sponsorData.message}
+                            onChange={handleSponsorChange}
+                            required
+                            className={styles.formTextarea}
+                            rows={3}
+                          />
+                        </div>
+
+                        <div className={styles.formActions}>
+                          <button type="button" className={styles.cancelButton} onClick={handleCloseModal}>
+                            Cancel
+                          </button>
+                          <button type="submit" className={styles.submitButton}>
+                            <span>Submit Application</span>
+                            <ArrowRight size={16} />
+                          </button>
+                        </div>
+                      </form>
+                    </>
+                  )}
+
+                  {modalType === 'college' && (
+                    <>
+                      <h3 className={styles.modalTitle}>
+                        College <span className={styles.redHighlight}>Registration Form</span>
+                      </h3>
+                      <p className={styles.modalSubtitle}>
+                        Register your institution to launch the Campus Innovation Mission.
+                      </p>
+
+                      <form className={styles.modalForm} onSubmit={submitCollege}>
+                        <div className={styles.formRow}>
+                          <div className={styles.formGroup}>
+                            <label htmlFor="collegeName" className={styles.formLabel}>College Name</label>
+                            <input
+                              type="text"
+                              id="collegeName"
+                              name="collegeName"
+                              placeholder="ABC Institute of Technology"
+                              value={collegeData.collegeName}
+                              onChange={handleCollegeChange}
+                              required
+                              className={styles.formInput}
+                            />
+                          </div>
+                          <div className={styles.formGroup}>
+                            <label htmlFor="coordinatorName" className={styles.formLabel}>Coordinator Name</label>
+                            <input
+                              type="text"
+                              id="coordinatorName"
+                              name="coordinatorName"
+                              placeholder="Prof. Jane Smith"
+                              value={collegeData.coordinatorName}
+                              onChange={handleCollegeChange}
+                              required
+                              className={styles.formInput}
+                            />
+                          </div>
+                        </div>
+
+                        <div className={styles.formRow}>
+                          <div className={styles.formGroup}>
+                            <label htmlFor="collegeEmail" className={styles.formLabel}>Email Address</label>
+                            <input
+                              type="email"
+                              id="collegeEmail"
+                              name="email"
+                              placeholder="coordinator@college.edu"
+                              value={collegeData.email}
+                              onChange={handleCollegeChange}
+                              required
+                              className={styles.formInput}
+                            />
+                          </div>
+                          <div className={styles.formGroup}>
+                            <label htmlFor="collegePhone" className={styles.formLabel}>Phone Number</label>
+                            <input
+                              type="tel"
+                              id="collegePhone"
+                              name="phone"
+                              placeholder="+91 98765 43210"
+                              value={collegeData.phone}
+                              onChange={handleCollegeChange}
+                              required
+                              className={styles.formInput}
+                            />
+                          </div>
+                        </div>
+
+                        <div className={styles.formRow}>
+                          <div className={styles.formGroup}>
+                            <label htmlFor="studentCount" className={styles.formLabel}>Number of Students</label>
+                            <input
+                              type="number"
+                              id="studentCount"
+                              name="studentCount"
+                              placeholder="e.g. 500"
+                              value={collegeData.studentCount}
+                              onChange={handleCollegeChange}
+                              required
+                              className={styles.formInput}
+                            />
+                          </div>
+                          <div className={styles.formGroup}>
+                            <label htmlFor="cityState" className={styles.formLabel}>City / State</label>
+                            <input
+                              type="text"
+                              id="cityState"
+                              name="cityState"
+                              placeholder="Bangalore, Karnataka"
+                              value={collegeData.cityState}
+                              onChange={handleCollegeChange}
+                              required
+                              className={styles.formInput}
+                            />
+                          </div>
+                        </div>
+
+                        <div className={styles.formActions}>
+                          <button type="button" className={styles.cancelButton} onClick={handleCloseModal}>
+                            Cancel
+                          </button>
+                          <button type="submit" className={styles.submitButton}>
+                            <span>Submit Application</span>
+                            <ArrowRight size={16} />
+                          </button>
+                        </div>
+                      </form>
+                    </>
+                  )}
+
+                  {modalType === 'movement' && (
+                    <>
+                      <h3 className={styles.modalTitle}>
+                        Innovation <span className={styles.redHighlight}>Movement Form</span>
+                      </h3>
+                      <p className={styles.modalSubtitle}>
+                        Be part of India's largest campus startup revolution.
+                      </p>
+
+                      <form className={styles.modalForm} onSubmit={submitMovement}>
+                        <div className={styles.formRow}>
+                          <div className={styles.formGroup}>
+                            <label htmlFor="movementFullName" className={styles.formLabel}>Full Name</label>
+                            <input
+                              type="text"
+                              id="movementFullName"
+                              name="fullName"
+                              placeholder="John Doe"
+                              value={movementData.fullName}
+                              onChange={handleMovementChange}
+                              required
+                              className={styles.formInput}
+                            />
+                          </div>
+                          <div className={styles.formGroup}>
+                            <label htmlFor="movementRole" className={styles.formLabel}>Profession / Role</label>
+                            <select
+                              id="movementRole"
+                              name="role"
+                              value={movementData.role}
+                              onChange={handleMovementChange}
+                              required
+                              className={styles.formInput}
+                            >
+                              <option value="Student">Student</option>
+                              <option value="Faculty Coordinator">Faculty Coordinator</option>
+                              <option value="Mentor">Mentor</option>
+                              <option value="Startup Founder">Startup Founder</option>
+                              <option value="Other">Other</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <div className={styles.formRow}>
+                          <div className={styles.formGroup}>
+                            <label htmlFor="movementEmail" className={styles.formLabel}>Email Address</label>
+                            <input
+                              type="email"
+                              id="movementEmail"
+                              name="email"
+                              placeholder="john@example.com"
+                              value={movementData.email}
+                              onChange={handleMovementChange}
+                              required
+                              className={styles.formInput}
+                            />
+                          </div>
+                          <div className={styles.formGroup}>
+                            <label htmlFor="movementPhone" className={styles.formLabel}>Phone Number</label>
+                            <input
+                              type="tel"
+                              id="movementPhone"
+                              name="phone"
+                              placeholder="+91 98765 43210"
+                              value={movementData.phone}
+                              onChange={handleMovementChange}
+                              required
+                              className={styles.formInput}
+                            />
+                          </div>
+                        </div>
+
+                        <div className={styles.formGroupFull}>
+                          <label htmlFor="movementInterest" className={styles.formLabel}>Area of Interest</label>
+                          <select
+                            id="movementInterest"
+                            name="interest"
+                            value={movementData.interest}
+                            onChange={handleMovementChange}
+                            required
+                            className={styles.formInput}
+                          >
+                            <option value="Startup Awareness">Startup Awareness</option>
+                            <option value="Mentorship">Mentorship</option>
+                            <option value="Hackathons & Ideation">Hackathons & Ideation</option>
+                            <option value="Incubation Support">Incubation Support</option>
+                            <option value="Funding Opportunities">Funding Opportunities</option>
+                            <option value="Other">Other</option>
+                          </select>
+                        </div>
+
+                        <div className={styles.formGroupFull}>
+                          <label htmlFor="movementMessage" className={styles.formLabel}>Message</label>
+                          <textarea
+                            id="movementMessage"
+                            name="message"
+                            placeholder="Tell us a bit about why you want to join and what you hope to achieve..."
+                            value={movementData.message}
+                            onChange={handleMovementChange}
+                            required
+                            className={styles.formTextarea}
+                            rows={3}
+                          />
+                        </div>
+
+                        <div className={styles.formActions}>
+                          <button type="button" className={styles.cancelButton} onClick={handleCloseModal}>
+                            Cancel
+                          </button>
+                          <button type="submit" className={styles.submitButton}>
+                            <span>Submit Application</span>
+                            <ArrowRight size={16} />
+                          </button>
+                        </div>
+                      </form>
+                    </>
+                  )}
+                </>
+              ) : (
+                <motion.div
+                  className={styles.successWrapper}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.4 }}
+                >
+                  <div className={styles.successIconWrapper}>
+                    <CheckCircle className={styles.successIcon} size={64} />
+                  </div>
+                  <h3 className={styles.successTitle}>Application Submitted!</h3>
+                  <p className={styles.successText}>
+                    Thank you for your application. Our team will review your submission and contact you shortly.
+                  </p>
+                  <button className={styles.successCloseBtn} onClick={handleCloseModal}>
+                    Close Window
+                  </button>
+                </motion.div>
+              )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </section>
   );
 }
