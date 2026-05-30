@@ -1,7 +1,7 @@
 /* Header Styles */
 .site-header {
   width: 100%;
-  position: sticky;
+  position: fixed;
   top: 0;
   z-index: 10000;
   transition: all 0.3s ease;
@@ -21,32 +21,57 @@
   opacity: 0.6;
 }
 
-/* Glassmorphism Rows */
+/* site logo added */ /*new updates by avinash*/
+
+.Startupsina-logo-white-image {
+    height: 50px;
+    width: auto;
+    object-fit: contain;
+}
+
+/* Glassmorphism Rows */ /*new updates by avinash*/
+
 .header-top,
 .header-bottom {
-  background: rgba(255, 255, 255, 0.6);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  background: rgba(10, 10, 10, 0.35);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+
+  border-bottom: 1px solid rgba(255,255,255,0.06);
 }
 
-/* Scrolled State */
+/* Scrolled State */ /*new updates by avinash*/
 .site-header.scrolled .header-top,
 .site-header.scrolled .header-bottom {
-  background: linear-gradient(to right, rgba(255, 255, 255, 0.85), rgba(255, 240, 240, 0.75));
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+  background: rgba(10,10,10,0.75);
+
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+
+  box-shadow: 0 8px 25px rgba(0,0,0,0.25);
 }
 
-/* Main Header Container */
+.site-header.scrolled .header-bottom {
+    opacity: 0;
+    transform: translateY(-20px);
+    pointer-events: none;
+}
+
+/* Main Header Container */ /*new updates by avinash*/
 .header-top .container {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  max-width: 1220px;
-  margin: 0 auto;
-  padding: 12px 40px;
-  gap: 30px;
+    display: grid;
+    grid-template-columns: 220px 1fr 220px;
+
+    align-items: center;
+
+    max-width: 1220px;
+    margin: 0 auto;
+
+    padding: 12px 40px;
+
+    gap: 30px;
 }
 
 /* Logo */
@@ -58,6 +83,7 @@
   font-size: 28px;
   font-weight: 700;
   white-space: nowrap;
+  justify-self: start;
 }
 
 .logo-image {
@@ -99,25 +125,47 @@
 }
 
 .header-search-elite {
-  flex: 1;
-  max-width: 320px;
+  width: 100%;
+  max-width: 620px;
+  justify-self: center;
   position: relative;
   transition: max-width 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   z-index: 9000;
+
+  padding: 2px;
+  border-radius: 100px;
+
+  background: linear-gradient(
+    90deg,
+    #ff4d4d,
+    #ff9a3c,
+    #ffe66d,
+    #5fff7c,
+    #4dd8ff,
+    #7c6cff,
+    #ff4d4d
+  );
+
+  background-size: 400% 400%;
+  animation: googleGlow 8s linear infinite;   /*New Update by avinash*/
+}
+
+.header-search-elite:hover {
+  filter: brightness(1.15);
 }
 
 .header-search-elite.focused {
-  max-width: 480px;
+  max-width: 680px;
 }
 
-/* ── Input pill ── */
+/* ── Input pill ── */ /*New Update by avinash*/
 .search-input-wrap {
   display: flex;
   align-items: center;
   height: 44px;
   padding: 0 16px;
-  background: rgba(0, 0, 0, 0.045);
-  border: 1.5px solid rgba(0, 0, 0, 0.07);
+  background: #0b0b0b;
+  border: none;
   border-radius: 100px;
   transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
@@ -173,7 +221,7 @@
   align-items: center;
   gap: 2px;
   padding: 3px 8px;
-  background: rgba(255,255,255,0.7);
+  background: #660c0c80;
   border: 1px solid rgba(0,0,0,0.1);
   border-radius: 7px;
   font-size: 11px;
@@ -523,10 +571,10 @@
 }
 
 .btn-signin {
-  background: white;
-  color: #333;
-  border: 1px solid #d1d5db;
-}
+  background: rgba(255,255,255,0.08);
+  color: white;
+  border: 1px solid rgba(255,255,255,0.15);
+} /*changed by avinash*/
 
 .btn-signin:hover {
   background: #f9fafb;
@@ -608,10 +656,10 @@
 .nav-link {
   display: flex;
   align-items: center;
-  padding: 10px 20px;
+  padding: 10px 12px;
   font-size: 15px;
-  font-weight: 800;
-  color: #374151;
+  font-weight: 400;
+  color: #ffffff;
   text-decoration: none;
   position: relative;
   transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
@@ -748,7 +796,7 @@
     text-decoration: none;
     color: #1f2937;
     font-size: 16px;
-    font-weight: 600;
+    font-weight: 400;
     transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     cursor: pointer;
     border: 1px solid transparent;
@@ -820,7 +868,7 @@
 
   .submenu-title {
     font-size: 15px;
-    font-weight: 600;
+    font-weight: 800;
     color: #1f2937;
   }
 
@@ -904,23 +952,35 @@
   position: relative;
 }
 
-.dropdown-toggle {
+/*updated by avinash*/
+
+.dropdown-toggle { 
   display: flex;
   align-items: center;
   gap: 6px;
+
   background: none;
   border: none;
   cursor: pointer;
+
   font-size: 15px;
-  font-weight: 600;
-  color: #4b5563;
-  padding: 16px 0;
+  font-weight: 400;
+  color: #ffffff;
+
+  padding: 10px 20px;
   position: relative;
-  transition: color 0.3s ease;
+
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+
+  border-radius: 12px;
+  letter-spacing: -0.2px;
 }
 
-.dropdown-toggle:hover {
-  color: #e53935;
+/*updated by avinash*/
+
+.dropdown-toggle:hover,
+.dropdown-toggle.active {
+  color: #e63946;
 }
 
 .dropdown-toggle::after {
@@ -1128,3 +1188,16 @@
 }
 
 /* Removed 480px full width mobile-menu media query to maintain max-width: 360px and width: 88% */
+
+/*new UI updates by Avinash*/
+
+@keyframes googleGlow {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  100% {
+    background-position: 400% 50%;
+  }
+}
+

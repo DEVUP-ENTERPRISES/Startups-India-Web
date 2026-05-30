@@ -64,7 +64,7 @@
   letter-spacing: -0.05em;
 }
 
-.achievements-section h3 {
+.achievements-section h2 {
   letter-spacing: -0.01em;
   text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
 }
@@ -177,7 +177,7 @@
   text-transform: uppercase;
   border: none;
   cursor: pointer;
-  box-shadow: 0 10px 40px rgba(239, 68, 68, 0.35);
+  box-shadow: 0 8px 40px rgba(239, 68, 68, 0.35);
   transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
   position: relative;
   overflow: hidden;

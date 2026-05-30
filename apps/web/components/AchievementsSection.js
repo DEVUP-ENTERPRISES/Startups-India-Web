@@ -7,48 +7,48 @@ const achievementsData = [
   {
     id: 'inspirex',
     label: 'Innovation Event',
-    title: 'INSPIREX 2025',
+    title: 'FAIL? — Learning Beyond Startup Failures',
     description:
-      'Where Student Ideas Met Innovation at NMIMS Hyderabad. On November 11, 2025, the campus of NMIMS Hyderabad buzzed with entrepreneurial energy as the Entrepreneurship Cell hosted INSPIREX 2025.',
+      'In 2025, International Institute of Information Technology Hyderabad invited StartupsIndia as the Ecosystem Partner for FAIL?, an entrepreneurship-focused event centered around transforming startup failures into valuable learning experiences.',
     year: '2025',
     category: 'Innovation Event',
     index: '01',
     image: '/assets/images/inspirex-new.jpg',
   },
   {
-    id: 'hackathon',
-    label: 'Hackathon',
-    title: 'National Tech Hackathon',
+    id: 'awareness',
+    label: 'Awareness',
+    title: 'Startup Ecosystem Awareness Program',
     description:
-      'A 48-hour intense coding and product development sprint where the brightest minds collaborate to solve pressing real-world challenges through technology.',
-    year: '2024',
-    category: 'Hackathon',
+      'StartupsIndia conducted the Startup Ecosystem Awareness Program across colleges in Hyderabad to inspire students about entrepreneurship, innovation, and startup opportunities.',
+    year: '2026',
+    category: 'Awareness',
     index: '02',
     image:
-      '/assets/images/inspirex-new.jpg',
+      '/assets/images/event-images/Startup-Ecosystem-Awareness-Program.jpg',
   },
   {
-    id: 'pitchfest',
-    label: 'PitchFest',
-    title: 'Annual Startup PitchFest',
+    id: 'hackathon',
+    label: 'Hackathon',
+    title: 'Hackathon Competition',
     description:
-      'Our flagship event designed to connect early-stage founders with angel investors, offering a stage to present business ideas and secure critical early funding.',
-    year: '2025',
-    category: 'Pitching',
+      'StartupsIndia, along with VNR Vignana Jyothi Institute of Engineering and Technology, organized the Hackathon Competition as part of its active initiatives to promote innovation, problem-solving, and entrepreneurship through college and national-level hackathons.',
+    year: '2026',
+    category: 'Hackathon',
     index: '03',
-    image: '/assets/images/IDEAX PITCHFEST.JPG',
+    image: '/assets/images/event-images/Hackathon-Competition.jpeg',
   },
   {
-    id: 'awareness',
-    label: 'Awareness Program',
-    title: 'Entrepreneurship Awareness Campaign',
+    id: 'pitching competition',
+    label: 'Pitching Competition',
+    title: 'Startups India-Idea Pitching Competition',
     description:
-      'A nationwide initiative to inspire students and young professionals by educating them on the fundamentals of building a sustainable scalable business.',
-    year: '2024',
+      'The Idea Pitching Competition brought together students and aspiring founders to showcase innovative startup ideas, enhance pitching skills, and experience the entrepreneurial ecosystem with StartupsIndia.',
+    year: '2026',
     category: 'Program',
     index: '04',
     image:
-      'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80',
+      '/assets/images/event-images/Pitching-Competition.jpg',
   },
   {
     id: 'funding',
@@ -56,19 +56,18 @@ const achievementsData = [
     title: 'Shark Tank Style Funding Rounds',
     description:
       'Provide startups with the rare opportunity to pitch directly to top-tier investors. Gain access to seed funding, comprehensive mentorship support, and unparalleled startup exposure to accelerate your growth.',
-    year: '2024-25',
+    year: '2026',
     category: 'Funding',
     index: '05',
-    image:
-      'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80',
+    image: '/assets/images/event-images/Funding.jpg',
   },
   {
     id: 'mentoring',
     label: 'Mentoring',
-    title: '1-on-1 Expert Mentorship',
+    title: 'Ecosystem Awareness Program For College Faculty',
     description:
-      'Exclusive sessions matching startup founders with seasoned industry veterans to provide tailored guidance, strategic advice, and operational insights.',
-    year: '2024-25',
+      'The Startup Ecosystem Awareness Program engaged college faculty members through insightful sessions on entrepreneurship, innovation, and startup ecosystem development with support from StartupsIndia.',
+    year: '2026',
     category: 'Mentoring',
     index: '06',
     image: '/assets/images/mentoring image.jpg',
@@ -120,7 +119,7 @@ export default function AchievementsSection() {
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
           >
-            Celebrating <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#e53935] to-[#ff7b72] drop-shadow-[0_0_15px_rgba(229,57,53,0.3)]">Achievements</span> & Milestones
+            Empowering <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#e53935] to-[#ff7b72] drop-shadow-[0_0_15px_rgba(229,57,53,0.3)]">The Next Era</span> of Innovation
           </motion.h2>
           <motion.p 
             className="!text-[#9ca3af] max-w-2xl mx-auto mt-6"
@@ -186,7 +185,7 @@ export default function AchievementsSection() {
                     key={`title-${activeItem.id}`}
                     className="flex flex-col gap-6"
                   >
-                    <h3 className="text-4xl md:text-5xl font-black !text-white leading-[1.15] tracking-tight">
+                    <h3 className="text-3xl md:text-4xl font-black !text-white leading-[1.15] tracking-tight">
                       {activeItem.title}
                     </h3>
                     <p className="text-lg md:text-xl font-medium !text-[#a1a1aa] leading-relaxed max-w-lg">
@@ -202,8 +201,8 @@ export default function AchievementsSection() {
                   </div>
 
                   {/* Controls */}
-                  <div className="flex items-center gap-8 mt-4">
-                    <div className="flex gap-4">
+                  <div className="flex items-center gap-3 mt-4">
+                    <div className="flex gap-3">
                       <button 
                         onClick={handlePrev}
                         className="nav-btn-premium"
@@ -218,7 +217,7 @@ export default function AchievementsSection() {
                       </button>
                     </div>
                     
-                    <div className="flex-1 h-[4px] bg-white/10 relative overflow-hidden rounded-full max-w-[200px]">
+                    <div className="flex-1 h-[4px] bg-white/10 relative overflow-hidden rounded-full max-w-[120px]">
                       <motion.div 
                         className="absolute inset-y-0 left-0 bg-gradient-to-r from-[#e53935] to-[#ff7b72] shadow-[0_0_10px_#e53935]"
                         initial={{ width: 0 }}

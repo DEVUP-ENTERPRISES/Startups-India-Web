@@ -16,8 +16,7 @@ const founders = [
     category: 'EdTech',
     stat1: '5X REVENUE',
     stat2: '50+ PARTNERS',
-    badge: 'E',
-    status: 'SERIES A FUNDING',
+    image: "/assets/images/home-testimonials/demo-founder.jpg",
   },
   {
     quote:
@@ -29,8 +28,8 @@ const founders = [
     category: 'Healthcare',
     stat1: '$3M RAISED',
     stat2: '400% GROWTH',
-    badge: 'H',
-    status: 'SEED FUNDING',
+    image: "/assets/images/home-testimonials/demo-founder.jpg"
+    
   },
   {
     quote:
@@ -42,8 +41,8 @@ const founders = [
     category: 'AgriTech',
     stat1: 'PAN-INDIA',
     stat2: '10K+ FARMERS',
-    badge: 'A',
-    status: 'BOOTSTRAPPED',
+    image: "/assets/images/home-testimonials/demo-founder.jpg"
+    
   },
 ];
 
@@ -168,16 +167,12 @@ export default function FoundersTestimonialsSection() {
                       <div className="browser-dot"></div>
                     </div>
 
-                    <div className="mock-content-body">
-                      {/* Floating Profile Badge */}
-                      <div className="floating-badge-accent">
-                        <span>{founders[current].badge}</span>
-                      </div>
-                      <p className="mock-company-title">{founders[current].company}</p>
-                      <div className="mock-status-chip">
-                        <div className="dot-blink"></div>
-                        <span>{founders[current].status}</span>
-                      </div>
+                    <div className="mock-content-body image-mode">
+                      <img
+                      src={founders[current].image}
+                      alt={founders[current].name}
+                      className="testimonial-founder-image"
+                      />
                     </div>
                   </div>
                 </div>

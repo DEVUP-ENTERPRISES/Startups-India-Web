@@ -11,8 +11,10 @@ import CollaborationFrameworkSection from '@/components/CollaborationFrameworkSe
 import FoundersTestimonialsSection from '@/components/FoundersTestimonialsSection';
 import ApplyDarkSection from '@/components/ApplyDarkSection';
 import ImpactSection from '@/components/ImpactSection';
+import TrustedPartners from '@/components/TrustedPartners';
 import AchievementsSection from '@/components/AchievementsSection';
 import TrainingSection from '@/components/TrainingSection';
+
 
 import { motion } from 'framer-motion';
 import '../styles/iec-homepage.css';
@@ -52,6 +54,10 @@ export default function Home() {
 
       <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={sectionVariants}>
         <ImpactSection />
+      </motion.div>
+
+      <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={sectionVariants}>
+       <TrustedPartners />
       </motion.div>
 
       <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={sectionVariants}>

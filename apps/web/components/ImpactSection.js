@@ -248,7 +248,7 @@ export default function ImpactSection() {
 
           <motion.div variants={headerVariants}>
             <h2 className="hero-impact-title">
-              Empowering The Next Era of <span className="highlight">Innovation</span>
+              Celebrating <span className="highlight">Achievements</span> & Milestones
             </h2>
           </motion.div>
 

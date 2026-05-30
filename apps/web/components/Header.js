@@ -299,7 +299,11 @@ export default function Header() {
       <div className="header-top">
         <div className="container">
           <Link href="/" className="header-logo">
-            <img src="/assets/images/logo.png" alt="Startups India Logo" className="logo-image" />
+            <img
+  src="/assets/images/Startupsina-logo-wight.png"
+  alt="Startups India Logo"
+  className="Startupsina-logo-white-image"
+/>
             <div className="logo-fallback">
               <span className="logo-startups">Startups</span>
               <span className="logo-india">India</span>

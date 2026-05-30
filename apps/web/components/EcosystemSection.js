@@ -20,7 +20,7 @@ export default function EcosystemSection() {
       feature: 'Weekly Sessions',
     },
     {
-      title: 'Funding Access',
+      title: 'Funding Access Infrastructure & Resources',
       description:
         'Get connected with investors, VCs, and funding opportunities to fuel your growth and scale your business',
       icon: IndianRupee,

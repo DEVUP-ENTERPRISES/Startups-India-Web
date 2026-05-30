@@ -15,11 +15,11 @@
   width: 100%;
   min-height: 60vh; /* Reduced from 70vh for tighter feel */
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   background: #000;
   overflow: hidden;
-  padding: 40px 24px 20px; /* Reduced bottom padding aggressively */
+  padding: 140px 24px 20px; /* Reduced bottom padding aggressively */
   box-sizing: border-box;
 }
 
@@ -215,7 +215,8 @@
   flex-direction: column;
   align-items: center;
   gap: 0;
-  margin-bottom: 4px; /* MINIMAL gap to cards */
+  margin-top: -40px;
+  margin-bottom: 0; /* MINIMAL gap to cards */
 }
 
 .hero-static-line {
