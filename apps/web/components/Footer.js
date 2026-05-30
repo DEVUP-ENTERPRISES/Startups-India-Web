@@ -37,6 +37,7 @@ export default function Footer() {
     company: [
       { name: 'About Us', href: '/about' },
       { name: 'Privacy Policy', href: '/privacy' },
+      { name: 'Delete Account', href: '/delete-account' },
       { name: 'Terms of Service', href: '/terms' },
       { name: 'Cookie Policy', href: '/cookies' },
       { name: 'Refund Policy', href: '/refund' },
@@ -291,7 +292,8 @@ export default function Footer() {
               © {new Date().getFullYear()} Startups India. All rights reserved.
             </div>
             <div className="footer-bottom-links">
-              <Link href="/privacy">Privacy</Link>
+              <Link href="/privacy">Privacy Policy</Link>
+              <Link href="/delete-account">Delete Account</Link>
               <Link href="/terms">Terms</Link>
               <Link href="/cookies">Cookies</Link>
               <Link href="/refund">Refund</Link>
