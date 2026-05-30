@@ -1,33 +1,66 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import Link from 'next/link';
 
 const SUPPORT_EMAIL = 'info@startupsindia.in';
 const PROCESS_DAYS = 7;
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+
+// Static — defined outside component so they are never re-created on render
+const DELETED_ITEMS = [
+  'Firebase Authentication credentials (your login)',
+  'Profile: name, email, photo, bio, role, interests',
+  'All comments, posts, and community activity',
+  'Your likes and bookmarks',
+  'Push notification token (FCM)',
+  'Topic preferences and personalisation data',
+  'Profile photo stored on Cloudinary',
+];
+
+const RETAIN_ITEMS = [
+  { label: 'Legal & tax records', detail: 'up to 7 years (Indian law)' },
+  { label: 'Fraud/abuse logs', detail: 'up to 90 days to prevent re-registration abuse' },
+  { label: 'Unresolved disputes', detail: 'until the matter is closed' },
+  { label: 'Crash analytics', detail: 'anonymised, not linked to your identity' },
+];
 
 export default function DeleteAccount() {
-  const [form, setForm] = useState({
-    email: '',
-    username: '',
-    reason: '',
-    confirmed: false,
-  });
+  const [form, setForm] = useState({ email: '', username: '', reason: '', confirmed: false });
   const [status, setStatus] = useState('idle'); // idle | submitting | success | error
   const [errorMsg, setErrorMsg] = useState('');
 
+  // Ref-based guard: prevents any double-submit race regardless of render timing
+  const isSubmitting = useRef(false);
+  const abortRef = useRef(null);
+
+  // Cleanup in-flight request if component unmounts
+  useEffect(() => () => abortRef.current?.abort(), []);
+
+  // Functional updaters — no stale closure, no new object on every keystroke
+  const setField = useCallback((field) => (e) => {
+    const val = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
+    setForm(prev => ({ ...prev, [field]: val }));
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.confirmed) return;
+    if (!form.confirmed || isSubmitting.current) return;
+
+    isSubmitting.current = true;
     setStatus('submitting');
     setErrorMsg('');
 
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/v1/public/delete-account-request`,
+        `${API_BASE}/api/v1/public/delete-account-request`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          signal: controller.signal,
           body: JSON.stringify({
             email: form.email.trim().toLowerCase(),
             username: form.username.trim() || null,
@@ -40,23 +73,25 @@ export default function DeleteAccount() {
         setStatus('success');
       } else {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.message || 'Submission failed.');
+        throw new Error(data.message || 'Submission failed. Please try again.');
       }
     } catch (err) {
-      // If the endpoint doesn't exist yet, still show success to the user —
-      // the request is also sent via mailto fallback below.
-      if (err.message.includes('fetch') || err.message.includes('Failed')) {
-        // Fallback: open mailto so no request is lost
+      if (err.name === 'AbortError') return; // component unmounted — do nothing
+
+      if (err instanceof TypeError) {
+        // Network failure or endpoint not yet deployed — open mailto in new tab (no navigation away)
         const subject = encodeURIComponent('Account Deletion Request — StartupsIndia');
         const body = encodeURIComponent(
-          `Email: ${form.email}\nUsername: ${form.username || 'N/A'}\nReason: ${form.reason || 'Not specified'}`
+          `Email: ${form.email.trim()}\nUsername: ${form.username.trim() || 'N/A'}\nReason: ${form.reason.trim() || 'Not specified'}`
         );
-        window.location.href = `mailto:${SUPPORT_EMAIL}?subject=${subject}&body=${body}`;
+        window.open(`mailto:${SUPPORT_EMAIL}?subject=${subject}&body=${body}`, '_blank');
         setStatus('success');
       } else {
         setErrorMsg(err.message);
         setStatus('error');
       }
+    } finally {
+      isSubmitting.current = false;
     }
   };
 
@@ -114,15 +149,7 @@ export default function DeleteAccount() {
               <div className="da-deleted-card">
                 <h3 className="da-deleted-title">What gets permanently deleted</h3>
                 <ul className="da-deleted-list">
-                  {[
-                    'Firebase Authentication credentials (your login)',
-                    'Profile: name, email, photo, bio, role, interests',
-                    'All comments, posts, and community activity',
-                    'Your likes and bookmarks',
-                    'Push notification token (FCM)',
-                    'Topic preferences and personalisation data',
-                    'Profile photo stored on Cloudinary',
-                  ].map((item) => (
+                  {DELETED_ITEMS.map((item) => (
                     <li key={item}>
                       <svg className="da-check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                         <path d="M20 6L9 17l-5-5" />
@@ -140,10 +167,9 @@ export default function DeleteAccount() {
                   Data retained for a limited time
                 </div>
                 <ul className="da-retain-list">
-                  <li><strong>Legal &amp; tax records</strong> — up to 7 years (Indian law)</li>
-                  <li><strong>Fraud/abuse logs</strong> — up to 90 days to prevent re-registration abuse</li>
-                  <li><strong>Unresolved disputes</strong> — until the matter is closed</li>
-                  <li><strong>Crash analytics</strong> — anonymised, not linked to your identity</li>
+                  {RETAIN_ITEMS.map(({ label, detail }) => (
+                    <li key={label}><strong>{label}</strong> — {detail}</li>
+                  ))}
                 </ul>
               </div>
 
@@ -221,7 +247,7 @@ export default function DeleteAccount() {
                       className="da-input"
                       placeholder="your@email.com"
                       value={form.email}
-                      onChange={(e) => setForm({ ...form, email: e.target.value })}
+                      onChange={setField('email')}
                       required
                       autoComplete="email"
                     />
@@ -239,7 +265,7 @@ export default function DeleteAccount() {
                       className="da-input"
                       placeholder="@your_username"
                       value={form.username}
-                      onChange={(e) => setForm({ ...form, username: e.target.value })}
+                      onChange={setField('username')}
                       autoComplete="username"
                     />
                   </div>
@@ -255,7 +281,7 @@ export default function DeleteAccount() {
                       placeholder="Help us improve — share why you're leaving (optional)"
                       rows={4}
                       value={form.reason}
-                      onChange={(e) => setForm({ ...form, reason: e.target.value })}
+                      onChange={setField('reason')}
                     />
                   </div>
 
@@ -266,7 +292,7 @@ export default function DeleteAccount() {
                         type="checkbox"
                         className="da-checkbox"
                         checked={form.confirmed}
-                        onChange={(e) => setForm({ ...form, confirmed: e.target.checked })}
+                        onChange={setField('confirmed')}
                         required
                       />
                       <span className="da-confirm-text">
