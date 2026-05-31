@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
+import PhoneInput from '@/components/ui/PhoneInput';
 import { 
   Rocket, 
   Building2, 
@@ -584,13 +585,11 @@ export default function MentorRegistrationModal({ onClose }) {
               </div>
               <div className="form-group">
                 <label>Phone Number *</label>
-                <input
-                  type="tel"
-                  name="phone"
+                <PhoneInput
                   value={formData.phone}
-                  onChange={handleInputChange}
-                  placeholder="+91 98765 43210"
+                  countryCode={formData.phoneCountry || '+91'}
                   required
+                  onChange={(digits, country) => setFormData(prev => ({ ...prev, phone: digits, phoneCountry: country }))}
                 />
               </div>
             </div>
