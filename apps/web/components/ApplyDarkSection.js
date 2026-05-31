@@ -1,78 +1,112 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, Phone, MapPin, Clock, ChevronDown } from 'lucide-react';
+import PhoneInput from '@/components/ui/PhoneInput';
+import { validateEmail, validatePhone, formatPhoneForSubmit } from '@/lib/validation';
 import '../styles/apply-dark.css';
 
 export default function ApplyDarkSection() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
-  
+  const isSubmitting = useRef(false);
+  const abortRef = useRef(null);
+
   const [form, setForm] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    company: '',
-    program: '',
-    message: '',
+    name: '', email: '', phoneDigits: '', phoneCountry: '+91',
+    company: '', program: '', message: '',
   });
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState('');
 
   const programs = [
-    { id: 'incubation', label: 'Incubation Program' },
-    { id: 'pre-incubation', label: 'Pre-Incubation Cohort' },
-    { id: 'acceleration', label: 'Acceleration Program' },
-    { id: 'mentorship', label: 'Mentorship' },
-    { id: 'funding', label: 'Institutional Funding' },
-    { id: 'other', label: 'Other' },
+    { id: 'incubation',    label: 'Incubation Program' },
+    { id: 'pre-incubation',label: 'Pre-Incubation Cohort' },
+    { id: 'acceleration',  label: 'Acceleration Program' },
+    { id: 'mentorship',    label: 'Mentorship' },
+    { id: 'funding',       label: 'Institutional Funding' },
+    { id: 'other',         label: 'Other' },
   ];
 
-  // Close dropdown when clicking outside
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsDropdownOpen(false);
-      }
+    const handler = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setIsDropdownOpen(false);
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
+  useEffect(() => () => abortRef.current?.abort(), []);
+
+  const setField = useCallback((field) => (e) => {
+    const val = e.target.value;
+    setForm(prev => ({ ...prev, [field]: val }));
+    if (fieldErrors[field]) setFieldErrors(prev => ({ ...prev, [field]: '' }));
+  }, [fieldErrors]);
+
+  const validate = () => {
+    const errors = {};
+    if (!form.name.trim()) errors.name = 'Name is required';
+    const emailErr = validateEmail(form.email);
+    if (emailErr) errors.email = emailErr;
+    const phoneErr = validatePhone(form.phoneDigits, form.phoneCountry);
+    if (phoneErr) errors.phone = phoneErr;
+    if (!form.program) errors.program = 'Please select a program';
+    return errors;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsSubmitting(true);
-    
+    if (isSubmitting.current) return;
+
+    const errors = validate();
+    if (Object.keys(errors).length) { setFieldErrors(errors); return; }
+
+    isSubmitting.current = true;
+    setSubmitting(true);
+    setSubmitError('');
+
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/v1/public/inquiry`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(form),
-      });
-
-      const result = await response.json();
-
-      if (response.ok && result.success) {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/v1/public/inquiry`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          signal: controller.signal,
+          body: JSON.stringify({
+            name: form.name.trim(),
+            email: form.email.trim().toLowerCase(),
+            phone: formatPhoneForSubmit(form.phoneDigits, form.phoneCountry),
+            company: form.company.trim() || null,
+            program: form.program,
+            message: form.message.trim() || null,
+          }),
+        }
+      );
+      const result = await res.json().catch(() => ({}));
+      if (res.ok && result.success) {
         setSubmitted(true);
       } else {
         throw new Error(result.message || 'Submission failed');
       }
-    } catch (error) {
-      console.error('Submission error:', error);
-      alert('Something went wrong. Please try again or contact us directly.');
+    } catch (err) {
+      if (err.name === 'AbortError') return;
+      setSubmitError('Something went wrong. Please try again.');
     } finally {
-      setIsSubmitting(false);
+      isSubmitting.current = false;
+      setSubmitting(false);
     }
   };
 
   const selectProgram = (program) => {
-    setForm({ ...form, program: program.label });
+    setForm(prev => ({ ...prev, program: program.label }));
+    setFieldErrors(prev => ({ ...prev, program: '' }));
     setIsDropdownOpen(false);
   };
 
@@ -176,59 +210,65 @@ export default function ApplyDarkSection() {
                       <div className="timeline-dot"></div>
                       <span className="timeline-text">Our team will connect with you within 24 hours.</span>
                     </div>
-                    <button 
+                    <button
                       className="reset-form-btn"
                       onClick={() => {
                         setSubmitted(false);
-                        setForm({ name: '', email: '', phone: '', company: '', program: '', message: '' });
+                        setForm({ name: '', email: '', phoneDigits: '', phoneCountry: '+91', company: '', program: '', message: '' });
+                        setFieldErrors({});
                       }}
                     >
                       SEND ANOTHER MESSAGE
                     </button>
                   </motion.div>
                 ) : (
-                  <form className="apply-form-glass" onSubmit={handleSubmit}>
+                  <form className="apply-form-glass" onSubmit={handleSubmit} noValidate>
                     <div className="form-row">
                       <div className="form-group-glass">
                         <label>NAME</label>
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           placeholder="John Doe"
                           value={form.name}
-                          onChange={(e) => setForm({...form, name: e.target.value})}
-                          required
+                          onChange={setField('name')}
+                          style={fieldErrors.name ? { borderColor: '#ef4444' } : {}}
                         />
+                        {fieldErrors.name && <span style={{ fontSize: 11, color: '#ef4444', marginTop: 3, display: 'block' }}>{fieldErrors.name}</span>}
                       </div>
                       <div className="form-group-glass">
                         <label>EMAIL</label>
-                        <input 
-                          type="email" 
+                        <input
+                          type="email"
                           placeholder="john@example.com"
                           value={form.email}
-                          onChange={(e) => setForm({...form, email: e.target.value})}
-                          required
+                          onChange={setField('email')}
+                          style={fieldErrors.email ? { borderColor: '#ef4444' } : {}}
                         />
+                        {fieldErrors.email && <span style={{ fontSize: 11, color: '#ef4444', marginTop: 3, display: 'block' }}>{fieldErrors.email}</span>}
                       </div>
                     </div>
 
                     <div className="form-row">
                       <div className="form-group-glass">
                         <label>PHONE</label>
-                        <input 
-                          type="tel" 
-                          placeholder="+91 00000 00000"
-                          value={form.phone}
-                          onChange={(e) => setForm({...form, phone: e.target.value})}
+                        <PhoneInput
+                          value={form.phoneDigits}
+                          countryCode={form.phoneCountry}
+                          darkMode={true}
                           required
+                          onChange={(digits, country) => setForm(prev => ({ ...prev, phoneDigits: digits, phoneCountry: country }))}
+                          onError={(err) => setFieldErrors(prev => ({ ...prev, phone: err || '' }))}
+                          inputStyle={fieldErrors.phone ? { borderColor: '#ef4444' } : {}}
                         />
+                        {fieldErrors.phone && <span style={{ fontSize: 11, color: '#ef4444', marginTop: 3, display: 'block' }}>{fieldErrors.phone}</span>}
                       </div>
                       <div className="form-group-glass">
                         <label>STARTUP / COMPANY</label>
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           placeholder="XYZ Pvt. Ltd."
                           value={form.company}
-                          onChange={(e) => setForm({...form, company: e.target.value})}
+                          onChange={setField('company')}
                         />
                       </div>
                     </div>
@@ -236,17 +276,19 @@ export default function ApplyDarkSection() {
                     <div className="form-group-glass">
                       <label>PROGRAM INTEREST</label>
                       <div className="custom-dropdown" ref={dropdownRef}>
-                        <div 
+                        <div
                           className={`dropdown-trigger ${isDropdownOpen ? 'active' : ''}`}
                           onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                          style={fieldErrors.program ? { borderColor: '#ef4444' } : {}}
                         >
                           <span>{form.program || 'Select a program'}</span>
                           <ChevronDown size={18} className={`arrow-icon ${isDropdownOpen ? 'rotate' : ''}`} />
                         </div>
-                        
+                        {fieldErrors.program && <span style={{ fontSize: 11, color: '#ef4444', marginTop: 3, display: 'block' }}>{fieldErrors.program}</span>}
+
                         <AnimatePresence>
                           {isDropdownOpen && (
-                            <motion.div 
+                            <motion.div
                               className="dropdown-menu"
                               initial={{ opacity: 0, y: -10 }}
                               animate={{ opacity: 1, y: 0 }}
@@ -254,7 +296,7 @@ export default function ApplyDarkSection() {
                               transition={{ duration: 0.2 }}
                             >
                               {programs.map((item) => (
-                                <div 
+                                <div
                                   key={item.id}
                                   className={`dropdown-option ${form.program === item.label ? 'selected' : ''}`}
                                   onClick={() => selectProgram(item)}
@@ -270,16 +312,20 @@ export default function ApplyDarkSection() {
 
                     <div className="form-group-glass">
                       <label>MESSAGE</label>
-                      <textarea 
+                      <textarea
                         placeholder="Tell us about your vision..."
                         rows={4}
                         value={form.message}
-                        onChange={(e) => setForm({...form, message: e.target.value})}
+                        onChange={setField('message')}
                       />
                     </div>
 
-                    <button type="submit" className="apply-now-btn" disabled={isSubmitting}>
-                      {isSubmitting ? (
+                    {submitError && (
+                      <p style={{ fontSize: 12.5, color: '#ef4444', textAlign: 'center', margin: '-4px 0' }}>{submitError}</p>
+                    )}
+
+                    <button type="submit" className="apply-now-btn" disabled={submitting}>
+                      {submitting ? (
                         <div className="btn-loader"></div>
                       ) : 'APPLY NOW'}
                     </button>

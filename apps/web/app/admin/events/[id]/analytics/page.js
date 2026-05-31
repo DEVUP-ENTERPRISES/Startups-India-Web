@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { apiGet } from '@/lib/api';
 import Link from 'next/link';
 
+const ADMIN_BASE = `/${process.env.NEXT_PUBLIC_ADMIN_SLUG || 'ctrl-x9k2m3-panel'}`;
+
 export default function AdminEventAnalyticsPage({ params }) {
   const id = params.id;
   const [analytics, setAnalytics] = useState(null);
@@ -47,7 +49,7 @@ export default function AdminEventAnalyticsPage({ params }) {
         }}
       >
         <div>
-          <Link href="/admin/events" style={{ fontSize: 14, color: '#64748b', textDecoration: 'none', marginBottom: 4, display: 'inline-block' }}>
+          <Link href={`${ADMIN_BASE}/events`} style={{ fontSize: 14, color: '#64748b', textDecoration: 'none', marginBottom: 4, display: 'inline-block' }}>
             ← Back to Events
           </Link>
           <h1 style={{ fontSize: 20, fontWeight: 800, margin: 0 }}>

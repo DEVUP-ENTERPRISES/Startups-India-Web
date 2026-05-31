@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import PhoneInput from '@/components/ui/PhoneInput';
 import '../styles/investor-modal-premium.css';
 
 export default function InvestorRegistrationModal({ isOpen, onClose, user }) {
@@ -13,6 +14,7 @@ export default function InvestorRegistrationModal({ isOpen, onClose, user }) {
     investor_type: '',
     email: user?.email || '',
     phone: '',
+    phoneCountry: '+91',
     linkedin_url: '',
     website_url: '',
     investment_focus: [],
@@ -263,12 +265,11 @@ export default function InvestorRegistrationModal({ isOpen, onClose, user }) {
 
               <div className="form-group">
                 <label>Phone</label>
-                <input
-                  type="tel"
-                  name="phone"
+                <PhoneInput
                   value={formData.phone}
-                  onChange={handleChange}
-                  placeholder="+91 98765 43210"
+                  countryCode={formData.phoneCountry}
+                  required
+                  onChange={(digits, country) => setFormData(prev => ({ ...prev, phone: digits, phoneCountry: country }))}
                 />
               </div>
             </div>
