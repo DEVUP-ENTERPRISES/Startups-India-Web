@@ -17,6 +17,7 @@ const SEARCH_DATA = [
   { title: 'Mentors', desc: 'Connect with 50+ industry expert mentors', href: '/mentors', category: 'Network', color: '#0ea5e9' },
   { title: 'Investors', desc: 'Investor network and funding access', href: '/investors', category: 'Network', color: '#0ea5e9' },
   { title: 'Events', desc: 'Upcoming startup events and workshops', href: '/events', category: 'Community', color: '#10b981' },
+  { title: 'Campus Startup Mission', desc: 'Innovation Mission 2026 — colleges, hackathons & funding', href: '/campus-startup', category: 'Programs', color: '#e63946' },
   { title: 'Market Access', desc: 'Expand your startup to new markets', href: '/market-access', category: 'Resources', color: '#f59e0b' },
   { title: 'Source Hub', desc: 'Resources, guides and templates', href: '/source', category: 'Resources', color: '#f59e0b' },
   { title: 'Sign Up', desc: 'Join the StartupsIndia ecosystem', href: '/signup', category: 'Account', color: '#6366f1' },
@@ -187,13 +188,13 @@ export default function Header() {
       href: '/programs', 
       icon: LayoutGrid,
       dropdown: [
-        { 
-          label: 'Pre-Incubation', 
+        {
+          label: 'Pre-Incubation',
           href: '/programs/pre-incubation',
           description: '8-week intensive program for idea validation'
         },
-        { 
-          label: 'Incubation', 
+        {
+          label: 'Incubation',
           href: '/programs/incubation',
           description: 'Full incubation support for early-stage startups'
         },
@@ -201,6 +202,11 @@ export default function Header() {
           label: 'Master Classes',
           href: '/programs/master-classes',
           description: 'Exclusive cinematic learning experience — Enroll now for early access',
+        },
+        {
+          label: 'Campus Startup Mission',
+          href: '/campus-startup',
+          description: 'Innovation Mission 2026 — colleges, hackathons & funding',
         },
       ]
     },

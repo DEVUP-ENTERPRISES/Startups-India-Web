@@ -182,13 +182,42 @@ function RocketVisual() {
   );
 }
 
+/* ── Stat card SVG icons ── */
+const CARD_ICONS = {
+  calendar: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+    </svg>
+  ),
+  college: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"/>
+    </svg>
+  ),
+  students: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+    </svg>
+  ),
+  hackathon: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/><line x1="14" y1="4" x2="10" y2="20"/>
+    </svg>
+  ),
+  ideas: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A5 5 0 0 0 8 8c0 1 .3 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><line x1="9" y1="18" x2="15" y2="18"/><line x1="10" y1="22" x2="14" y2="22"/>
+    </svg>
+  ),
+};
+
 /* ── Floating stat card ── */
-function StatCard({ icon, text, subtext }) {
+function StatCard({ iconKey, text, subtext }) {
   const isLongText = text && text.length > 10;
   return (
     <div className={styles.floatingCard}>
       <div className={styles.cardIconWrap}>
-        <span className={styles.cardIcon}>{icon}</span>
+        <span className={styles.cardIcon}>{CARD_ICONS[iconKey]}</span>
       </div>
       <span className={`${styles.cardStat} ${isLongText ? styles.cardStatLong : ''}`}>
         {text}
@@ -351,7 +380,14 @@ export default function CampusHero() {
         >
           {/* Badge */}
           <motion.div className={styles.badge} variants={itemVariants}>
-            <span className={styles.badgeIcon}>🚀</span>
+            <span className={styles.badgeIcon}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/>
+                <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/>
+                <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/>
+                <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/>
+              </svg>
+            </span>
             <span>
               <span className={styles.badgeHighlight}>StartupsIndia.in</span> Presents
             </span>
@@ -414,19 +450,19 @@ export default function CampusHero() {
 
           {/* Orbiting stat cards */}
           <div className={styles.orbitTrack} style={{ '--r': '225px', '--d': '40s', '--delay': '0s' }}>
-            <StatCard icon="📅" text="June – July 2026" />
+            <StatCard iconKey="calendar" text="June – July 2026" />
           </div>
           <div className={styles.orbitTrack} style={{ '--r': '255px', '--d': '40s', '--delay': '-8s' }}>
-            <StatCard icon="🏫" text="100+" subtext="Top Colleges" />
+            <StatCard iconKey="college" text="100+" subtext="Top Colleges" />
           </div>
           <div className={styles.orbitTrack} style={{ '--r': '235px', '--d': '40s', '--delay': '-16s' }}>
-            <StatCard icon="👨‍🎓" text="35,000+" subtext="Students" />
+            <StatCard iconKey="students" text="35,000+" subtext="Students" />
           </div>
           <div className={styles.orbitTrack} style={{ '--r': '265px', '--d': '40s', '--delay': '-24s' }}>
-            <StatCard icon="🚀" text="6,000+" subtext="Hackathon Participants" />
+            <StatCard iconKey="hackathon" text="6,000+" subtext="Hackathon Participants" />
           </div>
           <div className={styles.orbitTrack} style={{ '--r': '240px', '--d': '40s', '--delay': '-32s' }}>
-            <StatCard icon="💡" text="2,000+" subtext="Startup Ideas" />
+            <StatCard iconKey="ideas" text="2,000+" subtext="Startup Ideas" />
           </div>
         </div>
       </div>

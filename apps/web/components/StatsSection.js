@@ -1,5 +1,6 @@
 'use client';
 
+import { useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 
 const stats = [
@@ -48,13 +49,48 @@ const stats = [
 ];
 
 export default function StatsSection() {
+  const carouselRef = useRef(null);
+
+  useEffect(() => {
+    const el = carouselRef.current;
+    if (!el) return;
+    if (window.matchMedia('(min-width: 641px)').matches) return;
+
+    let paused = false;
+    let raf;
+
+    const step = () => {
+      if (!paused && el.scrollWidth > el.clientWidth) {
+        el.scrollLeft += 0.7;
+        if (el.scrollLeft >= el.scrollWidth - el.clientWidth - 2) {
+          el.scrollLeft = 0;
+        }
+      }
+      raf = requestAnimationFrame(step);
+    };
+
+    raf = requestAnimationFrame(step);
+
+    const pause = () => { paused = true; };
+    const resume = () => { setTimeout(() => { paused = false; }, 1800); };
+
+    el.addEventListener('touchstart', pause, { passive: true });
+    el.addEventListener('touchend', resume, { passive: true });
+
+    return () => {
+      cancelAnimationFrame(raf);
+      el.removeEventListener('touchstart', pause);
+      el.removeEventListener('touchend', resume);
+    };
+  }, []);
+
   return (
     <section className="stats-section-premium">
       {/* Background Matrix/Dotted highlights */}
       <div className="stats-bg-grid" aria-hidden="true" />
       <div className="stats-bg-glow" aria-hidden="true" />
 
-      <div className="stats-container-premium">
+      <div className="stats-container-premium" ref={carouselRef}>
         {stats.map((stat, index) => (
           <motion.div
             key={index}

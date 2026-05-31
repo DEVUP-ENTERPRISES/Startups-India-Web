@@ -120,6 +120,7 @@ function WorkflowCard({ step, label, index }) {
 
 export default function WhyMissionMatters() {
   const [particles, setParticles] = useState([]);
+  const carouselRef = useRef(null);
 
   // Hydration safe random particles
   useEffect(() => {
@@ -134,12 +135,50 @@ export default function WhyMissionMatters() {
     setParticles(generated);
   }, []);
 
+  // Auto-scroll carousel on mobile
+  useEffect(() => {
+    const el = carouselRef.current;
+    if (!el) return;
+    if (window.matchMedia('(min-width: 769px)').matches) return;
+
+    let paused = false;
+    let raf;
+
+    const step = () => {
+      if (!paused && el.scrollWidth > el.clientWidth) {
+        el.scrollLeft += 0.8;
+        if (el.scrollLeft >= el.scrollWidth - el.clientWidth - 2) {
+          el.scrollLeft = 0;
+        }
+      }
+      raf = requestAnimationFrame(step);
+    };
+
+    raf = requestAnimationFrame(step);
+
+    const pause = () => { paused = true; };
+    const resume = () => { setTimeout(() => { paused = false; }, 1800); };
+
+    el.addEventListener('touchstart', pause, { passive: true });
+    el.addEventListener('touchend', resume, { passive: true });
+    el.addEventListener('mouseenter', pause);
+    el.addEventListener('mouseleave', resume);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      el.removeEventListener('touchstart', pause);
+      el.removeEventListener('touchend', resume);
+      el.removeEventListener('mouseenter', pause);
+      el.removeEventListener('mouseleave', resume);
+    };
+  }, []);
+
   const flowSteps = [
     { step: '01', label: 'Idea' },
     { step: '02', label: 'Innovation' },
     { step: '03', label: 'Prototype' },
     { step: '04', label: 'Pitch' },
-    { step: '05', label: 'Startup 🚀' }
+    { step: '05', label: 'Startup' },
   ];
 
   return (
@@ -238,7 +277,7 @@ export default function WhyMissionMatters() {
         </motion.div>
 
         {/* Workflow Process Cards Container */}
-        <div className={styles.workflowContainer}>
+        <div className={styles.workflowContainer} ref={carouselRef}>
           {flowSteps.map((stepData, idx) => (
             <div key={idx} className={styles.stepWrapper}>
               <WorkflowCard

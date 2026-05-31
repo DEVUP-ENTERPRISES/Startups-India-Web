@@ -8,7 +8,7 @@
 .aboutSection {
   position: relative;
   background: #050505;
-  padding: 80px 7% 80px;
+  padding: 48px 7%;
   overflow: hidden;
   border-bottom: 1px solid rgba(255, 255, 255, 0.03);
   font-family: 'Poppins', sans-serif;
@@ -526,7 +526,7 @@
 /* Tablet & Medium Screens (≤ 1200px) */
 @media (max-width: 1200px) {
   .aboutSection {
-    padding: 60px 24px 50px;
+    padding: 40px 24px 36px;
   }
 
   .layoutGrid {
@@ -553,7 +553,7 @@
 /* Mobile Screens (≤ 640px) */
 @media (max-width: 640px) {
   .aboutSection {
-    padding: 40px 16px 40px;
+    padding: 32px 16px;
   }
 
   .header {
