@@ -13,7 +13,7 @@ const trainingData = [
     instructorAvatar: '/assets/images/Vishwaraj.jpg',
     tags: ['Idea Validation', 'Audience', 'Market'],
     views: '12.5K Views',
-    image: 'https://drive.google.com/thumbnail?id=1F3yg7-FX0o-dgZUeBTaV58_4byptKFzi&sz=w1000',
+    image: 'https://drive.google.com/uc?export=view&id=1F3yg7-FX0o-dgZUeBTaV58_4byptKFzi',
     videoUrl: 'https://drive.google.com/file/d/1lKCjQY8BX6Fud1KcfJjp5ZT2vHBn01LO/view?usp=drive_link',
   },
   {
@@ -26,7 +26,7 @@ const trainingData = [
     instructorAvatar: '/assets/images/Vishwaraj.jpg',
     tags: ['Market', 'Audience', 'Research'],
     views: '15.2K Views',
-    image: 'https://drive.google.com/thumbnail?id=1-oIQT24y9HUyJyG2AU-UPwt6V41spGYE&sz=w1000',
+    image: 'https://drive.google.com/uc?export=view&id=1-oIQT24y9HUyJyG2AU-UPwt6V41spGYE',
     videoUrl: 'https://drive.google.com/file/d/1PTcaoaKlN7IOJrcHmfd35j18WTdyJNQ2/view?usp=drive_link',
   },
   {
@@ -39,7 +39,7 @@ const trainingData = [
     instructorAvatar: '/assets/images/Vishwaraj.jpg',
     tags: ['Marketing', 'Strategy', 'Go To Market'],
     views: '18.7K Views',
-    image: 'https://drive.google.com/thumbnail?id=1PKoxBY9efZ5wgV9aE1lBj8cR8tWMxKyd&sz=w1000',
+    image: 'https://drive.google.com/uc?export=view&id=1PKoxBY9efZ5wgV9aE1lBj8cR8tWMxKyd',
     videoUrl: 'https://drive.google.com/file/d/1mQUJSxCDhPa3mvDjqSyuWqo9oImsWYkW/view?usp=drive_link',
   },
 ];
