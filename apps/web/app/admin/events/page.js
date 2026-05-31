@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { apiGet, apiPost, apiPatch, apiDelete } from '@/lib/api';
 import Link from 'next/link';
 
+const ADMIN_BASE = `/${process.env.NEXT_PUBLIC_ADMIN_SLUG || 'ctrl-x9k2m3-panel'}`;
+
 export default function AdminEventsPage() {
   const [events, setEvents] = useState([]);
   const [total, setTotal] = useState(0);
@@ -348,10 +350,10 @@ export default function AdminEventsPage() {
                   </td>
                   <td>
                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                      <Link href={`/admin/events/${ev._id}/registrations`} className="btn btn-primary btn-sm">
+                      <Link href={`${ADMIN_BASE}/events/${ev._id}/registrations`} className="btn btn-primary btn-sm">
                         Regs
                       </Link>
-                      <Link href={`/admin/events/${ev._id}/analytics`} className="btn btn-secondary btn-sm" style={{background: '#e0e7ff', color: '#4338ca'}}>
+                      <Link href={`${ADMIN_BASE}/events/${ev._id}/analytics`} className="btn btn-secondary btn-sm" style={{background: '#e0e7ff', color: '#4338ca'}}>
                         Stats
                       </Link>
                       <button className="btn btn-secondary btn-sm" onClick={() => openEdit(ev)}>

@@ -6,6 +6,8 @@ import { apiGet, apiPatch, apiDelete, apiPost } from '@/lib/api';
 import { BarChart, Eye, Upload, Download, Edit2, Copy, Trash2 } from 'lucide-react';
 import '@/styles/admin-panel.css';
 
+const ADMIN_BASE = `/${process.env.NEXT_PUBLIC_ADMIN_SLUG || 'ctrl-x9k2m3-panel'}`;
+
 export default function AdminArticlesPage() {
   const router = useRouter();
   const [articles, setArticles] = useState([]);
@@ -70,7 +72,7 @@ export default function AdminArticlesPage() {
         </div>
         <button
           className="admin-btn-primary"
-          onClick={() => router.push('/admin/articles/create')}
+          onClick={() => router.push(`${ADMIN_BASE}/articles/create`)}
         >
           Add Article
         </button>
@@ -161,7 +163,7 @@ export default function AdminArticlesPage() {
                   </td>
                   <td style={{ textAlign: 'right' }}>
                     <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-                      <button onClick={() => router.push(`/admin/articles/${article._id}/analytics`)} className="admin-btn-icon" title="Analytics">
+                      <button onClick={() => router.push(`${ADMIN_BASE}/articles/${article._id}/analytics`)} className="admin-btn-icon" title="Analytics">
                         <BarChart size={16} />
                       </button>
                       <button onClick={() => window.open(`/source/${article.slug}`, '_blank')} className="admin-btn-icon" title="Preview">
@@ -170,7 +172,7 @@ export default function AdminArticlesPage() {
                       <button onClick={() => toggleStatus(article._id, article.status)} className="admin-btn-icon" title={article.status === 'published' ? 'Unpublish' : 'Publish'}>
                         {article.status === 'published' ? <Download size={16} /> : <Upload size={16} />}
                       </button>
-                      <button onClick={() => router.push(`/admin/articles/${article._id}/edit`)} className="admin-btn-icon" title="Edit">
+                      <button onClick={() => router.push(`${ADMIN_BASE}/articles/${article._id}/edit`)} className="admin-btn-icon" title="Edit">
                         <Edit2 size={16} />
                       </button>
                       <button onClick={() => handleDuplicate(article._id)} className="admin-btn-icon" title="Duplicate">

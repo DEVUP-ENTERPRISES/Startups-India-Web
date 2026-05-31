@@ -6,6 +6,8 @@ import { apiPost } from '@/lib/api';
 import TiptapEditor from '@/components/TiptapEditor';
 import '@/styles/admin-panel.css';
 
+const ADMIN_BASE = `/${process.env.NEXT_PUBLIC_ADMIN_SLUG || 'ctrl-x9k2m3-panel'}`;
+
 function ImageUploadField({ label, fieldKey, storedUrl, previewUrl, uploading, onFileChange, onRemove }) {
   const displayUrl = previewUrl || storedUrl;
 
@@ -131,7 +133,7 @@ export default function CreateArticlePage() {
       };
 
       await apiPost('/api/v1/admin/articles', payload);
-      router.push('/admin/articles');
+      router.push(`${ADMIN_BASE}/articles`);
     } catch (err) {
       console.error(err);
       alert('Error saving article');
