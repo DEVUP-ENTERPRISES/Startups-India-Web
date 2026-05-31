@@ -13,13 +13,13 @@
 .network-hero {
   position: relative;
   width: 100%;
-  min-height: 60vh; /* Reduced from 70vh for tighter feel */
+  min-height: 100svh;           /* full viewport so content never clips */
   display: flex;
   align-items: flex-start;
   justify-content: center;
   background: #000;
   overflow: hidden;
-  padding: 140px 24px 20px; /* Reduced bottom padding aggressively */
+  padding: calc(var(--header-h, 74px) + 24px) 24px 40px;
   box-sizing: border-box;
 }
 
@@ -215,8 +215,8 @@
   flex-direction: column;
   align-items: center;
   gap: 0;
-  margin-top: -40px;
-  margin-bottom: 0; /* MINIMAL gap to cards */
+  margin-top: 0;
+  margin-bottom: 0;
 }
 
 .hero-static-line {
@@ -402,8 +402,9 @@
 @media (max-width: 768px) {
 
   .network-hero {
-    padding: 36px 20px 28px;
-    min-height: auto;
+    /* 8px breathing room below the fixed header on mobile */
+    padding: calc(var(--header-h, 66px) + 8px) 20px 36px;
+    min-height: 100svh;
     overflow: hidden;
   }
 
@@ -544,12 +545,17 @@
     border-radius: 12px;
   }
 
-  /* Performance: dim heavy effects on mobile */
-  .hero-cursor-glow,
+  /* Hide cursor-follow glow on mobile — it has no mouse events so it
+     renders stuck at (0,0) and overlaps the hero text */
+  .hero-cursor-glow {
+    display: none !important;
+  }
+
+  /* Dim heavy ambient effects for performance */
   .ambient-glows .glow-1,
   .ambient-glows .glow-2,
   .bottom-glow-arc {
-    opacity: 0.25 !important;
+    opacity: 0.2 !important;
   }
 }
 

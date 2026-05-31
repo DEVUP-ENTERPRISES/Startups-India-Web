@@ -28,8 +28,7 @@ const founders = [
     category: 'Healthcare',
     stat1: '$3M RAISED',
     stat2: '400% GROWTH',
-    image: "/assets/images/home-testimonials/demo-founder.jpg"
-    
+    image: "/assets/images/home-testimonials/demo-founder.jpg",
   },
   {
     quote:
@@ -41,8 +40,7 @@ const founders = [
     category: 'AgriTech',
     stat1: 'PAN-INDIA',
     stat2: '10K+ FARMERS',
-    image: "/assets/images/home-testimonials/demo-founder.jpg"
-    
+    image: "/assets/images/home-testimonials/demo-founder.jpg",
   },
 ];
 

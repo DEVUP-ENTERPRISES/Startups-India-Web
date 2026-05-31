@@ -91,14 +91,13 @@ export default function NetworkHero() {
       </div>
 
       {/* Hero Content Wrapper */}
-      <motion.div 
+      <motion.div
         className="hero-content-wrapper"
         initial={{ opacity: 0, y: 20 }}
-        animate={{ 
-          opacity: 1, 
-          y: 0,
+        animate={{
+          opacity: 1,
+          y: mousePosition.y * 0.5,  /* no duplicate key — single y */
           x: mousePosition.x * 0.5,
-          y: mousePosition.y * 0.5
         }}
         transition={{ duration: 1 }}
       >
