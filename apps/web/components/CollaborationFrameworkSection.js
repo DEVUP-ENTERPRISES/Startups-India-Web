@@ -5,6 +5,14 @@ import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from
 import { GraduationCap, Rocket, Globe, Landmark, ArrowRight, X, CheckCircle2, MessageSquare } from 'lucide-react';
 import '../styles/collaboration-framework.css';
 
+const COLLAB_PARTICLES = Array.from({ length: 6 }, () => ({
+  left: Math.random() * 100,
+  width: Math.random() * 8 + 4,
+  height: Math.random() * 8 + 4,
+  animationDuration: Math.random() * 10 + 10,
+  animationDelay: Math.random() * 5,
+}));
+
 const pillars = [
   {
     number: '01',
@@ -156,16 +164,16 @@ export default function CollaborationFrameworkSection() {
       <div className="collab-bg-blob collab-bg-blob--3" />
       
       {/* Background Particles */}
-      {[...Array(6)].map((_, i) => (
-        <div 
-          key={i} 
+      {COLLAB_PARTICLES.map((p, i) => (
+        <div
+          key={i}
           className="collab-particle"
           style={{
-            left: `${Math.random() * 100}%`,
-            width: `${Math.random() * 8 + 4}px`,
-            height: `${Math.random() * 8 + 4}px`,
-            animationDuration: `${Math.random() * 10 + 10}s`,
-            animationDelay: `${Math.random() * 5}s`,
+            left: `${p.left}%`,
+            width: `${p.width}px`,
+            height: `${p.height}px`,
+            animationDuration: `${p.animationDuration}s`,
+            animationDelay: `${p.animationDelay}s`,
           }}
         />
       ))}
