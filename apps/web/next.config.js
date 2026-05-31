@@ -31,6 +31,17 @@ const nextConfig = {
   devIndicators: {
     appIsrStatus: false,
   },
+
+  webpack(config, { dev }) {
+    if (dev) {
+      // Silence "Failed to parse source map" warnings from node_modules (framer-motion etc.)
+      config.ignoreWarnings = [
+        { module: /node_modules/, message: /Failed to parse source map/ },
+        { message: /source-map-loader/ },
+      ];
+    }
+    return config;
+  },
 };
 
 module.exports = nextConfig;
