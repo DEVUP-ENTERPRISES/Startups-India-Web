@@ -14,8 +14,6 @@ import ImpactSection from '@/components/ImpactSection';
 import TrustedPartners from '@/components/TrustedPartners';
 import AchievementsSection from '@/components/AchievementsSection';
 import TrainingSection from '@/components/TrainingSection';
-
-
 import { motion } from 'framer-motion';
 import '../styles/iec-homepage.css';
 

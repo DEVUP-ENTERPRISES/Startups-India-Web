@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { Rocket, ArrowRight, Lightbulb, DollarSign, Users } from 'lucide-react';
@@ -31,23 +31,40 @@ const FEATURES = [
   }
 ];
 
+// Stable random values computed once per mount, not on every re-render
+const PARTICLE_COUNT = 20;
+const PARTICLES = Array.from({ length: PARTICLE_COUNT }, () => ({
+  duration: Math.random() * 10 + 10,
+  width: Math.random() * 3 + 1,
+  height: Math.random() * 3 + 1,
+  left: Math.random() * 100,
+  top: Math.random() * 100,
+}));
+
 export default function NetworkHero() {
   const sectionRef = useRef(null);
   const [textIndex, setTextIndex] = useState(0);
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0, rawX: 0, rawY: 0 });
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const rafRef = useRef(null);
 
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
     const handleMouseMove = (e) => {
-      const { clientX, clientY } = e;
-      const moveX = (clientX - window.innerWidth / 2) / 50;
-      const moveY = (clientY - window.innerHeight / 2) / 50;
-      setMousePosition({ x: moveX, y: moveY, rawX: clientX, rawY: clientY });
+      if (rafRef.current) return;
+      rafRef.current = requestAnimationFrame(() => {
+        const moveX = (e.clientX - window.innerWidth / 2) / 50;
+        const moveY = (e.clientY - window.innerHeight / 2) / 50;
+        setMousePosition({ x: moveX, y: moveY });
+        rafRef.current = null;
+      });
     };
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
   }, []);
 
   useEffect(() => {
@@ -67,23 +84,14 @@ export default function NetworkHero() {
           <div className="glow-2" />
         </div>
         <div className="particles-container">
-          {isClient && [...Array(20)].map((_, i) => (
-            <motion.div 
-              key={i} 
+          {isClient && PARTICLES.map((p, i) => (
+            <motion.div
+              key={i}
               className="hero-particle"
               initial={{ opacity: 0 }}
               animate={{ opacity: [0, 0.15, 0] }}
-              transition={{ 
-                duration: Math.random() * 10 + 10, 
-                repeat: Infinity,
-                ease: "linear"
-              }}
-              style={{
-                width: Math.random() * 3 + 1 + 'px',
-                height: Math.random() * 3 + 1 + 'px',
-                left: Math.random() * 100 + '%',
-                top: Math.random() * 100 + '%'
-              }}
+              transition={{ duration: p.duration, repeat: Infinity, ease: 'linear' }}
+              style={{ width: p.width + 'px', height: p.height + 'px', left: p.left + '%', top: p.top + '%' }}
             />
           ))}
         </div>
