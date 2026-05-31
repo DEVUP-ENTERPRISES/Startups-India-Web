@@ -27,6 +27,10 @@ const nextConfig = {
   // Production optimizations
   productionBrowserSourceMaps: false,
   poweredByHeader: false,
+  // Disable Vercel Toolbar polling (/api/flags) — not needed, eliminates 404 spam
+  devIndicators: {
+    appIsrStatus: false,
+  },
 };
 
 module.exports = nextConfig;
