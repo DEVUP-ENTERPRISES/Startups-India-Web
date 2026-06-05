@@ -211,19 +211,7 @@ export default function Header() {
       ]
     },
     { label: 'Events', href: '/events', icon: Calendar },
-    { 
-      label: 'Mentors', 
-      href: '/mentors', 
-      icon: Users,
-      dropdown: [
-        {
-          label: 'Register as Mentor',
-          href: '/mentors#become-mentor',
-          description: 'Share your expertise and guide startup founders through mentorship and ecosystem support.',
-          subtext: 'Join the mentor ecosystem →'
-        }
-      ]
-    },
+    { label: 'Mentors', href: '/mentors', icon: Users },
     { label: 'Investors', href: '/investors', icon: Coins },
     { label: 'Market Access', href: '/market-access', icon: Rocket },
     { label: 'Source', href: '/source', icon: Search },

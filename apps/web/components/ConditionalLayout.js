@@ -3,6 +3,7 @@
 import { usePathname } from 'next/navigation';
 import Header from './Header';
 import Footer from './Footer';
+import CampusMissionPopup from './CampusMissionPopup';
 import { MAINTENANCE_MODE } from '@/config/maintenance';
 
 // Admin slug used in browser URL (middleware rewrites to /admin internally)
@@ -47,6 +48,7 @@ export default function ConditionalLayout({ children }) {
   return (
     <>
       <Header />
+      <CampusMissionPopup />
       <main>{children}</main>
       <Footer />
     </>
