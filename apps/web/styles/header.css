@@ -1168,7 +1168,7 @@
    No body padding (that shows white on light pages).
    ══════════════════════════════════════════════════════════ */
 :root {
-  --header-h: 74px;   /* desktop: top-row + bottom-row */
+  --header-h: 110px;   /* desktop: top-row + bottom-row */
 }
 
 /* network-hero handles its own padding via network-hero.css

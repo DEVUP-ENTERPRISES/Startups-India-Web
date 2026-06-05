@@ -6,7 +6,8 @@
   position: relative;
   min-height: 100vh;
   background: linear-gradient(180deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%);
-  padding: 120px 0 80px;
+  padding-top: calc(var(--header-h) + 24px);
+  padding-bottom: 80px;
   overflow: hidden;
 }
 
@@ -389,7 +390,8 @@
 
 @media (max-width: 968px) {
   .incubation-page {
-    padding: 80px 0 60px;
+    padding-top: calc(var(--header-h) + 16px);
+    padding-bottom: 60px;
   }
 
   .incubation-title {
@@ -416,7 +418,8 @@
 
 @media (max-width: 640px) {
   .incubation-page {
-    padding: 60px 0 40px;
+    padding-top: calc(var(--header-h) + 16px);
+    padding-bottom: 40px;
   }
 
   .incubation-container {

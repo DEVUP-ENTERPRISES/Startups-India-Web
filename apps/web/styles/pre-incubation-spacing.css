@@ -24,7 +24,7 @@
 
 /* Keep the Hero Section's top padding so it doesn't collide with the navbar */
 .pre-incubation-page .hero-section {
-  padding-top: 80px !important;
+  padding-top: calc(var(--header-h) + 24px) !important;
   padding-bottom: 40px !important;
 }
 
@@ -46,6 +46,6 @@
   }
   
   .pre-incubation-page .hero-section {
-    padding-top: 60px !important;
+    padding-top: calc(var(--header-h) + 16px) !important;
   }
 }

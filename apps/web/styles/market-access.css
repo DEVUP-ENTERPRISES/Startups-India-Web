@@ -29,7 +29,8 @@
   display: flex;
   align-items: center;
   background: linear-gradient(135deg, #0a0a0a 0%, #0f1f0f 50%, #0a0a0a 100%);
-  padding: 140px 0 120px;
+  padding-top: calc(var(--header-h) + 24px);
+  padding-bottom: 120px;
   position: relative;
   overflow: hidden;
 }
@@ -1896,7 +1897,7 @@
     flex-direction: column;
     align-items: center;
     text-align: center;
-    padding-top: 80px;
+    padding-top: calc(var(--header-h) + 16px);
     padding-bottom: 80px;
     gap: 32px;
   }

@@ -348,7 +348,8 @@ canvas {
 @media (max-width: 768px) {
   .about-hero {
     min-height: auto !important;
-    padding: 80px 0 60px !important;
+    padding-top: calc(var(--header-h) + 16px) !important;
+    padding-bottom: 60px !important;
   }
 
   .about-hero-content {
@@ -416,13 +417,15 @@ canvas {
   }
 
   .about-hero {
-    padding: 64px 0 40px !important;
+    padding-top: calc(var(--header-h) + 16px) !important;
+    padding-bottom: 40px !important;
   }
 }
 
 @media (min-width: 769px) and (max-width: 1024px) {
   .about-hero {
-    padding: 100px 0 80px !important;
+    padding-top: calc(var(--header-h) + 20px) !important;
+    padding-bottom: 80px !important;
   }
 
   .eco-main-title {
@@ -434,7 +437,8 @@ canvas {
 @media (max-width: 768px) {
   .programs-hero,
   .programs-hero-section {
-    padding: 80px 0 60px !important;
+    padding-top: calc(var(--header-h) + 16px) !important;
+    padding-bottom: 60px !important;
     min-height: auto !important;
   }
 
@@ -478,7 +482,8 @@ canvas {
 @media (max-width: 768px) {
   .events-hero,
   .events-hero-section {
-    padding: 80px 0 60px !important;
+    padding-top: calc(var(--header-h) + 16px) !important;
+    padding-bottom: 60px !important;
     min-height: auto !important;
   }
 
@@ -508,7 +513,8 @@ canvas {
   }
 
   .source-hero {
-    padding: 80px 0 60px !important;
+    padding-top: calc(var(--header-h) + 16px) !important;
+    padding-bottom: 60px !important;
     min-height: auto !important;
   }
 

@@ -12,7 +12,10 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  padding: clamp(80px, 8vh, 120px) clamp(24px, 5vw, 80px) 40px;
+  padding-top: calc(var(--header-h) + 24px);
+  padding-left: clamp(24px, 5vw, 80px);
+  padding-right: clamp(24px, 5vw, 80px);
+  padding-bottom: 40px;
 }
 
 /* ─── Background Effects ─── */
@@ -557,7 +560,10 @@
    ────────────────────────────────── */
 @media (min-width: 768px) and (max-width: 1024px) {
   .heroSection {
-    padding: 90px 24px 40px;
+    padding-top: calc(var(--header-h) + 20px);
+    padding-left: 24px;
+    padding-right: 24px;
+    padding-bottom: 40px;
   }
 
   .heroInner {
@@ -640,7 +646,10 @@
    ────────────────────────────────── */
 @media (max-width: 768px) {
   .heroSection {
-    padding: 80px 20px 30px;
+    padding-top: calc(var(--header-h) + 16px);
+    padding-left: 20px;
+    padding-right: 20px;
+    padding-bottom: 30px;
   }
 
   .heroInner {
@@ -786,7 +795,10 @@
    ────────────────────────────────── */
 @media (max-width: 480px) {
   .heroSection {
-    padding: 70px 16px 24px;
+    padding-top: calc(var(--header-h) + 16px);
+    padding-left: 16px;
+    padding-right: 16px;
+    padding-bottom: 24px;
   }
 
   .titleWhite,

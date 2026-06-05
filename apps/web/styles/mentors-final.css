@@ -20,7 +20,8 @@
   position: relative;
   background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%);
   overflow: hidden;
-  padding: 140px 0 50px; /* Reduced bottom padding further */
+  padding-top: calc(var(--header-h) + 24px);
+  padding-bottom: 50px; /* Reduced bottom padding further */
 }
 
 /* Animated Background Orbs */
@@ -1554,7 +1555,8 @@ div.stat-card .stat-number,
 @media (max-width: 480px) {
   .mentors-hero {
     min-height: auto;
-    padding: 80px 0 60px;
+    padding-top: calc(var(--header-h) + 16px);
+    padding-bottom: 60px;
   }
 
   .mentors-hero .hero-title {
