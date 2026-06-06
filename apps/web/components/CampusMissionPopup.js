@@ -153,11 +153,21 @@ export default function CampusMissionPopup() {
   const timerRef = useRef(null);
   const router   = useRouter();
 
-  // Show after 1 s on every refresh
-  useEffect(() => {
-    const t = setTimeout(() => setVisible(true), 1000);
-    return () => clearTimeout(t);
-  }, []);
+// Show popup after user scrolls
+useEffect(() => {
+  const handleScroll = () => {
+    if (window.scrollY > 200) {
+      setVisible(true);
+      window.removeEventListener('scroll', handleScroll);
+    }
+  };
+
+  window.addEventListener('scroll', handleScroll);
+
+  return () => {
+    window.removeEventListener('scroll', handleScroll);
+  };
+}, []);
 
   // Lock body scroll
   useEffect(() => {
