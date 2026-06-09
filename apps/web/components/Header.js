@@ -406,16 +406,16 @@ export default function Header() {
 
           <div className="header-actions">
             {user ? (
-              <Link href="/dashboard">
-                <button className="btn-header btn-signin">Dashboard</button>
+              <Link href="/dashboard" className="btn-header btn-signin" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                Dashboard
               </Link>
             ) : (
               <>
-                <Link href="/login">
-                  <button className="btn-header btn-signin">Sign in</button>
+                <Link href="/login" className="btn-header btn-signin" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                  Sign in
                 </Link>
-                <Link href="/signup">
-                  <button className="btn-header btn-signup">Sign Up</button>
+                <Link href="/signup" className="btn-header btn-signup" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                  Sign Up
                 </Link>
               </>
             )}
@@ -606,16 +606,16 @@ export default function Header() {
           </ul>
           <div className="mobile-drawer-actions">
             {user ? (
-              <Link href="/dashboard" onClick={closeMobileMenu}>
-                <button className="mobile-btn mobile-btn-primary">Dashboard</button>
+              <Link href="/dashboard" onClick={closeMobileMenu} className="mobile-btn mobile-btn-primary" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                Dashboard
               </Link>
             ) : (
               <>
-                <Link href="/login" onClick={closeMobileMenu}>
-                  <button className="mobile-btn mobile-btn-secondary">Sign in</button>
+                <Link href="/login" onClick={closeMobileMenu} className="mobile-btn mobile-btn-secondary" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                  Sign in
                 </Link>
-                <Link href="/signup" onClick={closeMobileMenu}>
-                  <button className="mobile-btn mobile-btn-primary">Sign up</button>
+                <Link href="/signup" onClick={closeMobileMenu} className="mobile-btn mobile-btn-primary" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                  Sign up
                 </Link>
               </>
             )}

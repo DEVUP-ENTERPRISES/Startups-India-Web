@@ -575,6 +575,7 @@
 
 .btn-signin:hover {
   background: #f9fafb;
+  color: #111827 !important;
 }
 
 .btn-signup {

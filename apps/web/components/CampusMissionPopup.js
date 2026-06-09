@@ -175,7 +175,11 @@ useEffect(() => {
     return () => { document.body.style.overflow = ''; };
   }, [visible]);
 
-  const close = useCallback(() => {
+  const close = useCallback((e) => {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
     if (closing) return;
     setClosing(true);
     clearTimeout(timerRef.current);
@@ -226,8 +230,13 @@ useEffect(() => {
         <div className={styles.spotlight} aria-hidden="true" />
 
         {/* × Close */}
-        <button className={styles.closeBtn} onClick={close} aria-label="Close">
-          <X size={14} />
+        <button 
+          type="button"
+          className={styles.closeBtn} 
+          onClick={close} 
+          aria-label="Close"
+        >
+          <X size={14} style={{ pointerEvents: 'none' }} />
         </button>
 
         {/* ───────── LEFT COLUMN ───────── */}
