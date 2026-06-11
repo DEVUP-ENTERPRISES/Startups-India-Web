@@ -129,9 +129,7 @@ export default function PartnersSlider() {
                 <h4 className={styles.partnerName}>
                   {partner.name}
                 </h4>
-                <p className={styles.partnerDesc}>
-                  {partner.desc}
-                </p>
+                
               </div>
             ))}
           </div>

@@ -186,27 +186,27 @@ function RocketVisual() {
 const CARD_ICONS = {
   calendar: (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+      <rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
     </svg>
   ),
   college: (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"/>
+      <path d="M22 10v6M2 10l10-5 10 5-10 5z" /><path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5" />
     </svg>
   ),
   students: (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
     </svg>
   ),
   hackathon: (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/><line x1="14" y1="4" x2="10" y2="20"/>
+      <polyline points="16 18 22 12 16 6" /><polyline points="8 6 2 12 8 18" /><line x1="14" y1="4" x2="10" y2="20" />
     </svg>
   ),
   ideas: (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A5 5 0 0 0 8 8c0 1 .3 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><line x1="9" y1="18" x2="15" y2="18"/><line x1="10" y1="22" x2="14" y2="22"/>
+      <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A5 5 0 0 0 8 8c0 1 .3 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5" /><line x1="9" y1="18" x2="15" y2="18" /><line x1="10" y1="22" x2="14" y2="22" />
     </svg>
   ),
 };
@@ -264,7 +264,7 @@ export default function CampusHero() {
   const handleOpenModal = (type) => {
     setModalType(type);
     setIsSubmitted(false);
-    
+
     // Reset data
     setSponsorData({
       fullName: '',
@@ -382,10 +382,10 @@ export default function CampusHero() {
           <motion.div className={styles.badge} variants={itemVariants}>
             <span className={styles.badgeIcon}>
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/>
-                <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/>
-                <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/>
-                <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/>
+                <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z" />
+                <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z" />
+                <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0" />
+                <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5" />
               </svg>
             </span>
             <span>
@@ -395,26 +395,26 @@ export default function CampusHero() {
 
           {/* Main heading */}
           <motion.h1 className={styles.heroTitle} variants={itemVariants}>
-            <span className={styles.titleWhite}>CAMPUS STARTUP &</span>
-            <span className={styles.titleGradient}>INNOVATION MISSION 2026</span>
+            <span className={styles.titleGradient}>Campus100x</span>
+            <span className={styles.titleWhite}>Campus Innovation & Startup League</span>
           </motion.h1>
 
           {/* Subheading */}
           <motion.h2 className={styles.heroSubtitle} variants={itemVariants}>
-            Building India's Next Generation of Innovators, Startup Founders & Future Leaders
+            100 Colleges | 100 Events | One Innovation Competition to "Building India's Next 1 Million Startup Founders".
           </motion.h2>
 
           {/* Description */}
           <motion.p className={styles.heroDesc} variants={itemVariants}>
-            India's emerging campus innovation ecosystem connecting students, colleges, startups,
-            corporates, mentors, incubators, investors, and industry leaders through large-scale
-            startup awareness programs, innovation competitions, hackathons, pitching platforms,
-            and funding opportunities.
+            Campus100x is a structured innovation, entrepreneurship, and startup development
+            league designed to engage students across colleges, transform ideas into startups,
+            and connect young innovators with industry leaders, mentors, investors,
+            and ecosystem partners.
           </motion.p>
 
           {/* CTA Buttons */}
           <motion.div className={styles.ctaGroup} variants={itemVariants}>
-            <button 
+            <button
               className={`${styles.ctaBtn} ${styles.ctaPrimary}`}
               onClick={() => handleOpenModal('sponsor')}
             >
@@ -423,7 +423,7 @@ export default function CampusHero() {
                 <path d="M3 8H13M13 8L9 4M13 8L9 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </button>
-            <button 
+            <button
               className={`${styles.ctaBtn} ${styles.ctaSecondary}`}
               onClick={() => handleOpenModal('college')}
             >
@@ -432,7 +432,7 @@ export default function CampusHero() {
                 <path d="M3 8H13M13 8L9 4M13 8L9 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </button>
-            <button 
+            <button
               className={`${styles.ctaBtn} ${styles.ctaSecondary}`}
               onClick={() => handleOpenModal('movement')}
             >
@@ -450,13 +450,13 @@ export default function CampusHero() {
 
           {/* Orbiting stat cards */}
           <div className={styles.orbitTrack} style={{ '--r': '225px', '--d': '40s', '--delay': '0s' }}>
-            <StatCard iconKey="calendar" text="June – July 2026" />
+            <StatCard iconKey="calendar" text="July – September 2026" />
           </div>
           <div className={styles.orbitTrack} style={{ '--r': '255px', '--d': '40s', '--delay': '-8s' }}>
             <StatCard iconKey="college" text="100+" subtext="Top Colleges" />
           </div>
           <div className={styles.orbitTrack} style={{ '--r': '235px', '--d': '40s', '--delay': '-16s' }}>
-            <StatCard iconKey="students" text="35,000+" subtext="Students" />
+            <StatCard iconKey="students" text="50,000+" subtext="Students" />
           </div>
           <div className={styles.orbitTrack} style={{ '--r': '265px', '--d': '40s', '--delay': '-24s' }}>
             <StatCard iconKey="hackathon" text="6,000+" subtext="Hackathon Participants" />
@@ -477,48 +477,29 @@ export default function CampusHero() {
         <div className={styles.brandingLeft}>
           <span className={styles.brandingLabel}>PRESENTED BY</span>
           <div className={styles.brandingInfo}>
-            <div className={styles.brandingIcon}>
-              <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-                <path d="M14 2L4 8V20L14 26L24 20V8L14 2Z" fill="url(#brandGrad1)" stroke="#ff3b3b" strokeWidth="0.5"/>
-                <path d="M14 8L9 11V17L14 20L19 17V11L14 8Z" fill="#ff3b3b" opacity="0.3"/>
-                <defs>
-                  <linearGradient id="brandGrad1" x1="4" y1="2" x2="24" y2="26">
-                    <stop stopColor="#1a0505"/>
-                    <stop offset="1" stopColor="#2a0a0a"/>
-                  </linearGradient>
-                </defs>
-              </svg>
-            </div>
-            <div>
-              <span className={styles.brandingName}>StartupsIndia.in</span>
-              <span className={styles.brandingSub}>Empowering Indian Startups</span>
-            </div>
+            <img
+              src="/assets/images/logos/Startupsina-logo-wight.png"
+              alt="StartupsIndia"
+              className={styles.topLogo}
+            />
+            <span className={styles.brandingSub}>Empowering Indian Startups</span>
           </div>
         </div>
 
         <div className={styles.brandingDivider} />
 
         <div className={styles.brandingRight}>
-          <span className={styles.brandingLabel}>POWERED BY</span>
+          <span className={styles.brandingLabel}>INITIATIVE BY</span>
           <div className={styles.brandingInfo}>
-            <div className={styles.brandingIcon}>
-              <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-                <circle cx="14" cy="14" r="12" fill="url(#brandGrad2)" stroke="#ff3b3b" strokeWidth="0.5"/>
-                <path d="M14 6L16 12H22L17 16L19 22L14 18L9 22L11 16L6 12H12L14 6Z" fill="#ff3b3b" opacity="0.4"/>
-                <defs>
-                  <linearGradient id="brandGrad2" x1="2" y1="2" x2="26" y2="26">
-                    <stop stopColor="#1a0505"/>
-                    <stop offset="1" stopColor="#2a0a0a"/>
-                  </linearGradient>
-                </defs>
-              </svg>
-            </div>
-            <div>
-              <span className={styles.brandingName}>Innovation and Entrepreneurship Council</span>
+              <img
+                src="/assets/images/logos/I&EC Logo Copy-1.png"
+                alt="StartupsIndia"
+                className={styles.topLogo}
+              />
+
               <span className={styles.brandingSub}>Building Innovation. Empowering Entrepreneurs.</span>
             </div>
           </div>
-        </div>
       </motion.div>
 
       {/* Popup Modal with Framer Motion */}
@@ -625,12 +606,12 @@ export default function CampusHero() {
                             required
                             className={styles.formInput}
                           >
-                            <option value="Title Sponsor">Title Sponsor</option>
-                            <option value="Platinum Sponsor">Platinum Sponsor</option>
-                            <option value="Gold Sponsor">Gold Sponsor</option>
-                            <option value="Silver Sponsor">Silver Sponsor</option>
-                            <option value="Event Partner">Event Partner</option>
-                            <option value="Other">Other</option>
+                            <option value="Title Sponsor">TITLE SPONSOR</option>
+                            <option value="Platinum Sponsor">POWERED BY</option>
+                            <option value="Gold Sponsor">CO-POWERED BY</option>
+                            <option value="Silver Sponsor">INDUSTRY / CATEGORY SPONSOR</option>
+                            <option value="Event Partner">ASSOCIATE SPONSOR</option>
+                            <option value="Other">OTHER</option>
                           </select>
                         </div>
 

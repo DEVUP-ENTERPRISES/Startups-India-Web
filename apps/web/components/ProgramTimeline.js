@@ -410,7 +410,7 @@ export default function ProgramTimeline() {
                           <div className={`${styles.medalBadge} ${styles.medalSilver}`}>2</div>
                           <div className={`${styles.pillarBox} ${styles.silverBox}`}>
                             <span className={styles.podiumRank}>2nd Prize</span>
-                            <span className={styles.podiumCash}>₹70,000</span>
+                            <span className={styles.podiumCash}>₹1,00,000</span>
                           </div>
                         </div>
 
@@ -419,7 +419,7 @@ export default function ProgramTimeline() {
                           <div className={`${styles.medalBadge} ${styles.medalGold}`}>1</div>
                           <div className={`${styles.pillarBox} ${styles.goldBox}`}>
                             <span className={styles.podiumRank}>1st Prize</span>
-                            <span className={styles.podiumCash}>₹1,00,000</span>
+                            <span className={styles.podiumCash}>₹3,00,000</span>
                           </div>
                         </div>
 
@@ -428,7 +428,7 @@ export default function ProgramTimeline() {
                           <div className={`${styles.medalBadge} ${styles.medalBronze}`}>3</div>
                           <div className={`${styles.pillarBox} ${styles.bronzeBox}`}>
                             <span className={styles.podiumRank}>3rd Prize</span>
-                            <span className={styles.podiumCash}>₹50,000</span>
+                            <span className={styles.podiumCash}>₹2,00,000</span>
                           </div>
                         </div>
                       </div>
@@ -438,6 +438,32 @@ export default function ProgramTimeline() {
                 </div>
               </SpotlightCard>
             </motion.div>
+
+            {/* PHASE 03 CARD */}
+             <motion.div variants={itemVariants}>
+              <SpotlightCard className={styles.phaseCard}>
+               <div className={styles.cardInner}>
+               <div className={styles.phaseBadge}>Phase 03</div>
+
+                <h3 className={styles.cardTitle}>
+        Idea Pitching, Seed Funding & Grand Finale
+      </h3>
+
+      <div className={styles.subBadge}>
+        <Clock size={16} strokeWidth={2.5} />
+        <span>Mentorship • Incubation • Funding Support</span>
+      </div>
+
+      <p className={styles.bodyText}>
+        The top-performing teams and startups will be invited to the Campus100x Grand Finale.
+      </p>
+
+      <p className={`${styles.bodyText} ${styles.paragraphSpace}`}>
+        Top teams will pitch their ideas before investors, industry experts, incubators, and ecosystem leaders for recognition, funding opportunities, and startup support.
+      </p>
+    </div>
+  </SpotlightCard>
+</motion.div>
 
             {/* BOTTOM BENEFITS ROW */}
             <motion.div className={styles.benefitsSection} variants={itemVariants}>

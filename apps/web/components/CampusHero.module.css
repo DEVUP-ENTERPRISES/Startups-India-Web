@@ -518,6 +518,26 @@
   border-radius: 10px;
 }
 
+.brandLogo {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.topLogo {
+  height: 50px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
+
+.brandingInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+}
+
 .brandingName {
   display: block;
   font-size: 16px;

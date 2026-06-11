@@ -184,10 +184,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
-  color: #ff2e2e;
-  margin-bottom: 12px;
+
+  width: 90px;
+  height: 90px;
+
+  margin-bottom: 16px;
   transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -275,11 +276,11 @@
     padding: 0 20px; /* Ambient spacing */
   }
 
-  .partnerCard {
-    width: 250px;
-    height: 155px;
-    scroll-snap-align: center;
-    border-radius: 20px;
-    padding: 22px 18px;
-  }
+.partnerCard {
+  width: 280px;
+  height: 160px;
+  scroll-snap-align: center;
+  border-radius: 20px;
+  padding: 24px;
+}
 }
