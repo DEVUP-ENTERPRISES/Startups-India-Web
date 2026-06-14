@@ -1,0 +1,20 @@
+{
+  "name": "Startups India — Startup Ecosystem Platform",
+  "short_name": "Startups India",
+  "description": "India's leading platform for startup ecosystem — incubation, funding, mentorship, events, and community.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0f",
+  "theme_color": "#e63946",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "en-IN",
+  "categories": ["business", "education", "productivity"],
+  "icons": [
+    { "src": "/Startupsindia-favicon.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/Startupsindia-favicon.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "screenshots": [],
+  "related_applications": [],
+  "prefer_related_applications": false
+}

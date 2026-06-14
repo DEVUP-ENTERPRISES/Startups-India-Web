@@ -1,9 +1,11 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { apiGet, apiPatch, apiDelete } from '@/lib/api';
 
 export default function AdminUsersPage() {
+  const router = useRouter();
   const [users, setUsers] = useState([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -11,8 +13,6 @@ export default function AdminUsersPage() {
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
   const [loading, setLoading] = useState(true);
-  const [editUser, setEditUser] = useState(null);
-  const [editRole, setEditRole] = useState('');
   const [currentAdminEmail, setCurrentAdminEmail] = useState('');
 
   useEffect(() => {
@@ -43,20 +43,13 @@ export default function AdminUsersPage() {
     load();
   }, [load]);
 
-  const handleUpdateRole = async () => {
-    if (!editUser) return;
-    await apiPatch(`/api/v1/admin/users/${editUser._id}`, { role: editRole });
-    setEditUser(null);
-    load();
-  };
-
   const handleToggleActive = async user => {
     await apiPatch(`/api/v1/admin/users/${user._id}`, { isActive: !user.isActive });
     load();
   };
 
   const handleDelete = async id => {
-    if (!confirm('Delete this user and all their enrollments?')) return;
+    if (!confirm('Delete this user and all their enrollments? This cannot be undone.')) return;
     await apiDelete(`/api/v1/admin/users/${id}`);
     load();
   };
@@ -70,6 +63,9 @@ export default function AdminUsersPage() {
           padding: '18px 28px',
           background: '#fff',
           borderBottom: '1px solid #e2e8f0',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
         }}
       >
         <h1 style={{ fontSize: 20, fontWeight: 800, margin: 0 }}>User Management</h1>
@@ -136,47 +132,49 @@ export default function AdminUsersPage() {
             </thead>
             <tbody>
               {users.map(u => (
-                <tr key={u._id}>
+                <tr
+                  key={u._id}
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => router.push(`/admin/users/${u._id}`)}
+                >
                   <td style={{ fontWeight: 600 }}>{u.fullName || '-'}</td>
                   <td style={{ color: '#64748b' }}>{u.email}</td>
                   <td>
                     <span
-                      className={`badge ${u.role === 'admin' ? 'badge-red' : u.role === 'mentor' ? 'badge-purple' : u.role === 'investor' ? 'badge-yellow' : 'badge-blue'}`}
+                      className={`badge ${
+                        u.role === 'admin'
+                          ? 'badge-red'
+                          : u.role === 'mentor'
+                            ? 'badge-purple'
+                            : u.role === 'investor'
+                              ? 'badge-yellow'
+                              : 'badge-blue'
+                      }`}
                     >
                       {u.role || 'user'}
                     </span>
                   </td>
                   <td>
-                    <span
-                      className={`badge ${u.isActive !== false ? 'badge-green' : 'badge-gray'}`}
-                    >
+                    <span className={`badge ${u.isActive !== false ? 'badge-green' : 'badge-gray'}`}>
                       {u.isActive !== false ? 'Active' : 'Inactive'}
                     </span>
                   </td>
                   <td style={{ fontSize: 12.5, color: '#94a3b8' }}>
                     {new Date(u.createdAt).toLocaleDateString()}
                   </td>
-                  <td>
-                    <div style={{ display: 'flex', gap: 6 }}>
-                      {u.email !== currentAdminEmail && u.role !== 'admin' && (
-                        <>
-                          <button
-                            className="btn btn-secondary btn-sm"
-                            onClick={() => {
-                              setEditUser(u);
-                              setEditRole(u.role || 'user');
-                            }}
-                          >
-                            Edit Role
-                          </button>
-                        </>
-                      )}
-                      {u.email === currentAdminEmail && (
+                  <td onClick={e => e.stopPropagation()}>
+                    <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                      <button
+                        className="btn btn-secondary btn-sm"
+                        onClick={() => router.push(`/admin/users/${u._id}`)}
+                      >
+                        View Profile
+                      </button>
+                      {u.email === currentAdminEmail ? (
                         <span style={{ fontSize: 12, color: '#94a3b8', padding: '4px 8px' }}>
                           You
                         </span>
-                      )}
-                      {u.email !== currentAdminEmail && (
+                      ) : (
                         <>
                           <button
                             className="btn btn-sm"
@@ -225,48 +223,6 @@ export default function AdminUsersPage() {
               </div>
             </div>
           )}
-        </div>
-      )}
-
-      {/* Edit Role Modal */}
-      {editUser && (
-        <div className="admin-modal-overlay" onClick={() => setEditUser(null)}>
-          <div className="admin-modal" onClick={e => e.stopPropagation()}>
-            <div className="admin-modal-header">
-              <h2>Edit Role: {editUser.fullName || editUser.email}</h2>
-              <button className="admin-modal-close" onClick={() => setEditUser(null)}>
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <line x1="18" y1="6" x2="6" y2="18" />
-                  <line x1="6" y1="6" x2="18" y2="18" />
-                </svg>
-              </button>
-            </div>
-            <div className="admin-modal-body">
-              <div className="admin-form-group">
-                <label>Role</label>
-                <select value={editRole} onChange={e => setEditRole(e.target.value)}>
-                  <option value="user">User</option>
-                  <option value="mentor">Mentor</option>
-                  <option value="investor">Investor</option>
-                </select>
-              </div>
-            </div>
-            <div className="admin-modal-footer">
-              <button className="btn btn-secondary" onClick={() => setEditUser(null)}>
-                Cancel
-              </button>
-              <button className="btn btn-primary" onClick={handleUpdateRole}>
-                Save Changes
-              </button>
-            </div>
-          </div>
         </div>
       )}
     </div>

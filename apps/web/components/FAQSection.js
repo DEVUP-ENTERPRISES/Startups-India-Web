@@ -46,17 +46,17 @@ export default function FAQSection() {
     {
       id: 1,
       question: 'What is the Startups India Pre-Incubation Cohort (SINPC)?',
-      answer: "The Startups India Pre-Incubation Cohort (SINPC) is a structured pre-incubation program for startups in India designed to support aspiring entrepreneurs and early-stage founders. The program helps participants validate startup ideas, build prototypes, and prepare for incubation and funding opportunities within the startup ecosystem in India."
+      answer: "The Startups India Pre-Incubation Cohort (SINPC) is a structured pre-incubation program for startups in India designed to support aspiring entrepreneurs and early-stage founders. The program helps participants validate startup ideas, build prototypes, and prepare for incubation and funding opportunities within the startup ecosystem in India. SINPC is one of the best pre-incubation programs for student startups and first-time founders in India."
     },
     {
       id: 2,
       question: 'Who can apply for the SINPC startup program?',
-      answer: 'The SINPC startup mentorship program is open to students, innovators, entrepreneurs, and early-stage startup founders who have innovative business ideas and want to build scalable startups.'
+      answer: 'The SINPC startup mentorship program is open to students, innovators, entrepreneurs, and early-stage startup founders across India who have innovative business ideas and want to build scalable startups. Applications are welcome from all cities including Bangalore, Mumbai, Delhi, Hyderabad, Chennai, Pune, and Tier-2 cities.'
     },
     {
       id: 3,
-      question: '3. What are the benefits of joining the SINPC startup program?',
-      answer: 'Participants in the Startups India Pre-Incubation Cohort receive: Expert startup mentorship, Business model development support, Guidance for startup funding and investor readiness, Market validation strategies, Access to the Indian startup ecosystem.'
+      question: 'What are the benefits of joining the Startups India incubation program?',
+      answer: 'Participants in the Startups India Pre-Incubation Cohort (SINPC) receive: Expert startup mentorship from serial founders and investors, Business model development support, Startup funding guidance and investor readiness training, Market validation strategies, Access to the Indian startup ecosystem, Startup community membership, Certificate of completion, and potential referrals to top incubators and accelerators.'
     },
     {
       id: 4,
@@ -89,8 +89,22 @@ export default function FAQSection() {
     setOpenIndex(openIndex === index ? null : index);
   };
 
+  const faqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map(f => ({
+      '@type': 'Question',
+      name: f.question,
+      acceptedAnswer: { '@type': 'Answer', text: f.answer },
+    })),
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
       <section className="faq-section">
         {/* Background Elements */}
         <div className="faq-bg">

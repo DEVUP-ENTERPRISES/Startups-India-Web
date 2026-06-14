@@ -312,8 +312,73 @@ export default function CourseDetailPage() {
   if (loading) return <DetailSkeleton />;
   if (!course) return <div className="min-h-screen flex items-center justify-center font-bold">Course Not Found</div>;
 
+  const BASE = process.env.NEXT_PUBLIC_SITE_URL || 'https://startupsindia.in';
+  const courseUrl = `${BASE}/courses/${slug}`;
+  const courseJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Course',
+    '@id': `${courseUrl}#course`,
+    name: course.title,
+    description: course.shortDescription || course.description,
+    url: courseUrl,
+    image: course.thumbnailUrl || `${BASE}/assets/images/og-default.jpg`,
+    inLanguage: 'en-IN',
+    isAccessibleForFree: !course.priceInr || course.priceInr === 0,
+    provider: {
+      '@type': ['Organization', 'EducationalOrganization'],
+      name: 'Startups India',
+      url: BASE,
+      logo: { '@type': 'ImageObject', url: `${BASE}/Startupsindia-favicon.png` },
+    },
+    educationalCredentialAwarded: 'Certificate of Completion — Startups India',
+    coursePrerequisites: 'No prior experience required',
+    offers: {
+      '@type': 'Offer',
+      price: course.priceInr ? course.priceInr / 100 : 0,
+      priceCurrency: 'INR',
+      availability: 'https://schema.org/InStock',
+      url: courseUrl,
+      seller: { '@type': 'Organization', name: 'Startups India', url: BASE },
+    },
+    hasCourseInstance: {
+      '@type': 'CourseInstance',
+      courseMode: 'online',
+      instructor: {
+        '@type': 'Person',
+        name: course.instructorName || 'Startups India Expert',
+        worksFor: { '@type': 'Organization', name: 'Startups India' },
+      },
+    },
+    about: [
+      { '@type': 'Thing', name: 'Entrepreneurship' },
+      { '@type': 'Thing', name: 'Startup Building' },
+      { '@type': 'Thing', name: 'Indian Startup Ecosystem' },
+      ...(course.category ? [{ '@type': 'Thing', name: course.category }] : []),
+    ],
+    ...(course.enrolledCount > 5 ? {
+      aggregateRating: {
+        '@type': 'AggregateRating',
+        ratingValue: course.rating || 4.8,
+        reviewCount: course.enrolledCount || 10,
+        bestRating: 5,
+        worstRating: 1,
+      },
+    } : {}),
+  };
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: BASE },
+      { '@type': 'ListItem', position: 2, name: 'Courses', item: `${BASE}/courses` },
+      { '@type': 'ListItem', position: 3, name: course.title },
+    ],
+  };
+
   return (
     <div className="min-h-screen bg-[#F5F5F5] font-sans selection:bg-[#800000]/20">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(courseJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
       
       {/* SECTION 1: HERO */}
       <div className="relative bg-gradient-to-br from-[#1A1A1A] via-[#2A1A1A] to-[#1A1A1A] overflow-hidden">

@@ -1,7 +1,7 @@
 const { User } = require('../users/user.model');
 const { Course, Module, Lesson } = require('../courses/course.model');
 const { ModuleQuiz } = require('../courses/moduleQuiz.model');
-const { Enrollment } = require('../enrollments/enrollment.model');
+const { Enrollment, LessonProgress, ModuleQuizAttempt } = require('../enrollments/enrollment.model');
 const { Payment } = require('../payments/payment.model');
 const { Certificate } = require('../certificates/certificate.model');
 const { Article } = require('../../models/Article');
@@ -157,9 +157,35 @@ async function listUsers({ page = 1, limit = 20, search, role, sort = '-createdA
 async function getUser(id) {
   const user = await User.findById(id).select('-passwordHash -refreshTokenHash');
   if (!user) throw new ApiError(404, 'User not found');
-  const enrollments = await Enrollment.find({ userId: id }).populate('courseId', 'title slug');
-  const payments = await Payment.find({ userId: id }).sort({ createdAt: -1 }).limit(10);
-  return { user, enrollments, payments };
+
+  const [enrollments, payments, lessonProgressCount, quizAttempts, certificates] =
+    await Promise.all([
+      Enrollment.find({ userId: id })
+        .populate('courseId', 'title slug thumbnailUrl priceInr')
+        .sort({ createdAt: -1 }),
+      Payment.find({ userId: id }).sort({ createdAt: -1 }).limit(20),
+      LessonProgress.countDocuments({ userId: id, isCompleted: true }),
+      ModuleQuizAttempt.find({ userId: id })
+        .sort({ createdAt: -1 })
+        .limit(10)
+        .populate('courseId', 'title')
+        .populate('moduleId', 'title'),
+      Certificate.find({ userId: id }).sort({ createdAt: -1 }),
+    ]);
+
+  const totalSpent = payments
+    .filter(p => p.status === 'succeeded')
+    .reduce((sum, p) => sum + (p.amount || 0), 0);
+
+  const stats = {
+    totalEnrolled: enrollments.length,
+    totalCompleted: enrollments.filter(e => e.completed).length,
+    totalLessonsCompleted: lessonProgressCount,
+    totalCertificates: certificates.length,
+    totalSpentInr: totalSpent,
+  };
+
+  return { user, enrollments, payments, quizAttempts, certificates, stats };
 }
 
 async function updateUser(id, updates) {

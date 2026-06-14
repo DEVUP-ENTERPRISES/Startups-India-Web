@@ -69,8 +69,44 @@ export default function SingleArticlePage() {
   if (loading) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', background: '#0a0a0f' }}>Loading...</div>;
   if (!article) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', background: '#0a0a0f' }}>Article not found.</div>;
 
+  const BASE = process.env.NEXT_PUBLIC_SITE_URL || 'https://startupsindia.in';
+  const articleUrl = `${BASE}/source/${slug}`;
+  const articleJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: article.title,
+    description: article.summary || article.excerpt,
+    image: article.coverImage,
+    url: articleUrl,
+    datePublished: article.publishedAt || article.createdAt,
+    dateModified: article.updatedAt || article.publishedAt,
+    author: {
+      '@type': 'Person',
+      name: article.author?.name || 'Startups India',
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: 'Startups India',
+      logo: { '@type': 'ImageObject', url: `${BASE}/Startupsindia-favicon.png` },
+    },
+    mainEntityOfPage: { '@type': 'WebPage', '@id': articleUrl },
+    articleSection: article.category,
+    keywords: (article.tags || []).join(', '),
+  };
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: BASE },
+      { '@type': 'ListItem', position: 2, name: 'Articles', item: `${BASE}/source` },
+      { '@type': 'ListItem', position: 3, name: article.title },
+    ],
+  };
+
   return (
     <div className="single-article-page" style={{ background: '#0a0a0f', color: '#f1f5f9', minHeight: '100vh', paddingTop: '80px' }}>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
       
       {/* Top Section */}
       <section className="container" style={{ maxWidth: 800, margin: '0 auto', padding: '40px 20px' }}>
