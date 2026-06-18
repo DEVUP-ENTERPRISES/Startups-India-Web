@@ -176,8 +176,8 @@ const resources = {
   }
 };
 
-// Client-side execution safety check
-if (typeof window !== 'undefined' && !i18n.isInitialized) {
+// Initialize i18n for both SSR and client
+if (!i18n.isInitialized) {
   i18n.use(initReactI18next).init({
     resources,
     lng: 'en',

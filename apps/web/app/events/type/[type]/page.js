@@ -230,7 +230,7 @@ export default function EventTypePage({ params }) {
   ];
 
   return (
-    <div style={{ maxWidth: 1100, margin: '0 auto', padding: '40px 20px', fontFamily: 'system-ui, sans-serif' }}>
+    <div className="pt-header" style={{ maxWidth: 1100, margin: '0 auto', paddingBottom: '40px', paddingLeft: '20px', paddingRight: '20px', fontFamily: 'system-ui, sans-serif' }}>
       {schemas.map((s, i) => (
         <script key={i} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(s) }} />
       ))}
@@ -339,7 +339,7 @@ export default function EventTypePage({ params }) {
           {(data.relatedTypes || ['hackathon', 'pitch', 'demo-day', 'workshop', 'networking', 'bootcamp', 'summit'])
             .filter(t => t !== type)
             .map(t => (
-              <Link key={t} href={`/events/${t}`} style={{ padding: '7px 14px', background: '#f1f5f9', borderRadius: 20, fontSize: 13, color: '#475569', textDecoration: 'none', border: '1px solid #e2e8f0', fontWeight: 500 }}>
+              <Link key={t} href={`/events/type/${t}`} style={{ padding: '7px 14px', background: '#f1f5f9', borderRadius: 20, fontSize: 13, color: '#475569', textDecoration: 'none', border: '1px solid #e2e8f0', fontWeight: 500 }}>
                 {t.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())} India
               </Link>
             ))}

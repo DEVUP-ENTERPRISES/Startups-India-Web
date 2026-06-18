@@ -2294,7 +2294,7 @@ section[class*='hero'] .stat-number {
    ========================================== */
 .lang-switcher-sticky {
   position: fixed;
-  top: 95px;
+  top: calc(var(--header-h, 110px) + 24px);
   right: 32px;
   z-index: 1000;
   display: flex;

@@ -22,6 +22,16 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Fix anchor scroll positioning behind fixed header */
+[id] {
+  scroll-margin-top: calc(var(--header-h, 110px) + 24px);
+}
+
+/* Helper class to add padding for standard pages without hero sections */
+.pt-header {
+  padding-top: calc(var(--header-h, 110px) + 40px);
+}
+
 :root {
   /* ── Brand Palette (Startups India) ── */
   --primary-color: #7a1f2b;

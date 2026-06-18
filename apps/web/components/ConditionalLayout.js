@@ -49,7 +49,7 @@ export default function ConditionalLayout({ children }) {
     <>
       <Header />
       <CampusMissionPopup />
-      <main>{children}</main>
+      <main className="main-content">{children}</main>
       <Footer />
     </>
   );

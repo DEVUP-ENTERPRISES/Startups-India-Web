@@ -23,7 +23,7 @@
   background: #000;
   color: white;
   overflow: hidden;
-  padding-top: calc(var(--header-h) + 24px);
+  padding-top: calc(var(--header-h) + 80px);
   padding-bottom: 100px;
 }
 

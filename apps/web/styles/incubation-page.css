@@ -6,7 +6,7 @@
   position: relative;
   min-height: 100vh;
   background: linear-gradient(180deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%);
-  padding-top: calc(var(--header-h) + 24px);
+  padding-top: calc(var(--header-h) + 80px);
   padding-bottom: 80px;
   overflow: hidden;
 }

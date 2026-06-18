@@ -11,7 +11,7 @@
 /* ── HERO SECTION ─────────────────────────────────────────────────────────── */
 .programs-hero {
   position: relative;
-  padding-top: calc(var(--header-h) + 24px);
+  padding-top: calc(var(--header-h) + 80px);
   padding-bottom: 60px;
   background: #FFFFFF;
   overflow: hidden;

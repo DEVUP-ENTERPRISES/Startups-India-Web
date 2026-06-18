@@ -23,7 +23,7 @@ export async function generateMetadata({ params }) {
   return buildMetadata({
     title: `Startup ${meta.display} in India ${year} — Upcoming Events, Calendar & Registration`,
     description: `Find upcoming startup ${meta.display.toLowerCase()} in India ${year}. Complete calendar of ${meta.desc}. Register for the best startup ${meta.display.toLowerCase()} across Bangalore, Mumbai, Delhi, Hyderabad, and online.`,
-    path: `/events/${type}`,
+    path: `/events/type/${type}`,
     section: 'Startup Events',
     keywords: [
       `startup ${meta.display.toLowerCase()} india`,
