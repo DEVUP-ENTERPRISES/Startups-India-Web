@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { apiGet, apiPatch, apiDelete } from '@/lib/api';
-import Image from 'next/image';
+
+const ADMIN_BASE = `/${process.env.NEXT_PUBLIC_ADMIN_SLUG || 'ctrl-x9k2m3-panel'}`;
 
 const ROLE_COLORS = {
   admin: { bg: '#fee2e2', color: '#b91c1c' },
@@ -168,7 +169,7 @@ export default function AdminUserDetailPage() {
       return;
     setActionLoading(true);
     await apiDelete(`/api/v1/admin/users/${id}`);
-    router.push('/admin/users');
+    router.push(`${ADMIN_BASE}/users`);
   };
 
   if (loading) {
@@ -216,7 +217,7 @@ export default function AdminUserDetailPage() {
         }}
       >
         <button
-          onClick={() => router.push('/admin/users')}
+          onClick={() => router.push(`${ADMIN_BASE}/users`)}
           style={{
             background: 'none',
             border: '1px solid #e2e8f0',

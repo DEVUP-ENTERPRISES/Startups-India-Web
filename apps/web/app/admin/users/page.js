@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiGet, apiPatch, apiDelete } from '@/lib/api';
 
+const ADMIN_BASE = `/${process.env.NEXT_PUBLIC_ADMIN_SLUG || 'ctrl-x9k2m3-panel'}`;
+
 export default function AdminUsersPage() {
   const router = useRouter();
   const [users, setUsers] = useState([]);
@@ -135,7 +137,7 @@ export default function AdminUsersPage() {
                 <tr
                   key={u._id}
                   style={{ cursor: 'pointer' }}
-                  onClick={() => router.push(`/admin/users/${u._id}`)}
+                  onClick={() => router.push(`${ADMIN_BASE}/users/${u._id}`)}
                 >
                   <td style={{ fontWeight: 600 }}>{u.fullName || '-'}</td>
                   <td style={{ color: '#64748b' }}>{u.email}</td>
@@ -166,7 +168,7 @@ export default function AdminUsersPage() {
                     <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                       <button
                         className="btn btn-secondary btn-sm"
-                        onClick={() => router.push(`/admin/users/${u._id}`)}
+                        onClick={() => router.push(`${ADMIN_BASE}/users/${u._id}`)}
                       >
                         View Profile
                       </button>

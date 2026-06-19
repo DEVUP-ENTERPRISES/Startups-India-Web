@@ -287,7 +287,7 @@
   background: var(--admin-card-bg);
   border-radius: 12px;
   border: 1px solid var(--admin-border);
-  overflow: hidden;
+  overflow-x: auto;
 }
 
 .admin-table-header {

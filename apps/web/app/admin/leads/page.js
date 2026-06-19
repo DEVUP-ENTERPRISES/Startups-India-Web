@@ -145,23 +145,23 @@ export default function AdminLeadsPage() {
           <table className="admin-table">
             <thead>
               <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Phone</th>
-                <th>Source</th>
-                <th>Interest</th>
-                <th>Status</th>
-                <th>Added</th>
-                <th>Actions</th>
+                <th style={{ whiteSpace: 'nowrap', width: '15%' }}>Name</th>
+                <th style={{ width: '20%' }}>Email</th>
+                <th style={{ whiteSpace: 'nowrap', width: '10%' }}>Phone</th>
+                <th style={{ whiteSpace: 'nowrap', width: '10%' }}>Source</th>
+                <th style={{ width: '15%' }}>Interest</th>
+                <th style={{ whiteSpace: 'nowrap', width: '10%' }}>Status</th>
+                <th style={{ whiteSpace: 'nowrap', width: '10%' }}>Added</th>
+                <th style={{ whiteSpace: 'nowrap', width: '10%' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {leads.map(l => (
                 <tr key={l._id}>
-                  <td style={{ fontWeight: 600 }}>{l.name}</td>
-                  <td style={{ color: '#64748b' }}>{l.email}</td>
-                  <td>{l.phone || '-'}</td>
-                  <td>
+                  <td style={{ fontWeight: 600, whiteSpace: 'nowrap' }}>{l.name}</td>
+                  <td style={{ color: '#64748b', wordBreak: 'break-all' }}>{l.email}</td>
+                  <td style={{ whiteSpace: 'nowrap' }}>{l.phone || '-'}</td>
+                  <td style={{ whiteSpace: 'nowrap' }}>
                     <span className="badge badge-gray">{l.source}</span>
                   </td>
                   <td
@@ -175,15 +175,15 @@ export default function AdminLeadsPage() {
                   >
                     {l.interest || '-'}
                   </td>
-                  <td>
+                  <td style={{ whiteSpace: 'nowrap' }}>
                     <span className={`badge ${statusColors[l.status] || 'badge-gray'}`}>
                       {l.status}
                     </span>
                   </td>
-                  <td style={{ fontSize: 12.5, color: '#94a3b8' }}>
+                  <td style={{ fontSize: 12.5, color: '#94a3b8', whiteSpace: 'nowrap' }}>
                     {new Date(l.createdAt).toLocaleDateString()}
                   </td>
-                  <td>
+                  <td style={{ whiteSpace: 'nowrap' }}>
                     <div style={{ display: 'flex', gap: 6 }}>
                       <button className="btn btn-secondary btn-sm" onClick={() => openEdit(l)}>
                         Edit
