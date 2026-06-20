@@ -198,6 +198,11 @@ async function cacheIncr(key, ttlSeconds) {
     const count = await client.incr(key);
     if (count === 1 && ttlSeconds) {
       await client.expire(key, ttlSeconds);
+    } else if (ttlSeconds) {
+      const ttl = await client.ttl(key);
+      if (ttl < 0) {
+        await client.expire(key, ttlSeconds);
+      }
     }
     return count;
   } catch {

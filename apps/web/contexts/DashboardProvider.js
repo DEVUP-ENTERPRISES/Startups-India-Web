@@ -32,6 +32,9 @@ export function DashboardProvider({ children, authUser }) {
     setWishlist(Array.isArray(wishReq.data) ? wishReq.data : []);
     if (userReq.data?.user) {
       setUser(userReq.data.user);
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('auth_user', JSON.stringify(userReq.data.user));
+      }
     }
 
     setIsLoading(false);

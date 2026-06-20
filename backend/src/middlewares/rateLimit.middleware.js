@@ -1,5 +1,6 @@
 const { cacheIncr, isRedisReady } = require('../infrastructure/cache/redis');
 const { recordRateLimit } = require('../infrastructure/observability/securityEvents');
+const env = require('../config/env');
 
 /**
  * Redis-backed sliding-window rate limiter middleware.
@@ -14,6 +15,7 @@ const { recordRateLimit } = require('../infrastructure/observability/securityEve
  */
 function redisRateLimit({ windowSeconds = 60, max = 100, prefix = 'rl', keyGenerator } = {}) {
   return async (req, res, next) => {
+    if (env.NODE_ENV !== 'production') return next(); // bypass rate-limiting in development
     if (!isRedisReady()) return next(); // fallback: allow
 
     const identifier = keyGenerator ? keyGenerator(req) : req.ip;

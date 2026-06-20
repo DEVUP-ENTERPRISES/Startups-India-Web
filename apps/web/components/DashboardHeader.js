@@ -14,17 +14,42 @@ export default function DashboardHeader({ onOpenMobileMenu }) {
   const [results, setResults] = useState([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const [isNotificationDropdownOpen, setIsNotificationDropdownOpen] = useState(false);
+  const [notifFilter, setNotifFilter] = useState('all');
   const searchRef = useRef(null);
   const profileRef = useRef(null);
+  const notificationRef = useRef(null);
+
+  const [notifications, setNotifications] = useState([
+    { id: 1, title: 'Pitch Deck Reviewed', message: 'Your Pitch Deck has been reviewed by Mentor Aditi Patel. Check comments!', time: '10 mins ago', isUnread: true },
+    { id: 2, title: 'New Course Available', message: 'A new advanced Android module "Kotlin Flows & State" is now live.', time: '2 hours ago', isUnread: true },
+    { id: 3, title: 'Upcoming Live Session', message: 'Cohort VC networking event starts tomorrow at 5:00 PM.', time: '5 hours ago', isUnread: true },
+    { id: 4, title: 'Quiz Passed!', message: 'Congratulations on passing the "Market Research Fundamentals" quiz.', time: '1 day ago', isUnread: false },
+  ]);
+
+  const unreadCount = notifications.filter(n => n.isUnread).length;
+  const filteredNotifications = notifications.filter(n => notifFilter === 'all' || n.isUnread);
+
+  const [streakCount, setStreakCount] = useState(0);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('learning_streak');
+      const s = raw ? JSON.parse(raw) : { current: 0 };
+      setStreakCount(s.current || 0);
+    } catch (e) {
+      setStreakCount(0);
+    }
+  }, []);
 
   // Global Page Index for Search
   const dashboardPages = [
     { title: 'Dashboard Home', path: '/dashboard', category: 'Module', icon: 'layout' },
     { title: 'Explore Programs', path: '/dashboard/explore-courses', category: 'Module', icon: 'search' },
-    { title: 'My Learnings', path: '/dashboard/my-learning', category: 'Module', icon: 'book' },
-    { title: 'Assessments & Quizzes', path: '/dashboard/assessment', category: 'Module', icon: 'target' },
+    { title: 'My Learnings', path: '/dashboard/my-courses', category: 'Module', icon: 'book' },
+    { title: 'Assessments & Quizzes', path: '/dashboard/assessment/quiz', category: 'Module', icon: 'target' },
     { title: 'Certificates & Awards', path: '/dashboard/achievements/certificates', category: 'Module', icon: 'award' },
-    { title: 'Founder Ecosystem', path: '/dashboard/ecosystem', category: 'Module', icon: 'users' },
+    { title: 'Founder Ecosystem', path: '/dashboard/community/discussions', category: 'Module', icon: 'users' },
     { title: 'Profile Settings', path: '/dashboard/settings?tab=profile', category: 'Settings', icon: 'user' },
     { title: 'Security & Password', path: '/dashboard/settings?tab=security', category: 'Settings', icon: 'shield' },
     { title: 'Notification Alerts', path: '/dashboard/settings?tab=notifications', category: 'Settings', icon: 'bell' },
@@ -81,6 +106,9 @@ export default function DashboardHeader({ onOpenMobileMenu }) {
       if (profileRef.current && !profileRef.current.contains(e.target)) {
         setIsProfileDropdownOpen(false);
       }
+      if (notificationRef.current && !notificationRef.current.contains(e.target)) {
+        setIsNotificationDropdownOpen(false);
+      }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -108,12 +136,30 @@ export default function DashboardHeader({ onOpenMobileMenu }) {
               <Icon name="search" size={18} className="search-icon" />
               <input 
                 type="text" 
-                placeholder="Search for courses, modules..." 
+                placeholder="Search for courses, modules, members..." 
                 className="search-input"
+                style={{ paddingRight: '50px' }}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => searchQuery.trim() && setIsDropdownOpen(true)}
               />
+              <span 
+                style={{
+                  position: 'absolute',
+                  right: 16,
+                  fontSize: '9.5px',
+                  fontWeight: 800,
+                  color: '#94a3b8',
+                  background: '#f8fafc',
+                  border: '1px solid #e2e8f0',
+                  padding: '2.5px 6px',
+                  borderRadius: 6,
+                  pointerEvents: 'none',
+                  letterSpacing: '0.05em'
+                }}
+              >
+                ⌘K
+              </span>
             </div>
           </form>
 
@@ -167,11 +213,116 @@ export default function DashboardHeader({ onOpenMobileMenu }) {
 
       {/* ── Right Side: Actions ── */}
       <div className="header-actions">
+        {/* Daily Streak Pill */}
+        <div 
+          className="header-streak-pill" 
+          title="Daily Learning Streak"
+          style={{ marginRight: 8 }}
+        >
+          <span className="streak-emoji" style={{ display: 'flex', alignItems: 'center', marginRight: '4px' }}><Icon name="fire" size={16} color="#ef4444" fill="#ef4444" /></span>
+          <span className="streak-text" style={{ fontSize: '11px', fontWeight: 800 }}>{streakCount || 1} Day Streak</span>
+        </div>
+
         {/* Notifications (Desktop only) */}
-        <button className="header-action-btn hide-mobile" title="Notifications">
-          <Icon name="bell" size={20} />
-          <span className="notification-badge">3</span>
-        </button>
+        <div className="header-notification-container hide-mobile" ref={notificationRef}>
+          <button 
+            className="header-action-btn" 
+            title="Notifications" 
+            style={{ marginRight: 8 }}
+            onClick={() => setIsNotificationDropdownOpen(!isNotificationDropdownOpen)}
+          >
+            <Icon name="bell" size={20} />
+            {unreadCount > 0 && (
+              <span className="notification-badge">{unreadCount}</span>
+            )}
+          </button>
+          
+          {isNotificationDropdownOpen && (
+            <div className="notification-dropdown">
+              <div className="dropdown-header-notif">
+                <span className="dropdown-title-notif">
+                  Notifications
+                  {unreadCount > 0 && (
+                    <span style={{ color: '#ef4444', marginLeft: '6px', fontSize: '0.8rem', fontWeight: 800 }}>
+                      ({unreadCount})
+                    </span>
+                  )}
+                </span>
+                {unreadCount > 0 && (
+                  <button 
+                    className="notif-action-btn"
+                    onClick={() => {
+                      setNotifications(notifications.map(n => ({ ...n, isUnread: false })));
+                    }}
+                  >
+                    Mark all read
+                  </button>
+                )}
+              </div>
+              
+              <div className="notif-tabs">
+                <button 
+                  className={`notif-tab ${notifFilter === 'all' ? 'active' : ''}`}
+                  onClick={() => setNotifFilter('all')}
+                >
+                  All ({notifications.length})
+                </button>
+                <button 
+                  className={`notif-tab ${notifFilter === 'unread' ? 'active' : ''}`}
+                  onClick={() => setNotifFilter('unread')}
+                >
+                  Unread <span style={{ color: '#ef4444', marginLeft: '4px', fontWeight: 800 }}>({unreadCount})</span>
+                </button>
+              </div>
+
+              <div className="notification-list">
+                {filteredNotifications.length === 0 ? (
+                  <div className="no-notifications">
+                    <Icon name="bell" size={24} color="#94a3b8" />
+                    <p style={{ marginTop: '8px' }}>No notifications found</p>
+                  </div>
+                ) : (
+                  filteredNotifications.map(notif => (
+                    <div 
+                      key={notif.id} 
+                      className={`notification-item ${notif.isUnread ? 'unread' : ''}`}
+                      onClick={() => {
+                        setNotifications(notifications.map(n => n.id === notif.id ? { ...n, isUnread: false } : n));
+                      }}
+                    >
+                      <div className="notif-dot-wrapper">
+                        {notif.isUnread && <span className="notif-dot-red" />}
+                      </div>
+                      <div className="notif-content-body">
+                        <span className="notif-title-text">{notif.title}</span>
+                        <p className="notif-msg">{notif.message}</p>
+                        <span className="notif-time">{notif.time}</span>
+                      </div>
+                      <button 
+                        className="notif-delete-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setNotifications(notifications.filter(n => n.id !== notif.id));
+                        }}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+              
+              <div className="notification-dropdown-footer">
+                <button 
+                  className="clear-all-notif-btn"
+                  onClick={() => setNotifications([])}
+                >
+                  Clear All Messages
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* Mobile Menu Toggle */}
         <button className="mobile-menu-btn mobile-only" onClick={onOpenMobileMenu} title="Open Menu">
@@ -184,7 +335,7 @@ export default function DashboardHeader({ onOpenMobileMenu }) {
             className="header-profile-box" 
             onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
           >
-            <div className="user-avatar">
+            <div className="user-avatar header-avatar-glow">
               {user?.avatarUrl ? (
                 <img src={user.avatarUrl} alt="Avatar" />
               ) : (
@@ -192,8 +343,8 @@ export default function DashboardHeader({ onOpenMobileMenu }) {
               )}
             </div>
             <div className="user-info hide-mobile">
-              <span className="user-name">{activeName}</span>
-              <span className="user-role">Founder</span>
+              <span className="user-name" style={{ fontWeight: 700 }}>{activeName}</span>
+              <span className="user-role" style={{ color: '#E63946', fontWeight: 800, textTransform: 'uppercase', fontSize: '9px', letterSpacing: '0.05em' }}>Founder</span>
             </div>
           </div>
 
@@ -259,9 +410,9 @@ export default function DashboardHeader({ onOpenMobileMenu }) {
           border-bottom: 1px solid rgba(0, 0, 0, 0.05);
           position: fixed;
           top: 0;
-          left: 260px;
+          left: 280px;
           right: 0;
-          z-index: 1000;
+          z-index: 999;
           transition: all 0.3s ease;
         }
 
@@ -270,14 +421,37 @@ export default function DashboardHeader({ onOpenMobileMenu }) {
         .header-actions { display: flex; align-items: center; gap: 16px; }
         
         .header-search { width: 400px; position: relative; }
-        .search-input-wrapper { position: relative; display: flex; align-items: center; }
-        .search-input-wrapper :global(.search-icon) { position: absolute; left: 16px; color: #94a3b8; }
-        .search-input { width: 100%; height: 44px; padding: 0 16px 0 48px; border: 1.5px solid #f1f5f9; border-radius: 12px; background: #f8fafc; font-size: 0.9rem; outline: none; transition: 0.2s; }
-        .search-input:focus { background: #fff; border-color: #7A1F2B; box-shadow: 0 0 0 4px rgba(122, 31, 43, 0.05); }
+        .search-input-wrapper { position: relative; display: flex; align-items: center; width: 100%; }
+        .search-input-wrapper :global(.search-icon) { position: absolute; left: 16px; color: #94a3b8; transition: color 0.3s ease; pointer-events: none; }
+        .search-input-wrapper:focus-within :global(.search-icon) { color: #7A1F2B; }
+        .search-input { 
+          width: 100%; 
+          height: 44px; 
+          padding: 0 16px 0 48px; 
+          border: 1.5px solid #e2e8f0; 
+          border-radius: 12px; 
+          background: #f8fafc; 
+          font-size: 0.9rem; 
+          color: #1e293b;
+          outline: none; 
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+        }
+        .search-input::placeholder {
+          color: #94a3b8;
+          font-weight: 500;
+        }
+        .search-input:hover {
+          border-color: #cbd5e1;
+          background: #f1f5f9;
+        }
+        .search-input:focus { 
+          background: #fff; 
+          border-color: #7A1F2B; 
+          box-shadow: 0 0 0 4px rgba(122, 31, 43, 0.1), 0 4px 12px rgba(0, 0, 0, 0.05); 
+        }
 
         .header-action-btn { width: 40px; height: 40px; border-radius: 10px; border: none; background: #f8fafc; display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; color: #64748b; transition: 0.2s; }
         .header-action-btn:hover { background: #f1f5f9; color: #7A1F2B; }
-        .notification-badge { position: absolute; top: -2px; right: -2px; background: #7A1F2B; color: white; font-size: 9px; font-weight: 800; width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid #fff; }
 
         .header-profile-box { display: flex; align-items: center; gap: 14px; padding: 8px 16px; border-radius: 10px; cursor: pointer; transition: 0.2s; border: 1px solid transparent; }
         .header-profile-box:hover { background: #f8fafc; border-color: #f1f5f9; }
@@ -385,7 +559,7 @@ export default function DashboardHeader({ onOpenMobileMenu }) {
           }
         }
 
-        /* Search Dropdown styles */
+                /* Search Dropdown styles */
         .search-dropdown { position: absolute; top: 100%; left: 0; right: 0; background: #fff; border-radius: 12px; border: 1px solid #f1f5f9; box-shadow: 0 10px 25px rgba(0,0,0,0.1); z-index: 100; max-height: 400px; overflow-y: auto; }
         .dropdown-header { padding: 12px 16px; font-size: 0.75rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; background: #fcfcfd; }
         .dropdown-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; text-decoration: none; border-bottom: 1px solid #f8fafc; }
@@ -395,6 +569,230 @@ export default function DashboardHeader({ onOpenMobileMenu }) {
         .item-title { font-size: 0.85rem; font-weight: 600; color: #1e293b; }
         .item-meta { font-size: 0.7rem; color: #94a3b8; }
         .dropdown-footer { padding: 12px; text-align: center; font-size: 0.8rem; color: #7A1F2B; font-weight: 600; cursor: pointer; }
+
+        /* Notification Dropdown styles */
+        .header-notification-container {
+          position: relative;
+          display: inline-flex;
+          align-items: center;
+        }
+        
+        .notification-dropdown {
+          position: absolute;
+          top: calc(100% + 12px);
+          right: 0;
+          width: 380px;
+          background: #fff;
+          border-radius: 16px;
+          border: 1px solid #f1f5f9;
+          box-shadow: 0 15px 50px rgba(0,0,0,0.15);
+          overflow: hidden;
+          z-index: 1000;
+          display: flex;
+          flex-direction: column;
+        }
+
+        .dropdown-header-notif {
+          padding: 16px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          border-bottom: 1px solid #f1f5f9;
+        }
+        
+        .dropdown-title-notif {
+          font-size: 0.95rem;
+          font-weight: 800;
+          color: #0f172a;
+        }
+        
+        .notif-action-btn {
+          background: none;
+          border: none;
+          color: #7A1F2B;
+          font-size: 0.75rem;
+          font-weight: 700;
+          cursor: pointer;
+          padding: 4px 8px;
+          border-radius: 4px;
+        }
+        
+        .notif-action-btn:hover {
+          background: rgba(122, 31, 43, 0.05);
+        }
+        
+        .notif-tabs {
+          display: flex;
+          border-bottom: 1px solid #f1f5f9;
+          background: #f8fafc;
+          padding: 0 12px;
+        }
+        
+        .notif-tab {
+          flex: 1;
+          background: none;
+          border: none;
+          padding: 10px 0;
+          font-size: 0.78rem;
+          font-weight: 700;
+          color: #64748b;
+          cursor: pointer;
+          text-align: center;
+          border-bottom: 2px solid transparent;
+          transition: all 0.2s;
+        }
+        
+        .notif-tab.active {
+          color: #7A1F2B;
+          border-bottom-color: #7A1F2B;
+        }
+        
+        .notification-list {
+          max-height: 280px;
+          overflow-y: auto;
+        }
+        
+        .no-notifications {
+          padding: 40px 20px;
+          text-align: center;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 12px;
+        }
+        
+        .no-notifications p {
+          font-size: 0.82rem;
+          color: #94a3b8;
+          font-weight: 600;
+          margin: 0;
+        }
+        
+        .notification-item {
+          display: flex;
+          padding: 12px 16px;
+          border-bottom: 1px solid #f8fafc;
+          cursor: pointer;
+          transition: all 0.2s;
+          position: relative;
+          gap: 10px;
+          text-align: left;
+        }
+        
+        .notification-item:hover {
+          background: #f8fafc;
+        }
+        
+        .notification-item.unread {
+          background: rgba(122, 31, 43, 0.02);
+        }
+        
+        .notif-dot-wrapper {
+          width: 8px;
+          display: flex;
+          align-items: flex-start;
+          padding-top: 6px;
+        }
+        
+        .notif-dot-red {
+          width: 6px;
+          height: 6px;
+          background: #ef4444;
+          border-radius: 50%;
+          display: inline-block;
+          box-shadow: 0 0 6px #ef4444;
+        }
+        
+        .notif-content-body {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          gap: 3px;
+        }
+        
+        .notif-title-text {
+          font-size: 0.85rem;
+          font-weight: 750;
+          color: #1e293b;
+        }
+        
+        .notif-msg {
+          font-size: 0.78rem;
+          color: #475569;
+          margin: 0;
+          line-height: 1.4;
+        }
+        
+        .notif-time {
+          font-size: 0.7rem;
+          color: #94a3b8;
+          font-weight: 600;
+        }
+        
+        .notif-delete-btn {
+          opacity: 0;
+          background: none;
+          border: none;
+          color: #94a3b8;
+          font-size: 1.1rem;
+          cursor: pointer;
+          transition: all 0.2s;
+          padding: 0 4px;
+        }
+        
+        .notification-item:hover .notif-delete-btn {
+          opacity: 1;
+        }
+        
+        .notif-delete-btn:hover {
+          color: #ef4444;
+        }
+        
+        .notification-dropdown-footer {
+          padding: 10px;
+          background: #f8fafc;
+          border-top: 1px solid #f1f5f9;
+          display: flex;
+          justify-content: center;
+        }
+        
+        .clear-all-notif-btn {
+          background: none;
+          border: none;
+          color: #64748b;
+          font-size: 0.78rem;
+          font-weight: 700;
+          cursor: pointer;
+        }
+        
+        .clear-all-notif-btn:hover {
+          color: #ef4444;
+        }
+        
+        .notification-badge {
+          position: absolute;
+          top: -2px;
+          right: -2px;
+          background: #ef4444 !important;
+          color: white;
+          font-size: 9px;
+          font-weight: 800;
+          width: 16px;
+          height: 16px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border: 2px solid #fff;
+          box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
+          animation: pulseGlow 2s infinite;
+        }
+
+        @keyframes pulseGlow {
+          0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+          70% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+          100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
       `}</style>
     </header>
   );
