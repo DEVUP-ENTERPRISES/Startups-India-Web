@@ -933,7 +933,7 @@ export default function DashboardPage() {
         .ticker-label { background:#FF3333; color:#fff; padding:10px 18px; font-weight:800; font-size:0.72rem; letter-spacing:0.1em; display:flex; align-items:center; gap:8px; z-index:2; border-right:1px solid rgba(255,255,255,0.15); white-space:nowrap; flex-shrink:0; }
         .ticker-track { flex:1; overflow:hidden; position:relative; }
         .ticker-inner { display:inline-flex; align-items:center; animation:tickerScroll 40s linear infinite; white-space:nowrap; }
-        .ticker-item { color:#FFEBEB; font-size:0.78rem; font-weight:500; font-family:'SF Mono','Fira Code',monospace; padding:10px 0; display:inline-flex; align-items:center; gap:6px; }
+        .ticker-item { color:#FF9999; font-size:0.78rem; font-weight:500; font-family:'SF Mono','Fira Code',monospace; padding:10px 0; display:inline-flex; align-items:center; gap:6px; }
         .ticker-dot { color:#C5975B; font-size:0.5rem; margin:0 12px; }
 
         .d4col { display: grid !important; grid-template-columns: repeat(4, 1fr) !important; gap: 20px !important; width: 100%; }
@@ -1269,19 +1269,7 @@ export default function DashboardPage() {
             </p>
           </div>
         </div>
-        
-        {/* Right side illustration */}
-        <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}>
-          <img
-            src="/assets/images/ai_mentor_illustration.png"
-            alt="AI Mentor"
-            style={{
-              height: '65px',
-              objectFit: 'contain',
-              mixBlendMode: 'multiply',
-            }}
-          />
-        </div>
+
       </div>
 
       {/* ═══════ DEEP TECH METRIC CARDS ═══════ */}
