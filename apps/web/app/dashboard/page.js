@@ -930,11 +930,11 @@ export default function DashboardPage() {
         .dcard:hover { box-shadow:0 14px 35px -10px rgba(0,0,0,0.1); transform:translateY(-4px); border-color:rgba(197,151,91,0.25); }
 
         .ticker-wrap { width:100%; overflow:hidden; background:linear-gradient(90deg, #7A1F2B, #922538, #7A1F2B); border-radius:14px; margin-bottom:20px; border:1px solid rgba(255,255,255,0.1); display:flex; align-items:center; box-shadow:0 4px 20px rgba(122,31,43,0.25); }
-        .ticker-label { background:#FF3333; color:#fff; padding:10px 18px; font-weight:800; font-size:0.72rem; letter-spacing:0.1em; display:flex; align-items:center; gap:8px; z-index:2; border-right:1px solid rgba(255,255,255,0.15); white-space:nowrap; flex-shrink:0; }
+        .ticker-label { background:#ffffff; color:#FF3333; padding:10px 18px; font-weight:900; font-size:0.72rem; letter-spacing:0.1em; display:flex; align-items:center; gap:6px; z-index:2; border-right:1px solid rgba(0,0,0,0.05); white-space:nowrap; flex-shrink:0; border-top-left-radius:13px; border-bottom-left-radius:13px; }
         .ticker-track { flex:1; overflow:hidden; position:relative; }
         .ticker-inner { display:inline-flex; align-items:center; animation:tickerScroll 40s linear infinite; white-space:nowrap; }
         .ticker-item { color:#FF9999; font-size:0.78rem; font-weight:500; font-family:'SF Mono','Fira Code',monospace; padding:10px 0; display:inline-flex; align-items:center; gap:6px; }
-        .ticker-dot { color:#C5975B; font-size:0.5rem; margin:0 12px; }
+        .ticker-dot { color:#FF9999; font-size:0.5rem; margin:0 12px; opacity:0.7; }
 
         .d4col { display: grid !important; grid-template-columns: repeat(4, 1fr) !important; gap: 20px !important; width: 100%; }
         .d2col { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 20px !important; width: 100%; }
@@ -996,7 +996,15 @@ export default function DashboardPage() {
       {/* ═══════ LIVE ECOSYSTEM TICKER ═══════ */}
       <div className="da da1 ticker-wrap">
         <div className="ticker-label">
-          <Icons.trendUp size={15} color="#fff" /> LIVE
+          <span style={{
+            display: 'inline-block',
+            width: '8px',
+            height: '8px',
+            borderRadius: '50%',
+            background: '#FF3333',
+            boxShadow: '0 0 6px rgba(255, 51, 51, 0.6)',
+            animation: 'redPulse 1.5s infinite'
+          }} /> LIVE
         </div>
         <div className="ticker-track">
           <div className="ticker-inner">
