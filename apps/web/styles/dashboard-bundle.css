@@ -1,0 +1,11 @@
+/* Dashboard CSS Bundle to fix Next.js CSS chunking drops during HMR */
+@import './dashboard-enterprise.css';
+@import './premium-dashboard.css';
+@import './dashboard-compact.css';
+@import './navbar-fix.css';
+@import './dashboard-navbar-fix.css';
+@import './sidebar-responsive.css';
+@import './dashboard-navbar-premium.css';
+@import './dashboard-responsive-v2.css';
+@import './sidebar-accordion.css';
+@import './sidebar-final-fix.css';

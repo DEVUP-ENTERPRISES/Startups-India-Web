@@ -1,15 +1,50 @@
 /* Navbar Fix - Prevent Conflicts */
 
-/* Ensure only layout.js navbar is visible */
-.dashboard-layout .dashboard-header {
-  position: fixed !important;
-  top: 0 !important;
-  left: 260px !important;
-  right: 0 !important;
-  z-index: 1000 !important;
-  background: #ffffff !important;
-  border-bottom: 1px solid #e5e7eb !important;
-  height: 64px !important;
+/* Desktop layout styles */
+@media (min-width: 1061px) {
+  .dashboard-layout .dashboard-header {
+    position: fixed !important;
+    top: 0 !important;
+    left: 280px !important; /* Matches 280px sidebar width */
+    right: 0 !important;
+    z-index: 999 !important; /* Behind sidebar which is 1000 */
+    background: #ffffff !important;
+    border-bottom: 1px solid #e5e7eb !important;
+    height: 80px !important; /* Consistent with premium-dashboard height */
+  }
+  
+  /* Ensure sidebar is always fixed */
+  .premium-sidebar {
+    position: fixed !important;
+    left: 0 !important;
+    top: 0 !important;
+    z-index: 1000 !important;
+    width: 280px !important;
+    height: 100vh !important;
+  }
+
+  /* Ensure main content area has proper margin */
+  .dashboard-main {
+    margin-left: 280px !important;
+  }
+}
+
+/* Mobile/Tablet layout styles */
+@media (max-width: 1060px) {
+  .dashboard-layout .dashboard-header {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 999 !important;
+    background: #ffffff !important;
+    border-bottom: 1px solid #e5e7eb !important;
+    height: 60px !important; /* Matches responsive mobile header */
+  }
+  
+  .dashboard-main {
+    margin-left: 0 !important;
+  }
 }
 
 /* Prevent any page-specific search inputs from interfering */
@@ -46,22 +81,6 @@
   display: none !important;
 }
 
-/* Ensure sidebar is always fixed */
-.premium-sidebar {
-  position: fixed !important;
-  left: 0 !important;
-  top: 0 !important;
-  z-index: 999 !important;
-  width: 260px !important;
-  height: 100vh !important;
-}
-
-/* Ensure main content area has proper margin */
-.dashboard-main {
-  margin-left: 260px !important;
-  /* padding-top: 64px !important; */
-}
-
 /* Fix any conflicting search boxes in page content */
 .courses-filters .search-box,
 .page-content .search-box {
@@ -78,3 +97,4 @@
 .dashboard-right-column {
   padding-top: 24px !important;
 }
+

@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { signOut } from '@/lib/auth';
+import Icon from '@/components/Icon';
 
 export default function DashboardSidebar({
   user,
@@ -469,7 +470,7 @@ export default function DashboardSidebar({
           animation: 'fadeIn 0.2s ease-out',
         }}
       />
-      <aside className={`premium-sidebar ${isOpen ? 'mobile-open' : ''}`}>
+      <aside className={`premium-sidebar light-theme ${isOpen ? 'mobile-open' : ''}`}>
         {/* Logo and Branding */}
         <div className="sidebar-header">
           <div className="sidebar-header-flex">
@@ -599,6 +600,26 @@ export default function DashboardSidebar({
             );
           })}
         </nav>
+
+        {/* Level Up Progress Card */}
+        <div className="sidebar-level-card">
+          <div className="level-card-header">
+            <span className="level-rocket" style={{ display: 'flex', alignItems: 'center' }}><Icon name="rocket" size={18} color="#fff" /></span>
+            <div className="level-info">
+              <span className="level-card-title">Level up your community journey!</span>
+              <span className="level-card-sub">You're on Level 3</span>
+            </div>
+          </div>
+          <div className="level-progress-bar-container">
+            <div className="level-progress-bar" style={{ width: '62.5%' }}></div>
+          </div>
+          <div className="level-card-footer">
+            <span className="level-xp">750 / 1200 XP</span>
+            <Link href="/dashboard/achievements" className="level-btn" onClick={onClose}>
+              View My Progress
+            </Link>
+          </div>
+        </div>
 
         <div className="sidebar-bottom">
           <div className="bottom-actions">

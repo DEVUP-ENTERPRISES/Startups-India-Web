@@ -29,11 +29,15 @@ export default function CustomCursor() {
   const animFrameId = useRef(null);
 
   useEffect(() => {
-    // Only initialize for fine-pointer non-touch environments
-    if (window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    // In development with devtools open, touch might be simulated. 
+    // We enable the cursor if it's not a touch device OR if screen is large enough (desktop).
+    if (!isTouchDevice || window.innerWidth > 1024) {
       setIsMobile(false);
+      document.body.classList.add('custom-cursor-active');
     } else {
       setIsMobile(true);
+      document.body.classList.remove('custom-cursor-active');
       return;
     }
 
@@ -146,6 +150,7 @@ export default function CustomCursor() {
       window.removeEventListener('mouseup', onMouseUp);
       document.documentElement.removeEventListener('mouseleave', onMouseLeave);
       document.documentElement.removeEventListener('mouseenter', onMouseEnter);
+      document.body.classList.remove('custom-cursor-active');
     };
   }, []);
 
