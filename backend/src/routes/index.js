@@ -56,6 +56,14 @@ function registerRoutes(app) {
   const investorsRouter = require('../modules/investors/investors.routes');
   app.use('/api/v1/investors', investorsRouter);
 
+  // Public ecosystem route
+  const { asyncHandler: ah } = require('../utils/asyncHandler');
+  const adminService = require('../modules/admin/admin.service');
+  app.get('/api/v1/ecosystem', ah(async (req, res) => {
+    const data = await adminService.getPublicEcosystem();
+    res.json({ success: true, data });
+  }));
+
   // Public upload URL endpoint (alias to media/upload-url)
   const mediaController = require('../modules/media/media.controller');
   const { requireRole } = require('../middlewares/authMiddleware');

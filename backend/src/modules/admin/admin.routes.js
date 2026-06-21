@@ -83,6 +83,7 @@ adminRouter.patch('/events/:id', asyncHandler(ctrl.updateEvent));
 adminRouter.delete('/events/:id', asyncHandler(ctrl.deleteEvent));
 adminRouter.post('/events/:id/duplicate', asyncHandler(ctrl.duplicateEvent));
 adminRouter.get('/events/:id/registrations', asyncHandler(ctrl.getEventRegistrations));
+adminRouter.post('/events/:id/notify-registrants', asyncHandler(ctrl.notifyEventRegistrants));
 adminRouter.get('/events/:id/analytics', asyncHandler(ctrl.getEventAnalytics));
 
 // Leads/CRM
@@ -106,6 +107,12 @@ adminRouter.delete('/notifications/:id', asyncHandler(ctrl.deleteNotification));
 adminRouter.get('/settings', asyncHandler(ctrl.getSettings));
 adminRouter.post('/settings', asyncHandler(ctrl.upsertSetting));
 adminRouter.delete('/settings/:key', asyncHandler(ctrl.deleteSetting));
+
+// Ecosystem
+adminRouter.get('/ecosystem', asyncHandler(ctrl.getEcosystem));
+adminRouter.post('/ecosystem', asyncHandler(ctrl.createEcosystemEntry));
+adminRouter.patch('/ecosystem/:id', asyncHandler(ctrl.updateEcosystemEntry));
+adminRouter.delete('/ecosystem/:id', asyncHandler(ctrl.deleteEcosystemEntry));
 
 // ─── OBSERVABILITY & COMMAND CENTER ───────────────────────────────────
 // Security events

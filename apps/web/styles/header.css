@@ -1005,6 +1005,129 @@
   transform: rotate(180deg);
 }
 
+/* ── Ecosystem Mega Dropdown ─────────────────────────────── */
+.eco-mega-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(6, 6, 10, 0.96);
+  backdrop-filter: blur(28px) saturate(200%);
+  -webkit-backdrop-filter: blur(28px) saturate(200%);
+  border-radius: 18px;
+  padding: 18px;
+  width: 560px;
+  box-shadow:
+    0 20px 50px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(255, 255, 255, 0.06);
+  z-index: 1000;
+}
+
+.eco-mega-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.eco-mega-eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.eco-mega-view-all {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(239, 68, 68, 0.85);
+  text-decoration: none;
+  letter-spacing: 0.02em;
+  transition: color 0.2s;
+}
+.eco-mega-view-all:hover { color: #ef4444; }
+
+/* 4-column grid — matches reference image layout */
+.eco-mega-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.eco-mega-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  padding: 12px 8px;
+  border-radius: 12px;
+  text-decoration: none;
+  border: 1px solid transparent;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.18s ease;
+  cursor: pointer;
+}
+
+.eco-mega-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+  transform: translateY(-2px);
+}
+
+/* White icon box — exactly like the reference image */
+.eco-mega-icon-box {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 12px;
+  flex-shrink: 0;
+  color: #1a1a2e;
+  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+.eco-mega-item:hover .eco-mega-icon-box {
+  background: #fff;
+  transform: scale(1.08);
+  box-shadow: 0 4px 16px rgba(220, 38, 38, 0.2);
+}
+
+.eco-mega-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: center;
+}
+
+.eco-mega-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.2;
+  transition: color 0.2s ease;
+  white-space: nowrap;
+}
+
+.eco-mega-item:hover .eco-mega-label {
+  color: #fca5a5;
+}
+
+.eco-mega-desc {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.38);
+  font-weight: 400;
+  line-height: 1.3;
+  text-align: center;
+}
+
+/* ── End Ecosystem Mega Dropdown ──────────────────────────── */
+
 .programs-dropdown {
   position: absolute;
   top: calc(100% - 5px);

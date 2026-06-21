@@ -377,6 +377,19 @@ async function deleteNotification(req, res) {
   res.json({ success: true, data });
 }
 
+async function notifyEventRegistrants(req, res) {
+  const { title, message, type, deliveryMethods } = req.body;
+  if (!title || !message) {
+    return res.status(400).json({ success: false, message: 'Title and message are required' });
+  }
+  const data = await adminService.notifyEventRegistrants(
+    req.params.id,
+    { title, message, type, deliveryMethods },
+    req.user.userId
+  );
+  res.json({ success: true, data });
+}
+
 // ─── SETTINGS ───────────────────────────────────────────────────
 async function getSettings(req, res) {
   const data = await adminService.getSettings(req.query.category);
@@ -390,6 +403,28 @@ async function upsertSetting(req, res) {
 
 async function deleteSetting(req, res) {
   const data = await adminService.deleteSetting(req.params.key);
+  res.json({ success: true, data });
+}
+
+// ─── ECOSYSTEM ──────────────────────────────────────────────────
+async function getEcosystem(req, res) {
+  const { category, page, limit, search, featured } = req.query;
+  const data = await adminService.listEcosystem({ category, page: Number(page) || 1, limit: Number(limit) || 50, search, featured });
+  res.json({ success: true, data });
+}
+
+async function createEcosystemEntry(req, res) {
+  const data = await adminService.createEcosystemEntry(req.body);
+  res.status(201).json({ success: true, data });
+}
+
+async function updateEcosystemEntry(req, res) {
+  const data = await adminService.updateEcosystemEntry(req.params.id, req.body);
+  res.json({ success: true, data });
+}
+
+async function deleteEcosystemEntry(req, res) {
+  const data = await adminService.deleteEcosystemEntry(req.params.id);
   res.json({ success: true, data });
 }
 
@@ -452,7 +487,12 @@ module.exports = {
   getNotifications,
   createNotification,
   deleteNotification,
+  notifyEventRegistrants,
   getSettings,
   upsertSetting,
   deleteSetting,
+  getEcosystem,
+  createEcosystemEntry,
+  updateEcosystemEntry,
+  deleteEcosystemEntry,
 };

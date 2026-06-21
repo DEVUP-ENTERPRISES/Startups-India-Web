@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 
 // The admin panel is served at /{ADMIN_SLUG}/* via Next.js middleware rewrite.
@@ -34,6 +34,22 @@ const navSections = [
       { id: 'articles', label: 'Sources / Articles', href: `${ADMIN_BASE}/articles`, icon: 'edit' },
       { id: 'events', label: 'Events', href: `${ADMIN_BASE}/events`, icon: 'calendar' },
       { id: 'testimonials', label: 'Testimonials', href: `${ADMIN_BASE}/testimonials`, icon: 'star' },
+      {
+        id: 'ecosystem',
+        label: 'Ecosystem',
+        icon: 'globe',
+        group: true,
+        children: [
+          { id: 'eco-all',        label: 'All Entries',  href: `${ADMIN_BASE}/ecosystem`,                icon: 'layers' },
+          { id: 'eco-mentors',    label: 'Mentors',      href: `${ADMIN_BASE}/mentors`,                  icon: 'mentors' },
+          { id: 'eco-investors',  label: 'Investors',    href: `${ADMIN_BASE}/investors`,                icon: 'investors' },
+          { id: 'eco-startups',   label: 'Startups',     href: `${ADMIN_BASE}/ecosystem?cat=startup`,    icon: 'zap' },
+          { id: 'eco-corporates', label: 'Corporates',   href: `${ADMIN_BASE}/ecosystem?cat=corporate`,  icon: 'building' },
+          { id: 'eco-partners',   label: 'Partners',     href: `${ADMIN_BASE}/ecosystem?cat=partner`,    icon: 'handshake' },
+          { id: 'eco-academia',   label: 'Academia',     href: `${ADMIN_BASE}/ecosystem?cat=academia`,   icon: 'academia' },
+          { id: 'eco-coworking',  label: 'Co-Working',   href: `${ADMIN_BASE}/ecosystem?cat=coworking`,  icon: 'monitor' },
+        ],
+      },
     ],
   },
   {
@@ -201,6 +217,66 @@ function NavIcon({ name, size = 18 }) {
         <line x1="6" y1="18" x2="6.01" y2="18" />
       </svg>
     ),
+    globe: (
+      <svg {...props}>
+        <circle cx="12" cy="12" r="10" />
+        <line x1="2" y1="12" x2="22" y2="12" />
+        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+      </svg>
+    ),
+    layers: (
+      <svg {...props}>
+        <polygon points="12 2 2 7 12 12 22 7 12 2" />
+        <polyline points="2 17 12 22 22 17" />
+        <polyline points="2 12 12 17 22 12" />
+      </svg>
+    ),
+    zap: (
+      <svg {...props}><path d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+    ),
+    building: (
+      <svg {...props}>
+        <rect x="3" y="3" width="18" height="18" rx="2" />
+        <path d="M3 9h18" /><path d="M9 21V9" />
+      </svg>
+    ),
+    handshake: (
+      <svg {...props}>
+        <path d="M14 9a2 2 0 0 1-2 2H6l-4 4V4c0-1.1.9-2 2-2h8a2 2 0 0 1 2 2v5z" />
+        <path d="M18 9h2a2 2 0 0 1 2 2v11l-4-4h-6a2 2 0 0 1-2-2v-1" />
+      </svg>
+    ),
+    academia: (
+      <svg {...props}>
+        <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+        <path d="M6 12v5c0 0 2.5 2 6 2s6-2 6-2v-5" />
+      </svg>
+    ),
+    monitor: (
+      <svg {...props}>
+        <rect x="2" y="3" width="20" height="14" rx="2" />
+        <path d="M8 21h8m-4-4v4" />
+      </svg>
+    ),
+    mentors: (
+      <svg {...props}>
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+        <circle cx="9" cy="7" r="4" />
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+      </svg>
+    ),
+    investors: (
+      <svg {...props}>
+        <circle cx="12" cy="12" r="10" />
+        <path d="M12 8v4m0 4h.01" />
+        <line x1="12" y1="6" x2="12" y2="6.01" />
+        <path d="M15 10a3 3 0 1 0-6 0c0 1.4.8 2.6 2 3.2L12 14" />
+      </svg>
+    ),
+    'chevron-down': (
+      <svg {...props}><polyline points="6 9 12 15 18 9" /></svg>
+    ),
   };
   return icons[name] || null;
 }
@@ -220,6 +296,7 @@ export default function AdminLayout({ children }) {
   const [isAdmin, setIsAdmin] = useState(false);
   const [checking, setChecking] = useState(true);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [openGroups, setOpenGroups] = useState({ ecosystem: true });
 
   // Detect login page — usePathname() may return either the rewritten or slug path
   const isLoginPage = pathname === '/admin/login' || pathname === `/${ADMIN_SLUG}/login`;
@@ -338,8 +415,12 @@ export default function AdminLayout({ children }) {
   // pathname from usePathname() is the rewritten /admin/* path (what Next.js sees internally).
   // navSections hrefs are slug-based, so normalise before comparing.
   const normPathname = pathname.replace('/admin', ADMIN_BASE);
-  const activeId =
-    navSections.flatMap(s => s.items).find(i => normPathname.startsWith(i.href))?.id || 'dashboard';
+  const allItems = navSections.flatMap(s =>
+    s.items.flatMap(i => (i.group ? i.children : [i]))
+  );
+  const activeId = allItems.find(i => normPathname.startsWith(i.href.split('?')[0]))?.id || 'dashboard';
+
+  const toggleGroup = (id) => setOpenGroups(prev => ({ ...prev, [id]: !prev[id] }));
 
   return (
     <div className="admin-layout">
@@ -368,19 +449,55 @@ export default function AdminLayout({ children }) {
           {navSections.map(section => (
             <div key={section.title}>
               <div className="nav-section-title">{section.title}</div>
-              {section.items.map(item => (
-                <button
-                  key={item.id}
-                  className={`nav-item ${activeId === item.id ? 'active' : ''}`}
-                  onClick={() => router.push(item.href)}
-                  title={collapsed ? item.label : undefined}
-                >
-                  <span className="nav-icon">
-                    <NavIcon name={item.icon} />
-                  </span>
-                  <span className="nav-label">{item.label}</span>
-                </button>
-              ))}
+              {section.items.map(item => {
+                if (item.group) {
+                  const isOpen = openGroups[item.id];
+                  const hasActiveChild = item.children.some(c => activeId === c.id);
+                  return (
+                    <div key={item.id} className="nav-group">
+                      <button
+                        className={`nav-item nav-group-trigger ${hasActiveChild ? 'active' : ''}`}
+                        onClick={() => toggleGroup(item.id)}
+                        title={collapsed ? item.label : undefined}
+                      >
+                        <span className="nav-icon"><NavIcon name={item.icon} /></span>
+                        <span className="nav-label">{item.label}</span>
+                        {!collapsed && (
+                          <span className={`nav-group-arrow ${isOpen ? 'open' : ''}`}>
+                            <NavIcon name="chevron-down" size={14} />
+                          </span>
+                        )}
+                      </button>
+                      {isOpen && !collapsed && (
+                        <div className="nav-group-children">
+                          {item.children.map(child => (
+                            <button
+                              key={child.id}
+                              className={`nav-item nav-child-item ${activeId === child.id ? 'active' : ''}`}
+                              onClick={() => router.push(child.href)}
+                              title={child.label}
+                            >
+                              <span className="nav-icon"><NavIcon name={child.icon} /></span>
+                              <span className="nav-label">{child.label}</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+                return (
+                  <button
+                    key={item.id}
+                    className={`nav-item ${activeId === item.id ? 'active' : ''}`}
+                    onClick={() => router.push(item.href)}
+                    title={collapsed ? item.label : undefined}
+                  >
+                    <span className="nav-icon"><NavIcon name={item.icon} /></span>
+                    <span className="nav-label">{item.label}</span>
+                  </button>
+                );
+              })}
             </div>
           ))}
         </nav>

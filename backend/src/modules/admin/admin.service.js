@@ -12,12 +12,15 @@ const { Lead } = require('../../models/Lead');
 const { Testimonial } = require('../../models/Testimonial');
 const { Notification } = require('../../models/Notification');
 const { Settings } = require('../../models/Settings');
+const { EcosystemEntry } = require('../../models/EcosystemEntry');
 const { ApiError } = require('../../utils/apiError');
 const mediaService = require('../media/media.service');
 const { Media } = require('../media/media.model');
 const { cacheDel, cacheFlushPattern } = require('../../infrastructure/cache/redis');
 const { extractS3Key } = require('../../utils/s3');
 const { escapeRegex, sanitizeSort } = require('../../utils/sanitizer');
+const { sendEmail } = require('../../utils/emailService');
+const { logger } = require('../../infrastructure/observability/logger');
 
 function normalizeAttachments(attachments = []) {
   if (!Array.isArray(attachments)) return [];
@@ -756,6 +759,102 @@ async function deleteNotification(id) {
   return { deleted: true };
 }
 
+// ─── NOTIFY EVENT REGISTRANTS ───────────────────────────────────
+async function notifyEventRegistrants(eventId, { title, message, type = 'info', deliveryMethods = ['push'] }, sentBy) {
+  const event = await Event.findById(eventId).lean();
+  if (!event) throw new ApiError(404, 'Event not found');
+
+  const registrations = await EventRegistration.find({ event: eventId }).lean();
+  if (registrations.length === 0) throw new ApiError(400, 'No registrations found for this event');
+
+  const result = { notified: registrations.length, emailed: 0, pushed: 0 };
+
+  // ── In-App Notification ──
+  if (deliveryMethods.includes('push')) {
+    const userIds = registrations.map(r => r.user).filter(Boolean);
+    await Notification.create({
+      title,
+      message,
+      type,
+      target: 'specific',
+      recipients: userIds,
+      sentBy,
+    });
+    result.pushed = userIds.length;
+  }
+
+  // ── Email Notification ──
+  if (deliveryMethods.includes('email')) {
+    const uniqueEmails = [...new Map(registrations.map(r => [r.email, r])).values()];
+
+    // Build branded email HTML
+    const buildEmailHtml = (recipientName) => `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;background:#f5f5f5;">
+  <table role="presentation" style="width:100%;border-collapse:collapse;background:#f5f5f5;">
+    <tr><td align="center" style="padding:40px 20px;">
+      <table role="presentation" style="max-width:600px;width:100%;border-collapse:collapse;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.08);">
+        <tr><td style="background:linear-gradient(135deg,#e63946 0%,#ff6b6b 100%);padding:40px 30px;text-align:center;">
+          <h1 style="margin:0;color:#fff;font-size:28px;font-weight:800;">🚀 Startup India Incubation</h1>
+          <p style="margin:8px 0 0;color:rgba(255,255,255,.9);font-size:14px;">Event Update</p>
+        </td></tr>
+        <tr><td style="padding:30px 30px 10px;text-align:center;">
+          <div style="display:inline-block;background:rgba(230,57,70,.08);border:1px solid rgba(230,57,70,.15);border-radius:12px;padding:12px 24px;">
+            <span style="font-size:16px;font-weight:700;color:#e63946;">📅 ${event.title}</span>
+          </div>
+        </td></tr>
+        <tr><td style="padding:20px 30px 30px;">
+          <h2 style="margin:0 0 16px;color:#1a1a1a;font-size:22px;font-weight:700;">Hi ${recipientName || 'there'},</h2>
+          <div style="color:#444;font-size:16px;line-height:1.7;white-space:pre-wrap;">${message}</div>
+        </td></tr>
+        <tr><td style="padding:0 30px;"><div style="height:1px;background:linear-gradient(90deg,transparent,rgba(0,0,0,.1),transparent);"></div></td></tr>
+        <tr><td style="padding:20px 30px 30px;background:#f9f9f9;">
+          <p style="margin:0;color:#666;font-size:14px;">Need help? Contact us at <a href="mailto:admin@startupsindia.in" style="color:#e63946;text-decoration:none;">admin@startupsindia.in</a></p>
+        </td></tr>
+        <tr><td style="padding:30px;text-align:center;background:linear-gradient(135deg,#1a1a1a 0%,#2d2d2d 100%);">
+          <p style="margin:0 0 8px;color:rgba(255,255,255,.9);font-size:14px;font-weight:600;">Startup India Incubation</p>
+          <p style="margin:0;color:rgba(255,255,255,.4);font-size:11px;">© ${new Date().getFullYear()} All rights reserved.</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+
+    // Send emails in batches of 50 to avoid SMTP rate limits
+    const BATCH_SIZE = 50;
+    for (let i = 0; i < uniqueEmails.length; i += BATCH_SIZE) {
+      const batch = uniqueEmails.slice(i, i + BATCH_SIZE);
+      const emailPromises = batch.map(reg =>
+        sendEmail({
+          to: reg.email,
+          subject: `📢 ${event.title} — ${title}`,
+          html: buildEmailHtml(reg.fullName),
+          text: `${title}\n\nHi ${reg.fullName || 'there'},\n\n${message}\n\n---\nStartup India Incubation`,
+        }).catch(err => {
+          logger.error('Failed to send event notification email', { email: reg.email, error: err.message });
+          return null;
+        })
+      );
+      const results = await Promise.all(emailPromises);
+      result.emailed += results.filter(Boolean).length;
+
+      // Delay between batches (skip for last batch)
+      if (i + BATCH_SIZE < uniqueEmails.length) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    }
+  }
+
+  logger.info('Event registrants notified', { eventId, ...result });
+  return result;
+}
+
 // ─── SETTINGS ───────────────────────────────────────────────────
 async function getSettings(category) {
   const query = category ? { category } : {};
@@ -1240,6 +1339,47 @@ async function getUploadUrl(data, userId = null) {
   return mediaService.requestUploadUrl(userId, data);
 }
 
+// ─── ECOSYSTEM ──────────────────────────────────────────────────
+async function listEcosystem({ category, page = 1, limit = 50, search, featured } = {}) {
+  const query = {};
+  if (category) query.category = category;
+  if (featured !== undefined) query.isFeatured = featured === 'true' || featured === true;
+  if (search) query.name = { $regex: escapeRegex(search), $options: 'i' };
+
+  const [items, total] = await Promise.all([
+    EcosystemEntry.find(query).sort({ order: 1, createdAt: -1 }).skip((page - 1) * limit).limit(limit).lean(),
+    EcosystemEntry.countDocuments(query),
+  ]);
+  return { items, total, page, limit };
+}
+
+async function createEcosystemEntry(body) {
+  const { name, description, logo, website, category, tags, isFeatured, isActive, order } = body;
+  const entry = await EcosystemEntry.create({ name, description, logo, website, category, tags: tags || [], isFeatured: !!isFeatured, isActive: isActive !== false, order: order || 0 });
+  return entry;
+}
+
+async function updateEcosystemEntry(id, body) {
+  const entry = await EcosystemEntry.findByIdAndUpdate(id, { $set: body }, { new: true, runValidators: true }).lean();
+  if (!entry) throw new ApiError(404, 'Ecosystem entry not found');
+  return entry;
+}
+
+async function deleteEcosystemEntry(id) {
+  const entry = await EcosystemEntry.findByIdAndDelete(id).lean();
+  if (!entry) throw new ApiError(404, 'Ecosystem entry not found');
+  return { deleted: true };
+}
+
+async function getPublicEcosystem() {
+  const items = await EcosystemEntry.find({ isActive: true }).sort({ order: 1, createdAt: -1 }).lean();
+  const grouped = { startup: [], corporate: [], partner: [], academia: [], coworking: [] };
+  for (const item of items) {
+    if (grouped[item.category]) grouped[item.category].push(item);
+  }
+  return grouped;
+}
+
 module.exports = {
   getDashboardAnalytics,
   getMonitoringData,
@@ -1303,4 +1443,10 @@ module.exports = {
   getSettings,
   upsertSetting,
   deleteSetting,
+  notifyEventRegistrants,
+  listEcosystem,
+  createEcosystemEntry,
+  updateEcosystemEntry,
+  deleteEcosystemEntry,
+  getPublicEcosystem,
 };
