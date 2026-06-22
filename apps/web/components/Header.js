@@ -179,18 +179,6 @@ export default function Header() {
           )
         },
         {
-          label: 'Vision & Mission',
-          href: '/about#vision-mission',
-          desc: 'Driving innovation and empowering founders nationwide',
-          svg: (
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10"/>
-              <circle cx="12" cy="12" r="6"/>
-              <circle cx="12" cy="12" r="2"/>
-            </svg>
-          )
-        },
-        {
           label: 'Team Profiles',
           href: '/about#team-profiles',
           desc: 'Meet the leadership, advisers, and core team',
@@ -242,18 +230,13 @@ export default function Header() {
             </svg>
           )
         },
-        {
-          label: 'Campus Startup Mission',
-          href: '/campus-startup',
-          desc: 'Innovation Mission 2026 — colleges, hackathons & funding',
-          svg: (
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
-              <path d="M6 12v5c0 0 2.5 2 6 2s6-2 6-2v-5"/>
-            </svg>
-          )
-        },
       ]
+    },
+    { 
+      label: 'ON MISSION', 
+      href: '/campus-startup', 
+      icon: Rocket,
+      isMission: true
     },
     { label: 'Events', href: '/events', icon: Calendar },
     {
@@ -262,6 +245,14 @@ export default function Header() {
       icon: Globe,
       isMega: true,
       dropdown: [
+        {
+          label: 'Startups', desc: 'Startup Growth Enablement', href: '/ecosystem/startups',
+          svg: (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+          )
+        },
         {
           label: 'Mentors', desc: 'Startup Mentor Network', href: '/mentors',
           svg: (
@@ -303,19 +294,19 @@ export default function Header() {
           )
         },
         {
+          label: 'Market Access', desc: 'Expand your startup to new markets', href: '/market-access',
+          svg: (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+            </svg>
+          )
+        },
+        {
           label: 'Academia', desc: 'Academic Innovation Hub', href: '/ecosystem/academia',
           svg: (
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
               <path d="M6 12v5c0 0 2.5 2 6 2s6-2 6-2v-5"/>
-            </svg>
-          )
-        },
-        {
-          label: 'Startups', desc: 'Startup Growth Enablement', href: '/ecosystem/startups',
-          svg: (
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M13 10V3L4 14h7v7l9-11h-7z"/>
             </svg>
           )
         },
@@ -330,7 +321,6 @@ export default function Header() {
         },
       ]
     },
-    { label: 'Market Access', href: '/market-access', icon: Rocket },
     { label: 'Source', href: '/source', icon: Search },
   ];
 
@@ -574,14 +564,16 @@ export default function Header() {
             </AnimatePresence>
 
             {menuItems.map((item, index) =>
-              item.dropdown ? (
+              item.isMission ? (
+                <div key={index} className="desktop-mission-spacer" style={{ width: '240px' }} />
+              ) : item.dropdown ? (
                 <div
                   key={index}
                   className="nav-dropdown-container"
                   onMouseEnter={(e) => {
                     setOpenDropdown(index);
                     const rect = e.currentTarget.getBoundingClientRect();
-                    const parentRect = e.currentTarget.parentElement.getBoundingClientRect();
+                    const parentRect = e.currentTarget.closest('.nav-links').getBoundingClientRect();
                     setHoveredNav({
                       left: rect.left - parentRect.left,
                       top: rect.top - parentRect.top,
@@ -674,7 +666,7 @@ export default function Header() {
                   className={`nav-link ${pathname === item.href ? 'active' : ''}`}
                   onMouseEnter={(e) => {
                     const rect = e.currentTarget.getBoundingClientRect();
-                    const parentRect = e.currentTarget.parentElement.getBoundingClientRect();
+                    const parentRect = e.currentTarget.closest('.nav-links').getBoundingClientRect();
                     setHoveredNav({
                       left: rect.left - parentRect.left,
                       top: rect.top - parentRect.top,
@@ -687,6 +679,11 @@ export default function Header() {
                 </Link>
               )
             )}
+            
+            <Link href="/campus-startup" className="desktop-mission-btn">
+              <Rocket size={18} style={{ marginRight: '6px' }} />
+              ON MISSION
+            </Link>
           </div>
         </div>
       </nav>
@@ -744,7 +741,7 @@ export default function Header() {
                   ) : (
                     <Link
                       href={item.href}
-                      className={`mobile-nav-item ${pathname === item.href ? 'active' : ''}`}
+                      className={`mobile-nav-item ${pathname === item.href ? 'active' : ''} ${item.isMission ? 'mobile-mission-btn' : ''}`}
                       onClick={closeMobileMenu}
                     >
                       <span className="menu-left">
@@ -775,6 +772,74 @@ export default function Header() {
           </div>
         </nav>
       </div>
+      <style dangerouslySetInnerHTML={{__html: `
+        .desktop-mission-btn {
+          position: absolute !important;
+          left: 50% !important;
+          top: 50% !important;
+          transform: translate(-50%, -50%) !important;
+          
+          /* Dark Red Glassmorphism */
+          background: linear-gradient(90deg, rgba(100, 0, 0, 0.8), rgba(180, 15, 30, 0.8), rgba(100, 0, 0, 0.8)) !important;
+          background-size: 200% auto !important;
+          backdrop-filter: blur(12px) saturate(180%) !important;
+          -webkit-backdrop-filter: blur(12px) saturate(180%) !important;
+          border: 1px solid rgba(255, 255, 255, 0.2) !important;
+          border-top: 1px solid rgba(255, 255, 255, 0.4) !important;
+          
+          color: white !important;
+          border-radius: 100px !important;
+          padding: 8px 24px !important;
+          font-size: 14px !important;
+          font-weight: 900 !important;
+          text-transform: uppercase !important;
+          letter-spacing: 1.5px !important;
+          
+          animation: dark-red-glow 2.5s linear infinite !important;
+          
+          display: flex !important;
+          align-items: center !important;
+          white-space: nowrap !important;
+          z-index: 50;
+          text-decoration: none;
+        }
+        .desktop-mission-btn:hover {
+          transform: translate(-50%, -50%) scale(1.08) !important;
+          background: linear-gradient(90deg, rgba(130, 0, 0, 0.9), rgba(220, 20, 40, 0.9), rgba(130, 0, 0, 0.9)) !important;
+          border-color: rgba(255, 255, 255, 0.6) !important;
+        }
+        .mobile-mission-btn {
+          background: linear-gradient(90deg, rgba(100, 0, 0, 0.8), rgba(180, 15, 30, 0.8), rgba(100, 0, 0, 0.8)) !important;
+          background-size: 200% auto !important;
+          backdrop-filter: blur(12px) saturate(180%) !important;
+          border: 1px solid rgba(255, 255, 255, 0.2) !important;
+          color: white !important;
+          border-radius: 12px !important;
+          font-weight: 800 !important;
+          animation: dark-red-glow 2.5s linear infinite !important;
+          border: none !important;
+        }
+        .mobile-mission-btn .menu-left { color: white !important; z-index: 2; position: relative; }
+        .mobile-mission-btn .menu-icon { color: white !important; z-index: 2; position: relative; }
+        @keyframes dark-red-glow {
+          0% {
+            background-position: 0% center;
+            box-shadow: 0 0 15px rgba(100, 0, 0, 0.5), inset 0 0 8px rgba(255, 255, 255, 0.2);
+          }
+          50% {
+            box-shadow: 0 0 25px rgba(200, 20, 40, 0.7), inset 0 0 15px rgba(255, 255, 255, 0.4);
+          }
+          100% {
+            background-position: 200% center;
+            box-shadow: 0 0 15px rgba(100, 0, 0, 0.5), inset 0 0 8px rgba(255, 255, 255, 0.2);
+          }
+        }
+        @media (max-width: 1024px) {
+          .desktop-mission-spacer, .desktop-mission-btn {
+            display: none !important;
+          }
+        }
+      `}} />
     </header>
   );
 }
