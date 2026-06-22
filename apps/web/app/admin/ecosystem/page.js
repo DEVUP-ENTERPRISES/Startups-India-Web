@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { apiGet, apiPost, apiPatch, apiDelete } from '@/lib/api';
 
@@ -44,6 +44,27 @@ export default function AdminEcosystemPage() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [allCounts, setAllCounts] = useState({});
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const logoInputRef = useRef(null);
+
+  // Sync filter when sidebar navigation changes the ?cat= param
+  useEffect(() => {
+    const cat = searchParams.get('cat') || '';
+    setFilterCat(cat);
+    setSearch('');
+  }, [searchParams]);
+
+  // Always fetch total counts per category for the stats cards
+  useEffect(() => {
+    apiGet('/api/v1/admin/ecosystem?limit=1000').then(({ data }) => {
+      if (!data) return;
+      const counts = {};
+      CATEGORIES.forEach(c => { counts[c.value] = 0; });
+      (data.items || []).forEach(e => { if (counts[e.category] !== undefined) counts[e.category]++; });
+      setAllCounts(counts);
+    });
+  }, [entries]); // re-run after any CRUD
 
   const fetchEntries = useCallback(async () => {
     setLoading(true);
@@ -51,7 +72,7 @@ export default function AdminEcosystemPage() {
       const params = new URLSearchParams({ limit: 100 });
       if (filterCat) params.set('category', filterCat);
       if (search) params.set('search', search);
-      const { data, error } = await apiGet(`/api/v1/admin/ecosystem?${params}`);
+      const { data } = await apiGet(`/api/v1/admin/ecosystem?${params}`);
       if (data) {
         setEntries(data.items || []);
         setTotal(data.total || 0);
@@ -67,7 +88,8 @@ export default function AdminEcosystemPage() {
 
   function openAdd() {
     setEditEntry(null);
-    setForm(EMPTY_FORM);
+    // Pre-select current category filter when adding from a filtered view
+    setForm({ ...EMPTY_FORM, category: filterCat || 'startup' });
     setShowModal(true);
   }
 
@@ -87,8 +109,34 @@ export default function AdminEcosystemPage() {
     setShowModal(true);
   }
 
+  async function handleLogoUpload(file) {
+    if (!file) return;
+    setUploadingLogo(true);
+    try {
+      const { data, error } = await apiPost('/api/v1/admin/upload-url', {
+        fileName: file.name,
+        fileType: file.type,
+        fileSize: file.size,
+        folder: 'images',
+      });
+      if (error || !data?.uploadUrl) throw new Error(error?.message || 'Failed to get upload URL');
+      const res = await fetch(data.uploadUrl, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } });
+      if (!res.ok) throw new Error('Upload to S3 failed');
+      setForm(p => ({ ...p, logo: data.fileUrl || data.url }));
+    } catch (err) {
+      console.error('Logo upload error:', err);
+      alert('Logo upload failed: ' + (err.message || 'Unknown error. Check you are logged in and file is JPG/PNG/WebP under 10MB.'));
+    } finally {
+      setUploadingLogo(false);
+    }
+  }
+
   async function handleSave(e) {
     e.preventDefault();
+    if (form.website && !/^https?:\/\/.+\..+/.test(form.website.trim())) {
+      alert('Website URL must start with http:// or https:// and be a valid URL.');
+      return;
+    }
     setSaving(true);
     try {
       const body = {
@@ -165,6 +213,7 @@ export default function AdminEcosystemPage() {
     cancelBtn: { width: '100%', padding: '13px', background: '#f1f5f9', color: '#64748b', border: 'none', borderRadius: '12px', fontWeight: '600', fontSize: '14px', cursor: 'pointer', marginTop: '8px' },
     closeBtn: { position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8' },
     checkRow: { display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' },
+    spin: { animation: 'spin 0.7s linear infinite' },
     checkLabel: { fontSize: '14px', color: '#374151', fontWeight: '500', cursor: 'pointer' },
     statsRow: { display: 'flex', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' },
     statCard: (bg, text) => ({ padding: '14px 20px', background: bg, borderRadius: '10px', flex: '1', minWidth: '120px' }),
@@ -177,13 +226,22 @@ export default function AdminEcosystemPage() {
     return acc;
   }, {});
 
+  const activeCatLabel = CATEGORIES.find(c => c.value === filterCat)?.label || null;
+
   return (
     <div style={s.page}>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       {/* Header */}
       <div style={s.header}>
         <div>
-          <h1 style={s.title}>Ecosystem Management</h1>
-          <p style={s.sub}>{total} total entries across all categories</p>
+          <h1 style={s.title}>
+            {activeCatLabel ? `${activeCatLabel} — Ecosystem` : 'Ecosystem Management'}
+          </h1>
+          <p style={s.sub}>
+            {filterCat
+              ? `${total} ${activeCatLabel?.toLowerCase()} entries`
+              : `${total} total entries across all categories`}
+          </p>
         </div>
         <button style={s.addBtn} onClick={openAdd}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -191,11 +249,15 @@ export default function AdminEcosystemPage() {
         </button>
       </div>
 
-      {/* Stats */}
+      {/* Stats — always show all-category counts */}
       <div style={s.statsRow}>
         {CATEGORIES.map(c => (
-          <div key={c.value} style={s.statCard(CAT_COLORS[c.value]?.bg || '#f8fafc', CAT_COLORS[c.value]?.text || '#334155')}>
-            <div style={s.statNum}>{catCounts[c.value]}</div>
+          <div
+            key={c.value}
+            onClick={() => setFilterCat(filterCat === c.value ? '' : c.value)}
+            style={{ ...s.statCard(CAT_COLORS[c.value]?.bg || '#f8fafc', CAT_COLORS[c.value]?.text || '#334155'), cursor: 'pointer', outline: filterCat === c.value ? `2px solid ${CAT_COLORS[c.value]?.text}` : 'none', outlineOffset: '2px' }}
+          >
+            <div style={s.statNum}>{allCounts[c.value] ?? catCounts[c.value]}</div>
             <div style={s.statLbl}>{c.label}</div>
           </div>
         ))}
@@ -238,16 +300,26 @@ export default function AdminEcosystemPage() {
               <tr key={entry._id} style={{ background: entry.isActive ? '#fff' : '#fafafa' }}>
                 <td style={s.td}>
                   {entry.logo ? (
-                    <img src={entry.logo} alt={entry.name} style={{ width: 36, height: 36, borderRadius: '8px', objectFit: 'cover', border: '1px solid #e2e8f0' }} />
+                    <img src={entry.logo} alt={entry.name} style={{ width: 60, height: 60, borderRadius: '12px', objectFit: 'cover', border: '1px solid #e2e8f0', display: 'block' }} />
                   ) : (
-                    <div style={{ width: 36, height: 36, borderRadius: '8px', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: '700', color: '#94a3b8', border: '1px solid #e2e8f0' }}>
+                    <div style={{ width: 60, height: 60, borderRadius: '12px', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', fontWeight: '700', color: '#94a3b8', border: '1px solid #e2e8f0' }}>
                       {entry.name?.charAt(0)?.toUpperCase()}
                     </div>
                   )}
                 </td>
                 <td style={s.td}>
                   <div style={{ fontWeight: '600', color: '#0f172a' }}>{entry.name}</div>
-                  {entry.website && <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '2px' }}>{entry.website}</div>}
+                  {entry.website && (
+                    <a
+                      href={entry.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ fontSize: '11px', color: '#2563eb', marginTop: '4px', display: 'inline-flex', alignItems: 'center', gap: '3px', textDecoration: 'none', fontWeight: '500' }}
+                    >
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                      Visit Website
+                    </a>
+                  )}
                 </td>
                 <td style={s.td}><span style={s.badge(entry.category)}>{entry.category}</span></td>
                 <td style={s.td}>
@@ -303,14 +375,66 @@ export default function AdminEcosystemPage() {
                 <label style={s.label}>Description</label>
                 <textarea style={s.formTextarea} value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} placeholder="Brief description..." />
               </div>
+              <div>
+                <label style={s.label}>Logo</label>
+                <input
+                  ref={logoInputRef}
+                  type="file"
+                  accept="image/jpeg,image/jpg,image/png,image/webp"
+                  style={{ display: 'none' }}
+                  onChange={e => handleLogoUpload(e.target.files[0])}
+                />
+                <div
+                  onClick={() => !uploadingLogo && logoInputRef.current?.click()}
+                  style={{ border: '1.5px dashed #e2e8f0', borderRadius: '10px', padding: '12px', display: 'flex', alignItems: 'center', gap: '12px', cursor: uploadingLogo ? 'wait' : 'pointer', background: '#fafafa', minHeight: '56px' }}
+                >
+                  {form.logo ? (
+                    <>
+                      <img src={form.logo} alt="logo" style={{ width: 48, height: 48, borderRadius: '10px', objectFit: 'cover', border: '1px solid #e2e8f0', flexShrink: 0 }} />
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: '12px', fontWeight: '600', color: '#0f172a' }}>Logo uploaded (or URL provided)</div>
+                        <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '2px' }}>Click to replace file</div>
+                      </div>
+                      <button type="button" onClick={e => { e.stopPropagation(); setForm(p => ({ ...p, logo: '' })); }} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', flexShrink: 0 }}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <div style={{ width: 36, height: 36, borderRadius: '8px', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        {uploadingLogo ? (
+                          <div style={{ width: 16, height: 16, border: '2px solid #e2e8f0', borderTopColor: '#3b82f6', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+                        ) : (
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                        )}
+                      </div>
+                      <span style={{ fontSize: '13px', color: '#94a3b8' }}>
+                        {uploadingLogo ? 'Uploading...' : 'Click to upload logo file'}
+                      </span>
+                    </>
+                  )}
+                </div>
+              </div>
               <div style={s.row}>
                 <div>
                   <label style={s.label}>Logo URL</label>
-                  <input style={s.formInput} value={form.logo} onChange={e => setForm(p => ({ ...p, logo: e.target.value }))} placeholder="https://..." />
+                  <input
+                    style={s.formInput}
+                    type="url"
+                    value={form.logo}
+                    onChange={e => setForm(p => ({ ...p, logo: e.target.value }))}
+                    placeholder="https://..."
+                  />
                 </div>
                 <div>
                   <label style={s.label}>Website URL</label>
-                  <input style={s.formInput} value={form.website} onChange={e => setForm(p => ({ ...p, website: e.target.value }))} placeholder="https://..." />
+                  <input
+                    style={s.formInput}
+                    type="url"
+                    value={form.website}
+                    onChange={e => setForm(p => ({ ...p, website: e.target.value }))}
+                    placeholder="https://..."
+                  />
                 </div>
               </div>
               <div>
@@ -346,7 +470,9 @@ export default function AdminEcosystemPage() {
       {deleteTarget && (
         <div style={s.overlay} onClick={() => setDeleteTarget(null)}>
           <div style={{ ...s.modal, maxWidth: '400px', textAlign: 'center' }} onClick={e => e.stopPropagation()}>
-            <div style={{ fontSize: '48px', marginBottom: '16px' }}>⚠️</div>
+            <div style={{ marginBottom: '16px', color: '#dc2626' }}>
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </div>
             <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#0f172a', marginBottom: '8px' }}>Delete Entry</h3>
             <p style={{ color: '#64748b', fontSize: '14px', marginBottom: '24px' }}>
               Are you sure you want to delete <strong>{deleteTarget.name}</strong>? This cannot be undone.
