@@ -375,56 +375,46 @@ export default function AdminEcosystemPage() {
                 <label style={s.label}>Description</label>
                 <textarea style={s.formTextarea} value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} placeholder="Brief description..." />
               </div>
-              <div>
-                <label style={s.label}>Logo</label>
-                <input
-                  ref={logoInputRef}
-                  type="file"
-                  accept="image/jpeg,image/jpg,image/png,image/webp"
-                  style={{ display: 'none' }}
-                  onChange={e => handleLogoUpload(e.target.files[0])}
-                />
-                <div
-                  onClick={() => !uploadingLogo && logoInputRef.current?.click()}
-                  style={{ border: '1.5px dashed #e2e8f0', borderRadius: '10px', padding: '12px', display: 'flex', alignItems: 'center', gap: '12px', cursor: uploadingLogo ? 'wait' : 'pointer', background: '#fafafa', minHeight: '56px' }}
-                >
-                  {form.logo ? (
-                    <>
-                      <img src={form.logo} alt="logo" style={{ width: 48, height: 48, borderRadius: '10px', objectFit: 'cover', border: '1px solid #e2e8f0', flexShrink: 0 }} />
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: '12px', fontWeight: '600', color: '#0f172a' }}>Logo uploaded (or URL provided)</div>
-                        <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '2px' }}>Click to replace file</div>
-                      </div>
-                      <button type="button" onClick={e => { e.stopPropagation(); setForm(p => ({ ...p, logo: '' })); }} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', flexShrink: 0 }}>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <div style={{ width: 36, height: 36, borderRadius: '8px', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        {uploadingLogo ? (
-                          <div style={{ width: 16, height: 16, border: '2px solid #e2e8f0', borderTopColor: '#3b82f6', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
-                        ) : (
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                        )}
-                      </div>
-                      <span style={{ fontSize: '13px', color: '#94a3b8' }}>
-                        {uploadingLogo ? 'Uploading...' : 'Click to upload logo file'}
-                      </span>
-                    </>
-                  )}
-                </div>
-              </div>
               <div style={s.row}>
                 <div>
-                  <label style={s.label}>Logo URL</label>
+                  <label style={s.label}>Logo</label>
                   <input
-                    style={s.formInput}
-                    type="url"
-                    value={form.logo}
-                    onChange={e => setForm(p => ({ ...p, logo: e.target.value }))}
-                    placeholder="https://..."
+                    ref={logoInputRef}
+                    type="file"
+                    accept="image/jpeg,image/jpg,image/png,image/webp"
+                    style={{ display: 'none' }}
+                    onChange={e => handleLogoUpload(e.target.files[0])}
                   />
+                  <div
+                    onClick={() => !uploadingLogo && logoInputRef.current?.click()}
+                    style={{ border: '1.5px dashed #e2e8f0', borderRadius: '10px', padding: '12px', display: 'flex', alignItems: 'center', gap: '12px', cursor: uploadingLogo ? 'wait' : 'pointer', background: '#fafafa', minHeight: '56px' }}
+                  >
+                    {form.logo ? (
+                      <>
+                        <img src={form.logo} alt="logo" style={{ width: 48, height: 48, borderRadius: '10px', objectFit: 'cover', border: '1px solid #e2e8f0', flexShrink: 0 }} />
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: '12px', fontWeight: '600', color: '#0f172a' }}>Logo uploaded</div>
+                          <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '2px' }}>Click to replace</div>
+                        </div>
+                        <button type="button" onClick={e => { e.stopPropagation(); setForm(p => ({ ...p, logo: '' })); }} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', flexShrink: 0 }}>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <div style={{ width: 36, height: 36, borderRadius: '8px', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          {uploadingLogo ? (
+                            <div style={{ width: 16, height: 16, border: '2px solid #e2e8f0', borderTopColor: '#3b82f6', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+                          ) : (
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                          )}
+                        </div>
+                        <span style={{ fontSize: '13px', color: '#94a3b8' }}>
+                          {uploadingLogo ? 'Uploading...' : 'Click to upload logo'}
+                        </span>
+                      </>
+                    )}
+                  </div>
                 </div>
                 <div>
                   <label style={s.label}>Website URL</label>
@@ -433,7 +423,7 @@ export default function AdminEcosystemPage() {
                     type="url"
                     value={form.website}
                     onChange={e => setForm(p => ({ ...p, website: e.target.value }))}
-                    placeholder="https://..."
+                    placeholder="https://example.com"
                   />
                 </div>
               </div>
