@@ -16,19 +16,23 @@ export default function Navbar() {
       label: 'About Us', 
       href: '/about', 
       hasDropdown: true,
+      isMega: true,
+      megaHeader: 'About Us',
       dropdownItems: [
-        { label: 'About Us', href: '/about' },
-        { label: 'Team', href: '/team' }
+        { label: 'About Us', desc: 'Learn more about our mission and vision.', href: '/about', icon: 'ℹ️' },
+        { label: 'Team', desc: 'Meet the people behind the ecosystem.', href: '/team', icon: '👥' }
       ]
     },
     { 
       label: 'Our Programs', 
       href: '/programs', 
       hasDropdown: true,
+      isMega: true,
+      megaHeader: 'Our Programs',
       dropdownItems: [
-        { label: 'Pre-Incubation', href: '/programs/pre-incubation' },
-        { label: 'Incubation', href: '/programs/incubation' },
-        { label: 'Growth Programs', href: '/programs/growth' }
+        { label: 'Pre-Incubation', desc: 'Validate your idea and build a prototype.', href: '/programs/pre-incubation', icon: '🌱' },
+        { label: 'Incubation', desc: 'Build your product and get early traction.', href: '/programs/incubation', icon: '🚀' },
+        { label: 'Growth Programs', desc: 'Scale your startup with expert guidance.', href: '/programs/growth', icon: '📈' }
       ]
     },
     { label: 'Events', href: '/events' },
@@ -37,7 +41,8 @@ export default function Navbar() {
       href: '/ecosystem',
       hasDropdown: true,
       isMega: true,
-      ecosystemItems: [
+      megaHeader: 'Our Ecosystem',
+      dropdownItems: [
         { label: 'Mentors', desc: 'Startup Mentor Network', href: '/mentors', icon: '🧑‍🏫' },
         { label: 'Investors', desc: 'Startup-Investor Ecosystem', href: '/investors', icon: '💰' },
         { label: 'Corporates', desc: 'Corporate Innovation Programs', href: '/ecosystem#corporates', icon: '🏢' },
@@ -84,7 +89,7 @@ export default function Navbar() {
                 )}
               </Link>
 
-              {/* Mega Dropdown — Ecosystem */}
+              {/* Mega Dropdown */}
               {item.isMega && (
                 <AnimatePresence>
                   {openDropdown === item.label && (
@@ -96,16 +101,16 @@ export default function Navbar() {
                       transition={{ duration: 0.2 }}
                     >
                       <div className="mega-header">
-                        <span className="mega-eyebrow">Our Ecosystem</span>
-                        <Link href="/ecosystem" className="mega-view-all">View All →</Link>
+                        <span className="mega-eyebrow">{item.megaHeader || item.label}</span>
+                        <Link href={item.href} className="mega-view-all">View All →</Link>
                       </div>
                       <div className="mega-grid">
-                        {item.ecosystemItems.map((eco, idx) => (
-                          <Link key={idx} href={eco.href} className="mega-item">
-                            <span className="mega-item-icon">{eco.icon}</span>
+                        {item.dropdownItems.map((dropItem, idx) => (
+                          <Link key={idx} href={dropItem.href} className="mega-item">
+                            <span className="mega-item-icon">{dropItem.icon}</span>
                             <span className="mega-item-body">
-                              <span className="mega-item-label">{eco.label}</span>
-                              <span className="mega-item-desc">{eco.desc}</span>
+                              <span className="mega-item-label">{dropItem.label}</span>
+                              <span className="mega-item-desc">{dropItem.desc}</span>
                             </span>
                           </Link>
                         ))}

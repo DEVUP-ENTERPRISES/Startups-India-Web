@@ -11,6 +11,7 @@ const ecosystemEntrySchema = new mongoose.Schema(
       required: true,
       enum: ['startup', 'corporate', 'partner', 'academia', 'coworking'],
     },
+    type: { type: String, default: '' },
     tags: [{ type: String, trim: true }],
     isFeatured: { type: Boolean, default: false },
     isActive: { type: Boolean, default: true },

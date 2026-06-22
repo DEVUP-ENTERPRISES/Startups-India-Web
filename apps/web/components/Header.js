@@ -165,21 +165,43 @@ export default function Header() {
       label: 'About Us', 
       href: '/about', 
       icon: Info,
+      isMega: true,
       dropdown: [
         {
           label: 'About the Company',
           href: '/about',
-          description: 'Learn about the StartupsIndia ecosystem and mission',
+          desc: 'Learn about the StartupsIndia ecosystem and mission',
+          svg: (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+              <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+            </svg>
+          )
         },
         {
           label: 'Vision & Mission',
           href: '/about#vision-mission',
-          description: 'Driving innovation and empowering founders nationwide',
+          desc: 'Driving innovation and empowering founders nationwide',
+          svg: (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <circle cx="12" cy="12" r="6"/>
+              <circle cx="12" cy="12" r="2"/>
+            </svg>
+          )
         },
         {
           label: 'Team Profiles',
           href: '/about#team-profiles',
-          description: 'Meet the leadership, advisers, and core team',
+          desc: 'Meet the leadership, advisers, and core team',
+          svg: (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+          )
         },
       ]
     },
@@ -187,26 +209,49 @@ export default function Header() {
       label: 'Our Programs', 
       href: '/programs', 
       icon: LayoutGrid,
+      isMega: true,
       dropdown: [
         {
           label: 'Pre-Incubation',
           href: '/programs/pre-incubation',
-          description: '8-week intensive program for idea validation'
+          desc: '8-week intensive program for idea validation',
+          svg: (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 2v20"/>
+              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+            </svg>
+          )
         },
         {
           label: 'Incubation',
           href: '/programs/incubation',
-          description: 'Full incubation support for early-stage startups'
+          desc: 'Full incubation support for early-stage startups',
+          svg: (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+            </svg>
+          )
         },
         {
           label: 'Master Classes',
           href: '/programs/master-classes',
-          description: 'Exclusive cinematic learning experience — Enroll now for early access',
+          desc: 'Exclusive cinematic learning experience — Enroll now for early access',
+          svg: (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>
+            </svg>
+          )
         },
         {
           label: 'Campus Startup Mission',
           href: '/campus-startup',
-          description: 'Innovation Mission 2026 — colleges, hackathons & funding',
+          desc: 'Innovation Mission 2026 — colleges, hackathons & funding',
+          svg: (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+              <path d="M6 12v5c0 0 2.5 2 6 2s6-2 6-2v-5"/>
+            </svg>
+          )
         },
       ]
     },
@@ -567,8 +612,8 @@ export default function Header() {
                         {item.isMega ? (
                           <>
                             <div className="eco-mega-header">
-                              <span className="eco-mega-eyebrow">Our Ecosystem</span>
-                              <Link href="/ecosystem" className="eco-mega-view-all" onClick={() => setOpenDropdown(null)}>
+                              <span className="eco-mega-eyebrow">{item.label === 'Ecosystem' ? 'Our Ecosystem' : item.label}</span>
+                              <Link href={item.href} className="eco-mega-view-all" onClick={() => setOpenDropdown(null)}>
                                 View All
                                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginLeft: 3 }}><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                               </Link>
@@ -592,9 +637,9 @@ export default function Header() {
                               ))}
                             </div>
                             <div className="eco-mega-footer">
-                              <Link href="/ecosystem" className="eco-mega-footer-link" onClick={() => setOpenDropdown(null)}>
+                              <Link href={item.href} className="eco-mega-footer-link" onClick={() => setOpenDropdown(null)}>
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-                                Explore the full Startup India Ecosystem
+                                {item.label === 'Ecosystem' ? 'Explore the full Startup India Ecosystem' : `Explore all ${item.label}`}
                               </Link>
                             </div>
                           </>

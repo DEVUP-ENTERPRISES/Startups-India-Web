@@ -26,6 +26,7 @@ const EMPTY_FORM = {
   logo: '',
   website: '',
   category: 'startup',
+  type: '',
   tags: '',
   isFeatured: false,
   isActive: true,
@@ -101,6 +102,7 @@ export default function AdminEcosystemPage() {
       logo: entry.logo || '',
       website: entry.website || '',
       category: entry.category || 'startup',
+      type: entry.type || '',
       tags: (entry.tags || []).join(', '),
       isFeatured: !!entry.isFeatured,
       isActive: entry.isActive !== false,
@@ -365,11 +367,21 @@ export default function AdminEcosystemPage() {
                 <label style={s.label}>Name *</label>
                 <input style={s.formInput} required value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} placeholder="e.g. Google for Startups" />
               </div>
-              <div>
-                <label style={s.label}>Category *</label>
-                <select style={s.formSelect} value={form.category} onChange={e => setForm(p => ({ ...p, category: e.target.value }))}>
-                  {CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
-                </select>
+              <div style={s.row}>
+                <div>
+                  <label style={s.label}>Category *</label>
+                  <select style={s.formSelect} value={form.category} onChange={e => setForm(p => ({ ...p, category: e.target.value }))}>
+                    {CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label style={s.label}>Type (Filter)</label>
+                  <select style={s.formSelect} value={form.type} onChange={e => setForm(p => ({ ...p, type: e.target.value }))}>
+                    <option value="">Standard (None)</option>
+                    <option value="Associate partners">Associate partners</option>
+                    <option value="Value partners">Value partners</option>
+                  </select>
+                </div>
               </div>
               <div>
                 <label style={s.label}>Description</label>

@@ -49,6 +49,7 @@ export default function EcoCategoryPage({ config }) {
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [filterType, setFilterType] = useState('All');
 
   useEffect(() => {
     fetch(`${API_URL}/api/v1/ecosystem`)
@@ -61,14 +62,20 @@ export default function EcoCategoryPage({ config }) {
   }, [category]);
 
   const filtered = useMemo(() => {
-    if (!search.trim()) return entries;
-    const q = search.toLowerCase();
-    return entries.filter(e =>
-      e.name?.toLowerCase().includes(q) ||
-      e.description?.toLowerCase().includes(q) ||
-      e.tags?.some(t => t.toLowerCase().includes(q))
-    );
-  }, [entries, search]);
+    let result = entries;
+    if (filterType !== 'All') {
+      result = result.filter(e => e.tags?.includes(filterType) || e.type === filterType);
+    }
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      result = result.filter(e =>
+        e.name?.toLowerCase().includes(q) ||
+        e.description?.toLowerCase().includes(q) ||
+        e.tags?.some(t => t.toLowerCase().includes(q))
+      );
+    }
+    return result;
+  }, [entries, search, filterType]);
 
   const cssVars = {
     '--cat-accent': accent,
@@ -132,9 +139,15 @@ export default function EcoCategoryPage({ config }) {
         <div className="ecocat-content">
           {/* Filter Bar */}
           <div className="ecocat-filter-bar">
-            <p className="ecocat-count">
-              Showing <strong>{filtered.length}</strong> {label.toLowerCase()}
-            </p>
+            <select 
+              className="ecocat-filter-select"
+              value={filterType}
+              onChange={e => setFilterType(e.target.value)}
+            >
+              <option value="All">All Categories</option>
+              <option value="Associate partners">Associate partners</option>
+              <option value="Value partners">Value partners</option>
+            </select>
             <div className="ecocat-search">
               <span className="ecocat-search-icon">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

@@ -71,10 +71,8 @@
 .eco-hero-content {
   position: relative;
   z-index: 2;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 24px;
-  text-align: center;
+  padding: 0 48px;
+  text-align: left;
 }
 
 .eco-hero-badge {
@@ -126,7 +124,7 @@
   font-size: clamp(16px, 2.5vw, 20px);
   color: rgba(255,255,255,0.6);
   max-width: 640px;
-  margin: 0 auto 48px;
+  margin: 0 0 48px 0;
   line-height: 1.7;
   font-weight: 400;
 }
@@ -135,13 +133,13 @@
 .eco-stats-bar {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 48px;
   flex-wrap: wrap;
 }
 
 .eco-stat {
-  text-align: center;
+  text-align: left;
 }
 
 .eco-stat-num {
@@ -171,11 +169,7 @@
 
 /* ── MAIN SECTION ─────────────────────────────────────────── */
 .eco-main {
-  padding: 100px 0;
-  max-width: 1280px;
-  margin: 0 auto;
-  padding-left: 24px;
-  padding-right: 24px;
+  padding: 100px 48px;
 }
 
 /* ── SECTION HEADER ───────────────────────────────────────── */
@@ -240,12 +234,10 @@
 .eco-cat-nav {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 8px;
   flex-wrap: wrap;
-  padding: 28px 24px;
-  max-width: 1280px;
-  margin: 0 auto;
+  padding: 28px 48px;
   border-bottom: 1px solid rgba(255,255,255,0.05);
 }
 
@@ -550,7 +542,7 @@
 
 /* ── CTA SECTION ──────────────────────────────────────────── */
 .eco-cta {
-  text-align: center;
+  text-align: left;
   padding: 100px 24px;
   position: relative;
   background: linear-gradient(180deg, transparent, rgba(220,38,38,0.04) 50%, transparent);
@@ -569,7 +561,7 @@
 .eco-cta p {
   font-size: 17px;
   color: rgba(255,255,255,0.5);
-  margin: 0 auto 40px;
+  margin: 0 0 40px 0;
   max-width: 520px;
   line-height: 1.65;
 }
@@ -577,7 +569,7 @@
 .eco-cta-buttons {
   display: flex;
   gap: 16px;
-  justify-content: center;
+  justify-content: flex-start;
   flex-wrap: wrap;
 }
 
