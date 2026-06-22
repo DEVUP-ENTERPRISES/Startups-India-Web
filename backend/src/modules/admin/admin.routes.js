@@ -108,6 +108,18 @@ adminRouter.get('/settings', asyncHandler(ctrl.getSettings));
 adminRouter.post('/settings', asyncHandler(ctrl.upsertSetting));
 adminRouter.delete('/settings/:key', asyncHandler(ctrl.deleteSetting));
 
+// Mentors
+adminRouter.get('/mentors/applications', asyncHandler(ctrl.getMentorApplications));
+adminRouter.patch('/mentors/applications/:id', asyncHandler(ctrl.patchMentorApplication));
+adminRouter.get('/mentors/requests', asyncHandler(ctrl.getMentorRequests));
+adminRouter.patch('/mentors/requests/:id', asyncHandler(ctrl.patchMentorRequest));
+
+// Investors
+adminRouter.get('/investors/requests', asyncHandler(ctrl.getInvestorRequests));
+adminRouter.patch('/investors/requests/:id', asyncHandler(ctrl.patchInvestorRequest));
+adminRouter.get('/investors/explore', asyncHandler(ctrl.getExploreRequests));
+adminRouter.patch('/investors/explore/:id', asyncHandler(ctrl.patchExploreRequest));
+
 // Ecosystem
 adminRouter.get('/ecosystem', asyncHandler(ctrl.getEcosystem));
 adminRouter.post('/ecosystem', asyncHandler(ctrl.createEcosystemEntry));

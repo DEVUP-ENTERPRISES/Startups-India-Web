@@ -32,8 +32,21 @@ export default function Navbar() {
       ]
     },
     { label: 'Events', href: '/events' },
-    { label: 'Mentors', href: '/mentors' },
-    { label: 'Investors', href: '/investors' },
+    {
+      label: 'Ecosystem',
+      href: '/ecosystem',
+      hasDropdown: true,
+      isMega: true,
+      ecosystemItems: [
+        { label: 'Mentors', desc: 'Startup Mentor Network', href: '/mentors', icon: '🧑‍🏫' },
+        { label: 'Investors', desc: 'Startup-Investor Ecosystem', href: '/investors', icon: '💰' },
+        { label: 'Corporates', desc: 'Corporate Innovation Programs', href: '/ecosystem#corporates', icon: '🏢' },
+        { label: 'Partners', desc: 'Partner Support Network', href: '/ecosystem#partners', icon: '🤝' },
+        { label: 'Academia', desc: 'Academic Innovation Hub', href: '/ecosystem#academia', icon: '🎓' },
+        { label: 'Startups', desc: 'Startup Growth Enablement', href: '/ecosystem#startups', icon: '🚀' },
+        { label: 'Co-Working', desc: 'Shared Workspaces & Labs', href: '/ecosystem#coworking', icon: '💡' },
+      ]
+    },
     { label: 'Market Access', href: '/market-access' },
     { label: 'Source', href: '/source' },
   ];
@@ -54,7 +67,7 @@ export default function Navbar() {
               initial={{ opacity: 0, y: -5 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: 0.25 + (index * 0.03), ease: "easeOut" }}
-              onMouseEnter={() => item.hasDropdown && setOpenDropdown(item.label)}
+              onMouseEnter={() => (item.hasDropdown || item.isMega) && setOpenDropdown(item.label)}
               onMouseLeave={() => setOpenDropdown(null)}
             >
               <Link
@@ -62,7 +75,7 @@ export default function Navbar() {
                 className={`navbar-link-horizontal ${pathname === item.href ? 'active' : ''}`}
               >
                 {item.label}
-                {item.dropdownItems && (
+                {(item.dropdownItems || item.isMega) && (
                   <span className="dropdown-icon">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
                       <polyline points="6 9 12 15 18 9"/>
@@ -71,8 +84,39 @@ export default function Navbar() {
                 )}
               </Link>
 
-              {/* Dropdown Menu */}
-              {item.dropdownItems && (
+              {/* Mega Dropdown — Ecosystem */}
+              {item.isMega && (
+                <AnimatePresence>
+                  {openDropdown === item.label && (
+                    <motion.div
+                      className="navbar-mega-dropdown"
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <div className="mega-header">
+                        <span className="mega-eyebrow">Our Ecosystem</span>
+                        <Link href="/ecosystem" className="mega-view-all">View All →</Link>
+                      </div>
+                      <div className="mega-grid">
+                        {item.ecosystemItems.map((eco, idx) => (
+                          <Link key={idx} href={eco.href} className="mega-item">
+                            <span className="mega-item-icon">{eco.icon}</span>
+                            <span className="mega-item-body">
+                              <span className="mega-item-label">{eco.label}</span>
+                              <span className="mega-item-desc">{eco.desc}</span>
+                            </span>
+                          </Link>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              )}
+
+              {/* Regular Dropdown */}
+              {item.dropdownItems && !item.isMega && (
                 <AnimatePresence>
                   {openDropdown === item.label && (
                     <motion.div

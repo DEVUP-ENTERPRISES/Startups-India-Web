@@ -2,13 +2,13 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import '../../styles/admin-panel.css';
 
 // The admin panel is served at /{ADMIN_SLUG}/* via Next.js middleware rewrite.
 // All in-app navigations (router.push/replace) must use the slug path so the
 // browser URL never exposes /admin. The middleware rewrites it to /admin/* internally.
 const ADMIN_SLUG = process.env.NEXT_PUBLIC_ADMIN_SLUG || 'ctrl-x9k2m3-panel';
 const ADMIN_BASE = `/${ADMIN_SLUG}`;
-import '../../styles/admin-panel.css';
 
 const navSections = [
   {

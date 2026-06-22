@@ -303,3 +303,117 @@ Startup India Incubation Team
     `
   };
 };
+
+export const getEventNotificationEmailTemplate = (eventTitle, messageBody, recipientName) => {
+  return {
+    subject: `📢 ${eventTitle} — Important Update`,
+    html: `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Event Notification - Startup India Incubation</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5;">
+  <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #f5f5f5;">
+    <tr>
+      <td align="center" style="padding: 40px 20px;">
+        
+        <!-- Main Container -->
+        <table role="presentation" style="max-width: 600px; width: 100%; border-collapse: collapse; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);">
+          
+          <!-- Header with Brand -->
+          <tr>
+            <td style="background: linear-gradient(135deg, #e63946 0%, #ff6b6b 100%); padding: 40px 30px; text-align: center;">
+              <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 800; letter-spacing: -0.5px;">
+                🚀 Startup India Incubation
+              </h1>
+              <p style="margin: 8px 0 0 0; color: rgba(255, 255, 255, 0.9); font-size: 14px; font-weight: 500;">
+                Event Update
+              </p>
+            </td>
+          </tr>
+          
+          <!-- Event Title Badge -->
+          <tr>
+            <td style="padding: 30px 30px 10px 30px; text-align: center;">
+              <div style="display: inline-block; background: linear-gradient(135deg, rgba(230, 57, 70, 0.08) 0%, rgba(255, 107, 107, 0.08) 100%); border: 1px solid rgba(230, 57, 70, 0.15); border-radius: 12px; padding: 12px 24px;">
+                <span style="font-size: 16px; font-weight: 700; color: #e63946;">📅 ${eventTitle}</span>
+              </div>
+            </td>
+          </tr>
+          
+          <!-- Message Body -->
+          <tr>
+            <td style="padding: 20px 30px 30px 30px;">
+              <h2 style="margin: 0 0 16px 0; color: #1a1a1a; font-size: 22px; font-weight: 700;">
+                Hi ${recipientName || 'there'},
+              </h2>
+              <div style="margin: 0 0 24px 0; color: #444; font-size: 16px; line-height: 1.7; white-space: pre-wrap;">
+                ${messageBody}
+              </div>
+            </td>
+          </tr>
+          
+          <!-- Divider -->
+          <tr>
+            <td style="padding: 0 30px;">
+              <div style="height: 1px; background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.1), transparent);"></div>
+            </td>
+          </tr>
+          
+          <!-- Help Section -->
+          <tr>
+            <td style="padding: 20px 30px 30px 30px; background-color: #f9f9f9;">
+              <p style="margin: 0 0 8px 0; color: #666; font-size: 14px; line-height: 1.6;">
+                <strong>Need help?</strong> We're here for you!
+              </p>
+              <p style="margin: 0; color: #666; font-size: 14px; line-height: 1.6;">
+                Contact us at <a href="mailto:admin@startupsindia.in" style="color: #e63946; text-decoration: none;">admin@startupsindia.in</a>
+              </p>
+            </td>
+          </tr>
+          
+          <!-- Footer -->
+          <tr>
+            <td style="padding: 30px; text-align: center; background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);">
+              <p style="margin: 0 0 8px 0; color: rgba(255, 255, 255, 0.9); font-size: 14px; font-weight: 600;">
+                Startup India Incubation
+              </p>
+              <p style="margin: 0 0 16px 0; color: rgba(255, 255, 255, 0.6); font-size: 12px;">
+                Empowering India's Entrepreneurial Ecosystem
+              </p>
+              <div style="margin: 16px 0;">
+                <a href="https://www.startupsindia.in/privacy" style="display: inline-block; margin: 0 8px; color: rgba(255, 255, 255, 0.6); text-decoration: none; font-size: 12px;">Privacy Policy</a>
+                <span style="color: rgba(255, 255, 255, 0.3);">•</span>
+                <a href="https://www.startupsindia.in/terms" style="display: inline-block; margin: 0 8px; color: rgba(255, 255, 255, 0.6); text-decoration: none; font-size: 12px;">Terms of Service</a>
+              </div>
+              <p style="margin: 16px 0 0 0; color: rgba(255, 255, 255, 0.4); font-size: 11px;">
+                © ${new Date().getFullYear()} Startup India Incubation. All rights reserved.
+              </p>
+            </td>
+          </tr>
+          
+        </table>
+        
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+    `,
+    text: `
+Event Update: ${eventTitle}
+
+Hi ${recipientName || 'there'},
+
+${messageBody}
+
+---
+Need help? Contact us at admin@startupsindia.in
+
+© ${new Date().getFullYear()} Startup India Incubation. All rights reserved.
+    `
+  };
+};

@@ -406,6 +406,52 @@ async function deleteSetting(req, res) {
   res.json({ success: true, data });
 }
 
+// ─── MENTORS (ADMIN) ────────────────────────────────────────────
+async function getMentorApplications(req, res) {
+  const { status, page, limit } = req.query;
+  const data = await adminService.listMentorApplications({ status, page: Number(page) || 1, limit: Number(limit) || 50 });
+  res.json({ success: true, data });
+}
+
+async function patchMentorApplication(req, res) {
+  const data = await adminService.updateMentorApplication(req.params.id, req.body);
+  res.json({ success: true, data });
+}
+
+async function getMentorRequests(req, res) {
+  const { status, page, limit } = req.query;
+  const data = await adminService.listMentorRequests({ status, page: Number(page) || 1, limit: Number(limit) || 50 });
+  res.json({ success: true, data });
+}
+
+async function patchMentorRequest(req, res) {
+  const data = await adminService.updateMentorRequest(req.params.id, req.body);
+  res.json({ success: true, data });
+}
+
+// ─── INVESTORS (ADMIN) ──────────────────────────────────────────
+async function getInvestorRequests(req, res) {
+  const { status, page, limit } = req.query;
+  const data = await adminService.listInvestorRequests({ status, page: Number(page) || 1, limit: Number(limit) || 50 });
+  res.json({ success: true, data });
+}
+
+async function patchInvestorRequest(req, res) {
+  const data = await adminService.updateInvestorRequest(req.params.id, req.body);
+  res.json({ success: true, data });
+}
+
+async function getExploreRequests(req, res) {
+  const { status, page, limit } = req.query;
+  const data = await adminService.listExploreRequests({ status, page: Number(page) || 1, limit: Number(limit) || 50 });
+  res.json({ success: true, data });
+}
+
+async function patchExploreRequest(req, res) {
+  const data = await adminService.updateExploreRequest(req.params.id, req.body);
+  res.json({ success: true, data });
+}
+
 // ─── ECOSYSTEM ──────────────────────────────────────────────────
 async function getEcosystem(req, res) {
   const { category, page, limit, search, featured } = req.query;
@@ -495,4 +541,12 @@ module.exports = {
   createEcosystemEntry,
   updateEcosystemEntry,
   deleteEcosystemEntry,
+  getInvestorRequests,
+  patchInvestorRequest,
+  getExploreRequests,
+  patchExploreRequest,
+  getMentorApplications,
+  patchMentorApplication,
+  getMentorRequests,
+  patchMentorRequest,
 };

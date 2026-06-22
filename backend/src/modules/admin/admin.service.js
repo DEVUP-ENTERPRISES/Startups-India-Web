@@ -1371,6 +1371,78 @@ async function deleteEcosystemEntry(id) {
   return { deleted: true };
 }
 
+// ─── MENTORS (ADMIN) ────────────────────────────────────────────
+async function listMentorApplications({ status, page = 1, limit = 50 } = {}) {
+  const { MentorApplication } = require('../../models/MentorApplication');
+  const query = status ? { status } : {};
+  const [items, total] = await Promise.all([
+    MentorApplication.find(query).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit).lean(),
+    MentorApplication.countDocuments(query),
+  ]);
+  return { items, total, page, limit };
+}
+
+async function updateMentorApplication(id, body) {
+  const { MentorApplication } = require('../../models/MentorApplication');
+  const item = await MentorApplication.findByIdAndUpdate(id, { $set: body }, { new: true }).lean();
+  if (!item) throw new ApiError(404, 'Mentor application not found');
+  return item;
+}
+
+async function listMentorRequests({ status, page = 1, limit = 50 } = {}) {
+  const { MentorRequest } = require('../../models/MentorRequest');
+  const query = status ? { status } : {};
+  const [items, total] = await Promise.all([
+    MentorRequest.find(query).populate('user', 'name email').sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit).lean(),
+    MentorRequest.countDocuments(query),
+  ]);
+  return { items, total, page, limit };
+}
+
+async function updateMentorRequest(id, body) {
+  const { MentorRequest } = require('../../models/MentorRequest');
+  const item = await MentorRequest.findByIdAndUpdate(id, { $set: body }, { new: true }).lean();
+  if (!item) throw new ApiError(404, 'Mentor request not found');
+  return item;
+}
+
+// ─── INVESTORS (ADMIN) ──────────────────────────────────────────
+async function listInvestorRequests({ status, page = 1, limit = 50 } = {}) {
+  const query = {};
+  if (status) query.status = status;
+  const { InvestorRequest } = require('../../models/InvestorRequest');
+  const [items, total] = await Promise.all([
+    InvestorRequest.find(query).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit).lean(),
+    InvestorRequest.countDocuments(query),
+  ]);
+  return { items, total, page, limit };
+}
+
+async function updateInvestorRequest(id, body) {
+  const { InvestorRequest } = require('../../models/InvestorRequest');
+  const item = await InvestorRequest.findByIdAndUpdate(id, { $set: body }, { new: true }).lean();
+  if (!item) throw new ApiError(404, 'Investor request not found');
+  return item;
+}
+
+async function listExploreRequests({ status, page = 1, limit = 50 } = {}) {
+  const query = {};
+  if (status) query.status = status;
+  const { ExploreInvestorRequest } = require('../../models/ExploreInvestorRequest');
+  const [items, total] = await Promise.all([
+    ExploreInvestorRequest.find(query).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit).lean(),
+    ExploreInvestorRequest.countDocuments(query),
+  ]);
+  return { items, total, page, limit };
+}
+
+async function updateExploreRequest(id, body) {
+  const { ExploreInvestorRequest } = require('../../models/ExploreInvestorRequest');
+  const item = await ExploreInvestorRequest.findByIdAndUpdate(id, { $set: body }, { new: true }).lean();
+  if (!item) throw new ApiError(404, 'Explore request not found');
+  return item;
+}
+
 async function getPublicEcosystem() {
   const items = await EcosystemEntry.find({ isActive: true }).sort({ order: 1, createdAt: -1 }).lean();
   const grouped = { startup: [], corporate: [], partner: [], academia: [], coworking: [] };
@@ -1449,4 +1521,12 @@ module.exports = {
   updateEcosystemEntry,
   deleteEcosystemEntry,
   getPublicEcosystem,
+  listInvestorRequests,
+  updateInvestorRequest,
+  listExploreRequests,
+  updateExploreRequest,
+  listMentorApplications,
+  updateMentorApplication,
+  listMentorRequests,
+  updateMentorRequest,
 };

@@ -1,3 +1,7 @@
+// Force Google DNS — ISP DNS may refuse SRV lookups needed by mongodb+srv://
+const dns = require('dns');
+dns.setServers(['8.8.8.8', '8.8.4.4']);
+
 const env = require('./config/env');
 const { connectDatabase, disconnectDatabase } = require('./config/db');
 const { app } = require('./app');
