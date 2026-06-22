@@ -340,9 +340,9 @@
 }
 
 .eco-card-logo {
-  width: 60px;
-  height: 60px;
-  border-radius: 14px;
+  width: 120px;
+  height: 120px;
+  border-radius: 20px;
   background: rgba(255,255,255,0.05);
   border: 1px solid rgba(255,255,255,0.08);
   display: flex;

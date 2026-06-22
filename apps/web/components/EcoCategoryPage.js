@@ -30,8 +30,8 @@ function Card({ entry, accent }) {
         </div>
       )}
       {entry.website && (
-        <div className="ecocat-card-footer">
-          <a href={entry.website} target="_blank" rel="noopener noreferrer" className="ecocat-card-link">
+        <div className="ecocat-card-footer" style={{ position: 'relative', zIndex: 10 }}>
+          <a href={entry.website.trim().startsWith('http') ? entry.website.trim() : `https://${entry.website.trim()}`} target="_blank" rel="noopener noreferrer" className="ecocat-card-link" style={{ pointerEvents: 'auto' }}>
             Visit Website
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>

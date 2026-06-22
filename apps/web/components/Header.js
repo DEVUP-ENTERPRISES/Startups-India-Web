@@ -559,16 +559,19 @@ export default function Header() {
                     {openDropdown === index && (
                       <motion.div
                         className={item.isMega ? 'eco-mega-dropdown' : 'programs-dropdown'}
-                        initial={{ opacity: 0, y: 15, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                        initial={{ opacity: 0, y: 15, x: '-50%', scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, x: '-50%', scale: 1 }}
+                        exit={{ opacity: 0, y: 10, x: '-50%', scale: 0.95 }}
                         transition={{ duration: 0.2, ease: 'easeOut' }}
                       >
                         {item.isMega ? (
                           <>
                             <div className="eco-mega-header">
                               <span className="eco-mega-eyebrow">Our Ecosystem</span>
-                              <Link href="/ecosystem" className="eco-mega-view-all" onClick={() => setOpenDropdown(null)}>View All →</Link>
+                              <Link href="/ecosystem" className="eco-mega-view-all" onClick={() => setOpenDropdown(null)}>
+                                View All
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginLeft: 3 }}><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                              </Link>
                             </div>
                             <div className="eco-mega-grid">
                               {item.dropdown.map((eco, idx) => (
@@ -587,6 +590,12 @@ export default function Header() {
                                   </span>
                                 </Link>
                               ))}
+                            </div>
+                            <div className="eco-mega-footer">
+                              <Link href="/ecosystem" className="eco-mega-footer-link" onClick={() => setOpenDropdown(null)}>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                                Explore the full Startup India Ecosystem
+                              </Link>
                             </div>
                           </>
                         ) : (
