@@ -232,12 +232,6 @@ export default function Header() {
         },
       ]
     },
-    { 
-      label: 'ON MISSION', 
-      href: '/campus-startup', 
-      icon: Rocket,
-      isMission: true
-    },
     { label: 'Events', href: '/events', icon: Calendar },
     {
       label: 'Ecosystem',
@@ -322,6 +316,12 @@ export default function Header() {
       ]
     },
     { label: 'Source', href: '/source', icon: Search },
+    { 
+      label: 'ON MISSION', 
+      href: '/campus-startup', 
+      icon: Rocket,
+      isMission: true
+    },
   ];
 
   const [openSubmenu, setOpenSubmenu] = useState(null);
@@ -565,7 +565,10 @@ export default function Header() {
 
             {menuItems.map((item, index) =>
               item.isMission ? (
-                <div key={index} className="desktop-mission-spacer" style={{ width: '240px' }} />
+                <Link key={index} href={item.href} className="desktop-mission-btn" style={{ marginLeft: '12px', marginRight: '12px' }}>
+                  <Rocket size={18} style={{ marginRight: '6px' }} />
+                  {item.label}
+                </Link>
               ) : item.dropdown ? (
                 <div
                   key={index}
@@ -679,11 +682,6 @@ export default function Header() {
                 </Link>
               )
             )}
-            
-            <Link href="/campus-startup" className="desktop-mission-btn">
-              <Rocket size={18} style={{ marginRight: '6px' }} />
-              ON MISSION
-            </Link>
           </div>
         </div>
       </nav>
@@ -774,10 +772,7 @@ export default function Header() {
       </div>
       <style dangerouslySetInnerHTML={{__html: `
         .desktop-mission-btn {
-          position: absolute !important;
-          left: 50% !important;
-          top: 50% !important;
-          transform: translate(-50%, -50%) !important;
+          position: relative !important;
           
           /* Dark Red Glassmorphism */
           background: linear-gradient(90deg, rgba(100, 0, 0, 0.8), rgba(180, 15, 30, 0.8), rgba(100, 0, 0, 0.8)) !important;
@@ -804,7 +799,7 @@ export default function Header() {
           text-decoration: none;
         }
         .desktop-mission-btn:hover {
-          transform: translate(-50%, -50%) scale(1.08) !important;
+          transform: scale(1.05) !important;
           background: linear-gradient(90deg, rgba(130, 0, 0, 0.9), rgba(220, 20, 40, 0.9), rgba(130, 0, 0, 0.9)) !important;
           border-color: rgba(255, 255, 255, 0.6) !important;
         }

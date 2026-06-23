@@ -724,7 +724,7 @@
 }
 
 .carousel-card:not(.carousel-card-center) .card-inner-3d:hover {
-  border-color: rgba(239, 68, 68, 0.3);
+  border-color: rgba(, , , 0.8);
   transform: scale(1.05);
 }
 
@@ -947,7 +947,7 @@
 .stat-card:hover {
   border-color: rgba(239, 68, 68, 0.4);
   transform: translateY(-5px);
-  box-shadow: 0 20px 40px rgba(239, 68, 68, 0.2);
+  box-shadow:(, , , 0.4);
 }
 
 .stat-card:hover::before {
@@ -1265,7 +1265,7 @@
 }
 
 .masonry-white:hover {
-  box-shadow: 0 20px 60px rgba(239, 68, 68, 0.25);
+  box-shadow:(, , , 0.4);
   border-color: rgba(239, 68, 68, 0.4);
 }
 
@@ -1310,7 +1310,7 @@
 
 .masonry-dark-accent:hover {
   border-color: rgba(239, 68, 68, 0.4);
-  box-shadow: 0 20px 60px rgba(239, 68, 68, 0.2);
+  box-shadow:(, , , 0.4);
 }
 
 /* White Accent Card */
@@ -1349,7 +1349,7 @@
 
 .masonry-card:hover {
   border-color: rgba(239, 68, 68, 0.4);
-  box-shadow: 0 20px 60px rgba(239, 68, 68, 0.2);
+  box-shadow:(, , , 0.4);
 }
 
 .masonry-card:hover::before {

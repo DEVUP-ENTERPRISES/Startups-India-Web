@@ -762,8 +762,8 @@
 .bmc-feature-item:hover .bmc-icon-circle {
   transform: translateY(-6px);
   background: rgba(239, 68, 68, 0.12);
-  border-color: rgba(239, 68, 68, 0.3);
-  box-shadow: 0 16px 36px rgba(239, 68, 68, 0.2);
+  border-color: rgba(, , , 0.8);
+  box-shadow:(, , , 0.4);
 }
 
 .bmc-feature-item span {
@@ -1082,8 +1082,8 @@
 .bmc-feature-item:hover .bmc-icon-circle {
   transform: translateY(-6px);
   background: rgba(239, 68, 68, 0.12);
-  border-color: rgba(239, 68, 68, 0.3);
-  box-shadow: 0 16px 36px rgba(239, 68, 68, 0.2);
+  border-color: rgba(, , , 0.8);
+  box-shadow:(, , , 0.4);
 }
 
 .bmc-feature-item span {

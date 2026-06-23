@@ -185,7 +185,7 @@
 .collab-card:hover {
   transform: translateY(-8px);
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
-  border-color: rgba(239, 68, 68, 0.2);
+  border-color: rgba(, , , 0.8);
 }
 
 /* Step Badge */
@@ -227,7 +227,7 @@
   background: var(--collab-red);
   color: white;
   transform: scale(1.1) rotate(10deg);
-  box-shadow: 0 10px 20px rgba(239, 68, 68, 0.2);
+  box-shadow:(, , , 0.4);
 }
 
 /* Content */

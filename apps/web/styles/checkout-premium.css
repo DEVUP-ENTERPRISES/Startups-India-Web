@@ -87,7 +87,7 @@
 .checkout-back-btn-inner:hover {
   border-color: #ef4444;
   transform: translateX(-4px);
-  box-shadow: 0 6px 16px rgba(239, 68, 68, 0.1);
+  box-shadow:(, , , 0.4);
 }
 
 /* Left side: Payment Options */

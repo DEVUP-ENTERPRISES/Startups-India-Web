@@ -170,7 +170,7 @@
 
 .video-tag:hover {
   background: rgba(239, 68, 68, 0.1);
-  border-color: rgba(239, 68, 68, 0.3);
+  border-color: rgba(, , , 0.8);
   color: #fca5a5;
 }
 

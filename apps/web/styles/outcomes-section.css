@@ -126,9 +126,7 @@
 .outcome-flow-item:hover {
   transform: translateY(-8px);
   border-color: rgba(255, 255, 255, 0.15);
-  box-shadow:
-    0 40px 100px rgba(0, 0, 0, 0.8),
-    0 0 60px rgba(220, 20, 60, 0.15);
+  box-shadow:(, , , 0.4);
 }
 
 /* Large Number Badge */

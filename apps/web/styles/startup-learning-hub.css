@@ -132,9 +132,7 @@
 .hub-video-card:hover {
   transform: translateY(-12px);
   border-color: rgba(229, 57, 53, 0.4);
-  box-shadow: 
-    0 25px 50px -12px rgba(0, 0, 0, 0.7),
-    0 0 30px rgba(229, 57, 53, 0.25);
+  box-shadow:(, , , 0.4);
 }
 
 .hub-thumbnail-wrapper {

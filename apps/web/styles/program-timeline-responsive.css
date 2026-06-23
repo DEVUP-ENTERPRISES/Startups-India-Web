@@ -56,7 +56,7 @@
 
   .week-glass-card:hover {
     transform: none;
-    border-color: rgba(229, 57, 53, 0.2) !important;
+    border-color: rgba(, , , 0.8) !important;
     box-shadow: 0 15px 40px rgba(0,0,0,0.08) !important;
   }
 

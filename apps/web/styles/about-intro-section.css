@@ -593,7 +593,7 @@
 
 .ecosystem-card-advanced:hover .ecosystem-icon-advanced {
   transform: none;
-  box-shadow: 0 8px 24px rgba(220, 20, 60, 0.25);
+  box-shadow:(, , , 0.4);
 }
 
 .ecosystem-emoji-large {

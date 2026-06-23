@@ -116,9 +116,8 @@
 
 .pricing-card:hover {
   transform: translateY(-12px);
-  border-color: rgba(220, 20, 60, 0.25);
-  box-shadow: 
-    0 30px 80px rgba(220, 20, 60, 0.15),
+  border-color: rgba(, , , 0.8);
+  box-shadow:(, , , 0.4),
     0 0 0 1px rgba(255, 255, 255, 0.9) inset;
 }
 
@@ -324,7 +323,7 @@
   background: rgba(220, 20, 60, 0.04);
   border-color: rgba(220, 20, 60, 0.4);
   transform: translateY(-3px);
-  box-shadow: 0 12px 32px rgba(220, 20, 60, 0.2);
+  box-shadow:(, , , 0.4);
 }
 
 /* Trust Banner */

@@ -149,9 +149,7 @@
 
 .testimonial-slide-inner:hover {
   transform: scale(1.03);
-  box-shadow:
-    0 30px 60px rgba(0, 0, 0, 0.5),
-    0 0 80px rgba(229, 57, 53, 0.1),
+  box-shadow:(, , , 0.4),
     0 0 0 1px rgba(255, 255, 255, 0.08) inset;
 }
 

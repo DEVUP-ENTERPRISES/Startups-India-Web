@@ -222,8 +222,8 @@
 
 /* Hover: subtle lift only on the FRONT card, not while flipped */
 .card-container:not(.flipped) .card-front:hover {
-  border-color: rgba(220, 20, 60, 0.2);
-  box-shadow: 0 12px 30px rgba(220, 20, 60, 0.06);
+  border-color: rgba(, , , 0.8);
+  box-shadow:(, , , 0.4);
 }
 
 /* ── Front card innards ─────────────────────────────────────────────────────── */
@@ -338,7 +338,7 @@
 .card-container:not(.flipped) .card-front:hover .ecosystem-highlight-badge.active {
   background: rgba(220, 20, 60, 0.14);
   color: #c0102c;
-  border-color: rgba(220, 20, 60, 0.3);
+  border-color: rgba(, , , 0.8);
 }
 
 .card-container:not(.flipped) .card-front:hover .ecosystem-highlight-badge:not(.active) {
@@ -471,7 +471,7 @@
 }
 .card-back-cta:hover {
   background: rgba(220, 20, 60, 0.13);
-  border-color: rgba(220, 20, 60, 0.28);
+  border-color: rgba(, , , 0.8);
 }
 
 /* ════════════════════════════════════════════════════════════════════════════
