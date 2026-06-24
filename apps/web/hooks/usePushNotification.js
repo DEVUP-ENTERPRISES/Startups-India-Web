@@ -21,8 +21,11 @@ export function usePushNotification({ onMessage } = {}) {
 
     const permission = Notification.permission;
 
-    // User explicitly blocked — never ask again, no token needed
-    if (permission === 'denied') return;
+    // User blocked — browser prevents re-asking; surface a re-enable banner instead
+    if (permission === 'denied') {
+      window.dispatchEvent(new CustomEvent('fcm:blocked'));
+      return;
+    }
 
     // User hasn't decided yet — enforce 24h cooldown so we don't nag every page load
     if (permission === 'default') {
