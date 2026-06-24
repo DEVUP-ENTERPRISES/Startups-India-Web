@@ -69,10 +69,24 @@ export default function AdminNotificationsPage() {
 
   const handleSend = async () => {
     if (!form.title || !form.message) return;
+
+    // Save to DB
     await apiPost('/api/v1/admin/notifications', form);
+
+    // Also fire live FCM push to the same target
+    const isAll = form.target === 'all';
+    const pushEndpoint = isAll ? '/api/v1/admin/push/send-all' : '/api/v1/admin/push/send-role';
+
+    await apiPost(pushEndpoint, {
+      title: form.title,
+      body:  form.message,
+      ...(!isAll ? { role: form.target } : {}),
+    });
+
     setShowModal(false);
     setForm({ title: '', message: '', type: 'info', target: 'all' });
     load();
+    loadStats();
   };
 
   const handleDelete = async id => {
@@ -439,9 +453,9 @@ export default function AdminNotificationsPage() {
                   <label>Target</label>
                   <select value={form.target} onChange={e => setForm({ ...form, target: e.target.value })}>
                     <option value="all">All Users</option>
-                    <option value="users">Users Only</option>
-                    <option value="mentors">Mentors</option>
-                    <option value="investors">Investors</option>
+                    <option value="user">Users Only</option>
+                    <option value="mentor">Mentors</option>
+                    <option value="investor">Investors</option>
                   </select>
                 </div>
               </div>
