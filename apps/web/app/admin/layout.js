@@ -2,7 +2,10 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import '../../styles/admin-panel.css';
+
+const PushToast = dynamic(() => import('@/components/PushToast'), { ssr: false });
 
 // The admin panel is served at /{ADMIN_SLUG}/* via Next.js middleware rewrite.
 // All in-app navigations (router.push/replace) must use the slug path so the
@@ -651,6 +654,8 @@ export default function AdminLayout({ children }) {
       >
         {children}
       </main>
+
+      <PushToast />
     </div>
   );
 }
