@@ -16,6 +16,9 @@ const mongoose = require('mongoose');
 
 const app = express();
 
+// Trust nginx/load-balancer proxy on EC2 (fixes X-Forwarded-For + rate-limit)
+app.set('trust proxy', 1);
+
 // ─── SECURITY HARDENING ──────────────────────────────────────
 app.use(
   helmet({
