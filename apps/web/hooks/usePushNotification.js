@@ -4,29 +4,48 @@ import { useEffect, useRef, useCallback } from 'react';
 
 const FCM_TOKEN_KEY    = 'fcm_device_token';
 const FCM_ASKED_AT_KEY = 'fcm_permission_asked_at';
-const FCM_COOLDOWN_MS  = 24 * 60 * 60 * 1000;
+const FCM_COOLDOWN_MS  = 24 * 60 * 60 * 1000; // only nag once per 24h if unanswered
 
 export function usePushNotification({ onMessage } = {}) {
   const unsubRef   = useRef(null);
-  const runningRef = useRef(false); // prevent parallel runs
+  const runningRef = useRef(false);
+
+  const registerWithBackend = useCallback(async (token) => {
+    const accessToken = localStorage.getItem('access_token');
+    if (!accessToken || !token) return;
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/fcm-token`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${accessToken}`,
+          },
+          credentials: 'include',
+          body: JSON.stringify({ token }),
+        }
+      );
+      if (!res.ok) console.error('[FCM] backend registration failed:', res.status);
+    } catch (err) {
+      console.error('[FCM] backend registration error:', err);
+    }
+  }, []);
 
   const init = useCallback(async () => {
     if (typeof window === 'undefined') return;
     if (runningRef.current) return;
-
-    const accessToken = localStorage.getItem('access_token');
-    if (!accessToken) return;
-
     if (!('Notification' in window)) return;
 
     const permission = Notification.permission;
 
+    // Blocked — show re-enable banner, stop
     if (permission === 'denied') {
       window.dispatchEvent(new CustomEvent('fcm:blocked'));
       return;
     }
 
-    // Only enforce cooldown when dialog hasn't been answered yet
+    // Not yet decided — enforce 24h cooldown so we don't nag on every visit
     if (permission === 'default') {
       const lastAsked = Number(localStorage.getItem(FCM_ASKED_AT_KEY) || '0');
       if (Date.now() - lastAsked < FCM_COOLDOWN_MS) return;
@@ -40,31 +59,16 @@ export function usePushNotification({ onMessage } = {}) {
       const token = await requestNotificationPermission();
 
       if (!token) {
-        console.error('[FCM] No token returned — check Firebase config env vars');
+        console.error('[FCM] getToken failed — check NEXT_PUBLIC_FIREBASE_* env vars');
         return;
       }
 
-      // Always register with backend — idempotent ($addToSet), handles user switching
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/fcm-token`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${accessToken}`,
-          },
-          credentials: 'include',
-          body: JSON.stringify({ token }),
-        }
-      );
+      localStorage.setItem(FCM_TOKEN_KEY, token);
 
-      if (!res.ok) {
-        console.error('[FCM] Token registration failed:', res.status);
-      } else {
-        localStorage.setItem(FCM_TOKEN_KEY, token);
-      }
+      // Register with backend if logged in (also called separately on login event)
+      await registerWithBackend(token);
 
-      // Send config to service worker for background push
+      // Send Firebase config to service worker for background push
       if ('serviceWorker' in navigator) {
         const reg = await navigator.serviceWorker.ready;
         reg.active?.postMessage({
@@ -80,9 +84,8 @@ export function usePushNotification({ onMessage } = {}) {
         });
       }
 
-      // Detach old listener before attaching new one
+      // Attach foreground message listener
       if (typeof unsubRef.current === 'function') unsubRef.current();
-
       const unsub = await onForegroundMessage((payload) => {
         if (onMessage) onMessage(payload);
       });
@@ -92,18 +95,29 @@ export function usePushNotification({ onMessage } = {}) {
     } finally {
       runningRef.current = false;
     }
-  }, [onMessage]);
+  }, [onMessage, registerWithBackend]);
+
+  // Called when user logs in — register the already-obtained token with the backend
+  const onLogin = useCallback(async () => {
+    const token = localStorage.getItem(FCM_TOKEN_KEY);
+    if (token) {
+      await registerWithBackend(token);
+    } else {
+      // Token not yet obtained — run full init now
+      await init();
+    }
+  }, [init, registerWithBackend]);
 
   useEffect(() => {
-    // Run on mount
+    // Ask on first visit (no login required)
     init();
 
-    // Re-run when user logs in from same page (e.g. modal login)
-    window.addEventListener('user:login', init);
+    // Re-register with backend when user logs in
+    window.addEventListener('user:login', onLogin);
 
     return () => {
-      window.removeEventListener('user:login', init);
+      window.removeEventListener('user:login', onLogin);
       if (typeof unsubRef.current === 'function') unsubRef.current();
     };
-  }, [init]);
+  }, [init, onLogin]);
 }
