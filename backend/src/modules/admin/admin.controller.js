@@ -560,6 +560,7 @@ async function sendPushToAll(req, res) {
   const { title, body, imageUrl, data } = req.body;
   if (!title || !body) return res.status(400).json({ success: false, message: 'title and body required' });
   const result = await pushService.sendToAll({ title, body, imageUrl, data });
+  if (result.error) return res.status(503).json({ success: false, message: result.error });
   res.json({ success: true, data: result });
 }
 
@@ -567,6 +568,7 @@ async function sendPushToRole(req, res) {
   const { role, title, body, imageUrl, data } = req.body;
   if (!role || !title || !body) return res.status(400).json({ success: false, message: 'role, title and body required' });
   const result = await pushService.sendToRole(role, { title, body, imageUrl, data });
+  if (result.error) return res.status(503).json({ success: false, message: result.error });
   res.json({ success: true, data: result });
 }
 

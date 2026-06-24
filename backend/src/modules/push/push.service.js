@@ -4,12 +4,23 @@ const { getFirebaseAdmin } = require('../../config/firebase');
 const { User } = require('../users/user.model');
 const { GuestToken } = require('./guest-token.model');
 
-const CHUNK = 500; // FCM multicast max
+const CHUNK = 500;
 
 async function sendToTokens(tokens, { title, body, imageUrl, data = {} }) {
   const firebase = getFirebaseAdmin();
-  if (!firebase || !tokens.length) return { sent: 0, failed: 0 };
 
+  if (!firebase) {
+    const msg = '[FCM] Firebase Admin not initialized — set FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY in backend .env and restart';
+    console.error(msg);
+    return { sent: 0, failed: 0, error: 'Firebase not configured on server' };
+  }
+
+  if (!tokens.length) {
+    console.warn('[FCM] sendToTokens called with 0 tokens — no subscribers yet');
+    return { sent: 0, failed: 0, error: 'No subscribers yet' };
+  }
+
+  console.log(`[FCM] Sending to ${tokens.length} token(s)...`);
   let sent = 0, failed = 0;
 
   for (let i = 0; i < tokens.length; i += CHUNK) {
@@ -28,21 +39,24 @@ async function sendToTokens(tokens, { title, body, imageUrl, data = {} }) {
           requireInteraction: true,
           actions: [{ action: 'open', title: 'Open' }],
         },
-        fcmOptions: { link: process.env.NEXT_PUBLIC_SITE_URL || 'https://startupsindia.in' },
+        fcmOptions: { link: 'https://startupsindia.in' },
       },
-      data: { ...data, clickUrl: process.env.NEXT_PUBLIC_SITE_URL || 'https://startupsindia.in' },
+      data: { ...data, clickUrl: 'https://startupsindia.in' },
     };
 
     try {
       const res = await firebase.messaging().sendEachForMulticast(message);
       sent   += res.successCount;
       failed += res.failureCount;
+      console.log(`[FCM] Chunk sent: ${res.successCount} ok, ${res.failureCount} failed`);
 
-      // Remove invalid tokens
       const stale = [];
       res.responses.forEach((r, idx) => {
-        if (!r.success && ['messaging/registration-token-not-registered', 'messaging/invalid-registration-token'].includes(r.error?.code)) {
-          stale.push(chunk[idx]);
+        if (!r.success) {
+          console.warn(`[FCM] Token failed: ${r.error?.code} — ${chunk[idx].slice(0, 20)}...`);
+          if (['messaging/registration-token-not-registered', 'messaging/invalid-registration-token'].includes(r.error?.code)) {
+            stale.push(chunk[idx]);
+          }
         }
       });
       if (stale.length) {
@@ -52,11 +66,12 @@ async function sendToTokens(tokens, { title, body, imageUrl, data = {} }) {
         ]);
       }
     } catch (err) {
-      console.error('[FCM] multicast error', err.message);
+      console.error('[FCM] multicast error:', err.message);
       failed += chunk.length;
     }
   }
 
+  console.log(`[FCM] Done — sent: ${sent}, failed: ${failed}`);
   return { sent, failed };
 }
 
@@ -69,6 +84,7 @@ async function sendToAll(payload) {
     ...users.flatMap(u => u.fcmTokens),
     ...guests.map(g => g.token),
   ];
+  console.log(`[FCM] sendToAll — ${users.length} users, ${guests.length} guests, ${tokens.length} total tokens`);
   return sendToTokens(tokens, payload);
 }
 
