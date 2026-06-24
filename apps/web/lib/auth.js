@@ -19,6 +19,7 @@ export async function signIn(email, password) {
     if (result.data.session.refresh_token) {
       localStorage.setItem('refresh_token', result.data.session.refresh_token);
     }
+    window.dispatchEvent(new CustomEvent('user:login'));
   }
   return result;
 }
@@ -33,6 +34,7 @@ export async function signUp(email, password, fullName) {
     if (result.data.session.refresh_token) {
       localStorage.setItem('refresh_token', result.data.session.refresh_token);
     }
+    window.dispatchEvent(new CustomEvent('user:login'));
   }
   return result;
 }
@@ -59,6 +61,7 @@ export function initGoogleSignIn(containerElement, onResult) {
             });
             if (result.data?.session?.access_token) {
               localStorage.setItem('access_token', result.data.session.access_token);
+              window.dispatchEvent(new CustomEvent('user:login'));
             }
             onResult(result);
           },
@@ -88,6 +91,8 @@ export async function signOut() {
   if (typeof window !== 'undefined') {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
+    localStorage.removeItem('fcm_device_token');   // force re-registration on next login
+    localStorage.removeItem('fcm_permission_asked_at');
     sessionStorage.clear();
     // Also clear any potential auth cookies just in case
     document.cookie.split(';').forEach(c => {
