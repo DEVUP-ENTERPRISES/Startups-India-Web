@@ -572,11 +572,15 @@ async function sendPushToRole(req, res) {
 
 async function getPushStats(req, res) {
   const { User } = require('../users/user.model');
-  const totalSubscribers = await User.countDocuments({ fcmTokens: { $exists: true, $not: { $size: 0 } } });
-  const roleAgg = await User.aggregate([
-    { $match: { fcmTokens: { $exists: true, $not: { $size: 0 } } } },
-    { $group: { _id: '$role', count: { $sum: 1 } } },
+  const { GuestToken } = require('../push/guest-token.model');
+  const [userCount, guestCount, roleAgg] = await Promise.all([
+    User.countDocuments({ fcmTokens: { $exists: true, $not: { $size: 0 } } }),
+    GuestToken.countDocuments(),
+    User.aggregate([
+      { $match: { fcmTokens: { $exists: true, $not: { $size: 0 } } } },
+      { $group: { _id: '$role', count: { $sum: 1 } } },
+    ]),
   ]);
   const byRole = roleAgg.reduce((acc, r) => { acc[r._id] = r.count; return acc; }, {});
-  res.json({ success: true, data: { totalSubscribers, byRole } });
+  res.json({ success: true, data: { totalSubscribers: userCount + guestCount, userSubscribers: userCount, guestSubscribers: guestCount, byRole } });
 }

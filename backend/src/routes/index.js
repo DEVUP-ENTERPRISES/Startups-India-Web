@@ -56,6 +56,10 @@ function registerRoutes(app) {
   const investorsRouter = require('../modules/investors/investors.routes');
   app.use('/api/v1/investors', investorsRouter);
 
+  // Public push subscribe (no auth — any visitor can subscribe)
+  const { pushRouter } = require('../modules/push/push.routes');
+  app.use('/api/v1/push', pushRouter);
+
   // Public ecosystem route
   const { asyncHandler: ah } = require('../utils/asyncHandler');
   const adminService = require('../modules/admin/admin.service');

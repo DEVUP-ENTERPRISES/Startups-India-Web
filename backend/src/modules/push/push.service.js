@@ -2,6 +2,7 @@
 
 const { getFirebaseAdmin } = require('../../config/firebase');
 const { User } = require('../users/user.model');
+const { GuestToken } = require('./guest-token.model');
 
 const CHUNK = 500; // FCM multicast max
 
@@ -45,7 +46,10 @@ async function sendToTokens(tokens, { title, body, imageUrl, data = {} }) {
         }
       });
       if (stale.length) {
-        await User.updateMany({ fcmTokens: { $in: stale } }, { $pull: { fcmTokens: { $in: stale } } });
+        await Promise.all([
+          User.updateMany({ fcmTokens: { $in: stale } }, { $pull: { fcmTokens: { $in: stale } } }),
+          GuestToken.deleteMany({ token: { $in: stale } }),
+        ]);
       }
     } catch (err) {
       console.error('[FCM] multicast error', err.message);
@@ -57,8 +61,14 @@ async function sendToTokens(tokens, { title, body, imageUrl, data = {} }) {
 }
 
 async function sendToAll(payload) {
-  const users = await User.find({ fcmTokens: { $exists: true, $not: { $size: 0 } } }, 'fcmTokens').lean();
-  const tokens = users.flatMap(u => u.fcmTokens);
+  const [users, guests] = await Promise.all([
+    User.find({ fcmTokens: { $exists: true, $not: { $size: 0 } } }, 'fcmTokens').lean(),
+    GuestToken.find({}, 'token').lean(),
+  ]);
+  const tokens = [
+    ...users.flatMap(u => u.fcmTokens),
+    ...guests.map(g => g.token),
+  ];
   return sendToTokens(tokens, payload);
 }
 
