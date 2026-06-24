@@ -37,6 +37,7 @@ const userSchema = new mongoose.Schema(
     isActive: { type: Boolean, default: true },
     wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Course' }],
     refreshTokenHash: { type: String, default: null },
+    fcmTokens: [{ type: String }], // push notification device tokens (one per device)
   },
   { timestamps: true }
 );

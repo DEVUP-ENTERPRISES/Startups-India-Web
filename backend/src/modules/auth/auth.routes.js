@@ -221,4 +221,26 @@ router.get(
   })
 );
 
+// ── FCM Push Token ─────────────────────────────────────────────
+router.post(
+  '/fcm-token',
+  authRequired,
+  asyncHandler(async (req, res) => {
+    const { token } = req.body;
+    if (!token) return res.status(400).json({ success: false, message: 'token required' });
+    await User.findByIdAndUpdate(req.user._id, { $addToSet: { fcmTokens: token } });
+    res.json({ success: true });
+  })
+);
+
+router.delete(
+  '/fcm-token',
+  authRequired,
+  asyncHandler(async (req, res) => {
+    const { token } = req.body;
+    if (token) await User.findByIdAndUpdate(req.user._id, { $pull: { fcmTokens: token } });
+    res.json({ success: true });
+  })
+);
+
 module.exports = { authRouter: router };

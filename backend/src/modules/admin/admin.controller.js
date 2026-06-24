@@ -1,4 +1,5 @@
 const adminService = require('./admin.service');
+const pushService = require('../push/push.service');
 
 // ─── ANALYTICS ──────────────────────────────────────────────────
 async function dashboard(req, res) {
@@ -549,4 +550,33 @@ module.exports = {
   patchMentorApplication,
   getMentorRequests,
   patchMentorRequest,
+  sendPushToAll,
+  sendPushToRole,
+  getPushStats,
 };
+
+// ─── PUSH NOTIFICATIONS ─────────────────────────────────────────
+async function sendPushToAll(req, res) {
+  const { title, body, imageUrl, data } = req.body;
+  if (!title || !body) return res.status(400).json({ success: false, message: 'title and body required' });
+  const result = await pushService.sendToAll({ title, body, imageUrl, data });
+  res.json({ success: true, data: result });
+}
+
+async function sendPushToRole(req, res) {
+  const { role, title, body, imageUrl, data } = req.body;
+  if (!role || !title || !body) return res.status(400).json({ success: false, message: 'role, title and body required' });
+  const result = await pushService.sendToRole(role, { title, body, imageUrl, data });
+  res.json({ success: true, data: result });
+}
+
+async function getPushStats(req, res) {
+  const { User } = require('../users/user.model');
+  const totalSubscribers = await User.countDocuments({ fcmTokens: { $exists: true, $not: { $size: 0 } } });
+  const roleAgg = await User.aggregate([
+    { $match: { fcmTokens: { $exists: true, $not: { $size: 0 } } } },
+    { $group: { _id: '$role', count: { $sum: 1 } } },
+  ]);
+  const byRole = roleAgg.reduce((acc, r) => { acc[r._id] = r.count; return acc; }, {});
+  res.json({ success: true, data: { totalSubscribers, byRole } });
+}

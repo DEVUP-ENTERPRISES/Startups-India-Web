@@ -120,6 +120,11 @@ adminRouter.patch('/investors/requests/:id', asyncHandler(ctrl.patchInvestorRequ
 adminRouter.get('/investors/explore', asyncHandler(ctrl.getExploreRequests));
 adminRouter.patch('/investors/explore/:id', asyncHandler(ctrl.patchExploreRequest));
 
+// Push Notifications
+adminRouter.post('/push/send-all',  asyncHandler(ctrl.sendPushToAll));
+adminRouter.post('/push/send-role', asyncHandler(ctrl.sendPushToRole));
+adminRouter.get('/push/stats',      asyncHandler(ctrl.getPushStats));
+
 // Ecosystem
 adminRouter.get('/ecosystem', asyncHandler(ctrl.getEcosystem));
 adminRouter.post('/ecosystem', asyncHandler(ctrl.createEcosystemEntry));

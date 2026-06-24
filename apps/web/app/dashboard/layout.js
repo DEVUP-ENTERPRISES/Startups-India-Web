@@ -7,6 +7,9 @@ import DashboardSidebar from '@/components/DashboardSidebar';
 import DashboardHeader from '@/components/DashboardHeader';
 import { DashboardProvider } from '@/contexts/DashboardProvider';
 import { getCurrentUser } from '@/lib/auth';
+import dynamic from 'next/dynamic';
+
+const PushToast = dynamic(() => import('@/components/PushToast'), { ssr: false });
 import '../../styles/design-system.css';
 import '../../styles/dashboard-enterprise.css';
 import '../../styles/premium-dashboard.css';
@@ -100,6 +103,7 @@ export default function DashboardLayout({ children }) {
           </div>
         </div>
       </div>
+      <PushToast />
     </DashboardProvider>
   );
 }

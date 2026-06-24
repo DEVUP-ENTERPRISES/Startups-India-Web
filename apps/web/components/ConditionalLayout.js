@@ -5,13 +5,16 @@ import Header from './Header';
 import Footer from './Footer';
 import CampusMissionPopup from './CampusMissionPopup';
 import { MAINTENANCE_MODE } from '@/config/maintenance';
+import dynamic from 'next/dynamic';
+
+const PushToast = dynamic(() => import('./PushToast'), { ssr: false });
 
 // Admin slug used in browser URL (middleware rewrites to /admin internally)
 const ADMIN_SLUG = process.env.NEXT_PUBLIC_ADMIN_SLUG || 'ctrl-x9k2m3-panel';
 
 export default function ConditionalLayout({ children }) {
   const pathname = usePathname();
-  
+
   // ⚠️ MAINTENANCE MODE - Hide navbar and footer completely
   if (MAINTENANCE_MODE) {
     return <>{children}</>;
@@ -51,6 +54,7 @@ export default function ConditionalLayout({ children }) {
       <CampusMissionPopup />
       <main className="main-content">{children}</main>
       <Footer />
+      <PushToast />
     </>
   );
 }
