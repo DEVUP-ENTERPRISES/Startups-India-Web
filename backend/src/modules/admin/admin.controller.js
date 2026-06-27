@@ -553,6 +553,9 @@ module.exports = {
   sendPushToAll,
   sendPushToRole,
   getPushStats,
+  sendEmailToAll,
+  sendEmailToRole,
+  getEmailStats,
 };
 
 // ─── PUSH NOTIFICATIONS ─────────────────────────────────────────
@@ -585,4 +588,31 @@ async function getPushStats(req, res) {
   ]);
   const byRole = roleAgg.reduce((acc, r) => { acc[r._id] = r.count; return acc; }, {});
   res.json({ success: true, data: { totalSubscribers: userCount + guestCount, userSubscribers: userCount, guestSubscribers: guestCount, byRole } });
+}
+
+// ─── EMAIL BROADCASTS ───────────────────────────────────────────
+async function sendEmailToAll(req, res) {
+  const { subject, body, ctaUrl, ctaText } = req.body;
+  if (!subject || !body) return res.status(400).json({ success: false, message: 'subject and body required' });
+  const { getBroadcastEmailTemplate } = require('../../utils/emailTemplates');
+  const { sendToAll } = require('../../utils/emailService');
+  const { html, text } = getBroadcastEmailTemplate({ subject, body, ctaUrl, ctaText });
+  const result = await sendToAll({ subject, html, text });
+  res.json({ success: true, data: result });
+}
+
+async function sendEmailToRole(req, res) {
+  const { role, subject, body, ctaUrl, ctaText } = req.body;
+  if (!role || !subject || !body) return res.status(400).json({ success: false, message: 'role, subject and body required' });
+  const { getBroadcastEmailTemplate } = require('../../utils/emailTemplates');
+  const { sendToRole } = require('../../utils/emailService');
+  const { html, text } = getBroadcastEmailTemplate({ subject, body, ctaUrl, ctaText });
+  const result = await sendToRole(role, { subject, html, text });
+  res.json({ success: true, data: result });
+}
+
+async function getEmailStats(req, res) {
+  const { getEmailStats: stats } = require('../../utils/emailService');
+  const data = await stats();
+  res.json({ success: true, data });
 }

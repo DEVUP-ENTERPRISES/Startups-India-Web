@@ -28,7 +28,7 @@ router.post(
   asyncHandler(async (req, res) => {
     const result = await authService.signup(req.body);
 
-    res.cookie('accessToken', result.accessToken, { ...authCookieOptions, maxAge: 15 * 60 * 1000 });
+    res.cookie('accessToken', result.accessToken, { ...authCookieOptions, maxAge: 2 * 60 * 60 * 1000 });
     res.cookie('refreshToken', result.refreshToken, {
       ...authCookieOptions,
       maxAge: 30 * 24 * 60 * 60 * 1000,
@@ -61,7 +61,7 @@ router.post(
   asyncHandler(async (req, res) => {
     const result = await authService.login(req.body, req);
 
-    res.cookie('accessToken', result.accessToken, { ...authCookieOptions, maxAge: 15 * 60 * 1000 });
+    res.cookie('accessToken', result.accessToken, { ...authCookieOptions, maxAge: 2 * 60 * 60 * 1000 });
     res.cookie('refreshToken', result.refreshToken, {
       ...authCookieOptions,
       maxAge: 30 * 24 * 60 * 60 * 1000,
@@ -99,7 +99,7 @@ router.post(
   asyncHandler(async (req, res) => {
     const result = await authService.loginWithGoogle(req.body, env);
 
-    res.cookie('accessToken', result.accessToken, { ...authCookieOptions, maxAge: 15 * 60 * 1000 });
+    res.cookie('accessToken', result.accessToken, { ...authCookieOptions, maxAge: 2 * 60 * 60 * 1000 });
     res.cookie('refreshToken', result.refreshToken, {
       ...authCookieOptions,
       maxAge: 30 * 24 * 60 * 60 * 1000,
@@ -132,7 +132,7 @@ router.post(
   asyncHandler(async (req, res) => {
     const result = await authService.loginWithFacebook(req.body, env);
 
-    res.cookie('accessToken', result.accessToken, { ...authCookieOptions, maxAge: 15 * 60 * 1000 });
+    res.cookie('accessToken', result.accessToken, { ...authCookieOptions, maxAge: 2 * 60 * 60 * 1000 });
     res.cookie('refreshToken', result.refreshToken, {
       ...authCookieOptions,
       maxAge: 30 * 24 * 60 * 60 * 1000,
@@ -158,10 +158,10 @@ router.post(
 router.post(
   '/refresh',
   asyncHandler(async (req, res) => {
-    const token = req.cookies.refreshToken || req.body?.refreshToken;
+    const token = req.body?.refreshToken || req.cookies.refreshToken;
     const result = await authService.refresh(token, env);
 
-    res.cookie('accessToken', result.accessToken, { ...authCookieOptions, maxAge: 15 * 60 * 1000 });
+    res.cookie('accessToken', result.accessToken, { ...authCookieOptions, maxAge: 2 * 60 * 60 * 1000 });
     res.cookie('refreshToken', result.refreshToken, {
       ...authCookieOptions,
       maxAge: 30 * 24 * 60 * 60 * 1000,

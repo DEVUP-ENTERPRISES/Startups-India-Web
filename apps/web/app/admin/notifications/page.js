@@ -44,6 +44,20 @@ export default function AdminNotificationsPage() {
     role: 'user',
   });
 
+  // ── Email broadcast state ──
+  const [emailStats, setEmailStats]     = useState(null);
+  const [emailStatsLoading, setEmailStatsLoading] = useState(true);
+  const [emailSending, setEmailSending] = useState(false);
+  const [emailResult, setEmailResult]   = useState(null);
+  const [emailForm, setEmailForm] = useState({
+    subject: '',
+    body: '',
+    ctaUrl: '',
+    ctaText: '',
+    target: 'all',
+    role: 'user',
+  });
+
   // ── Load in-app notifications ──
   const load = useCallback(async () => {
     setLoading(true);
@@ -64,8 +78,17 @@ export default function AdminNotificationsPage() {
     setStatsLoading(false);
   }, []);
 
+  // ── Load email stats ──
+  const loadEmailStats = useCallback(async () => {
+    setEmailStatsLoading(true);
+    const { data } = await apiGet('/api/v1/admin/email/stats');
+    if (data) setEmailStats(data);
+    setEmailStatsLoading(false);
+  }, []);
+
   useEffect(() => { load(); }, [load]);
   useEffect(() => { loadStats(); }, [loadStats]);
+  useEffect(() => { loadEmailStats(); }, [loadEmailStats]);
 
   const handleSend = async () => {
     if (!form.title || !form.message) return;
@@ -123,6 +146,38 @@ export default function AdminNotificationsPage() {
     } else {
       setPushResult({ ok: true, msg: `Delivered to ${data?.sent ?? 0} device(s). Failed: ${data?.failed ?? 0}.` });
       loadStats();
+    }
+  };
+
+  // ── Send email broadcast ──
+  const handleSendEmail = async () => {
+    if (!emailForm.subject || !emailForm.body) {
+      alert('Subject and body are required.');
+      return;
+    }
+    setEmailSending(true);
+    setEmailResult(null);
+
+    const endpoint = emailForm.target === 'all'
+      ? '/api/v1/admin/email/send-all'
+      : '/api/v1/admin/email/send-role';
+
+    const payload = {
+      subject:  emailForm.subject,
+      body:     emailForm.body,
+      ctaUrl:   emailForm.ctaUrl || undefined,
+      ctaText:  emailForm.ctaText || undefined,
+      ...(emailForm.target !== 'all' ? { role: emailForm.role } : {}),
+    };
+
+    const { data, error } = await apiPost(endpoint, payload);
+    setEmailSending(false);
+
+    if (error) {
+      setEmailResult({ ok: false, msg: error?.message || 'Failed to send emails.' });
+    } else {
+      setEmailResult({ ok: true, msg: `Sent to ${data?.sent ?? 0} user(s). Failed: ${data?.failed ?? 0}.` });
+      loadEmailStats();
     }
   };
 
@@ -352,6 +407,210 @@ export default function AdminNotificationsPage() {
                     <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
                   </svg>
                   Send Push Now
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ── EMAIL BROADCAST PANEL ───────────────────────────── */}
+      <div style={{
+        background: 'linear-gradient(135deg, #0f2027 0%, #1a3a4a 100%)',
+        borderRadius: 18,
+        padding: '28px 28px 24px',
+        marginBottom: 28,
+        color: '#fff',
+        position: 'relative',
+        overflow: 'hidden',
+      }}>
+        <div style={{
+          position: 'absolute', top: -40, right: -40,
+          width: 200, height: 200, borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(16,185,129,0.25) 0%, transparent 70%)',
+          pointerEvents: 'none',
+        }} />
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+          <div style={{
+            width: 42, height: 42, borderRadius: 12,
+            background: 'rgba(16,185,129,0.2)',
+            border: '1px solid rgba(16,185,129,0.4)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+              <polyline points="22,6 12,13 2,6"/>
+            </svg>
+          </div>
+          <div>
+            <p style={{ margin: 0, fontWeight: 800, fontSize: 16 }}>Email Broadcasts</p>
+            <p style={{ margin: 0, fontSize: 12, color: 'rgba(255,255,255,0.55)' }}>
+              Send branded emails to all users or a specific role
+            </p>
+          </div>
+        </div>
+
+        {/* Email stats row */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12, marginBottom: 24 }}>
+          <StatCard
+            label="Total Email Users"
+            value={emailStatsLoading ? '...' : (emailStats?.total ?? 0)}
+            sub="Registered accounts"
+            color="#10b981"
+          />
+          <StatCard
+            label="Users"
+            value={emailStatsLoading ? '...' : (emailStats?.byRole?.user ?? 0)}
+            sub="role: user"
+            color="#6366f1"
+          />
+          <StatCard
+            label="Mentors"
+            value={emailStatsLoading ? '...' : (emailStats?.byRole?.mentor ?? 0)}
+            sub="role: mentor"
+            color="#f59e0b"
+          />
+          <StatCard
+            label="Investors"
+            value={emailStatsLoading ? '...' : (emailStats?.byRole?.investor ?? 0)}
+            sub="role: investor"
+            color="#3b82f6"
+          />
+          <StatCard
+            label="Admins"
+            value={emailStatsLoading ? '...' : (emailStats?.byRole?.admin ?? 0)}
+            sub="role: admin"
+            color="#8b5cf6"
+          />
+        </div>
+
+        {/* Email compose form */}
+        <div style={{
+          background: 'rgba(255,255,255,0.06)',
+          borderRadius: 14,
+          padding: '20px 20px 16px',
+          border: '1px solid rgba(255,255,255,0.10)',
+        }}>
+          <p style={{ margin: '0 0 14px', fontWeight: 700, fontSize: 14 }}>Compose Email</p>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+            <div>
+              <label style={{ display: 'block', fontSize: 12, color: 'rgba(255,255,255,0.6)', marginBottom: 6, fontWeight: 600 }}>Subject *</label>
+              <input
+                placeholder="e.g. New Feature Launched!"
+                value={emailForm.subject}
+                onChange={e => setEmailForm({ ...emailForm, subject: e.target.value })}
+                style={inputStyle}
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: 12, color: 'rgba(255,255,255,0.6)', marginBottom: 6, fontWeight: 600 }}>Send To</label>
+              <select
+                value={emailForm.target}
+                onChange={e => setEmailForm({ ...emailForm, target: e.target.value })}
+                style={inputStyle}
+              >
+                <option value="all">All Users</option>
+                <option value="role">Specific Role</option>
+              </select>
+            </div>
+          </div>
+
+          <div style={{ marginBottom: 12 }}>
+            <label style={{ display: 'block', fontSize: 12, color: 'rgba(255,255,255,0.6)', marginBottom: 6, fontWeight: 600 }}>Message Body *</label>
+            <textarea
+              placeholder="Write your message here..."
+              value={emailForm.body}
+              onChange={e => setEmailForm({ ...emailForm, body: e.target.value })}
+              rows={4}
+              style={{ ...inputStyle, resize: 'vertical' }}
+            />
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
+            <div>
+              <label style={{ display: 'block', fontSize: 12, color: 'rgba(255,255,255,0.6)', marginBottom: 6, fontWeight: 600 }}>CTA Button URL (optional)</label>
+              <input
+                placeholder="https://startupsindia.in/..."
+                value={emailForm.ctaUrl}
+                onChange={e => setEmailForm({ ...emailForm, ctaUrl: e.target.value })}
+                style={inputStyle}
+              />
+            </div>
+            {emailForm.target === 'role' ? (
+              <div>
+                <label style={{ display: 'block', fontSize: 12, color: 'rgba(255,255,255,0.6)', marginBottom: 6, fontWeight: 600 }}>Role</label>
+                <select
+                  value={emailForm.role}
+                  onChange={e => setEmailForm({ ...emailForm, role: e.target.value })}
+                  style={inputStyle}
+                >
+                  <option value="user">Users</option>
+                  <option value="mentor">Mentors</option>
+                  <option value="investor">Investors</option>
+                  <option value="admin">Admins</option>
+                </select>
+              </div>
+            ) : (
+              <div>
+                <label style={{ display: 'block', fontSize: 12, color: 'rgba(255,255,255,0.6)', marginBottom: 6, fontWeight: 600 }}>CTA Button Text (optional)</label>
+                <input
+                  placeholder="e.g. Learn More"
+                  value={emailForm.ctaText}
+                  onChange={e => setEmailForm({ ...emailForm, ctaText: e.target.value })}
+                  style={inputStyle}
+                />
+              </div>
+            )}
+          </div>
+
+          {emailResult && (
+            <div style={{
+              padding: '10px 14px',
+              borderRadius: 10,
+              marginBottom: 12,
+              fontSize: 13,
+              fontWeight: 600,
+              background: emailResult.ok ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)',
+              border: `1px solid ${emailResult.ok ? 'rgba(16,185,129,0.4)' : 'rgba(239,68,68,0.4)'}`,
+              color: emailResult.ok ? '#6ee7b7' : '#fca5a5',
+            }}>
+              {emailResult.ok ? '✓ ' : '✗ '}{emailResult.msg}
+            </div>
+          )}
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <button
+              onClick={handleSendEmail}
+              disabled={emailSending}
+              style={{
+                padding: '11px 28px',
+                borderRadius: 10,
+                border: 'none',
+                background: emailSending ? 'rgba(16,185,129,0.4)' : 'linear-gradient(135deg, #059669, #10b981)',
+                color: '#fff',
+                fontWeight: 700,
+                fontSize: 14,
+                cursor: emailSending ? 'not-allowed' : 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                boxShadow: emailSending ? 'none' : '0 4px 16px rgba(16,185,129,0.4)',
+                transition: 'all 0.2s',
+              }}
+            >
+              {emailSending ? (
+                <>
+                  <span style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.7s linear infinite' }} />
+                  Sending...
+                </>
+              ) : (
+                <>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                  </svg>
+                  Send Email Now
                 </>
               )}
             </button>

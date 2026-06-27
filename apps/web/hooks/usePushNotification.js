@@ -30,10 +30,20 @@ export function usePushNotification({ onMessage } = {}) {
   const unsubRef   = useRef(null);
   const runningRef = useRef(false);
 
-  const init = useCallback(async () => {
+  const init = useCallback(async (force = false) => {
     if (typeof window === 'undefined') return;
     if (runningRef.current) return;
     if (!('Notification' in window)) return;
+
+    // ?reset_push=1 — clears stored token and cooldown, then re-subscribes
+    if (force || new URLSearchParams(window.location.search).get('reset_push') === '1') {
+      localStorage.removeItem(FCM_TOKEN_KEY);
+      localStorage.removeItem(FCM_ASKED_AT_KEY);
+      // Remove query param from URL without reload
+      const url = new URL(window.location.href);
+      url.searchParams.delete('reset_push');
+      window.history.replaceState({}, '', url.toString());
+    }
 
     const permission = Notification.permission;
 

@@ -125,6 +125,11 @@ adminRouter.post('/push/send-all',  asyncHandler(ctrl.sendPushToAll));
 adminRouter.post('/push/send-role', asyncHandler(ctrl.sendPushToRole));
 adminRouter.get('/push/stats',      asyncHandler(ctrl.getPushStats));
 
+// Email Broadcasts
+adminRouter.post('/email/send-all',  asyncHandler(ctrl.sendEmailToAll));
+adminRouter.post('/email/send-role', asyncHandler(ctrl.sendEmailToRole));
+adminRouter.get('/email/stats',      asyncHandler(ctrl.getEmailStats));
+
 // Ecosystem
 adminRouter.get('/ecosystem', asyncHandler(ctrl.getEcosystem));
 adminRouter.post('/ecosystem', asyncHandler(ctrl.createEcosystemEntry));
