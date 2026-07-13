@@ -178,9 +178,9 @@ export default function Home() {
         <CollaborationFrameworkSection />
       </motion.div>
 
-      <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={sectionVariants}>
+      {/* <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={sectionVariants}>
         <FoundersTestimonialsSection />
-      </motion.div>
+      </motion.div> */}
 
       <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={sectionVariants}>
         <ApplyDarkSection />
