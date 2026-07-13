@@ -49,10 +49,10 @@ export default function Navbar() {
         { label: 'Partners', desc: 'Partner Support Network', href: '/ecosystem#partners', icon: '🤝' },
         { label: 'Academia', desc: 'Academic Innovation Hub', href: '/ecosystem#academia', icon: '🎓' },
         { label: 'Startups', desc: 'Startup Growth Enablement', href: '/ecosystem#startups', icon: '🚀' },
+        { label: 'Market Access', desc: 'Expand your startup to new markets', href: '/market-access', icon: '🌍' },
         { label: 'Co-Working', desc: 'Shared Workspaces & Labs', href: '/ecosystem#coworking', icon: '💡' },
       ]
     },
-    { label: 'Market Access', href: '/market-access' },
     { label: 'Source', href: '/source' },
   ];
 

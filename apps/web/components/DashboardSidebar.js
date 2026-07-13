@@ -26,6 +26,7 @@ export default function DashboardSidebar({
       id: 'courses',
       label: 'Courses',
       isDropdown: true,
+      isLocked: true,
       icon: 'courses',
       items: [
         { id: 'explore', label: 'Explore Courses', path: '/dashboard/explore-courses', icon: 'explore' },
@@ -48,6 +49,7 @@ export default function DashboardSidebar({
       id: 'learning-experience',
       label: 'Learning Experience',
       isDropdown: true,
+      isLocked: true,
       icon: 'explore',
       items: [
         { id: 'live', label: 'Live Classes', path: '/dashboard/learning/live', icon: 'explore' },
@@ -69,6 +71,7 @@ export default function DashboardSidebar({
       id: 'assessments',
       label: 'Assessments',
       isDropdown: true,
+      isLocked: true,
       icon: 'results',
       items: [
         { id: 'quiz', label: 'Quizzes', path: '/dashboard/assessment/quiz' },
@@ -81,6 +84,7 @@ export default function DashboardSidebar({
       id: 'analytics',
       label: 'Analytics',
       isDropdown: true,
+      isLocked: true,
       icon: 'stats',
       items: [
         {
@@ -113,6 +117,7 @@ export default function DashboardSidebar({
       id: 'achievements',
       label: 'Achievements',
       isDropdown: true,
+      isLocked: true,
       icon: 'streak',
       items: [
         {
@@ -134,6 +139,7 @@ export default function DashboardSidebar({
       id: 'community',
       label: 'Community',
       isDropdown: true,
+      isLocked: true,
       icon: 'profile',
       items: [
         {
@@ -155,6 +161,7 @@ export default function DashboardSidebar({
       id: 'payments',
       label: 'Payments',
       isDropdown: true,
+      isLocked: true,
       icon: 'tracking',
       items: [
         {
@@ -534,30 +541,50 @@ export default function DashboardSidebar({
                     </Link>
                   ) : (
                     <div
-                      className={`nav-section-header-btn ${isCollapsible ? 'collapsible' : ''}`}
-                      onClick={() => {
+                      className={`nav-section-header-btn ${isCollapsible ? 'collapsible' : ''} ${section.isLocked ? 'locked' : ''}`}
+                      onClick={(e) => {
+                        if (section.isLocked) {
+                          e.preventDefault();
+                          return;
+                        }
                         if (isCollapsible || isDropdown) {
                           setOpenSectionId(isSectionOpen ? null : section.id);
                         }
                       }}
-                      style={headerStyle}
+                      style={{
+                        ...headerStyle,
+                        cursor: section.isLocked ? 'not-allowed' : 'pointer',
+                        opacity: section.isLocked ? 0.6 : 1
+                      }}
                     >
                       {headerContent}
-                      {isCollapsible && (
-                        <span className={`chevron-icon ${isSectionOpen ? 'expanded' : ''}`}>
-                          <svg
-                            width="12"
-                            height="12"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="3"
-                          >
-                            <path d="M6 9l6 6 6-6" />
+                      
+                      {section.isLocked ? (
+                        <span className="lock-icon" style={{ marginLeft: 'auto', display: 'flex', opacity: 0.5 }}>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                           </svg>
                         </span>
+                      ) : (
+                        <>
+                          {isCollapsible && (
+                            <span className={`chevron-icon ${isSectionOpen ? 'expanded' : ''}`}>
+                              <svg
+                                width="12"
+                                height="12"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="3"
+                              >
+                                <path d="M6 9l6 6 6-6" />
+                              </svg>
+                            </span>
+                          )}
+                          {isDropdown && renderIcon('chevron', 16, isSectionOpen)}
+                        </>
                       )}
-                      {isDropdown && renderIcon('chevron', 16, isSectionOpen)}
                     </div>
                   )
                 )}
