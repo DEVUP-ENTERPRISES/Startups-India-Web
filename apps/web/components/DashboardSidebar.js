@@ -26,7 +26,7 @@ export default function DashboardSidebar({
       id: 'courses',
       label: 'Courses',
       isDropdown: true,
-      isLocked: true,
+      isLocked: false,
       icon: 'courses',
       items: [
         { id: 'explore', label: 'Explore Courses', path: '/dashboard/explore-courses', icon: 'explore' },
