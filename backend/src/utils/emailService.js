@@ -80,4 +80,39 @@ async function getEmailStats() {
   return { total, byRole };
 }
 
-module.exports = { sendEmail, sendToAll, sendToRole, getEmailStats };
+function isEmailConfigured() {
+  return getTransporter() !== null;
+}
+
+/**
+ * Strict send for transactional mail the user is actively waiting on (password
+ * reset). Throws on failure so the caller can roll back the issued token rather
+ * than telling the user "check your inbox" for a mail that never left.
+ *
+ * sendEmail() above is the best-effort variant: it silently returns {skipped:true}
+ * with no SMTP, which is right for broadcasts but would strand a user mid-reset.
+ *
+ * In development with no SMTP configured, logs the message instead of failing so
+ * the reset link can be copied straight out of the terminal.
+ */
+async function sendTransactionalEmail({ to, subject, text, html }) {
+  if (!isEmailConfigured()) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('SMTP is not configured; cannot send transactional email');
+    }
+    console.warn('[DEV] SMTP not configured — email not sent. Body follows.');
+    console.warn(`[DEV]   to: ${to}\n[DEV]   subject: ${subject}\n[DEV]   ${text}`);
+    return { skipped: true, dev: true };
+  }
+
+  return sendEmail({ to, subject, text, html });
+}
+
+module.exports = {
+  sendEmail,
+  sendToAll,
+  sendToRole,
+  getEmailStats,
+  sendTransactionalEmail,
+  isEmailConfigured,
+};

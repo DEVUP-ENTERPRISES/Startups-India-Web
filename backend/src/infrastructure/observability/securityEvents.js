@@ -22,6 +22,19 @@ const SEVERITY_MAP = {
   permission_denied: 'medium',
   suspicious_request: 'high',
   anomaly_detected: 'high',
+  password_reset_requested: 'low',
+  password_reset_completed: 'medium',
+  // Someone is submitting reset tokens that don't resolve — either a stale link
+  // or an attacker guessing. Worth surfacing.
+  password_reset_failed: 'high',
+  two_factor_challenged: 'low',
+  two_factor_success: 'low',
+  // A wrong OTP means someone already had the correct password. That is the
+  // signal that 2FA just earned its keep — page it, don't bury it.
+  two_factor_failed: 'high',
+  two_factor_enabled: 'low',
+  two_factor_disabled: 'high',
+  phone_verified: 'low',
 };
 
 // ─── CORE RECORDER ────────────────────────────────────────────────────

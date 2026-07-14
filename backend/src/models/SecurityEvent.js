@@ -11,6 +11,15 @@ const SECURITY_EVENT_TYPES = [
   'permission_denied',
   'suspicious_request',
   'anomaly_detected',
+  'password_reset_requested',
+  'password_reset_completed',
+  'password_reset_failed',
+  'two_factor_challenged',
+  'two_factor_success',
+  'two_factor_failed',
+  'two_factor_enabled',
+  'two_factor_disabled',
+  'phone_verified',
 ];
 
 const securityEventSchema = new mongoose.Schema(

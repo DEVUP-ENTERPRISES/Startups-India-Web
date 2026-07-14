@@ -339,9 +339,121 @@ function getBroadcastEmailTemplate({ subject, body, ctaUrl, ctaText }) {
   return { subject, html: wrap(`${subject} — An update from the Startups India team.`, 'New Update', inner, `${SITE_URL}/unsubscribe`), text };
 }
 
+// ── Security templates (password reset + 2FA) ────────────────────────────────
+
+// Escapes values interpolated into the HTML below. fullName is user-controlled,
+// so without this a display name could inject markup into the email body.
+function esc(value = '') {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function getPasswordResetTemplate(userName, resetLink, expiryMinutes) {
+  const name = esc(userName || 'Founder');
+  const inner = `
+    <tr>
+      <td class="body-pad" style="padding:36px 32px 28px;">
+        ${pill('Password Reset')}
+        <h1 class="hero-heading" style="margin:0 0 12px;font-family:${F};font-size:32px;font-weight:900;color:#0a0a0a;line-height:1.15;letter-spacing:-0.5px;">
+          Reset your<br>password.
+        </h1>
+        <p style="margin:0 0 28px;font-family:${F};font-size:15px;color:#555;line-height:1.75;">
+          Hi ${name}, we received a request to reset the password on your Startups India account. Click below to choose a new one.
+        </p>
+      </td>
+    </tr>
+    ${ctaBtn(resetLink, 'Reset My Password')}
+    ${hr()}
+    <tr>
+      <td style="padding:0 32px 28px;">
+        <p style="margin:0 0 14px;font-family:${F};font-size:13px;color:#555;line-height:1.7;">
+          <strong style="color:#0a0a0a;">Didn't request this?</strong> Ignore this email — your password stays exactly as it is, and nobody can get into your account through this link.
+        </p>
+        <p style="margin:0 0 6px;font-family:${F};font-size:11.5px;color:#bbb;">Button not working? Paste this into your browser:</p>
+        <p style="margin:0;word-break:break-all;"><a href="${resetLink}" style="font-family:${F};font-size:11.5px;color:${BRAND_RED};text-decoration:none;">${resetLink}</a></p>
+        <p style="margin:12px 0 0;font-family:${F};font-size:11px;color:#ccc;">This link expires in ${expiryMinutes} minutes and can only be used once.</p>
+      </td>
+    </tr>`;
+  const text = `Hi ${userName || 'Founder'},\n\nReset your Startups India password:\n${resetLink}\n\nExpires in ${expiryMinutes} minutes. Single use.\n\nDidn't request this? Ignore this email — your password will not change.\n\n-- Startups India Team`;
+  return {
+    subject: 'Reset your Startups India password',
+    html: wrap('Reset the password on your Startups India account.', 'Password Reset', inner),
+    text,
+  };
+}
+
+// Sent when a reset is requested for an account that has no password (Google
+// sign-in only). Tells the real owner what to do, while the API response stays
+// identical either way so a stranger learns nothing about whether the email exists.
+function getOAuthOnlyResetTemplate(userName, provider, loginLink) {
+  const name = esc(userName || 'Founder');
+  const providerName = provider === 'facebook' ? 'Facebook' : 'Google';
+  const inner = `
+    <tr>
+      <td class="body-pad" style="padding:36px 32px 28px;">
+        ${pill('Password Reset')}
+        <h1 class="hero-heading" style="margin:0 0 12px;font-family:${F};font-size:32px;font-weight:900;color:#0a0a0a;line-height:1.15;letter-spacing:-0.5px;">
+          Nothing to reset<br>here.
+        </h1>
+        <p style="margin:0 0 28px;font-family:${F};font-size:15px;color:#555;line-height:1.75;">
+          Hi ${name}, someone asked to reset the password for this email. Your account signs in with <strong>${esc(providerName)}</strong> and doesn't have a password — just use the &ldquo;Continue with ${esc(providerName)}&rdquo; button on the sign-in page.
+        </p>
+      </td>
+    </tr>
+    ${ctaBtn(loginLink, 'Go to Sign In')}`;
+  const text = `Hi ${userName || 'Founder'},\n\nSomeone asked to reset the password for this email. There's nothing to reset — your account signs in with ${providerName} and has no password.\n\nSign in here: ${loginLink}\n\n-- Startups India Team`;
+  return {
+    subject: 'About your Startups India password reset request',
+    html: wrap('Your account signs in with a social provider.', 'Password Reset', inner),
+    text,
+  };
+}
+
+// The tripwire that lets a user notice an account takeover, so it goes out on
+// every successful password change.
+function getPasswordChangedTemplate(userName, changedAt, signInLink) {
+  const name = esc(userName || 'Founder');
+  const inner = `
+    <tr>
+      <td class="body-pad" style="padding:36px 32px 28px;">
+        ${pill('Security Alert')}
+        <h1 class="hero-heading" style="margin:0 0 12px;font-family:${F};font-size:32px;font-weight:900;color:#0a0a0a;line-height:1.15;letter-spacing:-0.5px;">
+          Your password<br>was changed.
+        </h1>
+        <p style="margin:0 0 20px;font-family:${F};font-size:15px;color:#555;line-height:1.75;">
+          Hi ${name}, the password on your Startups India account was changed on <strong>${esc(changedAt)}</strong>. You've been signed out everywhere and will need to sign in again.
+        </p>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 8px;">
+          <tr>
+            <td style="padding:16px;background:rgba(230,57,70,0.05);border-left:3px solid ${BRAND_RED};border-radius:4px;">
+              <p style="margin:0;font-family:${F};font-size:13.5px;color:#555;line-height:1.7;">
+                <strong style="color:#0a0a0a;">Wasn't you?</strong> Your account may be compromised. Contact us immediately at
+                <a href="mailto:${SUPPORT}" style="color:${BRAND_RED};text-decoration:none;font-weight:600;">${SUPPORT}</a>.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+    ${ctaBtn(signInLink, 'Sign In')}`;
+  const text = `Hi ${userName || 'Founder'},\n\nYour Startups India password was changed on ${changedAt}. You've been signed out everywhere.\n\nWasn't you? Contact ${SUPPORT} immediately.\n\n-- Startups India Team`;
+  return {
+    subject: 'Your Startups India password was changed',
+    html: wrap('Your account password was just changed.', 'Security Alert', inner),
+    text,
+  };
+}
+
 module.exports = {
   getConfirmationEmailTemplate,
   getWelcomeEmailTemplate,
   getEventNotificationEmailTemplate,
   getBroadcastEmailTemplate,
+  getPasswordResetTemplate,
+  getOAuthOnlyResetTemplate,
+  getPasswordChangedTemplate,
 };

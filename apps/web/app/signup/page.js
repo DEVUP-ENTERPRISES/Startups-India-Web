@@ -5,11 +5,13 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { signUp, initGoogleSignIn, resendVerificationEmail } from '@/lib/auth';
 import '@/styles/auth-redesign.css';
-import { Mail, Lock, Eye, EyeOff, ArrowRight, User, ShieldCheck, CheckCircle2, Users, Briefcase, Target, TrendingUp, Award, Zap } from 'lucide-react';
+import PhoneVerifyCard from '@/components/auth/PhoneVerifyCard';
+import { Mail, Lock, Eye, EyeOff, ArrowRight, User, ShieldCheck, CheckCircle2, Users, Briefcase, Target, TrendingUp, Award, Zap, Phone } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 function SignupContent() {
   const [fullName, setFullName] = useState('');
+  const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -121,6 +123,7 @@ function SignupContent() {
         email,
         password,
         fullName,
+        phone,
       });
 
       if (signupError) {
@@ -198,19 +201,31 @@ function SignupContent() {
 
           <AnimatePresence mode="wait">
             {success ? (
-              <motion.div 
+              <motion.div
                 key="success"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 className="success-view"
-                style={{ textAlign: 'center', padding: '40px 0' }}
               >
-                <div style={{ marginBottom: '24px', color: '#10b981' }}>
-                  <CheckCircle2 size={80} style={{ margin: '0 auto' }} />
+                {/* The account exists and we already hold a session, so the phone
+                    can be verified right here. Skipping is allowed — the dashboard
+                    prompt will ask again rather than trapping anyone at signup. */}
+                <div className="auth-header" style={{ textAlign: 'center' }}>
+                  <div style={{ color: '#10b981', marginBottom: '16px' }}>
+                    <CheckCircle2 size={64} style={{ margin: '0 auto' }} />
+                  </div>
+                  <h2 className="auth-title">Welcome <span>Aboard</span></h2>
+                  <p className="auth-subtitle">
+                    One last step — verify your mobile number so you can secure your account.
+                  </p>
                 </div>
-                <h2 className="auth-title">Welcome <span>Aboard</span></h2>
-                <p className="auth-subtitle">Redirecting to your dashboard...</p>
+
+                <PhoneVerifyCard
+                  initialPhone={phone}
+                  onVerified={() => setTimeout(() => router.push(returnUrl), 1200)}
+                  onSkip={() => router.push(returnUrl)}
+                />
               </motion.div>
             ) : (
               <motion.div key="form">
@@ -257,11 +272,31 @@ function SignupContent() {
                   </div>
 
                   <div className="form-group">
+                    <label className="form-label">Mobile Number</label>
+                    <div className="input-wrapper">
+                      <Phone className="input-icon-left" size={18} />
+                      <input
+                        type="tel"
+                        className="auth-input"
+                        placeholder="98765 43210"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        autoComplete="tel"
+                        required
+                        disabled={isLoading}
+                      />
+                    </div>
+                    <p style={{ marginTop: '6px', fontSize: '12px', color: '#6b7280' }}>
+                      We&apos;ll verify this with a code so you can secure your account later.
+                    </p>
+                  </div>
+
+                  <div className="form-group">
                     <label className="form-label">Email Address</label>
                     <div className="input-wrapper">
                       <Mail className="input-icon-left" size={18} />
-                      <input 
-                        type="email" 
+                      <input
+                        type="email"
                         className="auth-input"
                         placeholder="you@example.com"
                         value={email}

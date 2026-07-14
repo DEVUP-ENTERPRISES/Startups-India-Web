@@ -30,12 +30,70 @@ const env = {
   ADMIN_PASSWORD: process.env.ADMIN_PASSWORD || '',
   // Secret path segment for all admin API routes. Must not be 'admin' or any common slug.
   ADMIN_SLUG: process.env.ADMIN_SLUG || 'ctrl-x9k2m3-panel',
+
+  // Public origin of the Next.js app — used to build password-reset links.
+  FRONTEND_URL: (process.env.FRONTEND_URL || 'http://localhost:3000').replace(/\/+$/, ''),
+
+  SMTP_HOST: process.env.SMTP_HOST || '',
+  SMTP_PORT: Number(process.env.SMTP_PORT || 587),
+  SMTP_SECURE: process.env.SMTP_SECURE === 'true',
+  SMTP_USER: process.env.SMTP_USER || '',
+  SMTP_PASS: process.env.SMTP_PASS || '',
+  SMTP_FROM: process.env.SMTP_FROM || 'noreply@startupsindia.in',
+  SUPPORT_EMAIL: process.env.SUPPORT_EMAIL || 'support@startupsindia.in',
+
+  // Password reset tuning.
+  PASSWORD_RESET_TTL_MINUTES: Number(process.env.PASSWORD_RESET_TTL_MINUTES || 30),
+  // Minimum gap between two reset emails for the same account (anti-mailbomb).
+  PASSWORD_RESET_COOLDOWN_SECONDS: Number(process.env.PASSWORD_RESET_COOLDOWN_SECONDS || 60),
+
+  // ─── SMS / PHONE OTP ──────────────────────────────────────────────────
+  // 'msg91' in production; 'console' prints the OTP to the terminal for local dev.
+  SMS_PROVIDER: process.env.SMS_PROVIDER || 'console',
+  MSG91_AUTH_KEY: process.env.MSG91_AUTH_KEY || '',
+  MSG91_SENDER_ID: process.env.MSG91_SENDER_ID || '',
+  // DLT-approved template ID. Sending transactional SMS to Indian numbers without
+  // a registered DLT template is rejected by the carriers, not just by MSG91.
+  MSG91_TEMPLATE_ID: process.env.MSG91_TEMPLATE_ID || '',
+
+  // Default country for bare 10-digit numbers typed by Indian users.
+  DEFAULT_PHONE_COUNTRY: process.env.DEFAULT_PHONE_COUNTRY || 'IN',
+
+  OTP_LENGTH: Number(process.env.OTP_LENGTH || 6),
+  OTP_TTL_MINUTES: Number(process.env.OTP_TTL_MINUTES || 5),
+  // A 6-digit code is only ~1M wide, so the attempt cap is what actually secures
+  // it — not the code length. Burn the challenge after this many wrong guesses.
+  OTP_MAX_ATTEMPTS: Number(process.env.OTP_MAX_ATTEMPTS || 5),
+  OTP_RESEND_COOLDOWN_SECONDS: Number(process.env.OTP_RESEND_COOLDOWN_SECONDS || 60),
+  OTP_MAX_SENDS_PER_HOUR: Number(process.env.OTP_MAX_SENDS_PER_HOUR || 5),
+  // Separate secret for HMAC-ing OTP codes at rest. Falls back to the JWT secret
+  // so nothing breaks if it is unset, but give it its own value in production.
+  OTP_PEPPER: process.env.OTP_PEPPER || process.env.JWT_ACCESS_SECRET || '',
 };
 
 const required = ['MONGODB_URI', 'JWT_ACCESS_SECRET', 'JWT_REFRESH_SECRET'];
 for (const key of required) {
   if (!env[key]) {
     throw new Error(`Missing required environment variable: ${key}`);
+  }
+}
+
+// In production a reset link that points at localhost is a silent, user-facing
+// breakage — fail fast at boot instead of mailing dead links.
+if (env.NODE_ENV === 'production') {
+  if (env.FRONTEND_URL.includes('localhost')) {
+    throw new Error('FRONTEND_URL must be set to the public site origin in production');
+  }
+  if (!env.SMTP_HOST) {
+    throw new Error('SMTP_HOST must be configured in production (password reset depends on it)');
+  }
+  // The console driver prints OTPs to stdout. If that ever ran in production it
+  // would mean every 2FA code is sitting in the logs and no SMS is being sent.
+  if (env.SMS_PROVIDER === 'console') {
+    throw new Error('SMS_PROVIDER must not be "console" in production — set it to "msg91"');
+  }
+  if (env.SMS_PROVIDER === 'msg91' && !env.MSG91_AUTH_KEY) {
+    throw new Error('MSG91_AUTH_KEY is required when SMS_PROVIDER=msg91');
   }
 }
 

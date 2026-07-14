@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useDashboard } from '@/contexts/DashboardProvider';
+import SecurePhonePrompt from '@/components/auth/SecurePhonePrompt';
 
 /* ──── SVG Icon Components ──── */
 const Icons = {
@@ -713,6 +714,10 @@ export default function DashboardPage() {
       `,
         }}
       />
+
+      {/* Backfill prompt: shown only to users with no verified mobile number.
+          Renders nothing once verified. */}
+      <SecurePhonePrompt />
 
       {/* ═══════ LIVE ECOSYSTEM TICKER ═══════ */}
       <div className="da da1 ticker-wrap">
