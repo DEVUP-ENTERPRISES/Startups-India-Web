@@ -37,6 +37,35 @@ const userSchema = new mongoose.Schema(
     isActive: { type: Boolean, default: true },
     wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Course' }],
     refreshTokenHash: { type: String, default: null },
+    fcmTokens: [{ type: String }], // push notification device tokens (one per device)
+
+    // ─── PHONE / TWO-FACTOR ────────────────────────────────────────────
+    // `phone` above stays as-is: a free-text profile field, unverified, and full
+    // of junk from before this existed. It is deliberately NOT used for auth.
+    // Everything security-relevant hangs off phoneE164, which is canonical and
+    // only ever written after an OTP has actually been delivered and echoed back.
+    phoneE164: { type: String, default: null, trim: true },
+    phoneVerifiedAt: { type: Date, default: null },
+
+    twoFactorEnabled: { type: Boolean, default: false },
+    twoFactorEnabledAt: { type: Date, default: null },
+    // bcrypt hashes of single-use recovery codes. Without these, a lost or
+    // swapped SIM means a permanently locked account and a support ticket.
+    twoFactorBackupCodes: { type: [String], default: [], select: false },
+
+    // ─── PASSWORD RESET ────────────────────────────────────────────────
+    // Only the SHA-256 hash of the reset token is stored. A DB leak therefore
+    // does not hand an attacker usable reset links. `select: false` keeps these
+    // out of every incidental User.find() that later gets serialised to a client.
+    resetPasswordTokenHash: { type: String, default: null, select: false },
+    resetPasswordExpiresAt: { type: Date, default: null, select: false },
+    // Timestamp of the last reset email — enforces the resend cooldown.
+    resetPasswordSentAt: { type: Date, default: null, select: false },
+    // Set on every successful password change. A reset also nulls refreshTokenHash,
+    // so long-lived sessions die at once; already-issued access tokens still run out
+    // their <=15m TTL (enforcing this per-request would cost a DB read on every
+    // authenticated call). Kept for audit + the "changed at" line in security emails.
+    passwordChangedAt: { type: Date, default: null },
   },
   { timestamps: true }
 );
@@ -44,6 +73,24 @@ const userSchema = new mongoose.Schema(
 userSchema.index({ role: 1, createdAt: -1 });
 userSchema.index({ 'providerIds.google': 1 }, { sparse: true, unique: true });
 userSchema.index({ 'providerIds.facebook': 1 }, { sparse: true, unique: true });
+// Reset lookups are by token hash alone; sparse keeps the index tiny since the
+// vast majority of users have no pending reset.
+userSchema.index({ resetPasswordTokenHash: 1 }, { sparse: true });
+
+// A *verified* number must belong to exactly one account, or two users could both
+// claim it and 2FA would text the wrong person. The partial filter scopes the
+// constraint to verified numbers only, so several accounts may still hold the same
+// number in an unverified, pending state without tripping a duplicate-key error.
+userSchema.index(
+  { phoneE164: 1 },
+  {
+    unique: true,
+    partialFilterExpression: {
+      phoneE164: { $type: 'string' },
+      phoneVerifiedAt: { $type: 'date' },
+    },
+  }
+);
 
 const User = mongoose.model('User', userSchema);
 module.exports = { User };

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter, useParams } from 'next/navigation';
-import { apiGet, apiPost } from '@/lib/api';
+import { apiGet, apiPost, apiDelete } from '@/lib/api';
 import '../../../styles/event-details.css';
 
 const DEFAULT_EVENT_IMAGE = 'https://images.unsplash.com/photo-1557683316-973673baf926?w=800&q=80';
@@ -195,7 +195,7 @@ export default function EventDetailsPage() {
       setRegistering(true);
       const isFree = !event.isPaid && (event.price === 0 || !event.price);
       if (isRegistered) {
-        const res = await apiGet(`/api/v1/events/${params.id}/register`, { method: 'DELETE' });
+        const res = await apiDelete(`/api/v1/events/${params.id}/register`);
         if (res.error?.status === 401) {
           router.push(`/login?returnUrl=/events/${params.id}`);
           return;
@@ -272,7 +272,7 @@ export default function EventDetailsPage() {
             setRegistering(false);
           }
         } else {
-          const res = await apiGet(`/api/v1/events/${params.id}/register`, { method: 'POST' });
+          const res = await apiPost(`/api/v1/events/${params.id}/register`, {});
           if (res.error) {
             if (res.error.status === 401 || res.error.message.includes('token')) {
               router.push(`/login?returnUrl=/events/${params.id}`);

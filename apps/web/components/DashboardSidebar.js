@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { signOut } from '@/lib/auth';
 import Icon from '@/components/Icon';
+import { getGrantConfig } from '@/lib/grants';
 
 export default function DashboardSidebar({
   user,
@@ -42,6 +43,23 @@ export default function DashboardSidebar({
     // the profile page. Linking to pages that 404 is worse than not linking.
   ];
 
+  // The grant menu title is set by the admin (grant.ui.sidebarLabel). Held in
+  // state rather than imported as a constant so renaming it in Admin Settings
+  // takes effect without a redeploy.
+  const [grantLabel, setGrantLabel] = useState('Apply for Startup Grant');
+
+  useEffect(() => {
+    let cancelled = false;
+    getGrantConfig()
+      .then(({ data }) => {
+        if (!cancelled && data?.sidebarLabel) setGrantLabel(data.sidebarLabel);
+      })
+      .catch(() => {}); // keep the default label if config is unreachable
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const studentNavigation = [
     {
       id: 'main',
@@ -54,6 +72,7 @@ export default function DashboardSidebar({
       id: 'courses',
       label: 'Courses',
       isDropdown: true,
+      isLocked: true,
       icon: 'courses',
       items: [
         { id: 'explore', label: 'Explore Courses', path: '/dashboard/explore-courses', icon: 'explore' },
@@ -76,6 +95,7 @@ export default function DashboardSidebar({
       id: 'learning-experience',
       label: 'Learning Experience',
       isDropdown: true,
+      isLocked: true,
       icon: 'explore',
       items: [
         { id: 'live', label: 'Live Classes', path: '/dashboard/learning/live', icon: 'explore' },
@@ -97,6 +117,7 @@ export default function DashboardSidebar({
       id: 'assessments',
       label: 'Assessments',
       isDropdown: true,
+      isLocked: true,
       icon: 'results',
       items: [
         { id: 'quiz', label: 'Quizzes', path: '/dashboard/assessment/quiz' },
@@ -109,6 +130,7 @@ export default function DashboardSidebar({
       id: 'analytics',
       label: 'Analytics',
       isDropdown: true,
+      isLocked: true,
       icon: 'stats',
       items: [
         {
@@ -141,6 +163,7 @@ export default function DashboardSidebar({
       id: 'achievements',
       label: 'Achievements',
       isDropdown: true,
+      isLocked: true,
       icon: 'streak',
       items: [
         {
@@ -162,6 +185,7 @@ export default function DashboardSidebar({
       id: 'community',
       label: 'Community',
       isDropdown: true,
+      isLocked: true,
       icon: 'profile',
       items: [
         {
@@ -180,9 +204,28 @@ export default function DashboardSidebar({
       ],
     },
     {
+      id: 'grants',
+      // Label is admin-configurable (grant.ui.sidebarLabel). grantLabel falls back
+      // to the default until the config request resolves, so the item never
+      // flashes as blank.
+      label: grantLabel,
+      isDropdown: true,
+      icon: 'award',
+      items: [
+        { id: 'grant-apply', label: 'Apply for Grant', path: '/dashboard/grants', icon: 'explore' },
+        {
+          id: 'grant-applications',
+          label: 'My Applications',
+          path: '/dashboard/grants/applications',
+          icon: 'courses',
+        },
+      ],
+    },
+    {
       id: 'payments',
       label: 'Payments',
       isDropdown: true,
+      isLocked: true,
       icon: 'tracking',
       items: [
         {
@@ -564,30 +607,50 @@ export default function DashboardSidebar({
                     </Link>
                   ) : (
                     <div
-                      className={`nav-section-header-btn ${isCollapsible ? 'collapsible' : ''}`}
-                      onClick={() => {
+                      className={`nav-section-header-btn ${isCollapsible ? 'collapsible' : ''} ${section.isLocked ? 'locked' : ''}`}
+                      onClick={(e) => {
+                        if (section.isLocked) {
+                          e.preventDefault();
+                          return;
+                        }
                         if (isCollapsible || isDropdown) {
                           setOpenSectionId(isSectionOpen ? null : section.id);
                         }
                       }}
-                      style={headerStyle}
+                      style={{
+                        ...headerStyle,
+                        cursor: section.isLocked ? 'not-allowed' : 'pointer',
+                        opacity: section.isLocked ? 0.6 : 1
+                      }}
                     >
                       {headerContent}
-                      {isCollapsible && (
-                        <span className={`chevron-icon ${isSectionOpen ? 'expanded' : ''}`}>
-                          <svg
-                            width="12"
-                            height="12"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="3"
-                          >
-                            <path d="M6 9l6 6 6-6" />
+                      
+                      {section.isLocked ? (
+                        <span className="lock-icon" style={{ marginLeft: 'auto', display: 'flex', opacity: 0.5 }}>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                           </svg>
                         </span>
+                      ) : (
+                        <>
+                          {isCollapsible && (
+                            <span className={`chevron-icon ${isSectionOpen ? 'expanded' : ''}`}>
+                              <svg
+                                width="12"
+                                height="12"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="3"
+                              >
+                                <path d="M6 9l6 6 6-6" />
+                              </svg>
+                            </span>
+                          )}
+                          {isDropdown && renderIcon('chevron', 16, isSectionOpen)}
+                        </>
                       )}
-                      {isDropdown && renderIcon('chevron', 16, isSectionOpen)}
                     </div>
                   )
                 )}

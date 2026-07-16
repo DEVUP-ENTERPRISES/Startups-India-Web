@@ -299,10 +299,10 @@
 }
 
 .feature-card-minimal:hover {
-  background: rgba(229, 57, 53, 0.05);
-  border-color: rgba(229, 57, 53, 0.6);
+  background: rgba(229, 57, 53, 0.1);
+  border-color: rgba(229, 57, 53, 1);
   transform: translateY(-5px);
-  box-shadow: 0 10px 30px rgba(229, 57, 53, 0.15);
+  box-shadow: 0 10px 40px rgba(229, 57, 53, 0.4);
 }
 
 .feature-text-stack h3 {

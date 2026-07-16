@@ -233,10 +233,10 @@
 .impact-card-premium:hover {
   transform: translateY(-8px) scale(1.01);
   background: rgba(25, 25, 25, 0.85);
-  border-color: rgba(239, 68, 68, 0.3);
+  border-color: rgba(239, 68, 68, 0.8);
   box-shadow: 
     0 25px 50px rgba(0, 0, 0, 0.6),
-    0 0 30px rgba(239, 68, 68, 0.08);
+    0 0 40px rgba(239, 68, 68, 0.4);
 }
 
 .impact-card-premium:hover .card-index-premium {

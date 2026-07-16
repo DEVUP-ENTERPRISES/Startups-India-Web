@@ -268,7 +268,7 @@
 .dropdown-trigger.active {
   border-color: #E53935;
   background: rgba(255, 255, 255, 0.08);
-  box-shadow: 0 0 15px rgba(229, 57, 53, 0.1);
+  box-shadow:(, , , 0.4);
 }
 
 .arrow-icon {

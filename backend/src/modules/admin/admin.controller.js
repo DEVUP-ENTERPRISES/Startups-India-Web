@@ -1,4 +1,5 @@
 const adminService = require('./admin.service');
+const pushService = require('../push/push.service');
 
 // ─── ANALYTICS ──────────────────────────────────────────────────
 async function dashboard(req, res) {
@@ -377,6 +378,19 @@ async function deleteNotification(req, res) {
   res.json({ success: true, data });
 }
 
+async function notifyEventRegistrants(req, res) {
+  const { title, message, type, deliveryMethods } = req.body;
+  if (!title || !message) {
+    return res.status(400).json({ success: false, message: 'Title and message are required' });
+  }
+  const data = await adminService.notifyEventRegistrants(
+    req.params.id,
+    { title, message, type, deliveryMethods },
+    req.user.userId
+  );
+  res.json({ success: true, data });
+}
+
 // ─── SETTINGS ───────────────────────────────────────────────────
 async function getSettings(req, res) {
   const data = await adminService.getSettings(req.query.category);
@@ -390,6 +404,74 @@ async function upsertSetting(req, res) {
 
 async function deleteSetting(req, res) {
   const data = await adminService.deleteSetting(req.params.key);
+  res.json({ success: true, data });
+}
+
+// ─── MENTORS (ADMIN) ────────────────────────────────────────────
+async function getMentorApplications(req, res) {
+  const { status, page, limit } = req.query;
+  const data = await adminService.listMentorApplications({ status, page: Number(page) || 1, limit: Number(limit) || 50 });
+  res.json({ success: true, data });
+}
+
+async function patchMentorApplication(req, res) {
+  const data = await adminService.updateMentorApplication(req.params.id, req.body);
+  res.json({ success: true, data });
+}
+
+async function getMentorRequests(req, res) {
+  const { status, page, limit } = req.query;
+  const data = await adminService.listMentorRequests({ status, page: Number(page) || 1, limit: Number(limit) || 50 });
+  res.json({ success: true, data });
+}
+
+async function patchMentorRequest(req, res) {
+  const data = await adminService.updateMentorRequest(req.params.id, req.body);
+  res.json({ success: true, data });
+}
+
+// ─── INVESTORS (ADMIN) ──────────────────────────────────────────
+async function getInvestorRequests(req, res) {
+  const { status, page, limit } = req.query;
+  const data = await adminService.listInvestorRequests({ status, page: Number(page) || 1, limit: Number(limit) || 50 });
+  res.json({ success: true, data });
+}
+
+async function patchInvestorRequest(req, res) {
+  const data = await adminService.updateInvestorRequest(req.params.id, req.body);
+  res.json({ success: true, data });
+}
+
+async function getExploreRequests(req, res) {
+  const { status, page, limit } = req.query;
+  const data = await adminService.listExploreRequests({ status, page: Number(page) || 1, limit: Number(limit) || 50 });
+  res.json({ success: true, data });
+}
+
+async function patchExploreRequest(req, res) {
+  const data = await adminService.updateExploreRequest(req.params.id, req.body);
+  res.json({ success: true, data });
+}
+
+// ─── ECOSYSTEM ──────────────────────────────────────────────────
+async function getEcosystem(req, res) {
+  const { category, page, limit, search, featured } = req.query;
+  const data = await adminService.listEcosystem({ category, page: Number(page) || 1, limit: Number(limit) || 50, search, featured });
+  res.json({ success: true, data });
+}
+
+async function createEcosystemEntry(req, res) {
+  const data = await adminService.createEcosystemEntry(req.body);
+  res.status(201).json({ success: true, data });
+}
+
+async function updateEcosystemEntry(req, res) {
+  const data = await adminService.updateEcosystemEntry(req.params.id, req.body);
+  res.json({ success: true, data });
+}
+
+async function deleteEcosystemEntry(req, res) {
+  const data = await adminService.deleteEcosystemEntry(req.params.id);
   res.json({ success: true, data });
 }
 
@@ -452,7 +534,85 @@ module.exports = {
   getNotifications,
   createNotification,
   deleteNotification,
+  notifyEventRegistrants,
   getSettings,
   upsertSetting,
   deleteSetting,
+  getEcosystem,
+  createEcosystemEntry,
+  updateEcosystemEntry,
+  deleteEcosystemEntry,
+  getInvestorRequests,
+  patchInvestorRequest,
+  getExploreRequests,
+  patchExploreRequest,
+  getMentorApplications,
+  patchMentorApplication,
+  getMentorRequests,
+  patchMentorRequest,
+  sendPushToAll,
+  sendPushToRole,
+  getPushStats,
+  sendEmailToAll,
+  sendEmailToRole,
+  getEmailStats,
 };
+
+// ─── PUSH NOTIFICATIONS ─────────────────────────────────────────
+async function sendPushToAll(req, res) {
+  const { title, body, imageUrl, data } = req.body;
+  if (!title || !body) return res.status(400).json({ success: false, message: 'title and body required' });
+  const result = await pushService.sendToAll({ title, body, imageUrl, data });
+  if (result.error) return res.status(503).json({ success: false, message: result.error });
+  res.json({ success: true, data: result });
+}
+
+async function sendPushToRole(req, res) {
+  const { role, title, body, imageUrl, data } = req.body;
+  if (!role || !title || !body) return res.status(400).json({ success: false, message: 'role, title and body required' });
+  const result = await pushService.sendToRole(role, { title, body, imageUrl, data });
+  if (result.error) return res.status(503).json({ success: false, message: result.error });
+  res.json({ success: true, data: result });
+}
+
+async function getPushStats(req, res) {
+  const { User } = require('../users/user.model');
+  const { GuestToken } = require('../push/guest-token.model');
+  const [userCount, guestCount, roleAgg] = await Promise.all([
+    User.countDocuments({ fcmTokens: { $exists: true, $not: { $size: 0 } } }),
+    GuestToken.countDocuments(),
+    User.aggregate([
+      { $match: { fcmTokens: { $exists: true, $not: { $size: 0 } } } },
+      { $group: { _id: '$role', count: { $sum: 1 } } },
+    ]),
+  ]);
+  const byRole = roleAgg.reduce((acc, r) => { acc[r._id] = r.count; return acc; }, {});
+  res.json({ success: true, data: { totalSubscribers: userCount + guestCount, userSubscribers: userCount, guestSubscribers: guestCount, byRole } });
+}
+
+// ─── EMAIL BROADCASTS ───────────────────────────────────────────
+async function sendEmailToAll(req, res) {
+  const { subject, body, ctaUrl, ctaText } = req.body;
+  if (!subject || !body) return res.status(400).json({ success: false, message: 'subject and body required' });
+  const { getBroadcastEmailTemplate } = require('../../utils/emailTemplates');
+  const { sendToAll } = require('../../utils/emailService');
+  const { html, text } = getBroadcastEmailTemplate({ subject, body, ctaUrl, ctaText });
+  const result = await sendToAll({ subject, html, text });
+  res.json({ success: true, data: result });
+}
+
+async function sendEmailToRole(req, res) {
+  const { role, subject, body, ctaUrl, ctaText } = req.body;
+  if (!role || !subject || !body) return res.status(400).json({ success: false, message: 'role, subject and body required' });
+  const { getBroadcastEmailTemplate } = require('../../utils/emailTemplates');
+  const { sendToRole } = require('../../utils/emailService');
+  const { html, text } = getBroadcastEmailTemplate({ subject, body, ctaUrl, ctaText });
+  const result = await sendToRole(role, { subject, html, text });
+  res.json({ success: true, data: result });
+}
+
+async function getEmailStats(req, res) {
+  const { getEmailStats: stats } = require('../../utils/emailService');
+  const data = await stats();
+  res.json({ success: true, data });
+}

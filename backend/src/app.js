@@ -16,6 +16,9 @@ const mongoose = require('mongoose');
 
 const app = express();
 
+// Trust nginx/load-balancer proxy on EC2 (fixes X-Forwarded-For + rate-limit)
+app.set('trust proxy', 1);
+
 // ─── SECURITY HARDENING ──────────────────────────────────────
 app.use(
   helmet({
@@ -178,7 +181,23 @@ const authLimiter = rateLimit({
 app.use('/api/v1/auth/login', authLimiter);
 app.use('/api/v1/auth/signup', authLimiter);
 app.use('/api/v1/auth/forgot-password', authLimiter);
+// Caps brute-forcing of reset tokens. The token is 256-bit so guessing is
+// hopeless anyway, but this keeps the attempt cheap to absorb.
+app.use('/api/v1/auth/reset-password', authLimiter);
 app.use('/api/v1/auth/refresh', authLimiter);
+
+// Every OTP send costs real money and rings a real phone, so these are capped
+// harder than the rest of auth. The per-user/per-challenge caps live in the
+// service; this is the coarse per-IP net in front of them.
+const otpLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: 'Too many code requests, please try again later' },
+});
+app.use('/api/v1/auth/2fa', otpLimiter);
+app.use('/api/v1/auth/phone', otpLimiter);
 
 // Stricter rate limit for admin panel — 120 req/min per IP
 app.use(

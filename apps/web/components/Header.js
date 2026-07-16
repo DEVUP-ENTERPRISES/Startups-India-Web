@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Menu, X, ChevronRight, Home, Info, LayoutGrid, Calendar, Users, Coins, Rocket, ChevronDown, BookOpen, TrendingUp, Zap, GraduationCap, ArrowRight } from 'lucide-react';
+import { Search, Menu, X, ChevronRight, Home, Info, LayoutGrid, Calendar, Users, Coins, Rocket, ChevronDown, BookOpen, TrendingUp, Zap, GraduationCap, ArrowRight, Globe } from 'lucide-react';
 import { getCurrentUser } from '@/lib/auth';
 
 const SEARCH_DATA = [
@@ -165,21 +165,31 @@ export default function Header() {
       label: 'About Us', 
       href: '/about', 
       icon: Info,
+      isMega: true,
       dropdown: [
         {
           label: 'About the Company',
           href: '/about',
-          description: 'Learn about the StartupsIndia ecosystem and mission',
-        },
-        {
-          label: 'Vision & Mission',
-          href: '/about#vision-mission',
-          description: 'Driving innovation and empowering founders nationwide',
+          desc: 'Learn about the StartupsIndia ecosystem and mission',
+          svg: (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+              <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+            </svg>
+          )
         },
         {
           label: 'Team Profiles',
           href: '/about#team-profiles',
-          description: 'Meet the leadership, advisers, and core team',
+          desc: 'Meet the leadership, advisers, and core team',
+          svg: (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+          )
         },
       ]
     },
@@ -187,34 +197,131 @@ export default function Header() {
       label: 'Our Programs', 
       href: '/programs', 
       icon: LayoutGrid,
+      isMega: true,
       dropdown: [
         {
           label: 'Pre-Incubation',
           href: '/programs/pre-incubation',
-          description: '8-week intensive program for idea validation'
+          desc: '8-week intensive program for idea validation',
+          svg: (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 2v20"/>
+              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+            </svg>
+          )
         },
         {
           label: 'Incubation',
           href: '/programs/incubation',
-          description: 'Full incubation support for early-stage startups'
+          desc: 'Full incubation support for early-stage startups',
+          svg: (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+            </svg>
+          )
         },
         {
           label: 'Master Classes',
           href: '/programs/master-classes',
-          description: 'Exclusive cinematic learning experience — Enroll now for early access',
-        },
-        {
-          label: 'Campus Startup Mission',
-          href: '/campus-startup',
-          description: 'Innovation Mission 2026 — colleges, hackathons & funding',
+          desc: 'Exclusive cinematic learning experience — Enroll now for early access',
+          svg: (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>
+            </svg>
+          )
         },
       ]
     },
     { label: 'Events', href: '/events', icon: Calendar },
-    { label: 'Mentors', href: '/mentors', icon: Users },
-    { label: 'Investors', href: '/investors', icon: Coins },
-    { label: 'Market Access', href: '/market-access', icon: Rocket },
+    {
+      label: 'Ecosystem',
+      href: '/ecosystem',
+      icon: Globe,
+      isMega: true,
+      dropdown: [
+        {
+          label: 'Startups', desc: 'Startup Growth Enablement', href: '/ecosystem/startups',
+          svg: (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+          )
+        },
+        {
+          label: 'Mentors', desc: 'Startup Mentor Network', href: '/mentors',
+          svg: (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+          )
+        },
+        {
+          label: 'Investors', desc: 'Startup-Investor Ecosystem', href: '/investors',
+          svg: (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 6v2m0 8v2"/>
+              <path d="M15.5 9.5A3.5 3.5 0 0 0 9 10c0 1.4.8 2.6 2 3.2L12 14a3 3 0 1 1-3 3"/>
+            </svg>
+          )
+        },
+        {
+          label: 'Corporates', desc: 'Corporate Innovation Programs', href: '/ecosystem/corporates',
+          svg: (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+              <path d="M3 9h18"/>
+              <path d="M9 21V9"/>
+            </svg>
+          )
+        },
+        {
+          label: 'Partners', desc: 'Partner Support Network', href: '/ecosystem/partners',
+          svg: (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M14 9a2 2 0 0 1-2 2H6l-4 4V4c0-1.1.9-2 2-2h8a2 2 0 0 1 2 2v5z"/>
+              <path d="M18 9h2a2 2 0 0 1 2 2v11l-4-4h-6a2 2 0 0 1-2-2v-1"/>
+            </svg>
+          )
+        },
+        {
+          label: 'Market Access', desc: 'Expand your startup to new markets', href: '/market-access',
+          svg: (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+            </svg>
+          )
+        },
+        {
+          label: 'Academia', desc: 'Academic Innovation Hub', href: '/ecosystem/academia',
+          svg: (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+              <path d="M6 12v5c0 0 2.5 2 6 2s6-2 6-2v-5"/>
+            </svg>
+          )
+        },
+        {
+          label: 'Co-Working', desc: 'Shared Workspaces & Labs', href: '/ecosystem/coworking',
+          svg: (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="2" y="3" width="20" height="14" rx="2"/>
+              <path d="M8 21h8m-4-4v4"/>
+            </svg>
+          )
+        },
+      ]
+    },
     { label: 'Source', href: '/source', icon: Search },
+    { 
+      label: 'ON MISSION', 
+      href: '/campus-startup', 
+      icon: Rocket,
+      isMission: true
+    },
   ];
 
   const [openSubmenu, setOpenSubmenu] = useState(null);
@@ -457,14 +564,19 @@ export default function Header() {
             </AnimatePresence>
 
             {menuItems.map((item, index) =>
-              item.dropdown ? (
+              item.isMission ? (
+                <Link key={index} href={item.href} className="desktop-mission-btn" style={{ marginLeft: '12px', marginRight: '12px' }}>
+                  <Rocket size={18} style={{ marginRight: '6px' }} />
+                  {item.label}
+                </Link>
+              ) : item.dropdown ? (
                 <div
                   key={index}
                   className="nav-dropdown-container"
                   onMouseEnter={(e) => {
                     setOpenDropdown(index);
                     const rect = e.currentTarget.getBoundingClientRect();
-                    const parentRect = e.currentTarget.parentElement.getBoundingClientRect();
+                    const parentRect = e.currentTarget.closest('.nav-links').getBoundingClientRect();
                     setHoveredNav({
                       left: rect.left - parentRect.left,
                       top: rect.top - parentRect.top,
@@ -486,30 +598,66 @@ export default function Header() {
                   <AnimatePresence>
                     {openDropdown === index && (
                       <motion.div
-                        className="programs-dropdown"
-                        initial={{ opacity: 0, y: 15, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                        className={item.isMega ? 'eco-mega-dropdown' : 'programs-dropdown'}
+                        initial={{ opacity: 0, y: 15, x: '-50%', scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, x: '-50%', scale: 1 }}
+                        exit={{ opacity: 0, y: 10, x: '-50%', scale: 0.95 }}
                         transition={{ duration: 0.2, ease: 'easeOut' }}
                       >
-                        {item.dropdown.map((dropdownItem, dropdownIndex) => (
-                          <Link
-                            key={dropdownIndex}
-                            href={dropdownItem.href}
-                            className={`dropdown-item ${pathname + currentHash === dropdownItem.href ? 'active' : ''}`}
-                            onClick={(e) => handleDropdownItemClick(e, dropdownItem)}
-                          >
-                            <div className="dropdown-item-title">{dropdownItem.label}</div>
-                            <div className="dropdown-item-description">
-                              {dropdownItem.description}
+                        {item.isMega ? (
+                          <>
+                            <div className="eco-mega-header">
+                              <span className="eco-mega-eyebrow">{item.label === 'Ecosystem' ? 'Our Ecosystem' : item.label}</span>
+                              <Link href={item.href} className="eco-mega-view-all" onClick={() => setOpenDropdown(null)}>
+                                View All
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginLeft: 3 }}><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                              </Link>
                             </div>
-                            {dropdownItem.subtext && (
-                              <div className="dropdown-item-subtext" style={{ fontSize: '11px', color: '#ff4b5c', fontWeight: '700', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                {dropdownItem.subtext}
+                            <div className="eco-mega-grid">
+                              {item.dropdown.map((eco, idx) => (
+                                <Link
+                                  key={idx}
+                                  href={eco.href}
+                                  className="eco-mega-item"
+                                  onClick={() => setOpenDropdown(null)}
+                                >
+                                  <span className="eco-mega-icon-box">
+                                    {eco.svg}
+                                  </span>
+                                  <span className="eco-mega-body">
+                                    <span className="eco-mega-label">{eco.label}</span>
+                                    <span className="eco-mega-desc">{eco.desc}</span>
+                                  </span>
+                                </Link>
+                              ))}
+                            </div>
+                            <div className="eco-mega-footer">
+                              <Link href={item.href} className="eco-mega-footer-link" onClick={() => setOpenDropdown(null)}>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                                {item.label === 'Ecosystem' ? 'Explore the full Startup India Ecosystem' : `Explore all ${item.label}`}
+                              </Link>
+                            </div>
+                          </>
+                        ) : (
+                          item.dropdown.map((dropdownItem, dropdownIndex) => (
+                            <Link
+                              key={dropdownIndex}
+                              href={dropdownItem.href}
+                              className={`dropdown-item ${pathname + currentHash === dropdownItem.href ? 'active' : ''}`}
+                              onClick={(e) => handleDropdownItemClick(e, dropdownItem)}
+                            >
+                              <div className="dropdown-item-title">{dropdownItem.label}</div>
+                              <div className="dropdown-item-description">
+                                {dropdownItem.description}
                               </div>
-                            )}
-                          </Link>
-                        ))}
+                              {dropdownItem.subtext && (
+                                <div className="dropdown-item-subtext" style={{ fontSize: '11px', color: '#ff4b5c', fontWeight: '700', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                  {dropdownItem.subtext}
+                                </div>
+                              )}
+                            </Link>
+                          ))
+                        )}
                       </motion.div>
                     )}
                   </AnimatePresence>
@@ -521,7 +669,7 @@ export default function Header() {
                   className={`nav-link ${pathname === item.href ? 'active' : ''}`}
                   onMouseEnter={(e) => {
                     const rect = e.currentTarget.getBoundingClientRect();
-                    const parentRect = e.currentTarget.parentElement.getBoundingClientRect();
+                    const parentRect = e.currentTarget.closest('.nav-links').getBoundingClientRect();
                     setHoveredNav({
                       left: rect.left - parentRect.left,
                       top: rect.top - parentRect.top,
@@ -591,7 +739,7 @@ export default function Header() {
                   ) : (
                     <Link
                       href={item.href}
-                      className={`mobile-nav-item ${pathname === item.href ? 'active' : ''}`}
+                      className={`mobile-nav-item ${pathname === item.href ? 'active' : ''} ${item.isMission ? 'mobile-mission-btn' : ''}`}
                       onClick={closeMobileMenu}
                     >
                       <span className="menu-left">
@@ -622,6 +770,71 @@ export default function Header() {
           </div>
         </nav>
       </div>
+      <style dangerouslySetInnerHTML={{__html: `
+        .desktop-mission-btn {
+          position: relative !important;
+          
+          /* Dark Red Glassmorphism */
+          background: linear-gradient(90deg, rgba(100, 0, 0, 0.8), rgba(180, 15, 30, 0.8), rgba(100, 0, 0, 0.8)) !important;
+          background-size: 200% auto !important;
+          backdrop-filter: blur(12px) saturate(180%) !important;
+          -webkit-backdrop-filter: blur(12px) saturate(180%) !important;
+          border: 1px solid rgba(255, 255, 255, 0.2) !important;
+          border-top: 1px solid rgba(255, 255, 255, 0.4) !important;
+          
+          color: white !important;
+          border-radius: 100px !important;
+          padding: 8px 24px !important;
+          font-size: 14px !important;
+          font-weight: 900 !important;
+          text-transform: uppercase !important;
+          letter-spacing: 1.5px !important;
+          
+          animation: dark-red-glow 2.5s linear infinite !important;
+          
+          display: flex !important;
+          align-items: center !important;
+          white-space: nowrap !important;
+          z-index: 50;
+          text-decoration: none;
+        }
+        .desktop-mission-btn:hover {
+          transform: scale(1.05) !important;
+          background: linear-gradient(90deg, rgba(130, 0, 0, 0.9), rgba(220, 20, 40, 0.9), rgba(130, 0, 0, 0.9)) !important;
+          border-color: rgba(255, 255, 255, 0.6) !important;
+        }
+        .mobile-mission-btn {
+          background: linear-gradient(90deg, rgba(100, 0, 0, 0.8), rgba(180, 15, 30, 0.8), rgba(100, 0, 0, 0.8)) !important;
+          background-size: 200% auto !important;
+          backdrop-filter: blur(12px) saturate(180%) !important;
+          border: 1px solid rgba(255, 255, 255, 0.2) !important;
+          color: white !important;
+          border-radius: 12px !important;
+          font-weight: 800 !important;
+          animation: dark-red-glow 2.5s linear infinite !important;
+          border: none !important;
+        }
+        .mobile-mission-btn .menu-left { color: white !important; z-index: 2; position: relative; }
+        .mobile-mission-btn .menu-icon { color: white !important; z-index: 2; position: relative; }
+        @keyframes dark-red-glow {
+          0% {
+            background-position: 0% center;
+            box-shadow: 0 0 15px rgba(100, 0, 0, 0.5), inset 0 0 8px rgba(255, 255, 255, 0.2);
+          }
+          50% {
+            box-shadow: 0 0 25px rgba(200, 20, 40, 0.7), inset 0 0 15px rgba(255, 255, 255, 0.4);
+          }
+          100% {
+            background-position: 200% center;
+            box-shadow: 0 0 15px rgba(100, 0, 0, 0.5), inset 0 0 8px rgba(255, 255, 255, 0.2);
+          }
+        }
+        @media (max-width: 1024px) {
+          .desktop-mission-spacer, .desktop-mission-btn {
+            display: none !important;
+          }
+        }
+      `}} />
     </header>
   );
 }

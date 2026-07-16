@@ -2,10 +2,15 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import DashboardSidebar from '@/components/DashboardSidebar';
 import DashboardHeader from '@/components/DashboardHeader';
 import { DashboardProvider } from '@/contexts/DashboardProvider';
 import { getCurrentUser } from '@/lib/auth';
+
+// FCM push toasts. ssr:false because it touches the browser's notification API;
+// this moved here from layout.js when the client logic was split out.
+const PushToast = dynamic(() => import('@/components/PushToast'), { ssr: false });
 
 
 
@@ -176,6 +181,7 @@ export default function DashboardLayoutClient({ children }) {
           </div>
         </div>
       </div>
+      <PushToast />
     </DashboardProvider>
   );
 }

@@ -83,6 +83,7 @@ adminRouter.patch('/events/:id', asyncHandler(ctrl.updateEvent));
 adminRouter.delete('/events/:id', asyncHandler(ctrl.deleteEvent));
 adminRouter.post('/events/:id/duplicate', asyncHandler(ctrl.duplicateEvent));
 adminRouter.get('/events/:id/registrations', asyncHandler(ctrl.getEventRegistrations));
+adminRouter.post('/events/:id/notify-registrants', asyncHandler(ctrl.notifyEventRegistrants));
 adminRouter.get('/events/:id/analytics', asyncHandler(ctrl.getEventAnalytics));
 
 // Leads/CRM
@@ -106,6 +107,34 @@ adminRouter.delete('/notifications/:id', asyncHandler(ctrl.deleteNotification));
 adminRouter.get('/settings', asyncHandler(ctrl.getSettings));
 adminRouter.post('/settings', asyncHandler(ctrl.upsertSetting));
 adminRouter.delete('/settings/:key', asyncHandler(ctrl.deleteSetting));
+
+// Mentors
+adminRouter.get('/mentors/applications', asyncHandler(ctrl.getMentorApplications));
+adminRouter.patch('/mentors/applications/:id', asyncHandler(ctrl.patchMentorApplication));
+adminRouter.get('/mentors/requests', asyncHandler(ctrl.getMentorRequests));
+adminRouter.patch('/mentors/requests/:id', asyncHandler(ctrl.patchMentorRequest));
+
+// Investors
+adminRouter.get('/investors/requests', asyncHandler(ctrl.getInvestorRequests));
+adminRouter.patch('/investors/requests/:id', asyncHandler(ctrl.patchInvestorRequest));
+adminRouter.get('/investors/explore', asyncHandler(ctrl.getExploreRequests));
+adminRouter.patch('/investors/explore/:id', asyncHandler(ctrl.patchExploreRequest));
+
+// Push Notifications
+adminRouter.post('/push/send-all',  asyncHandler(ctrl.sendPushToAll));
+adminRouter.post('/push/send-role', asyncHandler(ctrl.sendPushToRole));
+adminRouter.get('/push/stats',      asyncHandler(ctrl.getPushStats));
+
+// Email Broadcasts
+adminRouter.post('/email/send-all',  asyncHandler(ctrl.sendEmailToAll));
+adminRouter.post('/email/send-role', asyncHandler(ctrl.sendEmailToRole));
+adminRouter.get('/email/stats',      asyncHandler(ctrl.getEmailStats));
+
+// Ecosystem
+adminRouter.get('/ecosystem', asyncHandler(ctrl.getEcosystem));
+adminRouter.post('/ecosystem', asyncHandler(ctrl.createEcosystemEntry));
+adminRouter.patch('/ecosystem/:id', asyncHandler(ctrl.updateEcosystemEntry));
+adminRouter.delete('/ecosystem/:id', asyncHandler(ctrl.deleteEcosystemEntry));
 
 // ─── OBSERVABILITY & COMMAND CENTER ───────────────────────────────────
 // Security events

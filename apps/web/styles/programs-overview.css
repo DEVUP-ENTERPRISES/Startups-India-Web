@@ -107,7 +107,7 @@
 .program-card:hover {
   transform: translateY(-8px);
   box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.1);
-  border-color: rgba(229, 57, 53, 0.1);
+  border-color: rgba(, , , 0.8);
 }
 
 .program-card::before {

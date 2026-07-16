@@ -748,9 +748,7 @@ html {
   background: rgba(255, 255, 255, 0.08);
   border-color: rgba(229, 57, 53, 0.4);
   transform: translateY(-6px);
-  box-shadow:
-    0 20px 40px rgba(0, 0, 0, 0.3),
-    0 0 30px rgba(229, 57, 53, 0.15);
+  box-shadow:(, , , 0.4);
 }
 
 .what-number {
@@ -855,10 +853,8 @@ html {
 
 .mission-card:hover {
   background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(229, 57, 53, 0.2);
-  box-shadow:
-    0 20px 50px rgba(0, 0, 0, 0.1),
-    0 0 30px rgba(229, 57, 53, 0.08);
+  border-color: rgba(, , , 0.8);
+  box-shadow:(, , , 0.4);
   transform: translateY(-6px);
 }
 

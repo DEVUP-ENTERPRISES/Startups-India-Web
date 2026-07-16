@@ -109,8 +109,8 @@
 }
 
 .faq-item:hover {
-  border-color: rgba(220, 20, 60, 0.15);
-  box-shadow: 0 12px 32px rgba(220, 20, 60, 0.08);
+  border-color: rgba(, , , 0.8);
+  box-shadow:(, , , 0.4);
   transform: translateX(4px);
 }
 
@@ -202,8 +202,8 @@
 
 .faq-side-card:hover {
   transform: translateY(-8px);
-  box-shadow: 0 28px 80px rgba(220, 20, 60, 0.12);
-  border-color: rgba(220, 20, 60, 0.25);
+  box-shadow:(, , , 0.4);
+  border-color: rgba(, , , 0.8);
 }
 
 .faq-card-icon {
@@ -222,7 +222,7 @@
 
 .faq-side-card:hover .faq-card-icon {
   transform: scale(1.05) rotate(-5deg);
-  border-color: rgba(220, 20, 60, 0.3);
+  border-color: rgba(, , , 0.8);
 }
 
 .faq-card-title {

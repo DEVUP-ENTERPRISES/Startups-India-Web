@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useDashboard } from '@/contexts/DashboardProvider';
+import SecurePhonePrompt from '@/components/auth/SecurePhonePrompt';
 
 /* ──── SVG Icon Components ──── */
 const Icons = {
@@ -992,6 +993,10 @@ export default function DashboardPage() {
       `,
         }}
       />
+
+      {/* Backfill prompt: shown only to users with no verified mobile number.
+          Renders nothing once verified. */}
+      <SecurePhonePrompt />
 
       {/* ═══════ LIVE ECOSYSTEM TICKER ═══════ */}
       <div className="da da1 ticker-wrap">
@@ -2186,7 +2191,8 @@ export default function DashboardPage() {
               My Courses
             </h2>
             <Link
-              href="/dashboard/my-courses"
+              href="#"
+              onClick={(e) => e.preventDefault()}
               style={{
                 fontSize: '0.78rem',
                 fontWeight: 700,
@@ -2196,6 +2202,8 @@ export default function DashboardPage() {
                 alignItems: 'center',
                 gap: '0.3rem',
                 transition: 'opacity 0.2s',
+                opacity: 0.5,
+                cursor: 'not-allowed',
               }}
             >
               View all <Icons.arrow size={14} color="#7A1F2B" />
@@ -2474,7 +2482,8 @@ export default function DashboardPage() {
         >
           {[
             {
-              href: '/dashboard/explore-courses',
+              href: '#',
+              isLocked: true,
               label: 'Explore Courses',
               desc: 'Explore catalog',
               Icon: Icons.compass,
@@ -2482,7 +2491,8 @@ export default function DashboardPage() {
               bg: 'rgba(122,31,43,0.06)',
             },
             {
-              href: '/dashboard/my-courses',
+              href: '#',
+              isLocked: true,
               label: 'Continue Learning',
               desc: 'Resume courses',
               Icon: Icons.play,
@@ -2506,10 +2516,20 @@ export default function DashboardPage() {
               bg: 'rgba(124,58,237,0.06)',
             },
           ].map(a => (
-            <Link key={a.href} href={a.href} style={{ textDecoration: 'none' }}>
+            <Link 
+              key={a.label} 
+              href={a.href} 
+              style={{ textDecoration: 'none' }}
+              onClick={a.isLocked ? (e) => e.preventDefault() : undefined}
+            >
               <div
                 className="action-card dcard"
-                style={{ padding: '1.25rem', textAlign: 'center' }}
+                style={{ 
+                  padding: '1.25rem', 
+                  textAlign: 'center',
+                  opacity: a.isLocked ? 0.5 : 1,
+                  cursor: a.isLocked ? 'not-allowed' : 'pointer'
+                }}
               >
                 <div
                   style={{

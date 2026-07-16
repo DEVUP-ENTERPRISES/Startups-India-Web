@@ -17,6 +17,8 @@ const { mediaRouter } = require('../modules/media/media.routes');
 const { eventsRouter } = require('../modules/events/events.routes');
 const articleRouter = require('../modules/public/article.routes');
 const { publicRouter } = require('../modules/public/public.routes');
+const { grantsRouter } = require('../modules/grants/grants.routes');
+const { grantsAdminRouter } = require('../modules/grants/grants.admin.routes');
 const { asyncHandler } = require('../utils/asyncHandler');
 const { authRequired } = require('../middlewares/authMiddleware');
 const { getActivities } = require('../utils/activityLogger');
@@ -33,6 +35,14 @@ function registerRoutes(app) {
   app.use('/api/v1/learning', learningRouter);
   app.use('/api/v1/learn', learnRouter);
   app.use('/api/v1/assessments', assessmentsRouter);
+
+  // Startup Grant — student-facing. Every route is scoped to the caller.
+  app.use('/api/v1/grants', grantsRouter);
+
+  // Startup Grant — admin. Mounted BEFORE adminRouter so the more specific
+  // /grants prefix wins, and gated by an admin role check of its own: knowing
+  // the secret slug is not authorisation.
+  app.use(`/api/v1/${env.ADMIN_SLUG}/grants`, grantsAdminRouter);
 
   // Admin routes mounted under the secret slug — /api/v1/admin returns 404
   app.use(`/api/v1/${env.ADMIN_SLUG}`, adminRouter);
@@ -55,6 +65,18 @@ function registerRoutes(app) {
   // Investors routes
   const investorsRouter = require('../modules/investors/investors.routes');
   app.use('/api/v1/investors', investorsRouter);
+
+  // Public push subscribe (no auth — any visitor can subscribe)
+  const { pushRouter } = require('../modules/push/push.routes');
+  app.use('/api/v1/push', pushRouter);
+
+  // Public ecosystem route
+  const { asyncHandler: ah } = require('../utils/asyncHandler');
+  const adminService = require('../modules/admin/admin.service');
+  app.get('/api/v1/ecosystem', ah(async (req, res) => {
+    const data = await adminService.getPublicEcosystem();
+    res.json({ success: true, data });
+  }));
 
   // Public upload URL endpoint (alias to media/upload-url)
   const mediaController = require('../modules/media/media.controller');

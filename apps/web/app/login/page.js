@@ -27,6 +27,7 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import { signIn, initGoogleSignIn } from '@/lib/auth';
+import TwoFactorStep from '@/components/auth/TwoFactorStep';
 import '@/styles/auth-redesign.css';
 
 // Must match middleware.js / NEXT_PUBLIC_ADMIN_SLUG — the admin panel is only
@@ -40,6 +41,9 @@ function LoginContent() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  // Set when the password was correct but the account requires an SMS code.
+  // Holds no session — only the short-lived token that unlocks the OTP step.
+  const [twoFactor, setTwoFactor] = useState(null);
   const router = useRouter();
   const searchParams = useSearchParams();
   const returnUrl = searchParams.get('returnUrl') || '/dashboard';
@@ -96,6 +100,19 @@ function LoginContent() {
 
       if (error) {
         setError(error.message || 'Failed to sign in. Please check your credentials.');
+        setIsLoading(false);
+        return;
+      }
+
+      // 2FA account: no session was issued. Hand off to the OTP step instead of
+      // redirecting — treating this as a success would send the user to a
+      // dashboard they have no token for.
+      if (data?.two_factor_required) {
+        setTwoFactor({
+          pendingToken: data.pending_token,
+          phoneMasked: data.phone_masked,
+          expiresIn: data.expires_in,
+        });
         setIsLoading(false);
         return;
       }
@@ -263,8 +280,23 @@ function LoginContent() {
           </div>
 
           <AnimatePresence mode="wait">
-            {success ? (
-              <motion.div 
+            {twoFactor && !success ? (
+              <TwoFactorStep
+                pendingToken={twoFactor.pendingToken}
+                phoneMasked={twoFactor.phoneMasked}
+                expiresIn={twoFactor.expiresIn}
+                onSuccess={() => {
+                  setSuccess(true);
+                  router.push(returnUrl);
+                }}
+                onCancel={() => {
+                  setTwoFactor(null);
+                  setPassword('');
+                  setError('');
+                }}
+              />
+            ) : success ? (
+              <motion.div
                 key="success"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}

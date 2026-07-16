@@ -1040,7 +1040,7 @@ div.stat-card .stat-number,
 
 .tag-glass-pill:hover {
   background: rgba(239, 68, 68, 0.08);
-  border-color: rgba(239, 68, 68, 0.3);
+  border-color: rgba(, , , 0.8);
   color: #ffffff;
   transform: translateY(-2px);
 }
@@ -1105,9 +1105,7 @@ div.stat-card .stat-number,
 
 .primary-cta-glow:hover {
   transform: translateY(-5px);
-  box-shadow: 
-    0 15px 35px rgba(239, 68, 68, 0.5),
-    0 0 20px rgba(239, 68, 68, 0.2);
+  box-shadow:(, , , 0.4);
   filter: brightness(1.15);
 }
 
@@ -1703,7 +1701,7 @@ section[class*="hero"] .stat-number {
 
 .explore-mentors-btn:hover {
   border-color: #fca5a5;
-  box-shadow: 0 20px 40px rgba(239, 68, 68, 0.2);
+  box-shadow:(, , , 0.4);
   transform: translateY(-4px);
 }
 

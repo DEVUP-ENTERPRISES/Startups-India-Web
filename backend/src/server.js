@@ -1,7 +1,8 @@
 const dns = require('dns');
 
-// Use reliable DNS servers (Google and Cloudflare) to resolve MongoDB Atlas and Redis hosts
-// This prevents DNS resolution failure (EREFUSED) caused by restrictive/broken ISP DNS servers.
+// Force reliable DNS (Google + Cloudflare) to resolve MongoDB Atlas and Redis
+// hosts: ISP DNS may refuse the SRV lookups that mongodb+srv:// needs, which
+// surfaces as an EREFUSED failure at boot.
 dns.setServers(['8.8.8.8', '1.1.1.1', '8.8.4.4']);
 
 const env = require('./config/env');

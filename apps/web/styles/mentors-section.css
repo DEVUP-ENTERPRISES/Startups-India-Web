@@ -135,12 +135,9 @@
 
 .program-mentor-card:hover {
   transform: translateY(-12px);
-  border-color: rgba(220, 20, 60, 0.25);
+  border-color: rgba(, , , 0.8);
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0.7) 100%);
-  box-shadow:
-    0 32px 80px rgba(220, 20, 60, 0.12),
-    0 0 60px rgba(220, 20, 60, 0.06),
-    0 0 0 1px rgba(220, 20, 60, 0.08) inset;
+  box-shadow:(, , , 0.4) inset;
 }
 
 .program-mentor-card-inner {
@@ -201,9 +198,7 @@
 .program-mentor-card:hover .photo-placeholder {
   transform: scale(1.08) rotate(5deg);
   border-color: rgba(220, 20, 60, 0.4);
-  box-shadow:
-    0 20px 60px rgba(220, 20, 60, 0.2),
-    0 0 40px rgba(220, 20, 60, 0.15);
+  box-shadow:(, , , 0.4);
 }
 
 .mentor-badge-tag {

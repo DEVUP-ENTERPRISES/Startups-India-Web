@@ -1,10 +1,23 @@
+const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { OAuth2Client } = require('google-auth-library');
 const { User } = require('../users/user.model');
 const env = require('../../config/env');
 const { ApiError } = require('../../utils/apiError');
-const { recordFailedLogin, recordInvalidToken } = require('../../infrastructure/observability/securityEvents');
+const { logger } = require('../../infrastructure/observability/logger');
+const { normalizePhone } = require('../../utils/phone');
+const { sendTransactionalEmail, sendEmail } = require('../../utils/emailService');
+const {
+  getPasswordResetTemplate,
+  getOAuthOnlyResetTemplate,
+  getPasswordChangedTemplate,
+} = require('../../utils/emailTemplates');
+const {
+  recordFailedLogin,
+  recordInvalidToken,
+  recordSecurityEvent,
+} = require('../../infrastructure/observability/securityEvents');
 
 // Generates access + refresh tokens and persists a bcrypt hash of the
 // refresh token so it can be validated and rotated on the next /refresh call.
@@ -25,11 +38,28 @@ async function generateAndStoreTokens(user) {
   return { accessToken, refreshToken };
 }
 
-async function signup({ email, password, fullName }) {
+async function signup({ email, password, fullName, phone }) {
   const existing = await User.findOne({ email });
   if (existing) throw new ApiError(409, 'Email already registered');
+
+  // The number is captured here but stored UNVERIFIED — phoneVerifiedAt stays
+  // null until an OTP is actually echoed back. Nothing security-relevant trusts
+  // it before that, which is the whole difference from the legacy `phone` field.
+  let phoneE164 = null;
+  if (phone) {
+    const parsed = normalizePhone(phone);
+    if (!parsed.ok) throw new ApiError(400, parsed.reason);
+    phoneE164 = parsed.e164;
+  }
+
   const passwordHash = await bcrypt.hash(password, 10);
-  const user = await User.create({ email, passwordHash, fullName, provider: 'email' });
+  const user = await User.create({
+    email,
+    passwordHash,
+    fullName,
+    provider: 'email',
+    phoneE164,
+  });
   const tokens = await generateAndStoreTokens(user);
   return { user, ...tokens };
 }
@@ -57,6 +87,21 @@ async function login({ email, password }, req) {
     throw new ApiError(401, 'Invalid credentials');
   }
   if (!user.isActive) throw new ApiError(403, 'Account suspended');
+
+  // Second factor. The password was correct, but for a 2FA account that only
+  // earns a short-lived pending token — no access/refresh token is minted here,
+  // so a stolen password alone buys nothing.
+  //
+  // Gated by the global TWO_FACTOR_ENABLED switch: while 2FA is paused, even an
+  // account with twoFactorEnabled=true logs in with just the password. Without
+  // this gate, pausing would strand every 2FA user behind an SMS that isn't sent.
+  if (env.TWO_FACTOR_ENABLED && user.twoFactorEnabled && user.phoneE164 && user.phoneVerifiedAt) {
+    // Lazily required: twoFactor.service needs generateAndStoreTokens from this
+    // module, so a top-level require would be circular.
+    const twoFactorService = require('./twoFactor.service');
+    return twoFactorService.beginLoginChallenge(user, req);
+  }
+
   const tokens = await generateAndStoreTokens(user);
   return { user, ...tokens };
 }
@@ -145,6 +190,221 @@ async function logout(userId) {
   return true;
 }
 
+// ─── PASSWORD RESET ─────────────────────────────────────────────────────
+// The reset token is a 256-bit random value. Only its SHA-256 digest is stored,
+// so a database leak yields no usable reset links. SHA-256 (not bcrypt) is the
+// right primitive here: the token already has full entropy, so there is nothing
+// for an attacker to brute-force and no need for a slow KDF.
+const RESET_TOKEN_BYTES = 32;
+
+function hashResetToken(rawToken) {
+  return crypto.createHash('sha256').update(rawToken).digest('hex');
+}
+
+function clientMeta(req) {
+  return {
+    ip: req?.ip || 'unknown',
+    userAgent: req?.get?.('user-agent') || '',
+    endpoint: req?.originalUrl || '',
+  };
+}
+
+/**
+ * Issue a password-reset email.
+ *
+ * Always resolves the same way regardless of whether the address is registered —
+ * the caller returns one fixed response, so this endpoint cannot be used to
+ * enumerate accounts. Every early return below is deliberate silence, not an error.
+ */
+async function forgotPassword({ email }, req) {
+  const normalizedEmail = String(email).trim().toLowerCase();
+  const meta = clientMeta(req);
+
+  const user = await User.findOne({ email: normalizedEmail }).select(
+    '+resetPasswordTokenHash +resetPasswordExpiresAt +resetPasswordSentAt'
+  );
+
+  recordSecurityEvent('password_reset_requested', {
+    ...meta,
+    email: normalizedEmail,
+    userId: user?._id,
+    details: { accountExists: Boolean(user) },
+  }).catch(() => {});
+
+  // No account, or a suspended one. Say nothing.
+  if (!user || !user.isActive) return;
+
+  // OAuth-only account: there is no password to reset. Mail the real owner an
+  // explanation instead of a reset link — a stranger probing the endpoint still
+  // sees the identical API response and receives nothing.
+  if (!user.passwordHash) {
+    const provider = user.providerIds?.google ? 'google' : user.provider;
+    const tpl = getOAuthOnlyResetTemplate(user.fullName, provider, `${env.FRONTEND_URL}/login`);
+    sendEmail({ to: user.email, subject: tpl.subject, html: tpl.html, text: tpl.text }).catch(
+      () => {}
+    );
+    return;
+  }
+
+  // Resend cooldown — stops this endpoint being used to flood someone's inbox.
+  // The previous link stays valid, so the user is never stranded.
+  const sentAt = user.resetPasswordSentAt?.getTime();
+  if (sentAt && Date.now() - sentAt < env.PASSWORD_RESET_COOLDOWN_SECONDS * 1000) {
+    logger.warn('Password reset re-requested within cooldown; skipping resend', {
+      userId: String(user._id),
+    });
+    return;
+  }
+
+  const rawToken = crypto.randomBytes(RESET_TOKEN_BYTES).toString('hex');
+  const expiresAt = new Date(Date.now() + env.PASSWORD_RESET_TTL_MINUTES * 60 * 1000);
+
+  // Issuing a new token invalidates any previous one — only the newest link works.
+  await User.updateOne(
+    { _id: user._id },
+    {
+      $set: {
+        resetPasswordTokenHash: hashResetToken(rawToken),
+        resetPasswordExpiresAt: expiresAt,
+        resetPasswordSentAt: new Date(),
+      },
+    }
+  );
+
+  const resetLink = `${env.FRONTEND_URL}/reset-password?token=${rawToken}`;
+  const tpl = getPasswordResetTemplate(
+    user.fullName,
+    resetLink,
+    env.PASSWORD_RESET_TTL_MINUTES
+  );
+
+  try {
+    await sendTransactionalEmail({
+      to: user.email,
+      subject: tpl.subject,
+      html: tpl.html,
+      text: tpl.text,
+    });
+  } catch (err) {
+    // The mail never left, so the token is dead weight — revoke it rather than
+    // leaving a live credential lying in the database.
+    await User.updateOne(
+      { _id: user._id },
+      {
+        $set: {
+          resetPasswordTokenHash: null,
+          resetPasswordExpiresAt: null,
+          resetPasswordSentAt: null,
+        },
+      }
+    );
+    // Still no error to the client: a 500 here (versus a 200 for an unknown
+    // address) would re-introduce the enumeration oracle we just closed. Ops
+    // finds this in the logs and the security feed instead.
+    logger.error('Failed to send password reset email', {
+      userId: String(user._id),
+      error: err.message,
+    });
+    recordSecurityEvent('password_reset_failed', {
+      ...meta,
+      email: user.email,
+      userId: user._id,
+      details: { reason: 'email_delivery_failed', error: err.message },
+    }).catch(() => {});
+  }
+}
+
+/**
+ * Consume a reset token and set a new password.
+ * Throws 400 for anything unusable — expired, already spent, or unknown.
+ */
+async function resetPassword({ token, password }, req) {
+  const meta = clientMeta(req);
+  const tokenHash = hashResetToken(String(token));
+
+  const user = await User.findOne({
+    resetPasswordTokenHash: tokenHash,
+    resetPasswordExpiresAt: { $gt: new Date() },
+  }).select('+passwordHash +resetPasswordTokenHash +resetPasswordExpiresAt');
+
+  if (!user) {
+    recordSecurityEvent('password_reset_failed', {
+      ...meta,
+      details: { reason: 'invalid_or_expired_token' },
+    }).catch(() => {});
+    throw new ApiError(400, 'This reset link is invalid or has expired. Please request a new one.');
+  }
+
+  if (!user.isActive) {
+    throw new ApiError(403, 'Account suspended');
+  }
+
+  // Reusing the current password would silently no-op a reset the user believes
+  // succeeded — and if the token leaked, it leaves the old secret in place.
+  if (user.passwordHash && (await bcrypt.compare(password, user.passwordHash))) {
+    throw new ApiError(400, 'Your new password must be different from your current password.');
+  }
+
+  const passwordHash = await bcrypt.hash(password, 10);
+  const changedAt = new Date();
+
+  // Re-match the token inside the write so it is consumed atomically. If two
+  // requests race on the same link, exactly one update matches and the other
+  // gets null — the token is genuinely single-use, not just usually so.
+  const consumed = await User.findOneAndUpdate(
+    {
+      _id: user._id,
+      resetPasswordTokenHash: tokenHash,
+      resetPasswordExpiresAt: { $gt: new Date() },
+    },
+    {
+      $set: {
+        passwordHash,
+        passwordChangedAt: changedAt,
+        resetPasswordTokenHash: null,
+        resetPasswordExpiresAt: null,
+        resetPasswordSentAt: null,
+        // Kill every existing session: a reset is how a user evicts an intruder.
+        refreshTokenHash: null,
+      },
+    },
+    { new: true }
+  );
+
+  if (!consumed) {
+    recordSecurityEvent('password_reset_failed', {
+      ...meta,
+      userId: user._id,
+      details: { reason: 'token_already_consumed' },
+    }).catch(() => {});
+    throw new ApiError(400, 'This reset link is invalid or has expired. Please request a new one.');
+  }
+
+  recordSecurityEvent('password_reset_completed', {
+    ...meta,
+    email: consumed.email,
+    userId: consumed._id,
+  }).catch(() => {});
+
+  // Tripwire email — best-effort. The password is already changed; a mail outage
+  // must not turn a successful reset into an error the user cannot act on.
+  const tpl = getPasswordChangedTemplate(
+    consumed.fullName,
+    changedAt.toUTCString(),
+    `${env.FRONTEND_URL}/login`
+  );
+  sendEmail({
+    to: consumed.email,
+    subject: tpl.subject,
+    html: tpl.html,
+    text: tpl.text,
+  }).catch(() => {});
+
+  // Deliberately no auto-login: the user re-authenticates with the new password,
+  // which also proves the change landed.
+  return true;
+}
+
 module.exports = {
   signup,
   login,
@@ -152,4 +412,9 @@ module.exports = {
   loginWithFacebook,
   refresh,
   logout,
+  forgotPassword,
+  resetPassword,
+  // Handed to twoFactor.service so it can mint tokens once the OTP checks out,
+  // without requiring this module back (circular).
+  generateAndStoreTokens,
 };

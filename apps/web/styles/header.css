@@ -1005,6 +1005,208 @@
   transform: rotate(180deg);
 }
 
+/* ── Ecosystem Mega Dropdown ─────────────────────────────── */
+/* ── Ecosystem Mega Dropdown ───────────────────────────────── */
+.eco-mega-dropdown {
+  position: fixed;
+  top: 90px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(145deg, rgba(8, 8, 16, 0.98) 0%, rgba(14, 10, 20, 0.98) 100%);
+  backdrop-filter: blur(32px) saturate(200%);
+  -webkit-backdrop-filter: blur(32px) saturate(200%);
+  border-radius: 24px;
+  padding: 24px 28px 20px;
+  width: 680px;
+  box-shadow:
+    0 32px 80px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(255, 255, 255, 0.07),
+    0 0 60px rgba(220, 38, 38, 0.06) inset;
+  z-index: 9999;
+}
+
+.eco-mega-dropdown::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(239, 68, 68, 0.6), transparent);
+  border-radius: 100px;
+}
+
+.eco-mega-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.eco-mega-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.eco-mega-eyebrow::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ef4444;
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.8);
+  animation: eco-pulse 2s ease-in-out infinite;
+}
+
+@keyframes eco-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.75); }
+}
+
+.eco-mega-view-all {
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(239, 68, 68, 0.75);
+  text-decoration: none;
+  letter-spacing: 0.04em;
+  transition: color 0.2s, gap 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 12px;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 100px;
+  background: rgba(239, 68, 68, 0.05);
+  transition: all 0.2s ease;
+}
+.eco-mega-view-all:hover {
+  color: #fff;
+  border-color: rgba(239, 68, 68, 0.5);
+  background: rgba(239, 68, 68, 0.12);
+}
+
+/* 4-column first row + centered 3-column second row */
+.eco-mega-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.eco-mega-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+  padding: 16px 12px 14px;
+  border-radius: 16px;
+  text-decoration: none;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.02);
+  transition: background 0.22s ease, border-color 0.22s ease, transform 0.2s ease, box-shadow 0.22s ease;
+  cursor: pointer;
+  width: calc(25% - 8px);
+  min-width: 140px;
+}
+
+.eco-mega-item:hover {
+  background: rgba(255, 255, 255, 0.055);
+  border-color: rgba(, , , 0.8);
+  transform: translateY(-3px);
+  box-shadow:(, , , 0.4);
+}
+
+/* Icon box */
+.eco-mega-icon-box {
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 14px;
+  flex-shrink: 0;
+  color: #111;
+  transition: background 0.22s ease, transform 0.22s ease, box-shadow 0.22s ease;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
+}
+
+.eco-mega-item:hover .eco-mega-icon-box {
+  background: #fff;
+  transform: scale(1.1) translateY(-1px);
+  box-shadow: 0 6px 20px rgba(220, 38, 38, 0.25);
+}
+
+.eco-mega-body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  align-items: center;
+}
+
+.eco-mega-label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.2;
+  transition: color 0.2s ease;
+  white-space: nowrap;
+}
+
+.eco-mega-item:hover .eco-mega-label {
+  color: #fca5a5;
+}
+
+.eco-mega-desc {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.32);
+  font-weight: 400;
+  line-height: 1.35;
+  text-align: center;
+}
+
+.eco-mega-footer {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  justify-content: center;
+}
+
+.eco-mega-footer-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.3);
+  text-decoration: none;
+  letter-spacing: 0.01em;
+  padding: 6px 16px;
+  border-radius: 100px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  transition: all 0.2s ease;
+}
+
+.eco-mega-footer-link:hover {
+  color: rgba(255, 255, 255, 0.75);
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+/* ── End Ecosystem Mega Dropdown ──────────────────────────── */
+
 .programs-dropdown {
   position: absolute;
   top: calc(100% - 5px);

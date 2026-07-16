@@ -99,17 +99,25 @@ export async function apiFetch(path, options = {}) {
         return { data: null, error: { message: 'Network error — server may be down', status: 0 } };
       }
     } else {
-      // Refresh failed, user is definitely logged out. Clear tokens.
+      // Refresh failed — session is unrecoverable, force re-login
       if (typeof window !== 'undefined') {
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
+        const adminSlug = process.env.NEXT_PUBLIC_ADMIN_SLUG || 'ctrl-x9k2m3-panel';
+        const isAdminPage = window.location.pathname.startsWith(`/${adminSlug}`) ||
+          window.location.pathname.startsWith('/admin');
+        window.location.href = isAdminPage ? `/${adminSlug}/login` : '/login';
       }
     }
   } else if (res.status === 401) {
-    // If it's still 401 after retry or _retried was already true
+    // Still 401 after retry — clear and redirect
     if (typeof window !== 'undefined') {
       localStorage.removeItem('access_token');
       localStorage.removeItem('refresh_token');
+      const adminSlug = process.env.NEXT_PUBLIC_ADMIN_SLUG || 'ctrl-x9k2m3-panel';
+      const isAdminPage = window.location.pathname.startsWith(`/${adminSlug}`) ||
+        window.location.pathname.startsWith('/admin');
+      window.location.href = isAdminPage ? `/${adminSlug}/login` : '/login';
     }
   }
 

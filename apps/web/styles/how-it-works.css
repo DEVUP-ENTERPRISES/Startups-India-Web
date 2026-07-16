@@ -218,10 +218,8 @@
 .journey-card:hover,
 .journey-card.focused {
   transform: translateY(-8px);
-  border-color: rgba(239, 68, 68, 0.22);
-  box-shadow:
-    0 24px 60px rgba(0, 0, 0, 0.35),
-    0 0 28px rgba(239, 68, 68, 0.10);
+  border-color: rgba(, , , 0.8);
+  box-shadow:(, , , 0.4);
 }
 
 /* Card Icon */
