@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { OAuth2Client } = require('google-auth-library');
 const { User } = require('../users/user.model');
+const { MentorApplication } = require('../../models/MentorApplication');
 const env = require('../../config/env');
 const { ApiError } = require('../../utils/apiError');
 const { logger } = require('../../infrastructure/observability/logger');
@@ -64,9 +65,44 @@ async function signup({ email, password, fullName, phone }) {
   return { user, ...tokens };
 }
 
+/**
+ * A mentor's User account is only created when an admin approves them, so an
+ * applicant who signs up and immediately tries to log in would otherwise be told
+ * "Invalid credentials" — baffling, since they just set a password.
+ *
+ * This explains the real state, but ONLY to someone who supplies the password
+ * from their own application. Answering on email alone would let anyone
+ * enumerate which addresses have applied to be mentors.
+ */
+async function explainPendingMentor(email, password) {
+  const application = await MentorApplication.findOne({ email: String(email).toLowerCase() })
+    .sort({ createdAt: -1 })
+    .lean();
+  if (!application?.password) return null;
+
+  const isTheirs = await bcrypt.compare(password, application.password);
+  if (!isTheirs) return null;
+
+  if (application.status === 'pending') {
+    return new ApiError(
+      403,
+      'Your mentor application is still under review. You will receive an email once it is approved.'
+    );
+  }
+  if (application.status === 'rejected') {
+    return new ApiError(403, 'Your mentor application was not approved on this occasion.');
+  }
+  return null;
+}
+
 async function login({ email, password }, req) {
   const user = await User.findOne({ email });
   if (!user || !user.passwordHash) {
+    // Before the generic failure: is this a mentor whose application hasn't been
+    // approved yet? Only answers if the password proves it's their application.
+    const pending = await explainPendingMentor(email, password);
+    if (pending) throw pending;
+
     // Record security event — use best-effort, don't fail the auth flow
     recordFailedLogin(
       req?.ip || 'unknown',

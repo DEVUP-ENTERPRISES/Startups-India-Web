@@ -671,10 +671,12 @@ function MonthlyStreakCalendar({ streak }) {
           if (!day) return <div key={idx} />;
           const isToday = isCurrentMonth && day === today.getDate();
           
-          // Force day 20 to have the flame highlight as shown in the mockup image
-          const isStreakHighlight = (day === 20 && isCurrentMonth) || (isCurrentMonth && activeDays.has(day));
+          // Driven by real activity only. This used to hardcode day 20 as a
+          // streak "as shown in the mockup", so every user saw a flame on the
+          // 20th whether or not they'd studied that day.
+          const isStreakHighlight = isCurrentMonth && activeDays.has(day);
           const isFuture = isCurrentMonth && day > today.getDate();
-          const hasFlame = day === 20 && isCurrentMonth; // The specific streak day 20 with the flame
+          const hasFlame = isStreakHighlight;
 
           return (
             <div
@@ -786,42 +788,24 @@ export default function DashboardPage() {
     return 'Good Evening';
   };
 
+  // Real data only. This previously fell back to hardcoded placeholder courses
+  // whenever a filter came back empty, which told the user they had a wishlist
+  // or completed courses they'd never actually touched — and the fake slugs
+  // 404'd on click. An empty list is rendered as a proper empty state below.
   const filteredCourses = useMemo(() => {
-    let result = [];
     if (activeCategory === 'expert') {
-      result = courses.filter(c => c.difficultyLevel?.toLowerCase() === 'advanced');
-      if (result.length === 0) {
-        result = [
-          { _id: 'mock_exp_1', courseTitle: 'Advanced Scaling & Global Expansion', difficultyLevel: 'Advanced', durationWeeks: 10, thumbnailUrl: 'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=600&h=400&fit=crop', slug: 'advanced-scaling' },
-          { _id: 'mock_exp_2', courseTitle: 'SaaS Product Architecture & DevOps', difficultyLevel: 'Advanced', durationWeeks: 8, thumbnailUrl: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&h=400&fit=crop', slug: 'saas-architecture' }
-        ];
-      }
-    } else if (activeCategory === 'android') {
-      result = courses.filter(c => c.category?.toLowerCase().includes('android'));
-      if (result.length === 0) {
-        result = [
-          { _id: 'mock_and_1', courseTitle: 'Android Architecture Components', difficultyLevel: 'Intermediate', durationWeeks: 6, thumbnailUrl: 'https://images.unsplash.com/photo-1607799279861-4dd421887fb3?w=600&h=400&fit=crop', slug: 'android-architecture' },
-          { _id: 'mock_and_2', courseTitle: 'Kotlin Multiplatform Mobile (KMM)', difficultyLevel: 'Advanced', durationWeeks: 8, thumbnailUrl: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=600&h=400&fit=crop', slug: 'kotlin-multiplatform' }
-        ];
-      }
-    } else if (activeCategory === 'wishlist') {
-      result = wishlist;
-      if (result.length === 0) {
-        result = [
-          { _id: 'mock_wish_1', courseTitle: 'AI-Driven Startup Automation', difficultyLevel: 'Advanced', durationWeeks: 8, thumbnailUrl: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=600&h=400&fit=crop', slug: 'ai-startup-automation' },
-          { _id: 'mock_wish_2', courseTitle: 'Venture Capital & Deal Structuring', difficultyLevel: 'Intermediate', durationWeeks: 6, thumbnailUrl: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=600&h=400&fit=crop', slug: 'venture-capital' }
-        ];
-      }
-    } else if (activeCategory === 'completed') {
-      result = enrolledCourses.filter(e => e.completed);
-      if (result.length === 0) {
-        result = [
-          { _id: 'mock_comp_1', courseTitle: 'Startup Founders Masterclass', difficultyLevel: 'Beginner', durationWeeks: 4, completed: true, thumbnailUrl: 'https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=600&h=400&fit=crop', slug: 'founders-masterclass' },
-          { _id: 'mock_comp_2', courseTitle: 'Growth Hacking & Viral Loops', difficultyLevel: 'Intermediate', durationWeeks: 6, completed: true, thumbnailUrl: 'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=600&h=400&fit=crop', slug: 'growth-hacking' }
-        ];
-      }
+      return courses.filter(c => c.difficultyLevel?.toLowerCase() === 'advanced');
     }
-    return result;
+    if (activeCategory === 'android') {
+      return courses.filter(c => c.category?.toLowerCase().includes('android'));
+    }
+    if (activeCategory === 'wishlist') {
+      return wishlist;
+    }
+    if (activeCategory === 'completed') {
+      return enrolledCourses.filter(e => e.completed);
+    }
+    return [];
   }, [activeCategory, courses, enrolledCourses, wishlist]);
 
   // Compute Incubation Phase
