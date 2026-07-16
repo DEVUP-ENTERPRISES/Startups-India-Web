@@ -29,6 +29,10 @@ import {
 import { signIn, initGoogleSignIn } from '@/lib/auth';
 import '@/styles/auth-redesign.css';
 
+// Must match middleware.js / NEXT_PUBLIC_ADMIN_SLUG — the admin panel is only
+// reachable through this slug.
+const ADMIN_SLUG = process.env.NEXT_PUBLIC_ADMIN_SLUG || 'ctrl-x9k2m3-panel';
+
 function LoginContent() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -66,11 +70,21 @@ function LoginContent() {
         }
         if (data) {
           setSuccess(true);
-          router.push(returnUrl);
+          router.push(getRedirectByRole(data));
         }
       });
     }
   }, [router, returnUrl]);
+
+  const getRedirectByRole = (userData) => {
+    const role = userData?.user?.role || userData?.role;
+    // The admin panel is served at /{ADMIN_SLUG}/*; middleware hard-404s any
+    // literal /admin path, so redirecting there would bounce every admin login.
+    if (role === 'admin') return `/${ADMIN_SLUG}/dashboard`;
+    if (role === 'mentor') return '/dashboard/mentor';
+    if (role === 'investor') return '/dashboard';
+    return returnUrl;
+  };
 
   const handleSubmit = async e => {
     e.preventDefault();
@@ -88,7 +102,7 @@ function LoginContent() {
 
       if (data) {
         setSuccess(true);
-        router.push(returnUrl);
+        router.push(getRedirectByRole(data));
       }
     } catch (err) {
       setError('An unexpected error occurred. Please try again.');

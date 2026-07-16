@@ -66,6 +66,16 @@ export default function DashboardLayoutClient({ children }) {
     checkAuth();
   }, [router]);
 
+  // Redirect mentors to their specific dashboard
+  useEffect(() => {
+    if (user && user.role === 'mentor') {
+      const path = typeof window !== 'undefined' ? window.location.pathname : '';
+      if (path === '/dashboard') {
+        router.replace('/dashboard/mentor');
+      }
+    }
+  }, [user, router]);
+
   // Lock body scroll when mobile menu is open
   useEffect(() => {
     if (isMobileMenuOpen) {

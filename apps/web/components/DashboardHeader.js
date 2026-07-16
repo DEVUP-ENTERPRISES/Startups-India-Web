@@ -344,7 +344,7 @@ export default function DashboardHeader({ onOpenMobileMenu }) {
             </div>
             <div className="user-info hide-mobile">
               <span className="user-name" style={{ fontWeight: 700 }}>{activeName}</span>
-              <span className="user-role" style={{ color: '#E63946', fontWeight: 800, textTransform: 'uppercase', fontSize: '9px', letterSpacing: '0.05em' }}>Founder</span>
+              <span className="user-role" style={{ color: user?.role === 'mentor' ? '#10b981' : user?.role === 'admin' ? '#6366f1' : '#E63946', fontWeight: 800, textTransform: 'uppercase', fontSize: '9px', letterSpacing: '0.05em' }}>{user?.role === 'mentor' ? 'Mentor' : user?.role === 'admin' ? 'Admin' : 'Founder'}</span>
             </div>
           </div>
 

@@ -3,16 +3,33 @@ const { MentorRequest } = require('../../models/MentorRequest');
 const { sendEmail } = require('../../utils/emailService');
 const bcrypt = require('bcryptjs');
 const mentorsService = require('./mentors.service');
+const approvalService = require('./mentorApproval.service');
 
+// ─── PUBLIC: Apply as Mentor ────────────────────────────────────────
 exports.applyMentor = async (req, res) => {
   const { fullName, email, password, phone, currentRole, company, experience, linkedin, expertise, bio, availability } = req.body;
 
   try {
+    // Check for duplicate application
+    const existing = await MentorApplication.findOne({ email: email.toLowerCase() });
+    if (existing) {
+      if (existing.status === 'pending') {
+        return res.status(409).json({ success: false, message: 'An application with this email is already under review.' });
+      }
+      if (existing.status === 'approved') {
+        return res.status(409).json({ success: false, message: 'This email is already an approved mentor. Please log in.' });
+      }
+      // If rejected, allow re-application — delete old one
+      if (existing.status === 'rejected') {
+        await MentorApplication.deleteOne({ _id: existing._id });
+      }
+    }
+
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
     const application = new MentorApplication({
-      fullName, email, password: hashedPassword, phone, currentRole, company, experience, linkedin, expertise, bio, availability
+      fullName, email: email.toLowerCase(), password: hashedPassword, phone, currentRole, company, experience, linkedin, expertise, bio, availability
     });
 
     await application.save();
@@ -40,6 +57,7 @@ exports.applyMentor = async (req, res) => {
   }
 };
 
+// ─── PROTECTED: Find a Mentor (user request) ───────────────────────
 exports.findMentor = async (req, res) => {
   const { name, email, phone, area, message } = req.body;
   const userId = req.user.userId;
@@ -74,24 +92,106 @@ exports.findMentor = async (req, res) => {
   }
 };
 
+// ─── ADMIN: List Applications ───────────────────────────────────────
 exports.getApplications = async (req, res) => {
   try {
-    const applications = await MentorApplication.find().sort({ createdAt: -1 });
+    const { status, search } = req.query;
+    const filter = {};
+    if (status && status !== 'all') filter.status = status;
+    if (search) {
+      filter.$or = [
+        { fullName: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
+      ];
+    }
+    const applications = await MentorApplication.find(filter).sort({ createdAt: -1 });
     res.json({ success: true, data: applications });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Failed to fetch applications' });
   }
 };
 
+// ─── ADMIN: Get Single Application Details ──────────────────────────
+exports.getApplicationDetails = async (req, res) => {
+  try {
+    const application = await approvalService.getApplicationDetails(req.params.id);
+    res.json({ success: true, data: application });
+  } catch (error) {
+    res.status(error.statusCode || 500).json({ success: false, message: error.message });
+  }
+};
+
+// ─── ADMIN: Approve Application ─────────────────────────────────────
+exports.approveApplication = async (req, res) => {
+  try {
+    const application = await approvalService.approveMentorApplication(req.params.id);
+    res.json({ success: true, data: application, message: 'Mentor approved and account created successfully' });
+  } catch (error) {
+    res.status(error.statusCode || 500).json({ success: false, message: error.message });
+  }
+};
+
+// ─── ADMIN: Reject Application ──────────────────────────────────────
+exports.rejectApplication = async (req, res) => {
+  try {
+    const { reason } = req.body;
+    const application = await approvalService.rejectMentorApplication(req.params.id, reason);
+    res.json({ success: true, data: application, message: 'Application rejected' });
+  } catch (error) {
+    res.status(error.statusCode || 500).json({ success: false, message: error.message });
+  }
+};
+
+// ─── ADMIN: List Mentor Requests ────────────────────────────────────
 exports.getRequests = async (req, res) => {
   try {
-    const requests = await MentorRequest.find().populate('user', 'name email').sort({ createdAt: -1 });
+    const requests = await MentorRequest.find().populate('user', 'fullName email').sort({ createdAt: -1 });
     res.json({ success: true, data: requests });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Failed to fetch requests' });
   }
 };
 
+// ─── MENTOR: My Dashboard ───────────────────────────────────────────
+exports.getMentorDashboard = async (req, res) => {
+  try {
+    const data = await approvalService.getMentorDashboard(req.user.userId);
+    res.json({ success: true, data });
+  } catch (error) {
+    res.status(error.statusCode || 500).json({ success: false, message: error.message });
+  }
+};
+
+// ─── MENTOR: My Profile ─────────────────────────────────────────────
+exports.getMentorProfile = async (req, res) => {
+  try {
+    const profile = await approvalService.getMentorProfile(req.user.userId);
+    res.json({ success: true, data: profile });
+  } catch (error) {
+    res.status(error.statusCode || 500).json({ success: false, message: error.message });
+  }
+};
+
+exports.updateMentorProfile = async (req, res) => {
+  try {
+    const profile = await approvalService.updateMentorProfile(req.user.userId, req.body);
+    res.json({ success: true, data: profile });
+  } catch (error) {
+    res.status(error.statusCode || 500).json({ success: false, message: error.message });
+  }
+};
+
+// ─── MENTOR: My Requests ────────────────────────────────────────────
+exports.getMentorRequests = async (req, res) => {
+  try {
+    const requests = await approvalService.getMentorRequests(req.user.userId);
+    res.json({ success: true, data: requests });
+  } catch (error) {
+    res.status(error.statusCode || 500).json({ success: false, message: error.message });
+  }
+};
+
+// ─── PUBLIC: Welcome Email ──────────────────────────────────────────
 exports.sendWelcomeEmail = async (req, res) => {
   try {
     const { email, fullName, expertise } = req.body;

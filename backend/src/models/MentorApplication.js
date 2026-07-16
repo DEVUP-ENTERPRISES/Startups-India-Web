@@ -18,6 +18,9 @@ const mentorApplicationSchema = new mongoose.Schema(
       enum: ['pending', 'approved', 'rejected'],
       default: 'pending',
     },
+    rejectionReason: { type: String, default: '' },
+    approvedAt: { type: Date, default: null },
+    rejectedAt: { type: Date, default: null },
   },
   { timestamps: true }
 );

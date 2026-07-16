@@ -15,7 +15,34 @@ export default function DashboardSidebar({
   const pathname = usePathname();
   const [openSectionId, setOpenSectionId] = useState(null);
 
-  const navigation = [
+  const mentorNavigation = [
+    {
+      id: 'mentor-home',
+      label: 'Dashboard',
+      path: '/dashboard/mentor',
+      icon: 'dashboard',
+      items: [],
+    },
+    {
+      id: 'mentor-mentees',
+      label: 'My Mentees',
+      path: '/dashboard/mentor/mentees',
+      icon: 'profile',
+      items: [],
+    },
+    {
+      id: 'mentor-profile',
+      label: 'My Profile',
+      path: '/dashboard/mentor/profile',
+      icon: 'settings',
+      items: [],
+    },
+    // 'Sessions' and 'Availability' are intentionally absent: there is no session
+    // model or endpoint behind them, and availability is a single field edited on
+    // the profile page. Linking to pages that 404 is worse than not linking.
+  ];
+
+  const studentNavigation = [
     {
       id: 'main',
       label: 'Dashboard',
@@ -179,6 +206,8 @@ export default function DashboardSidebar({
       ],
     },
   ];
+
+  const navigation = user?.role === 'mentor' ? mentorNavigation : studentNavigation;
 
   const isActive = path => {
     if (path === '/dashboard') return pathname === '/dashboard';
