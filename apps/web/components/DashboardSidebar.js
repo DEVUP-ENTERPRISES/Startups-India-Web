@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { signOut } from '@/lib/auth';
+import { getGrantConfig } from '@/lib/grants';
 
 export default function DashboardSidebar({
   user,
@@ -13,6 +14,23 @@ export default function DashboardSidebar({
 }) {
   const pathname = usePathname();
   const [openSectionId, setOpenSectionId] = useState(null);
+
+  // The grant menu title is set by the admin (grant.ui.sidebarLabel). Held in
+  // state rather than imported as a constant so renaming it in Admin Settings
+  // takes effect without a redeploy.
+  const [grantLabel, setGrantLabel] = useState('Apply for Startup Grant');
+
+  useEffect(() => {
+    let cancelled = false;
+    getGrantConfig()
+      .then(({ data }) => {
+        if (!cancelled && data?.sidebarLabel) setGrantLabel(data.sidebarLabel);
+      })
+      .catch(() => {}); // keep the default label if config is unreachable
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const navigation = [
     {
@@ -154,6 +172,24 @@ export default function DashboardSidebar({
           label: 'Doubts / Q&A',
           path: '/dashboard/community/doubts',
           icon: 'wishlist',
+        },
+      ],
+    },
+    {
+      id: 'grants',
+      // Label is admin-configurable (grant.ui.sidebarLabel). grantLabel falls back
+      // to the default until the config request resolves, so the item never
+      // flashes as blank.
+      label: grantLabel,
+      isDropdown: true,
+      icon: 'award',
+      items: [
+        { id: 'grant-apply', label: 'Apply for Grant', path: '/dashboard/grants', icon: 'explore' },
+        {
+          id: 'grant-applications',
+          label: 'My Applications',
+          path: '/dashboard/grants/applications',
+          icon: 'courses',
         },
       ],
     },

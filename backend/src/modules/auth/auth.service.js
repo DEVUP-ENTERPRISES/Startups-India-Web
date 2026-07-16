@@ -91,7 +91,11 @@ async function login({ email, password }, req) {
   // Second factor. The password was correct, but for a 2FA account that only
   // earns a short-lived pending token — no access/refresh token is minted here,
   // so a stolen password alone buys nothing.
-  if (user.twoFactorEnabled && user.phoneE164 && user.phoneVerifiedAt) {
+  //
+  // Gated by the global TWO_FACTOR_ENABLED switch: while 2FA is paused, even an
+  // account with twoFactorEnabled=true logs in with just the password. Without
+  // this gate, pausing would strand every 2FA user behind an SMS that isn't sent.
+  if (env.TWO_FACTOR_ENABLED && user.twoFactorEnabled && user.phoneE164 && user.phoneVerifiedAt) {
     // Lazily required: twoFactor.service needs generateAndStoreTokens from this
     // module, so a top-level require would be circular.
     const twoFactorService = require('./twoFactor.service');

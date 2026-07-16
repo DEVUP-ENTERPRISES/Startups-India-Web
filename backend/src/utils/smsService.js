@@ -50,7 +50,10 @@ async function msg91Driver({ to, variables }) {
     throw new Error(`MSG91 send failed: ${reason}`);
   }
 
-  return { provider: 'msg91', messageId: body.request_id || null };
+  // On success the v5 flow API returns the request id in `message`
+  // (e.g. {"message":"36676f…","type":"success"}) — NOT `request_id`. This id is
+  // what you paste into MSG91's delivery report to trace a specific send.
+  return { provider: 'msg91', messageId: body.request_id || body.message || null };
 }
 
 const DRIVERS = { console: consoleDriver, msg91: msg91Driver };

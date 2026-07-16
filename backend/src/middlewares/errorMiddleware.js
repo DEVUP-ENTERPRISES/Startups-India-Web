@@ -19,12 +19,22 @@ function errorMiddleware(err, req, res, next) {
     payload.stack = err.stack;
   }
 
-  logger.error('Request failed', err, {
+  const context = {
     requestId: req.requestId,
     path: req.path,
     method: req.method,
     statusCode,
-  });
+  };
+
+  if (statusCode >= 500) {
+    // A real server fault — log it loud, with the stack, so it's actionable.
+    logger.error('Request failed', err, context);
+  } else {
+    // A 4xx is the CLIENT's condition, not a server error: an expired token on
+    // /auth/me, a validation miss, a 404. Logging these at error level with a
+    // stack trace buries the genuine 500s in noise. Warn, no stack.
+    logger.warn('Request rejected', { ...context, message: err.message });
+  }
 
   res.status(statusCode).json(payload);
 }

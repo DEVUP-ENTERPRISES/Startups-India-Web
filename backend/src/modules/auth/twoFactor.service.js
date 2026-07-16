@@ -435,6 +435,12 @@ async function confirmPhoneVerification({ userId, code }, req) {
 // ─── ENABLE / DISABLE ───────────────────────────────────────────────────
 
 async function enableTwoFactor({ userId }, req) {
+  // Feature is paused globally — don't let anyone switch on something that won't
+  // challenge at login anyway (and would just confuse them).
+  if (!env.TWO_FACTOR_ENABLED) {
+    throw new ApiError(503, 'Two-factor authentication is temporarily unavailable.');
+  }
+
   const user = await User.findById(userId);
   if (!user) throw new ApiError(404, 'User not found');
 

@@ -48,6 +48,12 @@ const env = {
   PASSWORD_RESET_COOLDOWN_SECONDS: Number(process.env.PASSWORD_RESET_COOLDOWN_SECONDS || 60),
 
   // ─── SMS / PHONE OTP ──────────────────────────────────────────────────
+  // Global kill-switch for SMS two-factor. Default OFF (paused) while SMS
+  // delivery is being sorted out. When false, login never issues a 2FA
+  // challenge — so a user who already enabled 2FA is NOT locked out by an SMS
+  // they can't receive. Flip to 'true' to switch the whole flow back on.
+  TWO_FACTOR_ENABLED: process.env.TWO_FACTOR_ENABLED === 'true',
+
   // 'msg91' in production; 'console' prints the OTP to the terminal for local dev.
   SMS_PROVIDER: process.env.SMS_PROVIDER || 'console',
   MSG91_AUTH_KEY: process.env.MSG91_AUTH_KEY || '',
@@ -87,13 +93,18 @@ if (env.NODE_ENV === 'production') {
   if (!env.SMTP_HOST) {
     throw new Error('SMTP_HOST must be configured in production (password reset depends on it)');
   }
-  // The console driver prints OTPs to stdout. If that ever ran in production it
-  // would mean every 2FA code is sitting in the logs and no SMS is being sent.
-  if (env.SMS_PROVIDER === 'console') {
-    throw new Error('SMS_PROVIDER must not be "console" in production — set it to "msg91"');
-  }
-  if (env.SMS_PROVIDER === 'msg91' && !env.MSG91_AUTH_KEY) {
-    throw new Error('MSG91_AUTH_KEY is required when SMS_PROVIDER=msg91');
+  // SMS config is only enforced when 2FA is actually switched on. While it's
+  // paused, a production box shouldn't be forced to carry MSG91 credentials for
+  // a flow that never runs.
+  if (env.TWO_FACTOR_ENABLED) {
+    // The console driver prints OTPs to stdout. If that ever ran in production it
+    // would mean every 2FA code is sitting in the logs and no SMS is being sent.
+    if (env.SMS_PROVIDER === 'console') {
+      throw new Error('SMS_PROVIDER must not be "console" when TWO_FACTOR_ENABLED — set it to "msg91"');
+    }
+    if (env.SMS_PROVIDER === 'msg91' && !env.MSG91_AUTH_KEY) {
+      throw new Error('MSG91_AUTH_KEY is required when SMS_PROVIDER=msg91');
+    }
   }
 }
 
