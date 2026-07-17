@@ -185,7 +185,9 @@ export default function DashboardSidebar({
       id: 'community',
       label: 'Community',
       isDropdown: true,
-      isLocked: true,
+      // Unlocked: the community pages (discussions, groups, doubts) are built
+      // and reachable on this branch, so gating them behind a lock hid working
+      // features. The remaining locks are for sections that aren't ready yet.
       icon: 'profile',
       items: [
         {
