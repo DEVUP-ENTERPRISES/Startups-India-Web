@@ -7,10 +7,30 @@ export default function FinalCTASection() {
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
 
-  const handleSubmit = (e) => {
+  const [status, setStatus] = useState({ state: 'idle', message: '' });
+
+  // Previously console.logged only, so every signup was thrown away. Routed to
+  // the same public inquiry endpoint, which records a Lead and notifies admin.
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle form submission
-    console.log('Newsletter signup:', { name, email });
+    setStatus({ state: 'sending', message: '' });
+
+    const { apiPost } = await import('@/lib/api');
+    const { error } = await apiPost('/api/v1/public/inquiry', {
+      name,
+      email,
+      program: 'Newsletter / Get Started',
+      message: 'Signed up via the homepage call-to-action.',
+    });
+
+    if (error) {
+      setStatus({ state: 'error', message: error.message || 'Something went wrong. Please try again.' });
+      return;
+    }
+
+    setStatus({ state: 'sent', message: "You're on the list — we'll be in touch shortly." });
+    setName('');
+    setEmail('');
   };
 
   const benefits = [
@@ -144,8 +164,25 @@ export default function FinalCTASection() {
                 />
               </div>
             </div>
-            <button type="submit" className="form-submit">
-              <span>Join Our Community</span>
+            {status.state !== 'idle' && status.message && (
+              <p
+                role="status"
+                style={{
+                  margin: '0 0 12px',
+                  padding: '10px 14px',
+                  borderRadius: '10px',
+                  fontSize: '13.5px',
+                  fontWeight: 600,
+                  background: status.state === 'error' ? 'rgba(239,68,68,0.12)' : 'rgba(16,185,129,0.12)',
+                  color: status.state === 'error' ? '#fca5a5' : '#6ee7b7',
+                }}
+              >
+                {status.message}
+              </p>
+            )}
+
+            <button type="submit" className="form-submit" disabled={status.state === 'sending'}>
+              <span>{status.state === 'sending' ? 'Joining…' : 'Join Our Community'}</span>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <path d="M5 12h14M12 5l7 7-7 7"/>
               </svg>

@@ -15,9 +15,38 @@ export default function ContactSection() {
     message: '',
   });
 
-  const handleSubmit = e => {
+  const [status, setStatus] = useState({ state: 'idle', message: '' });
+
+  // This form previously only console.logged: every enquiry a visitor typed was
+  // silently discarded. POST /api/v1/public/inquiry stores it as a Lead (visible
+  // in Admin → Leads/CRM) and emails the admin.
+  const handleSubmit = async e => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
+    setStatus({ state: 'sending', message: '' });
+
+    const { apiPost } = await import('@/lib/api');
+    const { error } = await apiPost('/api/v1/public/inquiry', {
+      name: `${formData.firstName} ${formData.lastName}`.trim(),
+      email: formData.email,
+      phone: formData.phone,
+      company: formData.company,
+      program: formData.subject,
+      message: formData.message,
+    });
+
+    if (error) {
+      setStatus({
+        state: 'error',
+        message: error.message || 'Could not send your message. Please try again.',
+      });
+      return;
+    }
+
+    setStatus({ state: 'sent', message: "Thanks — we've received your message and will be in touch." });
+    setFormData({
+      firstName: '', lastName: '', email: '', phone: '',
+      company: '', subject: '', message: '',
+    });
   };
 
   const handleChange = e => {
@@ -316,8 +345,26 @@ export default function ContactSection() {
                   ></textarea>
                 </div>
 
-                <button type="submit" className="form-submit-pro">
-                  <span>Send Message</span>
+                {status.state !== 'idle' && status.message && (
+                  <p
+                    role="status"
+                    style={{
+                      margin: '0 0 14px',
+                      padding: '11px 14px',
+                      borderRadius: '10px',
+                      fontSize: '13.5px',
+                      fontWeight: 600,
+                      background: status.state === 'error' ? '#fef2f2' : '#f0fdf4',
+                      color: status.state === 'error' ? '#b91c1c' : '#047857',
+                      border: `1px solid ${status.state === 'error' ? '#fee2e2' : '#dcfce7'}`,
+                    }}
+                  >
+                    {status.message}
+                  </p>
+                )}
+
+                <button type="submit" className="form-submit-pro" disabled={status.state === 'sending'}>
+                  <span>{status.state === 'sending' ? 'Sending…' : 'Send Message'}</span>
                   <svg
                     width="20"
                     height="20"
