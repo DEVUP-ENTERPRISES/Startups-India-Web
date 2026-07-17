@@ -139,10 +139,15 @@ export default function MentorsPage() {
         const currentUser = data?.user || null;
         setUser(currentUser);
         
+        // Finding a mentor is for existing users, so it stays behind a session.
         if (window.location.hash === '#find-mentor' && currentUser) {
           setShowUserRegModal(true);
         }
-        if (window.location.hash === '#become-mentor' && currentUser) {
+        // Applying to BE a mentor must NOT require a session: the applicant has
+        // no account yet — the modal itself collects their email and password.
+        // Gating this on currentUser silently did nothing for exactly the people
+        // the link is meant for.
+        if (window.location.hash === '#become-mentor') {
           setShowModal(true);
         }
       } catch (err) {

@@ -411,6 +411,11 @@ function LoginContent() {
 
                 <div className="signup-footer">
                   <p>Don't have an account? <a href="/signup" onClick={(e) => handleNavigation(e, '/signup')} className="signup-action">Sign up</a></p>
+                  {/* Mentors sign in with this same form once approved — they are
+                      just Users with role='mentor'. They only need a way to apply. */}
+                  <p style={{ marginTop: '8px', fontSize: '13px' }}>
+                    Want to mentor startups? <a href="/mentors#become-mentor" className="signup-action">Apply as a Mentor</a>
+                  </p>
                 </div>
               </motion.div>
             )}

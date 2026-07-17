@@ -380,6 +380,12 @@ function SignupContent() {
 
                 <div className="signup-footer">
                   <p>Already have an account? <a href="/login" onClick={(e) => handleNavigation(e, '/login')} className="signup-action">Sign in</a></p>
+                  {/* This form creates a founder account. Mentors apply through a
+                      separate reviewed flow, so without this link they'd sign up
+                      here and never actually become a mentor. */}
+                  <p style={{ marginTop: '8px', fontSize: '13px' }}>
+                    Want to mentor startups? <a href="/mentors#become-mentor" className="signup-action">Apply as a Mentor</a>
+                  </p>
                 </div>
               </motion.div>
             )}
