@@ -1,15 +1,68 @@
+const crypto = require('crypto');
 const { MentorApplication } = require('../../models/MentorApplication');
 const { MentorRequest } = require('../../models/MentorRequest');
 const { sendEmail } = require('../../utils/emailService');
 const bcrypt = require('bcryptjs');
 const mentorsService = require('./mentors.service');
 const approvalService = require('./mentorApproval.service');
+const { generateUploadUrl } = require('../../utils/s3');
+
+// ─── PUBLIC: Presigned URL for the applicant's profile photo ────────
+// Mentor applicants have no account yet, so this is unauthenticated. It is kept
+// safe by: only ever issuing keys under mentors/applications/, allowing image
+// types only, and being rate-limited at the route. The browser PUTs the bytes
+// straight to S3; only the resulting URL is later submitted with the application.
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
+exports.getApplicationPhotoUploadUrl = async (req, res) => {
+  const { fileType, fileName } = req.body || {};
+
+  if (!ALLOWED_IMAGE_TYPES.includes(fileType)) {
+    return res.status(400).json({ success: false, message: 'Please upload a JPG, PNG or WebP image.' });
+  }
+
+  const ext = (fileName && fileName.includes('.') ? fileName.split('.').pop() : 'jpg')
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '')
+    .slice(0, 5);
+  const key = `mentors/applications/${crypto.randomBytes(12).toString('hex')}.${ext}`;
+
+  try {
+    const presigned = await generateUploadUrl({ key, contentType: fileType, expiresIn: 300 });
+    // fileUrl is the public S3 object URL to submit with the application.
+    return res.json({
+      success: true,
+      data: { uploadUrl: presigned.uploadUrl, fileUrl: presigned.fileUrl, key: presigned.key },
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: 'Could not prepare the upload. Please try again.' });
+  }
+};
 
 // ─── PUBLIC: Apply as Mentor ────────────────────────────────────────
 exports.applyMentor = async (req, res) => {
-  const { fullName, email, password, phone, currentRole, company, experience, linkedin, expertise, bio, availability } = req.body;
+  const {
+    fullName, email, password, phone, profileImage,
+    currentRole, company, experience, linkedin, expertise, bio, availability,
+  } = req.body;
 
   try {
+    // Public endpoint — validate the essentials rather than trusting the client.
+    if (!fullName || !email || !password || !phone || !currentRole || !company || !bio) {
+      return res.status(400).json({ success: false, message: 'Please fill in all required fields.' });
+    }
+    if (String(password).length < 6) {
+      return res.status(400).json({ success: false, message: 'Password must be at least 6 characters.' });
+    }
+    if (!Array.isArray(expertise) || expertise.length === 0) {
+      return res.status(400).json({ success: false, message: 'Please add at least one area of expertise.' });
+    }
+    // Only accept an image URL that came from our own S3 uploader — never an
+    // arbitrary external URL a caller could point at anything.
+    if (profileImage && !/^https:\/\/[a-z0-9.-]*amazonaws\.com\//i.test(profileImage)) {
+      return res.status(400).json({ success: false, message: 'Invalid profile image.' });
+    }
+
     // Check for duplicate application
     const existing = await MentorApplication.findOne({ email: email.toLowerCase() });
     if (existing) {
@@ -29,7 +82,9 @@ exports.applyMentor = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, salt);
 
     const application = new MentorApplication({
-      fullName, email: email.toLowerCase(), password: hashedPassword, phone, currentRole, company, experience, linkedin, expertise, bio, availability
+      fullName, email: email.toLowerCase(), password: hashedPassword, phone,
+      profileImage: profileImage || null,
+      currentRole, company, experience, linkedin, expertise, bio, availability,
     });
 
     await application.save();
@@ -137,6 +192,16 @@ exports.rejectApplication = async (req, res) => {
     const { reason } = req.body;
     const application = await approvalService.rejectMentorApplication(req.params.id, reason);
     res.json({ success: true, data: application, message: 'Application rejected' });
+  } catch (error) {
+    res.status(error.statusCode || 500).json({ success: false, message: error.message });
+  }
+};
+
+// ─── ADMIN: Delete Mentor / Application ─────────────────────────────
+exports.deleteApplication = async (req, res) => {
+  try {
+    const result = await approvalService.deleteMentor(req.params.id);
+    res.json({ success: true, data: result, message: 'Mentor removed' });
   } catch (error) {
     res.status(error.statusCode || 500).json({ success: false, message: error.message });
   }

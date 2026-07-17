@@ -9,7 +9,10 @@ const mentorSchema = new mongoose.Schema(
     profileImage: { type: String, default: null },
     currentRole: { type: String, required: true },
     company: { type: String, required: true },
-    experience: { type: String, required: true },
+    // Optional: the shortened application doesn't collect this; mentor adds it
+    // on their profile after approval. Was required, which would reject the
+    // approval of any mentor who applied via the short form.
+    experience: { type: String, default: '' },
     linkedinUrl: { type: String, default: null },
     previousCompanies: { type: [String], default: [] },
     expertise: { type: [String], default: [] },

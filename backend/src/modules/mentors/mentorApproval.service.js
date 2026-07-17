@@ -4,8 +4,12 @@ const { User } = require('../users/user.model');
 const { Mentor } = require('../profiles/mentor.model');
 const { sendEmail } = require('../../utils/emailService');
 const { ApiError } = require('../../utils/apiError');
+const env = require('../../config/env');
 
-const FRONTEND_URL = process.env.CORS_ORIGIN || 'http://localhost:3000';
+// Use the dedicated FRONTEND_URL rather than CORS_ORIGIN: CORS_ORIGIN is an
+// allow-list that may hold several origins, and env.FRONTEND_URL is the one the
+// config guards against being left as localhost in production.
+const FRONTEND_URL = env.FRONTEND_URL;
 
 // ─── APPROVE ────────────────────────────────────────────────────────
 async function approveMentorApplication(applicationId) {
@@ -53,6 +57,9 @@ async function approveMentorApplication(applicationId) {
     mentorProfile.availability = application.availability;
     mentorProfile.linkedinUrl = application.linkedin || null;
     mentorProfile.phone = application.phone;
+    // Only overwrite the photo if the application actually has one, so a
+    // re-approval never blanks an image the mentor set later.
+    if (application.profileImage) mentorProfile.profileImage = application.profileImage;
     await mentorProfile.save();
   } else {
     mentorProfile = await Mentor.create({
@@ -60,6 +67,7 @@ async function approveMentorApplication(applicationId) {
       fullName: application.fullName,
       email: application.email.toLowerCase(),
       phone: application.phone,
+      profileImage: application.profileImage || null,
       currentRole: application.currentRole,
       company: application.company,
       experience: application.experience,
@@ -78,11 +86,14 @@ async function approveMentorApplication(applicationId) {
   await application.save();
 
   // 4. Send approval email
-  const loginLink = `${FRONTEND_URL}/login`;
+  // Mentors get their own branded sign-in page; it routes them straight to the
+  // mentor dashboard on success.
+  const loginLink = `${FRONTEND_URL}/mentor-login`;
+  const resetLink = `${FRONTEND_URL}/forgot-password`;
   await sendEmail({
     to: application.email,
     subject: '🎉 Congratulations! Your Mentor Application Has Been Approved',
-    html: getMentorApprovalEmail(application.fullName, loginLink),
+    html: getMentorApprovalEmail(application.fullName, loginLink, application.email, resetLink),
   });
 
   return application;
@@ -184,7 +195,7 @@ async function getMentorRequests(userId) {
 }
 
 // ─── EMAIL TEMPLATES ────────────────────────────────────────────────
-function getMentorApprovalEmail(fullName, loginLink) {
+function getMentorApprovalEmail(fullName, loginLink, email, resetLink) {
   return `
 <!DOCTYPE html>
 <html lang="en">
@@ -218,9 +229,31 @@ function getMentorApprovalEmail(fullName, loginLink) {
               <p style="margin: 0 0 16px 0; color: #666; font-size: 16px; line-height: 1.6;">
                 We are thrilled to inform you that your mentor application has been <strong style="color: #10B981;">approved</strong>! Welcome to the Startup India Incubation mentor community.
               </p>
-              <p style="margin: 0 0 24px 0; color: #666; font-size: 16px; line-height: 1.6;">
+              <p style="margin: 0 0 20px 0; color: #666; font-size: 16px; line-height: 1.6;">
                 You can now log in to your Mentor Dashboard to manage your mentees, set your availability, and start making an impact.
               </p>
+
+              <!-- The mentor chose their own password when applying and we only
+                   ever stored a bcrypt hash of it, so there is no password to
+                   send here. Spell out exactly which credentials to use instead:
+                   without this, "Log In" is a dead end for anyone who assumed a
+                   password would be issued to them. -->
+              <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px; margin-bottom: 20px;">
+                <p style="margin: 0 0 10px 0; color: #1a1a1a; font-size: 14px; font-weight: 700;">
+                  Your sign-in details
+                </p>
+                <p style="margin: 0 0 6px 0; color: #475569; font-size: 14px; line-height: 1.6;">
+                  <strong style="color: #1a1a1a;">Email:</strong> ${email}
+                </p>
+                <p style="margin: 0 0 12px 0; color: #475569; font-size: 14px; line-height: 1.6;">
+                  <strong style="color: #1a1a1a;">Password:</strong> the password you created when you applied
+                </p>
+                <p style="margin: 0; color: #64748b; font-size: 13px; line-height: 1.6;">
+                  For your security we never store your password in a readable form, so we can't include it here.
+                  Forgotten it? <a href="${resetLink}" style="color: #e63946; font-weight: 600;">Reset your password</a>.
+                </p>
+              </div>
+
               <table role="presentation" style="width: 100%; border-collapse: collapse;">
                 <tr>
                   <td align="center" style="padding: 8px 0 24px 0;">
@@ -316,9 +349,40 @@ function getMentorRejectionEmail(fullName, reason) {
 </html>`;
 }
 
+/**
+ * Fully remove a mentor: delete the application, delete the Mentor profile (so
+ * they drop off the public listing), and downgrade the linked User back to a
+ * normal 'user'.
+ *
+ * The User account itself is NOT deleted — it may own enrolments, payments or
+ * other data, and nuking it would orphan those. Downgrading the role is the
+ * reversible, non-destructive way to revoke mentor status.
+ */
+async function deleteMentor(applicationId) {
+  const application = await MentorApplication.findById(applicationId);
+  if (!application) throw new ApiError(404, 'Application not found');
+
+  const email = application.email.toLowerCase();
+
+  // Drop the public-facing profile.
+  await Mentor.deleteOne({ email });
+
+  // Revoke mentor access without destroying the account.
+  const user = await User.findOne({ email });
+  if (user && user.role === 'mentor') {
+    user.role = 'user';
+    await user.save();
+  }
+
+  await MentorApplication.deleteOne({ _id: application._id });
+
+  return { deleted: true };
+}
+
 module.exports = {
   approveMentorApplication,
   rejectMentorApplication,
+  deleteMentor,
   getApplicationDetails,
   getMentorDashboard,
   getMentorProfile,

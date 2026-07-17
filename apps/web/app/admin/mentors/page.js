@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { apiGet, apiPatch } from '@/lib/api';
+import { apiGet, apiPatch, apiDelete } from '@/lib/api';
 
 const STATUS_COLORS = {
   pending: { bg: '#fef3c7', color: '#d97706', label: 'Pending' },
@@ -20,6 +20,7 @@ export default function AdminMentorsPage() {
   const [actionLoading, setActionLoading] = useState(null);
   const [rejectModal, setRejectModal] = useState(null);
   const [rejectReason, setRejectReason] = useState('');
+  const [deleteModal, setDeleteModal] = useState(null); // holds the app being deleted
   const [toast, setToast] = useState(null);
 
   const showToast = (message, type = 'success') => {
@@ -87,6 +88,30 @@ export default function AdminMentorsPage() {
     }
   };
 
+  const handleDelete = async () => {
+    if (!deleteModal) return;
+    setActionLoading(deleteModal._id);
+    try {
+      const res = await apiDelete(`/api/v1/mentors/applications/${deleteModal._id}`);
+      if (res.error) {
+        showToast(res.error.message || 'Failed to delete', 'error');
+      } else {
+        showToast(
+          deleteModal.status === 'approved'
+            ? 'Mentor removed. They no longer appear on the site.'
+            : 'Application deleted.',
+          'success'
+        );
+        fetchData();
+      }
+    } catch (err) {
+      showToast('Failed to delete', 'error');
+    } finally {
+      setActionLoading(null);
+      setDeleteModal(null);
+    }
+  };
+
   const formatDate = (d) => d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
 
   const s = {
@@ -118,6 +143,7 @@ export default function AdminMentorsPage() {
     actionBar: { display: 'flex', gap: '8px', marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #f1f5f9' },
     approveBtn: { padding: '10px 24px', background: '#10b981', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '14px', transition: 'opacity 0.2s' },
     rejectBtn: { padding: '10px 24px', background: '#fff', color: '#ef4444', border: '1px solid #fecaca', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '14px', transition: 'all 0.2s' },
+    deleteBtn: { padding: '8px 16px', background: '#fff', color: '#b91c1c', border: '1px solid #fecaca', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '13px' },
     modalOverlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 },
     modal: { background: '#fff', borderRadius: '16px', padding: '32px', maxWidth: '480px', width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' },
     modalTitle: { fontSize: '18px', fontWeight: '700', color: '#1e293b', marginBottom: '8px' },
@@ -167,6 +193,42 @@ export default function AdminMentorsPage() {
                 disabled={actionLoading === rejectModal}
               >
                 {actionLoading === rejectModal ? 'Rejecting...' : 'Confirm Reject'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {deleteModal && (
+        <div style={s.modalOverlay} onClick={() => setDeleteModal(null)}>
+          <div style={s.modal} onClick={e => e.stopPropagation()}>
+            <h3 style={s.modalTitle}>
+              {deleteModal.status === 'approved' ? 'Remove this mentor?' : 'Delete this application?'}
+            </h3>
+            <p style={s.modalText}>
+              {deleteModal.status === 'approved' ? (
+                <>
+                  <strong>{deleteModal.fullName}</strong> will be removed from the public mentors
+                  page and lose mentor access. Their user account is kept (downgraded to a normal
+                  user), so their other data is preserved. This cannot be undone.
+                </>
+              ) : (
+                <>
+                  This permanently deletes <strong>{deleteModal.fullName}</strong>&apos;s application.
+                  This cannot be undone.
+                </>
+              )}
+            </p>
+            <div style={s.modalActions}>
+              <button style={s.cancelBtn} onClick={() => setDeleteModal(null)}>Cancel</button>
+              <button
+                style={s.confirmRejectBtn}
+                onClick={handleDelete}
+                disabled={actionLoading === deleteModal._id}
+              >
+                {actionLoading === deleteModal._id
+                  ? 'Removing...'
+                  : deleteModal.status === 'approved' ? 'Remove Mentor' : 'Delete'}
               </button>
             </div>
           </div>
@@ -325,8 +387,29 @@ export default function AdminMentorsPage() {
                     )}
 
                     {app.status === 'approved' && (
-                      <div style={{ ...s.actionBar, color: '#166534', fontSize: '13px', fontWeight: '500' }}>
-                        ✓ Approved on {formatDate(app.approvedAt)} — User account created
+                      <div style={{ ...s.actionBar, alignItems: 'center', justifyContent: 'space-between' }}>
+                        <span style={{ color: '#166534', fontSize: '13px', fontWeight: '500' }}>
+                          ✓ Approved on {formatDate(app.approvedAt)} — User account created
+                        </span>
+                        <button
+                          style={s.deleteBtn}
+                          onClick={() => setDeleteModal(app)}
+                          disabled={actionLoading === app._id}
+                        >
+                          🗑 Remove Mentor
+                        </button>
+                      </div>
+                    )}
+
+                    {app.status === 'rejected' && (
+                      <div style={{ ...s.actionBar, justifyContent: 'flex-end' }}>
+                        <button
+                          style={s.deleteBtn}
+                          onClick={() => setDeleteModal(app)}
+                          disabled={actionLoading === app._id}
+                        >
+                          🗑 Delete Application
+                        </button>
                       </div>
                     )}
                   </div>

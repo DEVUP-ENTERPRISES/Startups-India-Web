@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Rocket,
@@ -29,7 +30,22 @@ import '../../styles/mentors-sections.css';
 import '../../styles/modal.css';
 
 import { getCurrentUser } from '@/lib/auth';
+import { listPublicMentors } from '@/lib/mentors';
 import { useRouter, usePathname } from 'next/navigation';
+
+// Self-contained SVG data URI: initials on the brand red. Used when a mentor has
+// no photo, so the card never shows a broken image and needs no external service.
+function initialsAvatar(name) {
+  const initials = String(name || 'M')
+    .split(' ')
+    .map(w => w[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256"><rect width="256" height="256" fill="#e63946"/><text x="50%" y="50%" dy=".35em" text-anchor="middle" fill="#fff" font-family="Arial, sans-serif" font-size="110" font-weight="700">${initials}</text></svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
 
 function FindMentorModal({ onClose, user }) {
   const [form, setForm] = useState({ name: user?.name || '', email: user?.email || '', phone: '', area: '', message: '' });
@@ -156,10 +172,42 @@ export default function MentorsPage() {
       }
     };
     checkAuth();
-    
+
     window.addEventListener('auth-change', checkAuth);
     return () => window.removeEventListener('auth-change', checkAuth);
   }, [pathname]);
+
+  // Load the REAL approved mentors from the DB. This is what makes approval
+  // end-to-end: an admin approving an application creates an approved+active
+  // Mentor, which this endpoint returns, so the new mentor appears here with no
+  // further step. Falls back to the curated defaults only if none exist yet.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data } = await listPublicMentors();
+      if (cancelled || !Array.isArray(data) || data.length === 0) return;
+      // Map DB fields to the snake_case shape the mentor cards already expect
+      // (matching defaultMentors), so the same card component renders both.
+      setMentors(
+        data.map(m => ({
+          id: m._id,
+          full_name: m.fullName,
+          current_role: m.currentRole,
+          company: m.company,
+          profile_image: m.profileImage || null,
+          expertise: Array.isArray(m.expertise) ? m.expertise : [],
+          experience: m.experience || '',
+          previous_companies: m.previousCompanies || [],
+          rating: m.rating || 0,
+          total_mentees: m.totalMentees || 0,
+          total_sessions: m.totalSessions || 0,
+          bio: m.bio || '',
+          linkedin: m.linkedinUrl || null,
+        }))
+      );
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   const handleFindMentorClick = () => {
     if (!user) {
@@ -276,7 +324,18 @@ export default function MentorsPage() {
     },
   ];
 
-  const displayMentors = mentors.length > 0 ? mentors : defaultMentors;
+  // Show the curated mentors AND every approved mentor from the DB, with the DB
+  // ones appended after — so a newly approved mentor shows up LAST rather than
+  // replacing the existing showcase. Deduped by name so a curated mentor who
+  // also has a DB record isn't listed twice.
+  const displayMentors = [
+    ...defaultMentors,
+    ...mentors.filter(
+      db => !defaultMentors.some(
+        d => (d.full_name || '').trim().toLowerCase() === (db.full_name || '').trim().toLowerCase()
+      )
+    ),
+  ];
 
   return (
     <div className="mentors-page">
@@ -365,6 +424,25 @@ export default function MentorsPage() {
                   <line x1="23" y1="11" x2="17" y2="11" />
                 </svg>
               </button>
+
+              {/* Approved mentors had no way back in from here — the only login
+                  link on the site is the founder one. */}
+              {!user && (
+                <Link
+                  href="/mentor-login"
+                  style={{
+                    display: 'block',
+                    marginTop: '14px',
+                    fontSize: '13.5px',
+                    fontWeight: 600,
+                    color: 'rgba(255,255,255,0.85)',
+                    textDecoration: 'underline',
+                    textUnderlineOffset: '3px',
+                  }}
+                >
+                  Already a mentor? Sign in
+                </Link>
+              )}
             </motion.div>
 
             <motion.div
@@ -855,8 +933,9 @@ export default function MentorsPage() {
           ) : (
             <>
               <div className="mentors-grid-elite">
-                {/* Show 4 Mentor Cards */}
-                {displayMentors.slice(0, 4).map((mentor, index) => (
+                {/* Show all mentors — curated first, then newly approved ones.
+                    Capped at 4 before, which hid every mentor added after launch. */}
+                {displayMentors.map((mentor, index) => (
                   <motion.div
                     key={mentor.id}
                     className="mentor-card-elite"
@@ -870,7 +949,14 @@ export default function MentorsPage() {
                       <div className="mentor-card-front">
                         <div className="card-header-elite">
                           <div className="mentor-avatar-elite">
-                            <img src={mentor.profile_image} alt={mentor.full_name} />
+                            {/* Fall back to a self-contained initials avatar for
+                                mentors with no photo (or a broken URL) rather than
+                                showing a broken image. */}
+                            <img
+                              src={mentor.profile_image || initialsAvatar(mentor.full_name)}
+                              alt={mentor.full_name}
+                              onError={e => { e.currentTarget.src = initialsAvatar(mentor.full_name); }}
+                            />
                           </div>
                           <div className="rating-badge-elite">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">

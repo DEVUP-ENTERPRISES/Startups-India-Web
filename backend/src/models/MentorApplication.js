@@ -6,13 +6,17 @@ const mentorApplicationSchema = new mongoose.Schema(
     email: { type: String, required: true, trim: true },
     password: { type: String, required: true },
     phone: { type: String, required: true, trim: true },
+    // Uploaded to S3 during the (short) application; stored as a URL only.
+    profileImage: { type: String, default: null },
     currentRole: { type: String, required: true },
     company: { type: String, required: true },
-    experience: { type: String, required: true },
-    linkedin: { type: String },
+    // Optional: the shortened application no longer collects these. The mentor
+    // fills experience/availability in on their profile page after approval.
+    experience: { type: String, default: '' },
+    linkedin: { type: String, default: null },
     expertise: [{ type: String }],
     bio: { type: String, required: true },
-    availability: { type: String, required: true },
+    availability: { type: String, default: '' },
     status: {
       type: String,
       enum: ['pending', 'approved', 'rejected'],
