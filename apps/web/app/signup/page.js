@@ -386,6 +386,9 @@ function SignupContent() {
                   <p style={{ marginTop: '8px', fontSize: '13px' }}>
                     Want to mentor startups? <a href="/mentors#become-mentor" className="signup-action">Apply as a Mentor</a>
                   </p>
+                  <p style={{ marginTop: '6px', fontSize: '13px' }}>
+                    Want to invest? <a href="/investors#become-investor" className="signup-action">Apply as an Investor</a>
+                  </p>
                 </div>
               </motion.div>
             )}

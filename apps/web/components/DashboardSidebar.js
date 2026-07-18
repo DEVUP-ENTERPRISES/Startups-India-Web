@@ -43,6 +43,11 @@ export default function DashboardSidebar({
     // the profile page. Linking to pages that 404 is worse than not linking.
   ];
 
+  const investorNavigation = [
+    { id: 'investor-home', label: 'Dashboard', path: '/dashboard/investor', icon: 'dashboard', items: [] },
+    { id: 'investor-profile', label: 'My Profile', path: '/dashboard/investor/profile', icon: 'settings', items: [] },
+  ];
+
   // The grant menu title is set by the admin (grant.ui.sidebarLabel). Held in
   // state rather than imported as a constant so renaming it in Admin Settings
   // takes effect without a redeploy.
@@ -252,7 +257,10 @@ export default function DashboardSidebar({
     },
   ];
 
-  const navigation = user?.role === 'mentor' ? mentorNavigation : studentNavigation;
+  const navigation =
+    user?.role === 'mentor' ? mentorNavigation
+      : user?.role === 'investor' ? investorNavigation
+        : studentNavigation;
 
   const isActive = path => {
     if (path === '/dashboard') return pathname === '/dashboard';

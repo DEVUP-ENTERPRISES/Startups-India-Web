@@ -71,14 +71,13 @@ export default function DashboardLayoutClient({ children }) {
     checkAuth();
   }, [router]);
 
-  // Redirect mentors to their specific dashboard
+  // Redirect mentors and investors to their role-specific dashboard.
   useEffect(() => {
-    if (user && user.role === 'mentor') {
-      const path = typeof window !== 'undefined' ? window.location.pathname : '';
-      if (path === '/dashboard') {
-        router.replace('/dashboard/mentor');
-      }
-    }
+    if (!user) return;
+    const path = typeof window !== 'undefined' ? window.location.pathname : '';
+    if (path !== '/dashboard') return;
+    if (user.role === 'mentor') router.replace('/dashboard/mentor');
+    else if (user.role === 'investor') router.replace('/dashboard/investor');
   }, [user, router]);
 
   // Lock body scroll when mobile menu is open

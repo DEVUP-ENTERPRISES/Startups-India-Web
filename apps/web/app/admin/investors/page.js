@@ -1,214 +1,280 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { apiGet, apiPatch } from '@/lib/api';
+import { apiGet, apiPatch, apiDelete } from '@/lib/api';
 
+// Investor admin — mirror of the mentor admin page, adapted for investor fields
+// and the /api/v1/investors/applications endpoints.
 const STATUS_COLORS = {
-  pending:  { bg: '#fef3c7', text: '#d97706', border: '#fde68a' },
-  approved: { bg: '#dcfce7', text: '#166534', border: '#bbf7d0' },
-  rejected: { bg: '#fee2e2', text: '#991b1b', border: '#fecaca' },
-  reviewed: { bg: '#eff6ff', text: '#1d4ed8', border: '#bfdbfe' },
-  matched:  { bg: '#f5f3ff', text: '#6d28d9', border: '#ddd6fe' },
-  closed:   { bg: '#f1f5f9', text: '#475569', border: '#cbd5e1' },
+  pending: { bg: '#fef3c7', color: '#d97706', label: 'Pending' },
+  approved: { bg: '#dcfce7', color: '#166534', label: 'Approved' },
+  rejected: { bg: '#fee2e2', color: '#991b1b', label: 'Rejected' },
 };
-
-const s = {
-  page:    { padding: '24px', background: '#f8fafc', minHeight: '100vh', fontFamily: 'Inter, sans-serif' },
-  header:  { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' },
-  title:   { fontSize: '24px', fontWeight: '800', color: '#0f172a', margin: 0 },
-  sub:     { fontSize: '13px', color: '#64748b', marginTop: '2px' },
-  tabs:    { display: 'flex', gap: '8px', marginBottom: '20px' },
-  tab:     (active) => ({ padding: '9px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: '600', fontSize: '14px', background: active ? '#0f172a' : '#fff', color: active ? '#fff' : '#64748b', boxShadow: active ? 'none' : '0 1px 3px rgba(0,0,0,0.07)', transition: 'all 0.15s' }),
-  toolbar: { display: 'flex', gap: '12px', marginBottom: '18px', flexWrap: 'wrap' },
-  select:  { padding: '9px 14px', border: '1.5px solid #e2e8f0', borderRadius: '8px', fontSize: '14px', color: '#0f172a', background: '#fff', cursor: 'pointer', outline: 'none' },
-  table:   { width: '100%', borderCollapse: 'collapse', background: '#fff', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' },
-  th:      { padding: '12px 16px', textAlign: 'left', fontSize: '11px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', background: '#f8fafc', borderBottom: '1px solid #e2e8f0' },
-  td:      { padding: '13px 16px', fontSize: '13px', color: '#334155', borderBottom: '1px solid #f1f5f9', verticalAlign: 'middle' },
-  badge:   (st) => ({ display: 'inline-block', padding: '3px 10px', borderRadius: '100px', fontSize: '11px', fontWeight: '700', textTransform: 'capitalize', background: STATUS_COLORS[st]?.bg || '#f1f5f9', color: STATUS_COLORS[st]?.text || '#334155', border: `1px solid ${STATUS_COLORS[st]?.border || '#e2e8f0'}` }),
-  statRow: { display: 'flex', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' },
-  stat:    (bg, text) => ({ padding: '14px 20px', background: bg, borderRadius: '10px', flex: '1', minWidth: '110px' }),
-  statN:   { fontSize: '22px', fontWeight: '800', color: '#0f172a' },
-  statL:   { fontSize: '12px', color: '#64748b', fontWeight: '500', marginTop: '2px' },
-  actBtn:  (bg, text, border) => ({ padding: '5px 10px', background: bg, color: text, border: `1px solid ${border}`, borderRadius: '6px', fontSize: '11px', fontWeight: '600', cursor: 'pointer' }),
-};
-
-function StatusSelect({ value, options, onChange }) {
-  return (
-    <select
-      value={value}
-      onChange={e => onChange(e.target.value)}
-      style={{ padding: '4px 8px', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '12px', color: '#0f172a', background: '#fff', cursor: 'pointer' }}
-    >
-      {options.map(o => <option key={o} value={o}>{o}</option>)}
-    </select>
-  );
-}
 
 export default function AdminInvestorsPage() {
-  const [tab, setTab] = useState('registrations');
-  const [registrations, setRegistrations] = useState([]);
-  const [explores, setExplores] = useState([]);
-  const [regTotal, setRegTotal] = useState(0);
-  const [expTotal, setExpTotal] = useState(0);
+  const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [search, setSearch] = useState('');
+  const [expandedId, setExpandedId] = useState(null);
+  const [actionLoading, setActionLoading] = useState(null);
+  const [rejectModal, setRejectModal] = useState(null);
+  const [rejectReason, setRejectReason] = useState('');
+  const [deleteModal, setDeleteModal] = useState(null);
+  const [toast, setToast] = useState(null);
 
-  const fetchAll = useCallback(async () => {
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 4000);
+  };
+
+  const fetchData = useCallback(async () => {
     setLoading(true);
-    const [regRes, expRes] = await Promise.all([
-      apiGet(`/api/v1/admin/investors/requests${statusFilter ? `?status=${statusFilter}` : ''}`),
-      apiGet(`/api/v1/admin/investors/explore${statusFilter ? `?status=${statusFilter}` : ''}`),
-    ]);
-    if (regRes.data) { setRegistrations(regRes.data.items || []); setRegTotal(regRes.data.total || 0); }
-    if (expRes.data) { setExplores(expRes.data.items || []); setExpTotal(expRes.data.total || 0); }
-    setLoading(false);
-  }, [statusFilter]);
+    try {
+      const params = new URLSearchParams();
+      if (statusFilter !== 'all') params.set('status', statusFilter);
+      if (search) params.set('search', search);
+      const res = await apiGet(`/api/v1/investors/applications?${params.toString()}`);
+      setApplications(Array.isArray(res.data) ? res.data : []);
+    } catch (err) {
+      console.error('Error fetching investors data:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [statusFilter, search]);
 
-  useEffect(() => { fetchAll(); }, [fetchAll]);
+  useEffect(() => { fetchData(); }, [fetchData]);
 
-  async function updateRegStatus(id, status) {
-    await apiPatch(`/api/v1/admin/investors/requests/${id}`, { status });
-    fetchAll();
-  }
+  const handleApprove = async (id) => {
+    setActionLoading(id);
+    try {
+      const res = await apiPatch(`/api/v1/investors/applications/${id}/approve`);
+      if (res.error) showToast(res.error.message || 'Failed to approve', 'error');
+      else { showToast('Investor approved! Account created and email sent.', 'success'); fetchData(); }
+    } catch (err) {
+      showToast('Failed to approve application', 'error');
+    } finally { setActionLoading(null); }
+  };
 
-  async function updateExpStatus(id, status) {
-    await apiPatch(`/api/v1/admin/investors/explore/${id}`, { status });
-    fetchAll();
-  }
+  const handleReject = async () => {
+    if (!rejectModal) return;
+    setActionLoading(rejectModal);
+    try {
+      const res = await apiPatch(`/api/v1/investors/applications/${rejectModal}/reject`, { reason: rejectReason });
+      if (res.error) showToast(res.error.message || 'Failed to reject', 'error');
+      else { showToast('Application rejected. Email notification sent.', 'success'); fetchData(); }
+    } catch (err) {
+      showToast('Failed to reject application', 'error');
+    } finally { setActionLoading(null); setRejectModal(null); setRejectReason(''); }
+  };
 
-  const pending = registrations.filter(r => r.status === 'pending').length;
+  const handleDelete = async () => {
+    if (!deleteModal) return;
+    setActionLoading(deleteModal._id);
+    try {
+      const res = await apiDelete(`/api/v1/investors/applications/${deleteModal._id}`);
+      if (res.error) showToast(res.error.message || 'Failed to delete', 'error');
+      else {
+        showToast(deleteModal.status === 'approved' ? 'Investor removed. They no longer appear on the site.' : 'Application deleted.', 'success');
+        fetchData();
+      }
+    } catch (err) {
+      showToast('Failed to delete', 'error');
+    } finally { setActionLoading(null); setDeleteModal(null); }
+  };
+
+  const formatDate = (d) => d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+
+  const s = {
+    page: { padding: '24px', maxWidth: '1200px', margin: '0 auto' },
+    header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' },
+    title: { fontSize: '24px', fontWeight: '700', color: '#0f172a', margin: 0 },
+    subtitle: { fontSize: '14px', color: '#64748b', margin: '4px 0 0' },
+    filterBar: { display: 'flex', gap: '12px', marginBottom: '20px', flexWrap: 'wrap', alignItems: 'center' },
+    searchInput: { padding: '10px 16px', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '14px', width: '280px', outline: 'none' },
+    filterBtn: (active) => ({ padding: '6px 14px', border: '1px solid', borderColor: active ? '#1e293b' : '#e2e8f0', background: active ? '#1e293b' : '#fff', color: active ? '#fff' : '#475569', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: '500' }),
+    card: { background: '#fff', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '12px', overflow: 'hidden' },
+    cardHeader: { padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' },
+    cardLeft: { display: 'flex', alignItems: 'center', gap: '16px', flex: 1 },
+    avatar: { width: '40px', height: '40px', borderRadius: '50%', background: 'linear-gradient(135deg, #e63946, #ff6b6b)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: '700', fontSize: '16px', flexShrink: 0, backgroundSize: 'cover' },
+    cardInfo: { flex: 1 },
+    cardName: { fontWeight: '600', color: '#1e293b', fontSize: '15px', margin: 0 },
+    cardEmail: { fontSize: '13px', color: '#64748b', margin: '2px 0 0' },
+    cardMeta: { display: 'flex', gap: '16px', alignItems: 'center' },
+    badge: (status) => ({ padding: '4px 12px', borderRadius: '999px', fontSize: '12px', fontWeight: '600', background: STATUS_COLORS[status]?.bg || '#f1f5f9', color: STATUS_COLORS[status]?.color || '#475569' }),
+    cardDate: { fontSize: '12px', color: '#94a3b8' },
+    expandedContent: { padding: '0 20px 20px', borderTop: '1px solid #f1f5f9' },
+    detailGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginTop: '16px' },
+    detailItem: { background: '#f8fafc', padding: '12px 16px', borderRadius: '8px' },
+    detailLabel: { fontSize: '11px', color: '#94a3b8', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' },
+    detailValue: { fontSize: '14px', color: '#1e293b', fontWeight: '500' },
+    tag: { display: 'inline-block', padding: '4px 10px', background: '#eff6ff', color: '#2563eb', borderRadius: '6px', fontSize: '12px', fontWeight: '500', margin: '2px' },
+    actionBar: { display: 'flex', gap: '8px', marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #f1f5f9' },
+    approveBtn: { padding: '10px 24px', background: '#10b981', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '14px' },
+    rejectBtn: { padding: '10px 24px', background: '#fff', color: '#ef4444', border: '1px solid #fecaca', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '14px' },
+    deleteBtn: { padding: '8px 16px', background: '#fff', color: '#b91c1c', border: '1px solid #fecaca', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '13px' },
+    modalOverlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 },
+    modal: { background: '#fff', borderRadius: '16px', padding: '32px', maxWidth: '480px', width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' },
+    modalTitle: { fontSize: '18px', fontWeight: '700', color: '#1e293b', marginBottom: '8px' },
+    modalText: { fontSize: '14px', color: '#64748b', marginBottom: '16px' },
+    textarea: { width: '100%', minHeight: '100px', padding: '12px', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '14px', resize: 'vertical', outline: 'none', boxSizing: 'border-box' },
+    modalActions: { display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '16px' },
+    cancelBtn: { padding: '10px 20px', background: '#f1f5f9', color: '#475569', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '500' },
+    confirmBtn: { padding: '10px 20px', background: '#ef4444', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' },
+    toast: (type) => ({ position: 'fixed', bottom: '24px', right: '24px', padding: '14px 24px', borderRadius: '12px', color: '#fff', fontWeight: '600', fontSize: '14px', zIndex: 10000, boxShadow: '0 8px 30px rgba(0,0,0,0.15)', background: type === 'success' ? '#10b981' : '#ef4444' }),
+    emptyState: { textAlign: 'center', padding: '48px 24px', color: '#94a3b8' },
+    statsRow: { display: 'flex', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' },
+    statCard: (bg) => ({ padding: '16px 20px', background: bg, borderRadius: '10px', flex: '1', minWidth: '140px' }),
+    statValue: { fontSize: '24px', fontWeight: '700', color: '#1e293b' },
+    statLabel: { fontSize: '12px', color: '#64748b', marginTop: '2px' },
+  };
+
+  const pendingCount = applications.filter(a => a.status === 'pending').length;
+  const approvedCount = applications.filter(a => a.status === 'approved').length;
+  const rejectedCount = applications.filter(a => a.status === 'rejected').length;
 
   return (
     <div style={s.page}>
+      {toast && <div style={s.toast(toast.type)}>{toast.message}</div>}
+
+      {rejectModal && (
+        <div style={s.modalOverlay} onClick={() => { setRejectModal(null); setRejectReason(''); }}>
+          <div style={s.modal} onClick={e => e.stopPropagation()}>
+            <h3 style={s.modalTitle}>Reject Application</h3>
+            <p style={s.modalText}>Provide a reason for rejection. This will be sent to the applicant via email.</p>
+            <textarea style={s.textarea} value={rejectReason} onChange={e => setRejectReason(e.target.value)} placeholder="e.g., Does not meet our current criteria..." />
+            <div style={s.modalActions}>
+              <button style={s.cancelBtn} onClick={() => { setRejectModal(null); setRejectReason(''); }}>Cancel</button>
+              <button style={s.confirmBtn} onClick={handleReject} disabled={actionLoading === rejectModal}>{actionLoading === rejectModal ? 'Rejecting...' : 'Confirm Reject'}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {deleteModal && (
+        <div style={s.modalOverlay} onClick={() => setDeleteModal(null)}>
+          <div style={s.modal} onClick={e => e.stopPropagation()}>
+            <h3 style={s.modalTitle}>{deleteModal.status === 'approved' ? 'Remove this investor?' : 'Delete this application?'}</h3>
+            <p style={s.modalText}>
+              {deleteModal.status === 'approved'
+                ? <><strong>{deleteModal.fullName}</strong> will be removed from the public investors page and lose investor access. Their user account is kept (downgraded to a normal user). This cannot be undone.</>
+                : <>This permanently deletes <strong>{deleteModal.fullName}</strong>&apos;s application. This cannot be undone.</>}
+            </p>
+            <div style={s.modalActions}>
+              <button style={s.cancelBtn} onClick={() => setDeleteModal(null)}>Cancel</button>
+              <button style={s.confirmBtn} onClick={handleDelete} disabled={actionLoading === deleteModal._id}>
+                {actionLoading === deleteModal._id ? 'Removing...' : deleteModal.status === 'approved' ? 'Remove Investor' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div style={s.header}>
         <div>
           <h1 style={s.title}>Investor Management</h1>
-          <p style={s.sub}>{regTotal} registrations · {expTotal} explore requests</p>
+          <p style={s.subtitle}>Review investor applications, approve or reject, and manage listed investors</p>
         </div>
       </div>
 
-      {/* Stats */}
-      <div style={s.statRow}>
-        <div style={s.stat('#eff6ff', '#1d4ed8')}>
-          <div style={s.statN}>{regTotal}</div>
-          <div style={s.statL}>Total Registrations</div>
-        </div>
-        <div style={s.stat('#fef3c7', '#d97706')}>
-          <div style={s.statN}>{pending}</div>
-          <div style={s.statL}>Pending Review</div>
-        </div>
-        <div style={s.stat('#f0fdf4', '#166534')}>
-          <div style={s.statN}>{registrations.filter(r => r.status === 'approved').length}</div>
-          <div style={s.statL}>Approved</div>
-        </div>
-        <div style={s.stat('#f5f3ff', '#6d28d9')}>
-          <div style={s.statN}>{expTotal}</div>
-          <div style={s.statL}>Explore Requests</div>
-        </div>
+      <div style={s.statsRow}>
+        <div style={s.statCard('#f0fdf4')}><div style={s.statValue}>{applications.length}</div><div style={s.statLabel}>Total Applications</div></div>
+        <div style={s.statCard('#fef3c7')}><div style={s.statValue}>{pendingCount}</div><div style={s.statLabel}>Pending Review</div></div>
+        <div style={s.statCard('#dcfce7')}><div style={s.statValue}>{approvedCount}</div><div style={s.statLabel}>Approved</div></div>
+        <div style={s.statCard('#fee2e2')}><div style={s.statValue}>{rejectedCount}</div><div style={s.statLabel}>Rejected</div></div>
       </div>
 
-      {/* Tabs */}
-      <div style={s.tabs}>
-        <button style={s.tab(tab === 'registrations')} onClick={() => setTab('registrations')}>
-          Investor Registrations ({regTotal})
-        </button>
-        <button style={s.tab(tab === 'explore')} onClick={() => setTab('explore')}>
-          Find Investor Requests ({expTotal})
-        </button>
-      </div>
-
-      {/* Filter */}
-      <div style={s.toolbar}>
-        <select style={s.select} value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
-          <option value="">All Statuses</option>
-          {tab === 'registrations'
-            ? ['pending', 'approved', 'rejected'].map(o => <option key={o} value={o}>{o}</option>)
-            : ['pending', 'reviewed', 'matched', 'closed'].map(o => <option key={o} value={o}>{o}</option>)
-          }
-        </select>
+      <div style={s.filterBar}>
+        <input style={s.searchInput} value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by name, email or organization..." />
+        {['all', 'pending', 'approved', 'rejected'].map(f => (
+          <button key={f} style={s.filterBtn(statusFilter === f)} onClick={() => setStatusFilter(f)}>
+            {f === 'all' ? 'All' : f.charAt(0).toUpperCase() + f.slice(1)}
+          </button>
+        ))}
       </div>
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '60px', color: '#94a3b8' }}>Loading...</div>
-      ) : tab === 'registrations' ? (
-        <table style={s.table}>
-          <thead>
-            <tr>
-              {['Name', 'Email', 'Type', 'Organization', 'Ticket Size', 'Focus', 'Status', 'Action'].map(h => (
-                <th key={h} style={s.th}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {registrations.length === 0 ? (
-              <tr><td colSpan={8} style={{ ...s.td, textAlign: 'center', padding: '48px', color: '#94a3b8' }}>No registrations found.</td></tr>
-            ) : registrations.map(r => (
-              <tr key={r._id}>
-                <td style={s.td}>
-                  <div style={{ fontWeight: '600', color: '#0f172a' }}>{r.full_name}</div>
-                  {r.location && <div style={{ fontSize: '11px', color: '#94a3b8' }}>{r.location}</div>}
-                </td>
-                <td style={s.td}>{r.email}</td>
-                <td style={s.td}>{r.investor_type}</td>
-                <td style={s.td}>{r.organization_name || '—'}</td>
-                <td style={s.td}>{r.ticket_size || '—'}</td>
-                <td style={s.td}>
-                  <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-                    {(r.investment_focus || []).slice(0, 2).map((f, i) => (
-                      <span key={i} style={{ fontSize: '10px', padding: '2px 6px', background: '#eff6ff', color: '#1d4ed8', borderRadius: '100px' }}>{f}</span>
-                    ))}
-                  </div>
-                </td>
-                <td style={s.td}><span style={s.badge(r.status)}>{r.status}</span></td>
-                <td style={s.td}>
-                  <StatusSelect
-                    value={r.status}
-                    options={['pending', 'approved', 'rejected']}
-                    onChange={val => updateRegStatus(r._id, val)}
-                  />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div style={s.emptyState}><p>Loading applications...</p></div>
+      ) : applications.length === 0 ? (
+        <div style={s.emptyState}>
+          <div style={{ fontSize: '48px', marginBottom: '12px' }}>📭</div>
+          <p style={{ fontWeight: '600', fontSize: '16px' }}>No applications found</p>
+          <p style={{ fontSize: '14px' }}>Try adjusting your filters or search query</p>
+        </div>
       ) : (
-        <table style={s.table}>
-          <thead>
-            <tr>
-              {['Startup / Name', 'Email', 'Sector', 'Funding Ask', 'Pitch', 'Status', 'Action'].map(h => (
-                <th key={h} style={s.th}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {explores.length === 0 ? (
-              <tr><td colSpan={7} style={{ ...s.td, textAlign: 'center', padding: '48px', color: '#94a3b8' }}>No explore requests found.</td></tr>
-            ) : explores.map(r => (
-              <tr key={r._id}>
-                <td style={s.td}>
-                  <div style={{ fontWeight: '600', color: '#0f172a' }}>{r.startup_name}</div>
-                  <div style={{ fontSize: '11px', color: '#94a3b8' }}>{r.name}</div>
-                </td>
-                <td style={s.td}>{r.email}</td>
-                <td style={s.td}>{r.sector}</td>
-                <td style={s.td}>{r.funding_amount}</td>
-                <td style={s.td}>
-                  <div style={{ maxWidth: '180px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '12px', color: '#64748b' }} title={r.pitch}>
-                    {r.pitch || '—'}
+        applications.map(app => (
+          <div key={app._id} style={s.card}>
+            <div style={s.cardHeader} onClick={() => setExpandedId(expandedId === app._id ? null : app._id)}>
+              <div style={s.cardLeft}>
+                <div style={{ ...s.avatar, ...(app.profileImage ? { background: `url(${app.profileImage}) center/cover` } : {}) }}>
+                  {!app.profileImage && (app.fullName?.charAt(0)?.toUpperCase() || '?')}
+                </div>
+                <div style={s.cardInfo}>
+                  <p style={s.cardName}>{app.fullName}</p>
+                  <p style={s.cardEmail}>{app.email} · {app.investorType}{app.organizationName ? ` at ${app.organizationName}` : ''}</p>
+                </div>
+              </div>
+              <div style={s.cardMeta}>
+                <span style={s.badge(app.status)}>{STATUS_COLORS[app.status]?.label || app.status}</span>
+                <span style={s.cardDate}>{formatDate(app.createdAt)}</span>
+                <span style={{ fontSize: '18px', color: '#94a3b8', transform: expandedId === app._id ? 'rotate(180deg)' : 'rotate(0)' }}>▼</span>
+              </div>
+            </div>
+
+            {expandedId === app._id && (
+              <div style={s.expandedContent}>
+                <div style={s.detailGrid}>
+                  <div style={s.detailItem}><div style={s.detailLabel}>Phone</div><div style={s.detailValue}>{app.phone || '—'}</div></div>
+                  <div style={s.detailItem}><div style={s.detailLabel}>Investor Type</div><div style={s.detailValue}>{app.investorType || '—'}</div></div>
+                  <div style={s.detailItem}><div style={s.detailLabel}>Ticket Size</div><div style={s.detailValue}>{app.ticketSize || '—'}</div></div>
+                  <div style={s.detailItem}><div style={s.detailLabel}>LinkedIn</div><div style={s.detailValue}>{app.linkedin ? <a href={app.linkedin} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'none' }}>View</a> : '—'}</div></div>
+                </div>
+
+                {app.bio && <div style={{ ...s.detailItem, marginTop: '12px' }}><div style={s.detailLabel}>Bio</div><div style={{ ...s.detailValue, fontWeight: '400', lineHeight: '1.6' }}>{app.bio}</div></div>}
+
+                {app.investmentFocus?.length > 0 && (
+                  <div style={{ marginTop: '12px' }}>
+                    <div style={s.detailLabel}>Investment Focus</div>
+                    <div style={{ marginTop: '6px' }}>{app.investmentFocus.map((x, i) => <span key={i} style={s.tag}>{x}</span>)}</div>
                   </div>
-                </td>
-                <td style={s.td}><span style={s.badge(r.status)}>{r.status}</span></td>
-                <td style={s.td}>
-                  <StatusSelect
-                    value={r.status}
-                    options={['pending', 'reviewed', 'matched', 'closed']}
-                    onChange={val => updateExpStatus(r._id, val)}
-                  />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                )}
+                {app.preferredStages?.length > 0 && (
+                  <div style={{ marginTop: '12px' }}>
+                    <div style={s.detailLabel}>Preferred Stages</div>
+                    <div style={{ marginTop: '6px' }}>{app.preferredStages.map((x, i) => <span key={i} style={s.tag}>{x}</span>)}</div>
+                  </div>
+                )}
+
+                {app.status === 'rejected' && app.rejectionReason && (
+                  <div style={{ ...s.detailItem, marginTop: '12px', background: '#fef2f2', borderLeft: '3px solid #ef4444' }}>
+                    <div style={{ ...s.detailLabel, color: '#991b1b' }}>Rejection Reason</div>
+                    <div style={{ ...s.detailValue, color: '#991b1b', fontWeight: '400' }}>{app.rejectionReason}</div>
+                  </div>
+                )}
+
+                {app.status === 'pending' && (
+                  <div style={s.actionBar}>
+                    <button style={{ ...s.approveBtn, opacity: actionLoading === app._id ? 0.7 : 1 }} onClick={() => handleApprove(app._id)} disabled={actionLoading === app._id}>
+                      {actionLoading === app._id ? 'Approving...' : '✓ Approve & Create Account'}
+                    </button>
+                    <button style={s.rejectBtn} onClick={() => setRejectModal(app._id)} disabled={actionLoading === app._id}>✕ Reject</button>
+                  </div>
+                )}
+                {app.status === 'approved' && (
+                  <div style={{ ...s.actionBar, alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ color: '#166534', fontSize: '13px', fontWeight: '500' }}>✓ Approved on {formatDate(app.approvedAt)} — User account created</span>
+                    <button style={s.deleteBtn} onClick={() => setDeleteModal(app)} disabled={actionLoading === app._id}>🗑 Remove Investor</button>
+                  </div>
+                )}
+                {app.status === 'rejected' && (
+                  <div style={{ ...s.actionBar, justifyContent: 'flex-end' }}>
+                    <button style={s.deleteBtn} onClick={() => setDeleteModal(app)} disabled={actionLoading === app._id}>🗑 Delete Application</button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        ))
       )}
     </div>
   );

@@ -86,7 +86,7 @@ function LoginContent() {
     // literal /admin path, so redirecting there would bounce every admin login.
     if (role === 'admin') return `/${ADMIN_SLUG}/dashboard`;
     if (role === 'mentor') return '/dashboard/mentor';
-    if (role === 'investor') return '/dashboard';
+    if (role === 'investor') return '/dashboard/investor';
     return returnUrl;
   };
 
@@ -415,6 +415,9 @@ function LoginContent() {
                       just Users with role='mentor'. They only need a way to apply. */}
                   <p style={{ marginTop: '8px', fontSize: '13px' }}>
                     Want to mentor startups? <a href="/mentors#become-mentor" className="signup-action">Apply as a Mentor</a>
+                  </p>
+                  <p style={{ marginTop: '6px', fontSize: '13px' }}>
+                    Want to invest? <a href="/investors#become-investor" className="signup-action">Apply as an Investor</a>
                   </p>
                 </div>
               </motion.div>

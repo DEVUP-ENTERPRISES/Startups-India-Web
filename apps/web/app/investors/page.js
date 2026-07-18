@@ -3,7 +3,9 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter, usePathname } from 'next/navigation';
+import Link from 'next/link';
 import { getCurrentUser } from '@/lib/auth';
+import { listPublicInvestors } from '@/lib/investors';
 import InvestorRegistrationModal from '@/components/InvestorRegistrationModal';
 import ScrollToTop from '@/components/ScrollToTop';
 import '../../styles/investors.css';
@@ -117,10 +119,13 @@ export default function InvestorsPage() {
         const currentUser = data?.user || null;
         setUser(currentUser);
         
+        // Exploring is for existing users, so it stays behind a session.
         if (window.location.hash === '#explore-investors' && currentUser) {
           setShowExploreModal(true);
         }
-        if (window.location.hash === '#become-investor' && currentUser) {
+        // Applying to BE an investor must NOT require a session — the applicant
+        // has no account yet; the modal collects their email and password.
+        if (window.location.hash === '#become-investor') {
           setShowModal(true);
         }
       } catch (err) {
@@ -129,10 +134,21 @@ export default function InvestorsPage() {
       }
     };
     checkAuth();
-    
+
     window.addEventListener('auth-change', checkAuth);
     return () => window.removeEventListener('auth-change', checkAuth);
   }, [pathname]);
+
+  // Load approved investors from the DB so an admin approval surfaces them here.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data } = await listPublicInvestors();
+      if (cancelled || !Array.isArray(data)) return;
+      setInvestors(data);
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   const handleExploreClick = () => {
     if (!user) {
@@ -143,10 +159,7 @@ export default function InvestorsPage() {
   };
 
   const handleBecomeClick = () => {
-    if (!user) {
-      router.push(`/login?returnUrl=${encodeURIComponent(pathname + '#become-investor')}`);
-      return;
-    }
+    // No login required — applicants have no account yet.
     setShowModal(true);
   };
 
@@ -232,6 +245,16 @@ export default function InvestorsPage() {
                   <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
                 </svg>
               </button>
+
+              {/* Approved investors need a way back in from here. */}
+              {!user && (
+                <Link
+                  href="/investor-login"
+                  style={{ display: 'block', marginTop: '14px', fontSize: '13.5px', fontWeight: 600, color: 'rgba(255,255,255,0.85)', textDecoration: 'underline', textUnderlineOffset: '3px' }}
+                >
+                  Already an investor? Sign in
+                </Link>
+              )}
             </motion.div>
 
             <motion.div

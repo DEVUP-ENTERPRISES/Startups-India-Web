@@ -2,6 +2,9 @@ const mongoose = require('mongoose');
 
 const investorSchema = new mongoose.Schema(
   {
+    // Links the approved profile to its login account (set on approval), so the
+    // investor dashboard can look the profile up by the signed-in user.
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', index: true, default: null },
     fullName: { type: String, required: true },
     organizationName: { type: String, default: null },
     investorType: { type: String, required: true },
