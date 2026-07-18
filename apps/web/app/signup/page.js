@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { signUp, initGoogleSignIn, resendVerificationEmail } from '@/lib/auth';
 import '@/styles/auth-redesign.css';
 import PhoneVerifyCard from '@/components/auth/PhoneVerifyCard';
+import JoinAsSelect from '@/components/auth/JoinAsSelect';
 import { Mail, Lock, Eye, EyeOff, ArrowRight, User, ShieldCheck, CheckCircle2, Users, Briefcase, Target, TrendingUp, Award, Zap, Phone } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -383,12 +384,9 @@ function SignupContent() {
                   {/* This form creates a founder account. Mentors apply through a
                       separate reviewed flow, so without this link they'd sign up
                       here and never actually become a mentor. */}
-                  <p style={{ marginTop: '8px', fontSize: '13px' }}>
-                    Want to mentor startups? <a href="/mentors#become-mentor" className="signup-action">Apply as a Mentor</a>
-                  </p>
-                  <p style={{ marginTop: '6px', fontSize: '13px' }}>
-                    Want to invest? <a href="/investors#become-investor" className="signup-action">Apply as an Investor</a>
-                  </p>
+                  {/* Role picker — shared with the login page; add a role in
+                      JoinAsSelect and it appears in both places. */}
+                  <JoinAsSelect />
                 </div>
               </motion.div>
             )}

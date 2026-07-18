@@ -27,6 +27,7 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import { signIn, initGoogleSignIn } from '@/lib/auth';
+import JoinAsSelect from '@/components/auth/JoinAsSelect';
 import TwoFactorStep from '@/components/auth/TwoFactorStep';
 import '@/styles/auth-redesign.css';
 
@@ -411,14 +412,9 @@ function LoginContent() {
 
                 <div className="signup-footer">
                   <p>Don't have an account? <a href="/signup" onClick={(e) => handleNavigation(e, '/signup')} className="signup-action">Sign up</a></p>
-                  {/* Mentors sign in with this same form once approved — they are
-                      just Users with role='mentor'. They only need a way to apply. */}
-                  <p style={{ marginTop: '8px', fontSize: '13px' }}>
-                    Want to mentor startups? <a href="/mentors#become-mentor" className="signup-action">Apply as a Mentor</a>
-                  </p>
-                  <p style={{ marginTop: '6px', fontSize: '13px' }}>
-                    Want to invest? <a href="/investors#become-investor" className="signup-action">Apply as an Investor</a>
-                  </p>
+                  {/* Role picker instead of one link per role — add a role in
+                      JoinAsSelect and it shows up here and on signup automatically. */}
+                  <JoinAsSelect />
                 </div>
               </motion.div>
             )}
