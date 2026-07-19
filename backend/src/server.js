@@ -34,6 +34,11 @@ async function bootstrap() {
   await warmCache();
   await reconcileOrphanedPayments();
 
+  // CRM: seed the ready-to-send templates (idempotent) and start the drain
+  // worker (resumes any campaign left 'sending' by a restart; enforces the cap).
+  await require('./modules/crm/crm.templates.seed').seedDefaultTemplates().catch(() => {});
+  await require('./modules/crm/crm.campaign.service').startWorker();
+
   server = app.listen(env.PORT, '0.0.0.0', () => {
     logger.info('Backend listening', {
       port: env.PORT,

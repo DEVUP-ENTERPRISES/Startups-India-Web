@@ -60,6 +60,7 @@ const navSections = [
     title: 'Operations',
     items: [
       { id: 'leads', label: 'Leads / CRM', href: `${ADMIN_BASE}/leads`, icon: 'target' },
+      { id: 'crm', label: 'Email Campaigns', href: `${ADMIN_BASE}/crm`, icon: 'bell' },
       { id: 'notifications', label: 'Notifications', href: `${ADMIN_BASE}/notifications`, icon: 'bell' },
       { id: 'settings', label: 'Settings', href: `${ADMIN_BASE}/settings`, icon: 'settings' },
     ],

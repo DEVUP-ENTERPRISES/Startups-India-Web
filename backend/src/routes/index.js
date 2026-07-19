@@ -36,6 +36,10 @@ function registerRoutes(app) {
   app.use('/api/v1/learn', learnRouter);
   app.use('/api/v1/assessments', assessmentsRouter);
 
+  // CRM bulk email: public tracking/unsubscribe + admin-gated management.
+  const { crmRouter } = require('../modules/crm/crm.routes');
+  app.use('/api/v1/crm', crmRouter);
+
   // Startup Grant — student-facing. Every route is scoped to the caller.
   app.use('/api/v1/grants', grantsRouter);
 

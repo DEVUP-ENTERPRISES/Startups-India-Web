@@ -170,8 +170,13 @@ async function getMentorProfile(userId) {
 }
 
 async function updateMentorProfile(userId, updates) {
-  // Only allow updating specific fields
-  const allowed = ['bio', 'availability', 'linkedinUrl', 'phone', 'profileImage', 'achievements', 'expertise', 'previousCompanies'];
+  // Fields a mentor may edit on their own profile. Name/email stay fixed (email
+  // is the login identity); everything else about the professional profile is
+  // theirs to update, including the photo.
+  const allowed = [
+    'bio', 'availability', 'linkedinUrl', 'phone', 'profileImage', 'achievements',
+    'expertise', 'previousCompanies', 'currentRole', 'company', 'experience',
+  ];
   const filtered = {};
   for (const key of allowed) {
     if (updates[key] !== undefined) filtered[key] = updates[key];

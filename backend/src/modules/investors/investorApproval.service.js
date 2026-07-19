@@ -170,11 +170,12 @@ async function getInvestorProfile(userId) {
 }
 
 async function updateInvestorProfile(userId, updates) {
-  // Whitelist — name/type/email are set at application time and not editable here.
+  // Fields an investor may edit on their own profile. Name/email stay fixed
+  // (email is the login identity); everything else is theirs, including the photo.
   const allowed = [
     'bio', 'linkedinUrl', 'websiteUrl', 'phone', 'profileImage', 'location',
     'investmentFocus', 'preferredStages', 'ticketSize', 'organizationName',
-    'yearsOfExperience',
+    'yearsOfExperience', 'investorType',
   ];
   const filtered = {};
   for (const key of allowed) {

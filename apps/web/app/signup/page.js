@@ -110,10 +110,11 @@ function SignupContent() {
       return;
     }
 
-    if (!passwordStrength.hasMinLength || !passwordStrength.hasUpperCase || 
-        !passwordStrength.hasLowerCase || !passwordStrength.hasNumber || 
-        !passwordStrength.hasSpecialChar) {
-      setError('Please choose a stronger password');
+    // Only enforce what the backend actually requires (min 8 characters). The
+    // earlier uppercase/number/special-char requirements were stricter than the
+    // server and just blocked people from signing up.
+    if (!passwordStrength.hasMinLength) {
+      setError('Password must be at least 8 characters');
       return;
     }
 

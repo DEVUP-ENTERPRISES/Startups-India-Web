@@ -1,17 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Save, CheckCircle2, AlertCircle } from 'lucide-react';
-import { getMentorProfile, updateMentorProfile } from '@/lib/mentors';
+import { useEffect, useRef, useState } from 'react';
+import { Save, CheckCircle2, AlertCircle, Camera, Loader2 } from 'lucide-react';
+import { getMentorProfile, updateMentorProfile, uploadMentorPhoto } from '@/lib/mentors';
 
 /**
- * Mentor profile.
- *
- * Only renders inputs for the fields updateMentorProfile actually whitelists
- * (bio, availability, linkedinUrl, phone, achievements, expertise,
- * previousCompanies). Name/company/role are shown read-only because the API
- * deliberately refuses to update them — offering an input that silently
- * discards the edit would be worse than showing none.
+ * Mentor profile — fully editable by the mentor: photo, professional details,
+ * bio, expertise, links. Only name + email stay read-only (email is the login
+ * identity), because those live on the User account, not just this profile.
  */
 
 const card = {
@@ -58,9 +54,11 @@ function ReadOnly({ label, value }) {
 export default function MentorProfilePage() {
   const [profile, setProfile] = useState(null);
   const [form, setForm] = useState(null);
+  const [photo, setPhoto] = useState({ url: '', uploading: false, progress: 0 });
   const [error, setError] = useState('');
   const [saved, setSaved] = useState(false);
   const [busy, setBusy] = useState(false);
+  const fileRef = useRef(null);
 
   useEffect(() => {
     (async () => {
@@ -70,7 +68,11 @@ export default function MentorProfilePage() {
         return;
       }
       setProfile(data);
+      setPhoto({ url: data.profileImage || '', uploading: false, progress: 0 });
       setForm({
+        currentRole: data.currentRole || '',
+        company: data.company || '',
+        experience: data.experience || '',
         bio: data.bio || '',
         availability: data.availability || '',
         linkedinUrl: data.linkedinUrl || '',
@@ -82,12 +84,32 @@ export default function MentorProfilePage() {
     })();
   }, []);
 
+  const handlePhoto = async e => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setError('');
+    setPhoto(p => ({ ...p, uploading: true, progress: 0 }));
+    const { data, error: err } = await uploadMentorPhoto(file, pct => setPhoto(p => ({ ...p, progress: pct })));
+    if (err) {
+      setError(err.message || 'Could not upload the photo.');
+      setPhoto(p => ({ ...p, uploading: false }));
+      return;
+    }
+    // Persist immediately so the new photo sticks even if they don't hit Save.
+    setPhoto({ url: data.fileUrl, uploading: false, progress: 100 });
+    await updateMentorProfile({ profileImage: data.fileUrl });
+    setSaved(true);
+  };
+
   const save = async () => {
     setBusy(true);
     setError('');
     setSaved(false);
 
     const { data, error: err } = await updateMentorProfile({
+      currentRole: form.currentRole,
+      company: form.company,
+      experience: form.experience,
       bio: form.bio,
       availability: form.availability,
       linkedinUrl: form.linkedinUrl,
@@ -140,17 +162,30 @@ export default function MentorProfilePage() {
         </div>
       )}
 
-      {/* Locked fields — set at application time, not editable here. */}
+      {/* Photo + account (name/email read-only — they live on the login account) */}
       <div style={card}>
-        <h2 style={{ fontSize: '15px', fontWeight: 800, color: '#111827', margin: '0 0 4px' }}>Account</h2>
-        <p style={{ margin: '0 0 14px', fontSize: '12px', color: '#9ca3af' }}>
-          Contact an admin to change these.
-        </p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 18, marginBottom: 18 }}>
+          <div
+            onClick={() => !photo.uploading && fileRef.current?.click()}
+            role="button"
+            tabIndex={0}
+            style={{ width: 76, height: 76, borderRadius: '50%', flexShrink: 0, cursor: 'pointer', background: photo.url ? `url(${photo.url}) center/cover` : '#f3f4f6', border: '2px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}
+          >
+            {photo.uploading ? <Loader2 size={22} color="#ef4444" className="mp-spin" /> : !photo.url ? <Camera size={22} color="#9ca3af" /> : null}
+          </div>
+          <div>
+            <p style={{ margin: 0, fontSize: 15, fontWeight: 700, color: '#111827' }}>Profile photo</p>
+            <p style={{ margin: '2px 0 8px', fontSize: 12.5, color: '#9ca3af' }}>Shown on your public mentor card.</p>
+            <button type="button" onClick={() => fileRef.current?.click()} disabled={photo.uploading}
+              style={{ padding: '7px 15px', borderRadius: 8, border: '1.5px solid #e5e7eb', background: '#fff', fontSize: 12.5, fontWeight: 700, color: '#374151', cursor: 'pointer' }}>
+              {photo.uploading ? `Uploading ${photo.progress}%` : photo.url ? 'Change photo' : 'Upload photo'}
+            </button>
+            <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={handlePhoto} />
+          </div>
+        </div>
         <ReadOnly label="Name" value={profile?.fullName} />
         <ReadOnly label="Email" value={profile?.email} />
-        <ReadOnly label="Current Role" value={profile?.currentRole} />
-        <ReadOnly label="Company" value={profile?.company} />
-        <ReadOnly label="Experience" value={profile?.experience} />
+        <p style={{ margin: '10px 0 0', fontSize: '12px', color: '#9ca3af' }}>Name &amp; email are your login identity — contact an admin to change them.</p>
       </div>
 
       {/* Editable */}
@@ -158,6 +193,19 @@ export default function MentorProfilePage() {
         <h2 style={{ fontSize: '15px', fontWeight: 800, color: '#111827', margin: '0 0 16px' }}>
           Mentor Details
         </h2>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+          <Field label="Current Role">
+            <input value={form.currentRole} onChange={e => setForm({ ...form, currentRole: e.target.value })} style={inputStyle} />
+          </Field>
+          <Field label="Company">
+            <input value={form.company} onChange={e => setForm({ ...form, company: e.target.value })} style={inputStyle} />
+          </Field>
+        </div>
+
+        <Field label="Experience" hint="e.g. 10+ years">
+          <input value={form.experience} onChange={e => setForm({ ...form, experience: e.target.value })} style={inputStyle} />
+        </Field>
 
         <Field label="Bio">
           <textarea rows={4} value={form.bio} onChange={e => setForm({ ...form, bio: e.target.value })} style={{ ...inputStyle, resize: 'vertical' }} />
@@ -203,6 +251,7 @@ export default function MentorProfilePage() {
           <Save size={15} /> {busy ? 'Saving…' : 'Save changes'}
         </button>
       </div>
+      <style>{`.mp-spin{animation:mpspin .8s linear infinite}@keyframes mpspin{to{transform:rotate(360deg)}}`}</style>
     </div>
   );
 }

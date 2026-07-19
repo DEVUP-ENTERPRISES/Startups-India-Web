@@ -34,6 +34,12 @@ const env = {
   // Public origin of the Next.js app — used to build password-reset links.
   FRONTEND_URL: (process.env.FRONTEND_URL || 'http://localhost:3000').replace(/\/+$/, ''),
 
+  // Public origin of THIS API — used to build CRM open/click/unsubscribe URLs
+  // that recipients' email clients hit. Must be publicly reachable in prod.
+  API_PUBLIC_URL: (process.env.API_PUBLIC_URL || 'http://localhost:5000').replace(/\/+$/, ''),
+  // Global ceiling on marketing emails sent per rolling 24h.
+  CRM_DAILY_CAP: Number(process.env.CRM_DAILY_CAP || 100),
+
   SMTP_HOST: process.env.SMTP_HOST || '',
   SMTP_PORT: Number(process.env.SMTP_PORT || 587),
   SMTP_SECURE: process.env.SMTP_SECURE === 'true',

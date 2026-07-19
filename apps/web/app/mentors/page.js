@@ -202,7 +202,7 @@ export default function MentorsPage() {
           total_mentees: m.totalMentees || 0,
           total_sessions: m.totalSessions || 0,
           bio: m.bio || '',
-          linkedin: m.linkedinUrl || null,
+          linkedin_url: m.linkedinUrl || null,
         }))
       );
     })();
@@ -1043,11 +1043,15 @@ export default function MentorsPage() {
                         {/* Bottom Action Area */}
                         <div className="back-action-area">
                           <div className="secondary-actions">
-                            <a 
-                              href={mentor.linkedin_url || '#'} 
-                              target="_blank" 
-                              rel="noopener noreferrer" 
+                            <a
+                              href={mentor.linkedin_url || '#'}
+                              target="_blank"
+                              rel="noopener noreferrer"
                               className="action-btn-glass"
+                              // No LinkedIn on file → don't navigate to '#'.
+                              onClick={e => { if (!mentor.linkedin_url) e.preventDefault(); }}
+                              style={mentor.linkedin_url ? undefined : { opacity: 0.5, cursor: 'default' }}
+                              aria-disabled={!mentor.linkedin_url}
                             >
                               {/* Linkedin SVG */}
                               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
