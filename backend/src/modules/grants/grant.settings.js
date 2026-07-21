@@ -28,10 +28,20 @@ const SCHEMA = {
   'grant.revisions.enabled': { type: 'boolean', default: false },
 
   // ─── Money. Fee is in MINOR units (paise) to avoid float drift. ─────
-  'grant.evaluation.fee': { type: 'integer', default: 99900, min: 0 },
+  // Idea Evaluation fee — ₹1499 (149900 paise). Admin-editable.
+  'grant.evaluation.fee': { type: 'integer', default: 149900, min: 0 },
   'grant.evaluation.currency': { type: 'string', default: 'INR' },
   // Percent, e.g. 18 = 18% GST. Applied on top of the fee.
   'grant.evaluation.gstPercent': { type: 'number', default: 18, min: 0, max: 100 },
+  // Idea Evaluation is scored out of 100; this many marks is the pass line.
+  // >= threshold advances to the next phases; below it is not selected.
+  'grant.evaluation.passThreshold': { type: 'integer', default: 50, min: 0, max: 100 },
+
+  // ─── Later-phase pricing (Phases 3 & 4). ────────────────────────────
+  // Admin-set ahead of launch. 0 = price not published yet (the journey shows
+  // "Coming soon" rather than a rupee figure until it's above 0). In paise.
+  'grant.preIncubation.fee': { type: 'integer', default: 0, min: 0 },
+  'grant.incubation.fee': { type: 'integer', default: 0, min: 0 },
 
   // ─── Capacity + deadline ────────────────────────────────────────────
   // 0 = unlimited. Guards the intake from being swamped.

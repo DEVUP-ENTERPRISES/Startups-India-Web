@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { signOut } from '@/lib/auth';
 import Icon from '@/components/Icon';
-import { getGrantConfig } from '@/lib/grants';
+import { getGrantConfig, listMyApplications } from '@/lib/grants';
 
 export default function DashboardSidebar({
   user,
@@ -64,6 +64,25 @@ export default function DashboardSidebar({
       cancelled = true;
     };
   }, []);
+
+  // The founder's furthest phase in the grant journey (0-based), used to unlock
+  // sidebar phases: Idea Evaluation opens only once an idea is accepted (phase 1).
+  // Comes straight from the backend (currentPhase) — no phase logic is duplicated
+  // here. Students only; mentors/investors don't have a grant journey.
+  const [grantPhase, setGrantPhase] = useState(0);
+  useEffect(() => {
+    if (user?.role === 'mentor' || user?.role === 'investor') return;
+    let cancelled = false;
+    listMyApplications()
+      .then(({ data }) => {
+        if (cancelled || !Array.isArray(data) || data.length === 0) return;
+        setGrantPhase(Math.max(...data.map(a => a.currentPhase ?? 0)));
+      })
+      .catch(() => {}); // no application yet → everything past phase 1 stays locked
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.role]);
 
   const studentNavigation = [
     {
@@ -218,6 +237,10 @@ export default function DashboardSidebar({
       label: grantLabel,
       isDropdown: true,
       icon: 'award',
+      // Two working links, then the full 5-phase journey as a roadmap. Each phase
+      // unlocks from the founder's real state (grantPhase): Idea Evaluation stays
+      // locked until an idea is accepted, then opens with a glow. Phases 3–5 are
+      // Coming Soon and don't navigate; Funding is highlighted as the end goal.
       items: [
         { id: 'grant-apply', label: 'Apply for Grant', path: '/dashboard/grants', icon: 'explore' },
         {
@@ -677,8 +700,93 @@ export default function DashboardSidebar({
                       : undefined
                   }
                 >
-                  {section.items.map(item =>
-                    (
+                  {section.items.map(item => {
+                    // A thin labelled separator ("The Journey") between the working
+                    // links and the phase roadmap.
+                    if (item.isDivider) {
+                      return (
+                        <div
+                          key={item.id}
+                          style={{
+                            display: 'flex', alignItems: 'center', gap: '8px',
+                            padding: '10px 16px 4px', fontSize: '10px', fontWeight: 700,
+                            letterSpacing: '1.2px', textTransform: 'uppercase',
+                            color: 'rgba(255,255,255,0.35)',
+                          }}
+                        >
+                          <span>{item.label}</span>
+                          <span style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.12)' }} />
+                        </div>
+                      );
+                    }
+
+                    // Phase-node styling driven by the founder's real state:
+                    //  done      → cleared (green check)
+                    //  unlocked  → just opened for them (accent glow) — phase 2
+                    //  open      → available now (plain numbered)
+                    //  locked    → greyed lock (Coming Soon)
+                    //  locked+highlight → the Funding goal, shown in gold
+                    const st = item.state;
+                    const isLockedRow = st === 'locked';
+                    const gold = isLockedRow && item.highlight;
+
+                    const tone = st === 'done'
+                      ? { border: '#34d399', color: '#34d399', bg: 'rgba(52,211,153,0.15)' }
+                      : st === 'unlocked'
+                        ? { border: '#ff6b6b', color: '#fff', bg: 'rgba(230,57,70,0.35)' }
+                        : gold
+                          ? { border: '#fbbf24', color: '#fbbf24', bg: 'rgba(251,191,36,0.12)' }
+                          : isLockedRow
+                            ? { border: 'rgba(255,255,255,0.18)', color: 'rgba(255,255,255,0.4)', bg: 'transparent' }
+                            : { border: 'rgba(255,255,255,0.55)', color: '#fff', bg: 'transparent' };
+
+                    const bullet = item.phaseNum != null && (
+                      <span
+                        style={{
+                          width: '20px', height: '20px', flexShrink: 0, borderRadius: '50%',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontSize: '11px', fontWeight: 800,
+                          border: `1.5px solid ${tone.border}`, color: tone.color, background: tone.bg,
+                        }}
+                      >
+                        {st === 'done'
+                          ? <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>
+                          : item.phaseNum}
+                      </span>
+                    );
+
+                    if (isLockedRow) {
+                      return (
+                        <div
+                          key={item.id}
+                          className="nav-item"
+                          style={{
+                            cursor: 'not-allowed',
+                            opacity: gold ? 0.95 : 0.5,
+                            ...(gold ? {
+                              background: 'linear-gradient(90deg,rgba(251,191,36,0.16),rgba(251,191,36,0.02))',
+                              border: '1px solid rgba(251,191,36,0.4)',
+                              borderRadius: '12px',
+                            } : {}),
+                          }}
+                          title={gold ? 'The goal — funding by top VCs & angels' : 'Coming soon'}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            {bullet || (item.icon && renderIcon(item.icon, 16))}
+                            <span className="nav-item-label" style={gold ? { color: '#fbbf24', fontWeight: 700 } : undefined}>
+                              {item.label}
+                            </span>
+                          </div>
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={gold ? '#fbbf24' : 'currentColor'} strokeWidth="2" style={{ marginLeft: 'auto', opacity: gold ? 1 : 0.7 }}>
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                          </svg>
+                        </div>
+                      );
+                    }
+
+                    const justUnlocked = st === 'unlocked';
+                    return (
                       <Link
                         key={item.id}
                         href={item.path}
@@ -688,15 +796,27 @@ export default function DashboardSidebar({
                           setOpenSectionId(section.id);
                           onClose();
                         }}
+                        style={justUnlocked ? {
+                          background: 'linear-gradient(90deg,rgba(230,57,70,0.3),rgba(230,57,70,0.05))',
+                          border: '1px solid rgba(255,107,107,0.5)',
+                          borderRadius: '12px',
+                          boxShadow: '0 4px 16px rgba(230,57,70,0.28)',
+                        } : undefined}
                       >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          {item.icon && renderIcon(item.icon, 16)}
-                          <span className="nav-item-label">{item.label}</span>
+                          {bullet || (item.icon && renderIcon(item.icon, 16))}
+                          <span className="nav-item-label" style={justUnlocked ? { fontWeight: 700 } : undefined}>
+                            {item.label}
+                          </span>
                         </div>
-                        {item.badge}
+                        {justUnlocked ? (
+                          <span style={{ marginLeft: 'auto', fontSize: '9px', fontWeight: 800, letterSpacing: '0.5px', textTransform: 'uppercase', color: '#fff', background: '#e63946', borderRadius: '100px', padding: '2px 7px' }}>
+                            Open
+                          </span>
+                        ) : item.badge}
                       </Link>
-                    )
-                  )}
+                    );
+                  })}
                 </div>
               </div>
             );

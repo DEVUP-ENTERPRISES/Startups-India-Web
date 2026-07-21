@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Rocket, ArrowRight, Plus, FileText } from 'lucide-react';
+import { Rocket, ArrowRight, Plus, FileText, Camera, Zap } from 'lucide-react';
 import { listMyApplications } from '@/lib/grants';
 import StatusBadge from '@/components/grants/StatusBadge';
 
@@ -28,33 +28,107 @@ function Skeleton() {
 
 function EmptyState() {
   return (
-    <div
-      style={{
-        padding: '64px 24px',
-        textAlign: 'center',
-        background: '#fafafa',
-        border: '1px dashed #e5e7eb',
-        borderRadius: '20px',
-      }}
-    >
-      <Rocket size={44} color="#d1d5db" style={{ margin: '0 auto 16px' }} />
-      <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#111827', margin: '0 0 8px' }}>
-        No applications yet
-      </h3>
-      <p style={{ fontSize: '14px', color: '#6b7280', margin: '0 0 22px', lineHeight: 1.6 }}>
-        Apply for the Startup Grant to access funding, mentorship and incubation support.
-      </p>
-      <Link
-        href="/dashboard/grants"
-        style={{
-          display: 'inline-flex', alignItems: 'center', gap: '7px',
-          padding: '12px 22px', borderRadius: '12px',
-          background: 'linear-gradient(135deg,#e63946,#ff6b6b)',
-          color: '#fff', fontWeight: 700, fontSize: '14px', textDecoration: 'none',
-        }}
-      >
-        <Plus size={16} /> Start an application
-      </Link>
+    <div style={{
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+      gap: '32px',
+      background: '#ffffff',
+      border: '1px solid #e5e7eb',
+      borderRadius: '24px',
+      padding: '32px',
+      boxShadow: '0 12px 32px -12px rgba(0,0,0,0.06)'
+    }}>
+      
+      {/* Left: Pitch & Stages */}
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 12px', background: '#fef2f2', color: '#ef4444', borderRadius: '10px', fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', marginBottom: '16px', width: 'fit-content' }}>
+          <Zap size={14} fill="currentColor" /> Applications Open
+        </div>
+        
+        <h3 style={{ fontSize: '28px', fontWeight: 800, color: '#111827', margin: '0 0 12px', lineHeight: 1.2, letterSpacing: '-0.5px' }}>
+          Fast-track your startup journey.
+        </h3>
+        
+        <p style={{ fontSize: '15px', color: '#6b7280', margin: '0 0 32px', lineHeight: 1.6 }}>
+          You haven't applied yet! Join the Startups India ecosystem. Get your idea evaluated by top VCs, secure mentorship, and get funded. <strong>Apply fast</strong> before the current cohort fills up.
+        </p>
+        
+        <Link
+          href="/dashboard/grants"
+          style={{
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+            padding: '16px 28px', borderRadius: '14px',
+            background: 'linear-gradient(135deg, #e63946 0%, #b91c1c 100%)',
+            color: '#fff', fontWeight: 700, fontSize: '15px', textDecoration: 'none',
+            boxShadow: '0 8px 20px -6px rgba(230, 57, 70, 0.5)',
+            width: 'fit-content',
+            marginBottom: '40px',
+            transition: 'transform 0.2s, box-shadow 0.2s'
+          }}
+          onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 12px 24px -8px rgba(230, 57, 70, 0.6)'; }}
+          onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 8px 20px -6px rgba(230, 57, 70, 0.5)'; }}
+        >
+          <Rocket size={18} /> Start Your Application
+        </Link>
+
+        {/* Mini Stages Summary */}
+        <div style={{ marginTop: 'auto', borderTop: '1px solid #f3f4f6', paddingTop: '24px' }}>
+          <div style={{ fontSize: '12px', fontWeight: 700, color: '#9ca3af', marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>The 5-Phase Journey</div>
+          <div style={{ display: 'flex', gap: '8px', justifyContent: 'space-between' }}>
+            {[ 'Idea', 'Eval', 'Pre-Inc', 'Incubate', 'Funded'].map((stage, i) => (
+              <div key={stage} style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center', textAlign: 'center', position: 'relative', flex: 1 }}>
+                <div style={{ 
+                  width: '28px', height: '28px', borderRadius: '50%', 
+                  background: i === 4 ? '#fef3c7' : '#f3f4f6', 
+                  color: i === 4 ? '#d97706' : '#6b7280', 
+                  border: i === 4 ? '1px solid #fde68a' : '1px solid transparent',
+                  fontSize: '12px', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  zIndex: 2
+                }}>
+                  {i + 1}
+                </div>
+                {i < 4 && <div style={{ position: 'absolute', top: '14px', left: '50%', width: '100%', height: '2px', background: '#f3f4f6', zIndex: 1 }} />}
+                <span style={{ fontSize: '11px', fontWeight: 600, color: i === 4 ? '#d97706' : '#6b7280' }}>{stage}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Right: Photo Grid Gallery */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', minHeight: '340px' }}>
+        {/* Large photo left */}
+        <div style={{ 
+          background: '#000', borderRadius: '20px', gridRow: 'span 2', position: 'relative', overflow: 'hidden', boxShadow: '0 4px 20px -5px rgba(0,0,0,0.1)'
+        }}>
+          <img src="/showcase/pitch.png" alt="Startup Pitch" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.9, transition: 'transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)' }} onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.06)'} onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'} />
+          <div style={{ position: 'absolute', bottom: 0, left: 0, width: '100%', padding: '30px 16px 16px', background: 'linear-gradient(to top, rgba(0,0,0,0.85), transparent)', color: '#fff', pointerEvents: 'none' }}>
+            <span style={{ fontSize: '13px', fontWeight: 800, letterSpacing: '0.3px' }}>Seed Pitches</span>
+            <div style={{ fontSize: '11px', color: '#cbd5e1', fontWeight: 500, marginTop: '2px' }}>Cohort 4</div>
+          </div>
+        </div>
+        
+        {/* Top right */}
+        <div style={{ 
+          background: '#000', borderRadius: '20px', position: 'relative', overflow: 'hidden', boxShadow: '0 4px 20px -5px rgba(0,0,0,0.1)'
+        }}>
+          <img src="/showcase/event.png" alt="Networking Event" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.9, transition: 'transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)' }} onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.06)'} onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'} />
+          <div style={{ position: 'absolute', bottom: 0, left: 0, width: '100%', padding: '24px 14px 14px', background: 'linear-gradient(to top, rgba(0,0,0,0.85), transparent)', color: '#fff', pointerEvents: 'none' }}>
+            <span style={{ fontSize: '12px', fontWeight: 800, letterSpacing: '0.2px' }}>Networking</span>
+          </div>
+        </div>
+        
+        {/* Bottom right */}
+        <div style={{ 
+          background: '#000', borderRadius: '20px', position: 'relative', overflow: 'hidden', boxShadow: '0 4px 20px -5px rgba(0,0,0,0.1)'
+        }}>
+          <img src="/showcase/office.png" alt="Incubation Space" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.9, transition: 'transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)' }} onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.06)'} onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'} />
+          <div style={{ position: 'absolute', bottom: 0, left: 0, width: '100%', padding: '24px 14px 14px', background: 'linear-gradient(to top, rgba(0,0,0,0.85), transparent)', color: '#fff', pointerEvents: 'none' }}>
+            <span style={{ fontSize: '12px', fontWeight: 800, letterSpacing: '0.2px' }}>Workspace</span>
+          </div>
+        </div>
+      </div>
+
     </div>
   );
 }

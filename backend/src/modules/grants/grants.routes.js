@@ -8,8 +8,17 @@ const documentsService = require('./grant.documents.service');
 const paymentService = require('./grant.payment.service');
 const { getGrantSettings, computeEvaluationFee } = require('./grant.settings');
 const { STATUS_LABELS } = require('./grant.status');
+const { PHASES } = require('./grant.phases');
 
 const router = express.Router();
+
+// Which settings key holds the price for each paid phase. Keeps the config route
+// from hardcoding fee amounts — the numbers live in grant.settings.js only.
+const PHASE_FEE_KEYS = {
+  idea_evaluation: 'grant.evaluation.fee',
+  pre_incubation: 'grant.preIncubation.fee',
+  incubation: 'grant.incubation.fee',
+};
 
 // Every route here is student-facing and scoped to the caller. There is no route
 // on this router that can read another user's application — admin access lives on
@@ -76,6 +85,20 @@ router.get(
         },
         evaluationFee: fee,
         statusLabels: STATUS_LABELS,
+        // The 5-phase journey (static definitions, no per-applicant state) so the
+        // apply page can showcase the full path before anyone applies. `fee` is the
+        // base price in paise for phases that have one (0/null = not published).
+        phases: PHASES.map(p => {
+          const feeKey = PHASE_FEE_KEYS[p.key];
+          const phaseFee = feeKey ? s[feeKey] : 0;
+          return {
+            key: p.key,
+            title: p.title,
+            subtitle: p.subtitle,
+            comingSoon: Boolean(p.comingSoon),
+            fee: phaseFee > 0 ? phaseFee : null,
+          };
+        }),
       },
     });
   })

@@ -27,13 +27,6 @@ function SignupContent() {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
   const [resendMessage, setResendMessage] = useState('');
-  const [passwordStrength, setPasswordStrength] = useState({
-    hasMinLength: false,
-    hasUpperCase: false,
-    hasLowerCase: false,
-    hasNumber: false,
-    hasSpecialChar: false,
-  });
 
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -83,18 +76,6 @@ function SignupContent() {
     setEmailValid(validateEmail(value));
   };
 
-  const handlePasswordChange = (e) => {
-    const value = e.target.value;
-    setPassword(value);
-    
-    setPasswordStrength({
-      hasMinLength: value.length >= 8,
-      hasUpperCase: /[A-Z]/.test(value),
-      hasLowerCase: /[a-z]/.test(value),
-      hasNumber: /[0-9]/.test(value),
-      hasSpecialChar: /[^A-Za-z0-9]/.test(value),
-    });
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -110,10 +91,10 @@ function SignupContent() {
       return;
     }
 
-    // Only enforce what the backend actually requires (min 8 characters). The
-    // earlier uppercase/number/special-char requirements were stricter than the
-    // server and just blocked people from signing up.
-    if (!passwordStrength.hasMinLength) {
+    // Only enforce what the backend actually requires (min 8 characters). Read the
+    // live password value directly — the earlier check used a strength object that
+    // wasn't wired to the input, so it always failed no matter what was typed.
+    if (password.length < 8) {
       setError('Password must be at least 8 characters');
       return;
     }
@@ -318,20 +299,29 @@ function SignupContent() {
                         className="auth-input"
                         placeholder="Create a strong password"
                         value={password}
-                        onChange={(e) => setPassword(e.target.value)}
+                        onChange={(e) => { setPassword(e.target.value); if (error) setError(''); }}
                         onFocus={() => setPasswordFocused(true)}
                         onBlur={() => setPasswordFocused(false)}
                         required
                         disabled={isLoading}
                       />
-                      <button 
-                        type="button" 
+                      <button
+                        type="button"
                         className="password-toggle-btn"
                         onClick={() => setShowPassword(!showPassword)}
                       >
                         {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                       </button>
                     </div>
+                    {/* Friendly, live hint — the only rule is 8+ characters. Turns
+                        green the moment it's met, so nobody's left guessing. */}
+                    {password.length > 0 && (
+                      <p style={{ marginTop: '6px', fontSize: '12px', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '6px', color: password.length >= 8 ? '#059669' : '#9ca3af' }}>
+                        {password.length >= 8
+                          ? <><CheckCircle2 size={14} /> Looks good</>
+                          : `Use at least 8 characters (${password.length}/8)`}
+                      </p>
+                    )}
                   </div>
 
                   <div className="form-group">

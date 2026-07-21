@@ -59,10 +59,9 @@ async function getEvaluation(applicationDbId) {
   const settings = await getGrantSettings();
   return {
     ...evaluation,
-    // The reviewer form is rendered from the admin's criteria list, so adding a
-    // criterion needs no code change and no migration.
-    criteria: settings['grant.evaluation.criteria'],
-    maxScorePerCriterion: settings['grant.evaluation.maxScore'],
+    // Idea is scored out of 100; this is the pass mark the admin UI shows.
+    maxScore: 100,
+    passThreshold: settings['grant.evaluation.passThreshold'],
   };
 }
 
@@ -155,84 +154,80 @@ async function scheduleMeeting({ applicationDbId, mode, scheduledAt, link, locat
 }
 
 /**
- * Reviewer submits the scorecard.
+ * Record the evaluation result: a single 0–100 mark plus feedback, allocated
+ * after the offline evaluation meet.
  *
- * Scores are validated against the admin's criteria list: an unknown criterion,
- * or one scored above the configured maximum, is rejected rather than quietly
- * skewing the total.
+ * The mark decides the outcome automatically:
+ *   >= passThreshold → cleared Phase 2, advances toward the next phases.
+ *   <  passThreshold → not selected; the feedback is shown as improvement
+ *                      suggestions.
+ * The pass/fail decision is frozen onto the evaluation, so a later change to the
+ * threshold can't retroactively flip an outcome the applicant was already told.
  */
-async function submitResult({ applicationDbId, scores, comments, recommendation, reviewerId }) {
-  if (!RECOMMENDATIONS.includes(recommendation)) {
-    throw new ApiError(400, `Invalid recommendation: ${recommendation}`);
+async function submitResult({ applicationDbId, score, feedback, reviewerId }) {
+  const n = Number(score);
+  if (!Number.isFinite(n) || n < 0 || n > 100) {
+    throw new ApiError(400, 'Score must be a number between 0 and 100.');
   }
 
   const settings = await getGrantSettings();
-  const criteria = settings['grant.evaluation.criteria'];
-  const maxPer = settings['grant.evaluation.maxScore'];
+  const threshold = settings['grant.evaluation.passThreshold'];
+  const passed = n >= threshold;
 
-  const given = Object.keys(scores || {});
-  const missing = criteria.filter(c => !given.includes(c));
-  if (missing.length) {
-    throw new ApiError(400, `Missing scores for: ${missing.join(', ')}`);
-  }
-
-  const unknown = given.filter(c => !criteria.includes(c));
-  if (unknown.length) {
-    throw new ApiError(400, `Unknown criteria: ${unknown.join(', ')}`);
-  }
-
-  let total = 0;
-  for (const c of criteria) {
-    const n = Number(scores[c]);
-    if (!Number.isFinite(n) || n < 0 || n > maxPer) {
-      throw new ApiError(400, `${c} must be a score between 0 and ${maxPer}.`);
-    }
-    total += n;
+  if (!passed && !String(feedback || '').trim()) {
+    throw new ApiError(400, 'Please give feedback / suggestions when the applicant does not pass.');
   }
 
   const application = await GrantApplication.findById(applicationDbId);
   if (!application) throw new ApiError(404, 'Application not found');
-
   if (application.status !== STATUS.EVALUATION_SCHEDULED) {
-    throw new ApiError(
-      409,
-      'An evaluation result can only be recorded for a scheduled evaluation.'
-    );
+    throw new ApiError(409, 'A result can only be recorded once the evaluation meet is scheduled.');
   }
 
   const evaluation = await IdeaEvaluation.findOneAndUpdate(
     { applicationId: application._id },
-    {
-      $set: {
-        scores,
-        totalScore: total,
-        maxScore: criteria.length * maxPer,
-        comments: comments || '',
-        recommendation,
-        reviewerId,
-        submittedAt: new Date(),
-      },
-    },
+    { $set: { score: n, passed, feedback: feedback || '', reviewerId, submittedAt: new Date() } },
     { new: true }
   );
 
+  // Pass → Evaluation Completed (Phase 2 cleared). Fail → Rejected.
   await changeStatus({
     applicationDbId: application._id,
-    toStatus: STATUS.EVALUATION_COMPLETED,
+    toStatus: passed ? STATUS.EVALUATION_COMPLETED : STATUS.REJECTED,
     adminUserId: reviewerId,
+    reason: passed ? '' : (feedback || ''),
+    // changeStatus sends its own notification with the reason; for a pass we send
+    // a richer "you're through" message ourselves below.
+    notify: !passed,
   });
 
   await addTimelineEntry({
     applicationId: application._id,
     event: 'evaluation_completed',
-    message: `Evaluation completed — scored ${total}/${criteria.length * maxPer}.`,
+    message: passed
+      ? `Idea Evaluation cleared — scored ${n}/100.`
+      : `Idea Evaluation scored ${n}/100 — below the ${threshold} pass mark.`,
     actorId: reviewerId,
     actorRole: 'admin',
-    // The scorecard itself stays internal; the student is told the outcome, not
-    // shown the reviewer's raw marks and candid comments.
+    reason: feedback || '',
+    // The raw mark stays internal; the applicant sees the outcome + feedback.
     visibleToStudent: false,
-    metadata: { totalScore: total, recommendation },
+    metadata: { score: n, passed },
   });
+
+  if (passed) {
+    await notifyUser({
+      userId: application.userId,
+      title: '🎉 You cleared the Idea Evaluation!',
+      message:
+        'Congratulations — your idea passed evaluation by our panel. '
+        + 'You are now eligible for the next phases (Pre-Incubation, Incubation and Funding). '
+        + 'We will be in touch with the next steps.'
+        + (feedback ? `\n\nPanel note: ${feedback}` : ''),
+      type: 'success',
+      data: { applicationId: String(application._id), applicationRef: application.applicationId },
+    });
+  }
 
   return evaluation;
 }

@@ -9,7 +9,7 @@ const {
 } = require('../../utils/s3');
 const { GrantApplication, ApplicationDocument } = require('./grant.models');
 const { getGrantSettings } = require('./grant.settings');
-const { isEditable } = require('./grant.status');
+const { isEditable, STATUS } = require('./grant.status');
 const { addTimelineEntry } = require('./grant.service');
 
 /**
@@ -41,11 +41,19 @@ function sanitizeFileName(name) {
  * Both checks live in the query/state, not in a caller's `if` — an upload into
  * someone else's application must be impossible, not merely discouraged.
  */
+// Documents can be uploaded in two windows: while the Phase 1 form is still
+// editable (draft / changes requested), and during Phase 2 once the idea is
+// accepted but the fee hasn't been paid yet (SELECTED / EVALUATION_PENDING) —
+// this is where business plans and the pitch deck are actually collected.
+const PHASE2_UPLOAD_STATUSES = [STATUS.SELECTED, STATUS.EVALUATION_PENDING];
+
 async function assertOwnedAndEditable(userId, applicationDbId) {
   const application = await GrantApplication.findOne({ _id: applicationDbId, userId });
   if (!application) throw new ApiError(404, 'Application not found');
 
-  if (!isEditable(application.status, application.revisionAllowed)) {
+  const canEdit = isEditable(application.status, application.revisionAllowed)
+    || PHASE2_UPLOAD_STATUSES.includes(application.status);
+  if (!canEdit) {
     throw new ApiError(409, 'This application is locked and its documents cannot be changed.');
   }
   return application;

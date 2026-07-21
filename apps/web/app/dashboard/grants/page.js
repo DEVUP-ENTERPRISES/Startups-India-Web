@@ -4,15 +4,18 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
-  Rocket, User, Building2, UploadCloud, CheckCircle2, ArrowRight, ArrowLeft,
-  AlertCircle, FileText, Lock,
+  Rocket, User, Building2, CheckCircle2, ArrowRight, ArrowLeft,
+  AlertCircle, Lock,
 } from 'lucide-react';
 import {
   getGrantConfig, saveDraft, submitApplication, getApplication, listMyApplications,
 } from '@/lib/grants';
-import FileDropzone from '@/components/grants/FileDropzone';
+import JourneyShowcase from '@/components/grants/JourneyShowcase';
 
-const STEPS = ['Founder', 'Startup', 'Documents', 'Review'];
+// Phase 1 is a free idea check — lean by design. Detailed business plans and
+// document uploads happen in Phase 2 (Idea Evaluation), after the idea is
+// accepted. So there is no Documents step here.
+const STEPS = ['Founder', 'Startup', 'Review'];
 
 const emptyFounder = {
   fullName: '', email: '', phone: '', collegeName: '',
@@ -87,7 +90,6 @@ export default function GrantApplicationPage() {
   const [startup, setStartup] = useState(emptyStartup);
   const [applicationId, setApplicationId] = useState(null);
   const [applicationRef, setApplicationRef] = useState('');
-  const [documents, setDocuments] = useState([]);
   const [terms, setTerms] = useState(false);
 
   useEffect(() => {
@@ -114,15 +116,12 @@ export default function GrantApplicationPage() {
             ...full.startup,
             teamSize: full.startup?.teamSize ?? '',
           });
-          setDocuments(full.documents || []);
         }
       }
       setLoading(false);
     })();
   }, []);
 
-  const docsOf = kind => documents.filter(d => d.kind === kind);
-  const hasDeck = docsOf('pitch_deck').length > 0;
 
   const founderValid = useMemo(
     () => founder.fullName.trim() && founder.email.trim() && founder.phone.trim(),
@@ -213,7 +212,6 @@ export default function GrantApplicationPage() {
     );
   }
 
-  const upload = config.upload;
 
   return (
     <div style={{ maxWidth: 820, margin: '0 auto', padding: '40px 24px 80px' }}>
@@ -241,6 +239,10 @@ export default function GrantApplicationPage() {
           </p>
         )}
       </div>
+
+      {/* Journey showcase — get founders excited about all 5 phases before they
+          fill anything in. Rendered from config.phases (backend source of truth). */}
+      <JourneyShowcase phases={config.phases} />
 
       {/* Progress tracker */}
       <div style={{ display: 'flex', gap: '8px', marginBottom: '28px' }}>
@@ -309,19 +311,9 @@ export default function GrantApplicationPage() {
                 <input style={inputStyle} value={founder.collegeName}
                   onChange={e => setFounder({ ...founder, collegeName: e.target.value })} />
               </Field>
-              <Field label="University">
-                <input style={inputStyle} value={founder.university}
-                  onChange={e => setFounder({ ...founder, university: e.target.value })} />
-              </Field>
-            </Two>
-            <Two>
               <Field label="City">
                 <input style={inputStyle} value={founder.city}
                   onChange={e => setFounder({ ...founder, city: e.target.value })} />
-              </Field>
-              <Field label="State">
-                <input style={inputStyle} value={founder.state}
-                  onChange={e => setFounder({ ...founder, state: e.target.value })} />
               </Field>
             </Two>
           </>
@@ -352,127 +344,35 @@ export default function GrantApplicationPage() {
                 </select>
               </Field>
             </Two>
-            <Field label="Team Size">
-              <input type="number" min="1" style={inputStyle} value={startup.teamSize}
-                onChange={e => setStartup({ ...startup, teamSize: e.target.value })} />
-            </Field>
-            <Field label="Problem Statement" required>
+            <Field label="Problem Statement" required hint="What problem are you solving?">
               <textarea rows={4} style={{ ...inputStyle, resize: 'vertical' }} value={startup.problemStatement}
                 onChange={e => setStartup({ ...startup, problemStatement: e.target.value })} />
             </Field>
-            <Field label="Solution" required>
+            <Field label="Solution" required hint="How does your startup solve it?">
               <textarea rows={4} style={{ ...inputStyle, resize: 'vertical' }} value={startup.solution}
                 onChange={e => setStartup({ ...startup, solution: e.target.value })} />
             </Field>
-            <Field label="Target Audience">
-              <textarea rows={2} style={{ ...inputStyle, resize: 'vertical' }} value={startup.targetAudience}
-                onChange={e => setStartup({ ...startup, targetAudience: e.target.value })} />
-            </Field>
-            <Field label="Business Model">
-              <textarea rows={2} style={{ ...inputStyle, resize: 'vertical' }} value={startup.businessModel}
-                onChange={e => setStartup({ ...startup, businessModel: e.target.value })} />
-            </Field>
-            <Field label="Existing Traction">
-              <textarea rows={2} style={{ ...inputStyle, resize: 'vertical' }} value={startup.traction}
-                onChange={e => setStartup({ ...startup, traction: e.target.value })} />
-            </Field>
-            <Field label="Funding Raised" hint="e.g. Bootstrapped, ₹10L angel round">
-              <input style={inputStyle} value={startup.fundingRaised}
-                onChange={e => setStartup({ ...startup, fundingRaised: e.target.value })} />
-            </Field>
-            <Two>
-              <Field label="Website" hint="Include https://">
-                <input style={inputStyle} placeholder="https://" value={startup.website}
-                  onChange={e => setStartup({ ...startup, website: e.target.value })} />
-              </Field>
-              <Field label="LinkedIn" hint="Include https://">
-                <input style={inputStyle} placeholder="https://" value={startup.linkedin}
-                  onChange={e => setStartup({ ...startup, linkedin: e.target.value })} />
-              </Field>
-            </Two>
+            <p style={{ margin: '4px 0 0', fontSize: '12.5px', color: '#9ca3af', lineHeight: 1.6 }}>
+              That&apos;s all we need for now — your detailed business plan and documents come later,
+              in Phase 2 (Idea Evaluation), once your idea is accepted.
+            </p>
           </>
         )}
 
-        {/* ── Step 2: Documents ── */}
+        {/* ── Step 2: Review ── */}
         {step === 2 && (
-          <>
-            <SectionTitle icon={<UploadCloud size={18} />} title="Documents" />
-            <FileDropzone
-              applicationId={applicationId} kind="pitch_deck"
-              label="Pitch Deck (required)"
-              hint="The single most important document in your application."
-              accept={upload.pitchDeckTypes} maxSizeMb={upload.maxSizeMb} maxFiles={1}
-              existing={docsOf('pitch_deck')}
-              onChange={next => setDocuments([...documents.filter(d => d.kind !== 'pitch_deck'), ...next.filter(d => d.kind === 'pitch_deck')])}
-            />
-            <FileDropzone
-              applicationId={applicationId} kind="business_plan"
-              label="Business Plan (optional)"
-              accept={upload.documentTypes} maxSizeMb={upload.maxSizeMb} maxFiles={1}
-              existing={docsOf('business_plan')}
-              onChange={next => setDocuments([...documents.filter(d => d.kind !== 'business_plan'), ...next.filter(d => d.kind === 'business_plan')])}
-            />
-            <FileDropzone
-              applicationId={applicationId} kind="product_image"
-              label="Product Images (optional)"
-              hint="Up to 8 images."
-              accept={upload.imageTypes} maxSizeMb={upload.maxSizeMb} maxFiles={8}
-              existing={docsOf('product_image')}
-              onChange={next => setDocuments([...documents.filter(d => d.kind !== 'product_image'), ...next.filter(d => d.kind === 'product_image')])}
-            />
-            <FileDropzone
-              applicationId={applicationId} kind="demo_video"
-              label="Demo Video (optional)"
-              hint={`Upload a short product demo. Up to ${upload.maxSizeMb} MB.`}
-              accept={upload.videoTypes} maxSizeMb={upload.maxSizeMb} maxFiles={1}
-              existing={docsOf('demo_video')}
-              onChange={next => setDocuments([...documents.filter(d => d.kind !== 'demo_video'), ...next.filter(d => d.kind === 'demo_video')])}
-            />
-
-            {!hasDeck && (
-              <p style={{ display: 'flex', alignItems: 'center', gap: '6px', margin: 0, fontSize: '12.5px', color: '#b45309' }}>
-                <AlertCircle size={14} /> A pitch deck is required before you can submit.
-              </p>
-            )}
-          </>
-        )}
-
-        {/* ── Step 3: Review ── */}
-        {step === 3 && (
           <>
             <SectionTitle icon={<CheckCircle2 size={18} />} title="Review & submit" />
 
             <Summary title="Founder" rows={[
               ['Name', founder.fullName], ['Email', founder.email], ['Mobile', founder.phone],
-              ['College', founder.collegeName], ['University', founder.university],
-              ['City', founder.city], ['State', founder.state],
+              ['College', founder.collegeName], ['City', founder.city],
             ]} />
 
             <Summary title="Startup" rows={[
               ['Name', startup.name], ['Stage', startup.stage], ['Category', startup.category],
-              ['Team Size', startup.teamSize], ['Problem', startup.problemStatement],
-              ['Solution', startup.solution], ['Target Audience', startup.targetAudience],
-              ['Business Model', startup.businessModel], ['Traction', startup.traction],
-              ['Funding Raised', startup.fundingRaised], ['Website', startup.website],
-              ['LinkedIn', startup.linkedin],
+              ['Problem', startup.problemStatement], ['Solution', startup.solution],
             ]} />
-
-            <div style={{ marginBottom: '20px' }}>
-              <h4 style={{ fontSize: '13px', fontWeight: 800, color: '#111827', margin: '0 0 10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                Documents
-              </h4>
-              {documents.length === 0 ? (
-                <p style={{ fontSize: '13.5px', color: '#9ca3af', margin: 0 }}>No documents uploaded.</p>
-              ) : (
-                documents.map(d => (
-                  <div key={d._id} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                    <FileText size={14} color="#6b7280" />
-                    <span style={{ fontSize: '13.5px', color: '#374151' }}>{d.fileName}</span>
-                    <span style={{ fontSize: '12px', color: '#9ca3af' }}>({d.kind.replace(/_/g, ' ')})</span>
-                  </div>
-                ))
-              )}
-            </div>
 
             <label
               style={{
@@ -520,14 +420,12 @@ export default function GrantApplicationPage() {
               disabled={
                 saving ||
                 (step === 0 && !founderValid) ||
-                (step === 1 && !startupValid) ||
-                (step === 2 && !hasDeck)
+                (step === 1 && !startupValid)
               }
               style={primaryBtn(
                 saving ||
                 (step === 0 && !founderValid) ||
-                (step === 1 && !startupValid) ||
-                (step === 2 && !hasDeck)
+                (step === 1 && !startupValid)
               )}
             >
               {saving ? 'Saving…' : 'Continue'} <ArrowRight size={16} />
@@ -536,8 +434,8 @@ export default function GrantApplicationPage() {
             <button
               type="button"
               onClick={handleSubmit}
-              disabled={saving || !terms || !hasDeck}
-              style={primaryBtn(saving || !terms || !hasDeck)}
+              disabled={saving || !terms}
+              style={primaryBtn(saving || !terms)}
             >
               {saving ? 'Submitting…' : 'Submit Application'} <ArrowRight size={16} />
             </button>

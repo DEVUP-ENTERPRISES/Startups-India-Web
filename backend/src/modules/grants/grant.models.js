@@ -149,17 +149,20 @@ const ideaEvaluationSchema = new mongoose.Schema(
     },
 
     // ── Result ──
-    // Criteria are admin-configurable, so scores are a map rather than fixed
-    // columns: adding "Team" as a criterion must not require a migration.
+    // Single 0–100 mark the admin allocates after the offline evaluation meet.
+    score: { type: Number, default: null, min: 0, max: 100 },
+    // >= passThreshold at scoring time. Frozen so a later threshold change can't
+    // retroactively flip a decision the applicant was already told.
+    passed: { type: Boolean, default: null },
+    // Shown to the applicant — praise if passed, improvement suggestions if not.
+    feedback: { type: String, default: '', maxlength: 5000 },
+
+    // Legacy multi-criteria fields, kept for older records; no longer written.
     scores: { type: Map, of: Number, default: undefined },
     totalScore: { type: Number, default: null },
     maxScore: { type: Number, default: null },
     comments: { type: String, default: '', maxlength: 5000 },
-    recommendation: {
-      type: String,
-      enum: ['reject', 'needs_improvement', 'recommended', 'funding_ready', null],
-      default: null,
-    },
+    recommendation: { type: String, default: null },
     submittedAt: { type: Date, default: null },
   },
   { timestamps: true }
@@ -190,7 +193,7 @@ const evaluationPaymentSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ['created', 'paid', 'failed'],
+      enum: ['created', 'paid', 'failed', 'expired'],
       default: 'created',
       index: true,
     },

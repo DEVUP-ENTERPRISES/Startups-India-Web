@@ -70,27 +70,42 @@ async function createEvaluationOrder(userId, applicationDbId) {
   });
   if (settled) throw new ApiError(409, 'The evaluation fee for this application is already paid.');
 
+  // The price is computed here, from settings — never accepted from the client.
+  const fee = await computeEvaluationFee();
+  if (fee.totalAmount <= 0) throw new ApiError(500, 'Evaluation fee is not configured.');
+
   // Reuse an unpaid order rather than littering Razorpay with abandoned ones.
+  // BUT — if the admin changed the fee since the order was created, expire the
+  // stale order so the student isn't charged a different amount than what the UI
+  // is displaying.
   const existing = await EvaluationPayment.findOne({
     applicationId: application._id,
     status: 'created',
   });
   if (existing) {
-    return {
+    if (existing.totalAmount === fee.totalAmount && existing.currency === fee.currency) {
+      return {
+        orderId: existing.orderId,
+        keyId: env.RAZORPAY_KEY_ID,
+        currency: existing.currency,
+        baseAmount: existing.baseAmount,
+        gstPercent: existing.gstPercent,
+        gstAmount: existing.gstAmount,
+        totalAmount: existing.totalAmount,
+        applicationRef: application.applicationId,
+      };
+    }
+    // Fee changed — expire the old order so a fresh one is created below.
+    existing.status = 'expired';
+    await existing.save();
+    logger.info('Expired stale evaluation order (fee changed)', {
       orderId: existing.orderId,
-      keyId: env.RAZORPAY_KEY_ID,
-      currency: existing.currency,
-      baseAmount: existing.baseAmount,
-      gstPercent: existing.gstPercent,
-      gstAmount: existing.gstAmount,
-      totalAmount: existing.totalAmount,
+      oldTotal: existing.totalAmount,
+      newTotal: fee.totalAmount,
       applicationRef: application.applicationId,
-    };
+    });
   }
 
-  // The price is computed here, from settings — never accepted from the client.
-  const fee = await computeEvaluationFee();
-  if (fee.totalAmount <= 0) throw new ApiError(500, 'Evaluation fee is not configured.');
 
   const order = await razorpay.orders.create({
     amount: fee.totalAmount, // already in paise
@@ -306,14 +321,16 @@ async function getEvaluationSummary(userId, applicationDbId) {
       : fee,
     invoiceNumber: payment?.invoiceNumber || null,
     meeting: evaluation?.meeting?.scheduledAt ? evaluation.meeting : null,
-    // The reviewer's scores/comments are internal until an admin completes the
-    // evaluation — a student must not read their own scorecard mid-review.
+    // The result is only surfaced once scored (not mid-review). Shows the mark,
+    // whether it passed, and the panel's feedback (which becomes improvement
+    // suggestions when it didn't pass).
     result:
       evaluation?.submittedAt && application.status !== STATUS.EVALUATION_SCHEDULED
         ? {
-          totalScore: evaluation.totalScore,
-          maxScore: evaluation.maxScore,
-          recommendation: evaluation.recommendation,
+          score: evaluation.score,
+          maxScore: 100,
+          passed: evaluation.passed,
+          feedback: evaluation.feedback || '',
         }
         : null,
   };

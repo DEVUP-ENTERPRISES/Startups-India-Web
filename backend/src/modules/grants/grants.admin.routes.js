@@ -201,11 +201,10 @@ router.post(
   '/applications/:id/evaluation/result',
   validateBody(
     z.object({
-      // Criteria are admin-configurable, so this is a map validated in the
-      // service against the live criteria list — not a fixed set of fields.
-      scores: z.record(z.coerce.number()),
-      comments: z.string().max(5000).optional().default(''),
-      recommendation: z.enum(evaluationService.RECOMMENDATIONS),
+      // A single 0–100 mark plus feedback. Pass/fail is decided server-side
+      // against the admin-configured threshold.
+      score: z.coerce.number().min(0).max(100),
+      feedback: z.string().max(5000).optional().default(''),
     })
   ),
   asyncHandler(async (req, res) => {

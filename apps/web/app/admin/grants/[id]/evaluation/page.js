@@ -12,13 +12,6 @@ const MODES = [
   { id: 'physical', label: 'In person' },
 ];
 
-const RECOMMENDATIONS = [
-  { id: 'reject', label: 'Reject', tone: '#ef4444' },
-  { id: 'needs_improvement', label: 'Needs Improvement', tone: '#f59e0b' },
-  { id: 'recommended', label: 'Recommended', tone: '#3b82f6' },
-  { id: 'funding_ready', label: 'Funding Ready', tone: '#10b981' },
-];
-
 const card = {
   padding: '22px',
   background: '#fff',
@@ -47,16 +40,15 @@ export default function AdminEvaluationPage() {
   const [flash, setFlash] = useState('');
   const [busy, setBusy] = useState(false);
 
-  // Scheduling
-  const [mode, setMode] = useState('google_meet');
+  // Scheduling — default to an in-person (offline) meet.
+  const [mode, setMode] = useState('physical');
   const [when, setWhen] = useState('');
   const [link, setLink] = useState('');
   const [location, setLocation] = useState('');
 
-  // Scoring
-  const [scores, setScores] = useState({});
-  const [comments, setComments] = useState('');
-  const [recommendation, setRecommendation] = useState('');
+  // Scoring — single 0–100 mark + feedback.
+  const [score, setScore] = useState('');
+  const [feedback, setFeedback] = useState('');
 
   const load = useCallback(async () => {
     const { data, error: err } = await getEvaluation(id);
@@ -71,9 +63,8 @@ export default function AdminEvaluationPage() {
     if (data.meeting?.scheduledAt) {
       setWhen(new Date(data.meeting.scheduledAt).toISOString().slice(0, 16));
     }
-    if (data.scores) setScores(data.scores);
-    if (data.comments) setComments(data.comments);
-    if (data.recommendation) setRecommendation(data.recommendation);
+    if (data.score !== null && data.score !== undefined) setScore(String(data.score));
+    if (data.feedback) setFeedback(data.feedback);
   }, [id]);
 
   useEffect(() => { load(); }, [load]);
@@ -99,9 +90,8 @@ export default function AdminEvaluationPage() {
     setBusy(true);
     setError('');
     const { error: err } = await submitEvaluationResult(id, {
-      scores,
-      comments,
-      recommendation,
+      score: Number(score),
+      feedback,
     });
     setBusy(false);
     if (err) { setError(err.message || 'Could not submit the result.'); return; }
@@ -123,11 +113,13 @@ export default function AdminEvaluationPage() {
 
   const scheduled = Boolean(ev.meeting?.scheduledAt);
   const done = Boolean(ev.submittedAt);
-  const maxPer = ev.maxScorePerCriterion;
+  const threshold = ev.passThreshold ?? 50;
 
-  const total = ev.criteria.reduce((sum, c) => sum + (Number(scores[c]) || 0), 0);
-  const outOf = ev.criteria.length * maxPer;
-  const complete = ev.criteria.every(c => scores[c] !== undefined && scores[c] !== '');
+  const scoreNum = score === '' ? null : Number(score);
+  const willPass = scoreNum !== null && scoreNum >= threshold;
+  const scoreValid = scoreNum !== null && scoreNum >= 0 && scoreNum <= 100;
+  // Feedback is mandatory when the applicant won't pass (they get it as suggestions).
+  const complete = scoreValid && (willPass || feedback.trim().length > 0);
 
   return (
     <div style={{ padding: '28px 28px 80px', maxWidth: 780, margin: '0 auto' }}>
@@ -222,101 +214,58 @@ export default function AdminEvaluationPage() {
       {/* Scoring */}
       <div style={{ ...card, opacity: scheduled ? 1 : 0.55 }}>
         <h2 style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '16px', fontWeight: 800, color: '#111827', margin: '0 0 6px' }}>
-          <Star size={17} color="#ef4444" /> Scorecard
+          <Star size={17} color="#ef4444" /> Score the idea
         </h2>
         <p style={{ margin: '0 0 18px', fontSize: '12.5px', color: '#9ca3af' }}>
           {done
             ? 'This evaluation has been submitted.'
             : scheduled
-              ? 'Score each criterion out of ' + maxPer + '.'
-              : 'Schedule the meeting before recording a result.'}
+              ? `Allocate a mark out of 100. ${threshold} or above passes to the next phases.`
+              : 'Schedule the evaluation meet before recording a result.'}
         </p>
 
-        {/* Criteria come from Grant Settings — adding one needs no code change. */}
-        {ev.criteria.map(c => (
-          <div key={c} style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
-            <span style={{ flex: 1, fontSize: '13.5px', color: '#374151', fontWeight: 500 }}>{c}</span>
-            <input
-              type="number"
-              min={0}
-              max={maxPer}
-              disabled={!scheduled || done}
-              value={scores[c] ?? ''}
-              onChange={e => setScores({ ...scores, [c]: e.target.value === '' ? '' : Number(e.target.value) })}
-              style={{ ...inputStyle, width: '90px', textAlign: 'center', fontWeight: 700 }}
-            />
-            <span style={{ fontSize: '12.5px', color: '#9ca3af', width: '34px' }}>/ {maxPer}</span>
-          </div>
-        ))}
-
-        <div
-          style={{
-            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-            padding: '13px 15px', margin: '16px 0',
-            background: '#fafafa', border: '1px solid #f0f0f0', borderRadius: '11px',
-          }}
-        >
-          <span style={{ fontSize: '13px', fontWeight: 700, color: '#374151' }}>Total</span>
-          <span style={{ fontSize: '19px', fontWeight: 900, color: '#111827' }}>
-            {total} <span style={{ fontSize: '13px', color: '#9ca3af', fontWeight: 600 }}>/ {outOf}</span>
-          </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 18 }}>
+          <input
+            type="number" min={0} max={100} disabled={!scheduled || done}
+            value={score} onChange={e => setScore(e.target.value)}
+            placeholder="0–100"
+            style={{ ...inputStyle, width: 120, textAlign: 'center', fontSize: 24, fontWeight: 900, padding: '10px' }}
+          />
+          <span style={{ fontSize: 18, fontWeight: 700, color: '#9ca3af' }}>/ 100</span>
+          {scoreValid && (
+            <span style={{ padding: '6px 14px', borderRadius: 100, fontSize: 13, fontWeight: 800, background: willPass ? '#dcfce7' : '#fef3c7', color: willPass ? '#166534' : '#b45309' }}>
+              {willPass ? `Passes (≥ ${threshold}) → advances` : `Below ${threshold} → not selected`}
+            </span>
+          )}
         </div>
 
-        <div style={{ marginBottom: '14px' }}>
-          <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>Comments</label>
+        <div style={{ marginBottom: '18px' }}>
+          <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
+            Feedback {willPass ? '(optional)' : '(required — shown to the applicant as suggestions)'}
+          </label>
           <textarea
-            rows={4}
-            disabled={!scheduled || done}
-            value={comments}
-            onChange={e => setComments(e.target.value)}
+            rows={4} disabled={!scheduled || done}
+            value={feedback} onChange={e => setFeedback(e.target.value)}
+            placeholder={willPass ? 'Optional note for the applicant.' : 'What should they improve? This is shown to them.'}
             style={{ ...inputStyle, resize: 'vertical' }}
           />
         </div>
 
-        <div style={{ marginBottom: '18px' }}>
-          <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>Recommendation</label>
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-            {RECOMMENDATIONS.map(r => (
-              <button
-                key={r.id}
-                type="button"
-                disabled={!scheduled || done}
-                onClick={() => setRecommendation(r.id)}
-                style={{
-                  padding: '9px 15px',
-                  borderRadius: '10px',
-                  border: `1.5px solid ${recommendation === r.id ? r.tone : '#e5e7eb'}`,
-                  background: recommendation === r.id ? `${r.tone}12` : '#fff',
-                  color: recommendation === r.id ? r.tone : '#6b7280',
-                  fontWeight: 700,
-                  fontSize: '12.5px',
-                  cursor: !scheduled || done ? 'default' : 'pointer',
-                }}
-              >
-                {r.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
         {done ? (
-          <p style={{ display: 'flex', alignItems: 'center', gap: '7px', margin: 0, fontSize: '13.5px', color: '#047857', fontWeight: 700 }}>
-            <CheckCircle2 size={16} /> Submitted on {new Date(ev.submittedAt).toLocaleString('en-IN')}
+          <p style={{ display: 'flex', alignItems: 'center', gap: '7px', margin: 0, fontSize: '13.5px', color: ev.passed ? '#047857' : '#b45309', fontWeight: 700 }}>
+            <CheckCircle2 size={16} /> Scored {ev.score}/100 — {ev.passed ? 'Passed' : 'Not selected'} · {new Date(ev.submittedAt).toLocaleString('en-IN')}
           </p>
         ) : (
           <button
             type="button"
             onClick={doSubmit}
-            disabled={busy || !scheduled || !complete || !recommendation}
+            disabled={busy || !scheduled || !complete}
             style={{
               padding: '12px 24px', borderRadius: '11px', border: 'none',
-              background:
-                busy || !scheduled || !complete || !recommendation
-                  ? '#f3f4f6'
-                  : 'linear-gradient(135deg,#e63946,#ff6b6b)',
-              color: busy || !scheduled || !complete || !recommendation ? '#9ca3af' : '#fff',
+              background: busy || !scheduled || !complete ? '#f3f4f6' : 'linear-gradient(135deg,#e63946,#ff6b6b)',
+              color: busy || !scheduled || !complete ? '#9ca3af' : '#fff',
               fontWeight: 700, fontSize: '14px',
-              cursor: busy || !scheduled || !complete || !recommendation ? 'default' : 'pointer',
+              cursor: busy || !scheduled || !complete ? 'default' : 'pointer',
             }}
           >
             {busy ? 'Submitting…' : 'Submit evaluation'}

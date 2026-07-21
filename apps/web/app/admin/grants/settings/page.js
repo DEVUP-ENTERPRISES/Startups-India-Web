@@ -17,6 +17,7 @@ import { formatMoney } from '@/lib/grants';
 const GROUPS = [
   { title: 'Availability', match: k => k.includes('.enabled') || k.includes('revisions') },
   { title: 'Fee & Tax', match: k => k.startsWith('grant.evaluation.') && !k.includes('criteria') && !k.includes('maxScore') && !k.includes('enabled') },
+  { title: 'Later-Phase Pricing (Pre-Incubation & Incubation)', match: k => k === 'grant.preIncubation.fee' || k === 'grant.incubation.fee' },
   { title: 'Capacity & Deadline', match: k => k.startsWith('grant.applications.') && !k.includes('enabled') },
   { title: 'Uploads', match: k => k.startsWith('grant.upload.') },
   { title: 'Content & Labels', match: k => k.startsWith('grant.ui.') },
@@ -131,25 +132,50 @@ export default function GrantSettingsPage() {
     }
 
     if (spec.type === 'integer' || spec.type === 'number') {
-      const isMoney = key === 'grant.evaluation.fee';
-      return (
-        <>
-          <input
-            type="number"
-            value={value ?? ''}
-            min={spec.min}
-            max={spec.max}
-            onChange={e => set(key, e.target.value === '' ? '' : Number(e.target.value))}
-            style={inputStyle}
-          />
-          {isMoney && (
-            // Fees are stored in paise. Showing the rupee value prevents an admin
-            // typing "999" and unknowingly setting the fee to ₹9.99.
+      const isMoney = key.endsWith('.fee');
+
+      // Fees are entered in plain rupees (₹) — no paise arithmetic for the admin.
+      // We convert to the paise the backend stores on the way in and out, so the
+      // admin never sees "149900" again.
+      if (isMoney) {
+        const rupeeVal =
+          value === '' || value === null || value === undefined ? '' : Number(value) / 100;
+        return (
+          <>
+            <div style={{ position: 'relative' }}>
+              <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#6b7280', fontWeight: 700, fontSize: '14px' }}>
+                ₹
+              </span>
+              <input
+                type="number"
+                min={0}
+                step="0.01"
+                value={rupeeVal}
+                placeholder="e.g. 1499"
+                onChange={e =>
+                  set(key, e.target.value === '' ? '' : Math.round(Number(e.target.value) * 100))
+                }
+                style={{ ...inputStyle, paddingLeft: '26px' }}
+              />
+            </div>
             <p style={{ margin: '4px 0 0', fontSize: '11.5px', color: '#6b7280' }}>
-              Stored in paise. Currently <strong>{formatMoney(Number(value) || 0)}</strong>.
+              {(Number(value) || 0) > 0
+                ? <>Founders in this phase are charged <strong>{formatMoney(Number(value))}</strong>.</>
+                : 'Set to 0 = not charged (phase shown as “Coming soon”).'}
             </p>
-          )}
-        </>
+          </>
+        );
+      }
+
+      return (
+        <input
+          type="number"
+          value={value ?? ''}
+          min={spec.min}
+          max={spec.max}
+          onChange={e => set(key, e.target.value === '' ? '' : Number(e.target.value))}
+          style={inputStyle}
+        />
       );
     }
 

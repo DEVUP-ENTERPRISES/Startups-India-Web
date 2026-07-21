@@ -6,10 +6,12 @@ const {
   ApplicationDocument,
   ReviewComment,
   GrantCounter,
+  IdeaEvaluation,
 } = require('./grant.models');
 const { STATUS, STATUS_LABELS, assertTransition, isEditable, isTerminal } = require('./grant.status');
 const { getGrantSettings } = require('./grant.settings');
 const { notifyStatusChange } = require('./grant.notify');
+const { computePhases } = require('./grant.phases');
 
 // ─── APPLICATION ID ─────────────────────────────────────────────────────
 /**
@@ -176,14 +178,9 @@ async function submitApplication(userId, applicationDbId, { termsAccepted }) {
   const from = application.status;
   assertTransition(from, STATUS.SUBMITTED);
 
-  // A pitch deck is the one document the review is meaningless without.
-  const deck = await ApplicationDocument.countDocuments({
-    applicationId: application._id,
-    kind: 'pitch_deck',
-  });
-  if (deck === 0) {
-    throw new ApiError(400, 'Please upload your pitch deck before submitting.');
-  }
+  // Phase 1 is a free idea check — no documents required. Business plans, pitch
+  // deck and financial models are collected in Phase 2 (Idea Evaluation), which
+  // only unlocks after an admin accepts the idea.
 
   application.status = STATUS.SUBMITTED;
   application.submittedAt = new Date();
@@ -212,7 +209,21 @@ async function submitApplication(userId, applicationDbId, { termsAccepted }) {
 
 // ─── STUDENT: READ (own only) ───────────────────────────────────────────
 async function listMyApplications(userId) {
-  return GrantApplication.find({ userId }).sort({ createdAt: -1 }).lean();
+  const applications = await GrantApplication.find({ userId }).sort({ createdAt: -1 }).lean();
+  if (applications.length === 0) return applications;
+
+  // Attach the 5-phase journey state so the sidebar roadmap can unlock phases
+  // (e.g. Idea Evaluation opens only once the idea is accepted) without the
+  // frontend having to know which statuses map to which phase.
+  const evaluations = await IdeaEvaluation.find({
+    applicationId: { $in: applications.map(a => a._id) },
+  }).lean();
+  const evalByApp = new Map(evaluations.map(e => [String(e.applicationId), e]));
+
+  return applications.map(app => {
+    const { currentPhase, passedEvaluation } = computePhases(app, evalByApp.get(String(app._id)) || null);
+    return { ...app, currentPhase, passedEvaluation };
+  });
 }
 
 /**
@@ -224,17 +235,24 @@ async function getMyApplication(userId, applicationDbId) {
   const application = await GrantApplication.findOne({ _id: applicationDbId, userId }).lean();
   if (!application) throw new ApiError(404, 'Application not found');
 
-  const [timeline, documents] = await Promise.all([
+  const [timeline, documents, evaluation] = await Promise.all([
     ApplicationTimeline.find({ applicationId: application._id, visibleToStudent: true })
       .sort({ createdAt: -1 })
       .lean(),
     ApplicationDocument.find({ applicationId: application._id }).lean(),
+    IdeaEvaluation.findOne({ applicationId: application._id }).lean(),
   ]);
+
+  // The 5-phase journey the premium tracker renders from.
+  const { phases, currentPhase, passedEvaluation } = computePhases(application, evaluation);
 
   return {
     ...application,
     editable: isEditable(application.status, application.revisionAllowed),
     statusLabel: STATUS_LABELS[application.status],
+    phases,
+    currentPhase,
+    passedEvaluation,
     timeline,
     documents,
   };
