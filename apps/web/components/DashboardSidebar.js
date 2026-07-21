@@ -51,7 +51,7 @@ export default function DashboardSidebar({
   // The grant menu title is set by the admin (grant.ui.sidebarLabel). Held in
   // state rather than imported as a constant so renaming it in Admin Settings
   // takes effect without a redeploy.
-  const [grantLabel, setGrantLabel] = useState('Apply for Startup Grant');
+  const [grantLabel, setGrantLabel] = useState('Apply for Startup Funding');
 
   useEffect(() => {
     let cancelled = false;
@@ -91,6 +91,25 @@ export default function DashboardSidebar({
       path: '/dashboard',
       icon: 'dashboard',
       items: [],
+    },
+    // Sits directly under Dashboard: it's the primary journey, not a footnote.
+    {
+      id: 'grants',
+      // Label is admin-configurable (grant.ui.sidebarLabel). grantLabel falls back
+      // to the default until the config request resolves, so the item never
+      // flashes as blank.
+      label: grantLabel,
+      isDropdown: true,
+      icon: 'award',
+      items: [
+        { id: 'grant-apply', label: 'Apply for Funding', path: '/dashboard/grants', icon: 'explore' },
+        {
+          id: 'grant-applications',
+          label: 'My Applications',
+          path: '/dashboard/grants/applications',
+          icon: 'courses',
+        },
+      ],
     },
     {
       id: 'courses',
@@ -226,28 +245,6 @@ export default function DashboardSidebar({
           label: 'Doubts / Q&A',
           path: '/dashboard/community/doubts',
           icon: 'wishlist',
-        },
-      ],
-    },
-    {
-      id: 'grants',
-      // Label is admin-configurable (grant.ui.sidebarLabel). grantLabel falls back
-      // to the default until the config request resolves, so the item never
-      // flashes as blank.
-      label: grantLabel,
-      isDropdown: true,
-      icon: 'award',
-      // Two working links, then the full 5-phase journey as a roadmap. Each phase
-      // unlocks from the founder's real state (grantPhase): Idea Evaluation stays
-      // locked until an idea is accepted, then opens with a glow. Phases 3–5 are
-      // Coming Soon and don't navigate; Funding is highlighted as the end goal.
-      items: [
-        { id: 'grant-apply', label: 'Apply for Grant', path: '/dashboard/grants', icon: 'explore' },
-        {
-          id: 'grant-applications',
-          label: 'My Applications',
-          path: '/dashboard/grants/applications',
-          icon: 'courses',
         },
       ],
     },

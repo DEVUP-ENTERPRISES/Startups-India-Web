@@ -1,23 +1,38 @@
 'use client';
 
-import { Check, Lock, X, Sparkles, ChevronRight, Zap } from 'lucide-react';
+import { Check, Lock, X, Sparkles, GraduationCap, Building2, Landmark, ArrowRight } from 'lucide-react';
 
 /**
- * Startups India Vibrant Theme - Crazy Animations Edition
+ * Applicant-facing journey tracker for the detail page. Same crimson Startups
+ * India theme and typography as JourneyShowcase, so the two read as one family —
+ * but this one is state-driven (done / current / locked / rejected) and shows
+ * live progress. Renders entirely from the `phases` array the backend computes.
  */
 
-const TONE = {
-  done:     { ring: '#10b981', bg: '#ffffff', border: '#a7f3d0', text: '#059669', iconBg: '#ecfdf5', iconBorder: '#10b981' },
-  current:  { ring: '#f97316', bg: '#ffffff', border: '#fed7aa', text: '#ea580c', iconBg: '#fff7ed', iconBorder: '#f97316' },
-  locked:   { ring: '#cbd5e1', bg: '#f8fafc', border: '#e2e8f0', text: '#64748b', iconBg: '#f1f5f9', iconBorder: '#cbd5e1' },
-  rejected: { ring: '#ef4444', bg: '#ffffff', border: '#fecdd3', text: '#dc2626', iconBg: '#fef2f2', iconBorder: '#ef4444' },
+function StartupsIndiaLogo({ size = 24, style }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" style={style}>
+      <path d="M4 18L34 4L22 34L17 21L4 18Z" fill="#EF4444" />
+      <path d="M34 4L17 21L24 26L34 4Z" fill="#B91C1C" />
+      <path d="M17 21L12 28L15 20L17 21Z" fill="#FCA5A5" />
+    </svg>
+  );
+}
+
+// Same phase → icon mapping as the showcase, for a consistent visual language.
+const PHASE_ICON = {
+  registration: StartupsIndiaLogo,
+  idea_evaluation: Sparkles,
+  pre_incubation: GraduationCap,
+  incubation: Building2,
+  funding: Landmark,
 };
 
-function StateIcon({ state, index }) {
-  if (state === 'done') return <Check size={16} strokeWidth={4} />;
-  if (state === 'rejected') return <X size={16} strokeWidth={4} />;
+function NodeIcon({ state, index }) {
+  if (state === 'done') return <Check size={15} strokeWidth={3.5} />;
+  if (state === 'rejected') return <X size={15} strokeWidth={3.5} />;
   if (state === 'locked') return <Lock size={12} />;
-  return <span style={{ fontWeight: 900, fontSize: 14 }}>{index + 1}</span>;
+  return <span style={{ fontWeight: 800, fontSize: 13 }}>{index + 1}</span>;
 }
 
 export default function PhaseTracker({ phases = [] }) {
@@ -28,252 +43,177 @@ export default function PhaseTracker({ phases = [] }) {
     : 0;
 
   return (
-    <div style={{ position: 'relative', borderRadius: 24, overflow: 'hidden' }}>
+    <section
+      style={{
+        position: 'relative',
+        overflow: 'hidden',
+        borderRadius: 24,
+        padding: '32px 28px 28px',
+        background: 'linear-gradient(135deg, #661e29 0%, #4a101a 100%)',
+        border: '1px solid #7d2634',
+        boxShadow: '0 20px 40px -15px rgba(0, 0, 0, 0.6)',
+      }}
+    >
       <style>{`
-        @keyframes ptCrazyFloat {
-          0%, 100% { transform: translateY(0) rotate(0deg); }
-          25% { transform: translateY(-6px) rotate(-1deg); }
-          75% { transform: translateY(-2px) rotate(1deg); }
+        .pt-scroll::-webkit-scrollbar { display: none; }
+        .pt-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+        .pt-card { transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .pt-card:not(.pt-locked):hover {
+          transform: translateY(-6px);
+          background: rgba(255,255,255,0.09) !important;
+          box-shadow: 0 15px 35px -10px rgba(0,0,0,0.4);
         }
-        @keyframes ptCrazyPulse {
-          0% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.6); transform: scale(1); }
-          50% { box-shadow: 0 0 0 12px rgba(249, 115, 22, 0); transform: scale(1.05); }
-          100% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0); transform: scale(1); }
+        .pt-locked:hover { transform: translateY(-4px); border-color: rgba(251,191,36,0.4) !important; }
+        @keyframes ptBarFill { from { width: 0; } to { width: var(--pt-progress); } }
+        @keyframes ptShine { 0% { left: -60%; } 100% { left: 160%; } }
+        @keyframes ptCurrentGlow {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(230,57,70,0.35); }
+          50% { box-shadow: 0 0 0 6px rgba(230,57,70,0); }
         }
-        @keyframes ptShine {
-          0% { left: -100%; }
-          100% { left: 200%; }
-        }
-        @keyframes ptSlideBounce {
-          0% { opacity: 0; transform: translateY(30px) scale(0.9); }
-          60% { opacity: 1; transform: translateY(-5px) scale(1.02); }
-          100% { opacity: 1; transform: translateY(0) scale(1); }
-        }
-        @keyframes ptProgressBar {
-          0% { width: 0; }
-          100% { width: var(--pt-progress); }
-        }
-        @keyframes ptSparkleSpin {
-          0% { transform: rotate(0deg) scale(1); }
-          50% { transform: rotate(180deg) scale(1.2); }
-          100% { transform: rotate(360deg) scale(1); }
-        }
-        .pt-phase-card { 
-          transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        .pt-phase-card:hover { 
-          transform: translateY(-8px) scale(1.03); 
-          box-shadow: 0 20px 40px -10px rgba(30, 58, 138, 0.2), 0 10px 20px -5px rgba(249, 115, 22, 0.15);
-          border-color: #f97316 !important;
-          z-index: 10;
-        }
-        .pt-scroll-container::-webkit-scrollbar { height: 8px; }
-        .pt-scroll-container::-webkit-scrollbar-track { background: rgba(30, 58, 138, 0.04); border-radius: 10px; }
-        .pt-scroll-container::-webkit-scrollbar-thumb { background: rgba(30, 58, 138, 0.15); border-radius: 10px; }
-        .pt-scroll-container::-webkit-scrollbar-thumb:hover { background: rgba(30, 58, 138, 0.25); }
       `}</style>
 
-      {/* Main container with dynamic gradient */}
-      <div
-        style={{
-          background: 'linear-gradient(135deg, #1e3a8a 0%, #172554 100%)',
-          border: '1px solid #1e3a8a',
-          borderRadius: '24px',
-          padding: '32px 24px 36px',
-          boxShadow: '0 10px 30px -5px rgba(30, 58, 138, 0.4)',
-          position: 'relative',
-          overflow: 'hidden'
-        }}
-      >
-        {/* Animated Background Orbs */}
-        <div style={{ position: 'absolute', top: -100, left: -50, width: 300, height: 300, background: 'radial-gradient(circle, rgba(249,115,22,0.15) 0%, transparent 70%)', borderRadius: '50%', animation: 'ptCrazyFloat 8s infinite alternate ease-in-out' }} />
-        <div style={{ position: 'absolute', bottom: -100, right: -50, width: 250, height: 250, background: 'radial-gradient(circle, rgba(16,185,129,0.15) 0%, transparent 70%)', borderRadius: '50%', animation: 'ptCrazyFloat 6s infinite alternate-reverse ease-in-out' }} />
+      {/* Dashed flight path + glow, matching the showcase */}
+      <svg style={{ position: 'absolute', top: '45%', left: 0, width: '100%', height: 150, pointerEvents: 'none', zIndex: 1, opacity: 0.12 }} preserveAspectRatio="none" viewBox="0 0 1000 100">
+        <path d="M0,50 Q150,90 300,50 T600,50 T1000,50" fill="none" stroke="#ffffff" strokeWidth="3" strokeDasharray="12 12" />
+      </svg>
+      <div style={{ position: 'absolute', top: 0, left: '20%', width: '60%', height: '100%', background: 'radial-gradient(ellipse at top, rgba(239,68,68,0.15) 0%, transparent 70%)', pointerEvents: 'none', zIndex: 1 }} />
 
-        {/* Header with progress */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28, position: 'relative', zIndex: 2 }}>
+      <div style={{ position: 'relative', zIndex: 2 }}>
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginBottom: 18 }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}>
-            <div style={{
-              width: 36, height: 36, borderRadius: 12,
-              background: 'linear-gradient(135deg, #f97316, #fbbf24)', color: '#ffffff',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 0 20px rgba(249, 115, 22, 0.5), inset 0 2px 4px rgba(255,255,255,0.4)',
-              animation: 'ptCrazyPulse 3s infinite'
-            }}>
-              <Zap size={18} style={{ animation: 'ptSparkleSpin 4s linear infinite' }} />
+            <div style={{ width: 34, height: 34, borderRadius: 10, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <StartupsIndiaLogo size={18} />
             </div>
-            <span style={{ fontSize: 20, fontWeight: 900, color: '#ffffff', letterSpacing: '-0.5px', textShadow: '0 2px 10px rgba(0,0,0,0.2)' }}>Journey Progress</span>
+            <span style={{ fontSize: 19, fontWeight: 700, color: '#ffffff', letterSpacing: '-0.4px' }}>Journey Progress</span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.1)', padding: '6px 14px', borderRadius: 100, backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.2)' }}>
-            <span style={{ fontSize: 15, fontWeight: 800, color: '#fca5a5', letterSpacing: 0.5 }}>{progress}% WOW</span>
-          </div>
-        </div>
-
-        {/* Progress bar - Crazy Saffron gradient */}
-        <div style={{ height: 10, background: 'rgba(255,255,255,0.1)', borderRadius: 100, marginBottom: 32, overflow: 'hidden', position: 'relative', zIndex: 2, boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.2)' }}>
-          <div
-            style={{
-              '--pt-progress': `${progress}%`,
-              height: '100%',
-              borderRadius: 100,
-              background: 'linear-gradient(90deg, #f97316, #fbbf24, #f97316)',
-              backgroundSize: '200% 200%',
-              animation: 'ptProgressBar 1.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards',
-              position: 'relative',
-              boxShadow: '0 0 20px rgba(249, 115, 22, 0.8)'
-            }}
-          >
-            <div style={{ position: 'absolute', top: 0, left: 0, bottom: 0, width: '50%', background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent)', transform: 'skewX(-20deg)', animation: 'ptShine 2s infinite' }} />
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 7, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', padding: '5px 13px', borderRadius: 100 }}>
+            <span style={{ fontSize: 13, fontWeight: 800, color: '#fbbf24', letterSpacing: 0.3 }}>{progress}%</span>
+            <span style={{ fontSize: 12, fontWeight: 600, color: '#fca5a5' }}>complete</span>
           </div>
         </div>
 
-        {/* Phases - Horizontal Layout */}
-        <div 
-          className="pt-scroll-container"
-          style={{ 
-            display: 'flex', 
-            gap: 20, 
-            overflowX: 'auto', 
-            paddingBottom: 20,
-            paddingTop: 10,
-            scrollSnapType: 'x mandatory',
-            position: 'relative',
-            zIndex: 2
-          }}
-        >
+        {/* Progress bar */}
+        <div style={{ height: 8, background: 'rgba(0,0,0,0.25)', borderRadius: 100, marginBottom: 26, overflow: 'hidden', position: 'relative' }}>
+          <div style={{ '--pt-progress': `${progress}%`, height: '100%', borderRadius: 100, background: 'linear-gradient(90deg, #f97316, #fbbf24)', animation: 'ptBarFill 1.2s cubic-bezier(0.4,0,0.2,1) forwards', position: 'relative', boxShadow: '0 0 14px rgba(251,191,36,0.5)' }}>
+            <div style={{ position: 'absolute', top: 0, bottom: 0, width: '40%', background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent)', transform: 'skewX(-20deg)', animation: 'ptShine 2.2s infinite' }} />
+          </div>
+        </div>
+
+        {/* Phase rail */}
+        <div className="pt-scroll" style={{ display: 'flex', gap: 16, overflowX: 'auto', paddingBottom: 6, scrollSnapType: 'x mandatory' }}>
           {phases.map((p, i) => {
-            const t = TONE[p.state] || TONE.locked;
-            const isCurrent = p.state === 'current';
-            const isLocked = p.state === 'locked';
+            const st = p.state;
+            const isFunding = p.key === 'funding';
+            const isCurrent = st === 'current';
+            const isLocked = st === 'locked';
+            const isDone = st === 'done';
+            const isRejected = st === 'rejected';
+            const Icon = PHASE_ICON[p.key] || Sparkles;
+            const isRegistration = p.key === 'registration';
+
+            const accent = isDone ? '#34d399'
+              : isCurrent ? '#ffffff'
+              : isRejected ? '#fca5a5'
+              : isFunding ? '#fbbf24'
+              : '#fca5a5'; // locked
+
+            const cardBg = isCurrent ? 'rgba(255,255,255,0.09)'
+              : isDone ? 'linear-gradient(180deg, rgba(52,211,153,0.12) 0%, rgba(52,211,153,0.02) 100%)'
+              : isRejected ? 'linear-gradient(180deg, rgba(239,68,68,0.12) 0%, rgba(239,68,68,0.02) 100%)'
+              : isFunding ? 'linear-gradient(180deg, rgba(251,191,36,0.08) 0%, rgba(251,191,36,0.01) 100%)'
+              : 'repeating-linear-gradient(45deg, rgba(255,255,255,0.02), rgba(255,255,255,0.02) 10px, rgba(255,255,255,0.05) 10px, rgba(255,255,255,0.05) 20px)';
+
+            const cardBorder = isCurrent ? 'rgba(255,255,255,0.4)'
+              : isDone ? 'rgba(52,211,153,0.4)'
+              : isRejected ? 'rgba(239,68,68,0.4)'
+              : isFunding ? 'rgba(251,191,36,0.3)'
+              : 'rgba(255,255,255,0.1)';
+
+            // Status pill text, mirroring the showcase's bottom pill.
+            const statusText = isDone ? 'Cleared'
+              : isCurrent ? "You're here"
+              : isRejected ? 'Not selected'
+              : p.comingSoon ? 'Coming soon'
+              : 'Locked';
+
+            const nodeBg = isCurrent ? 'linear-gradient(135deg, #e63946, #ff6b6b)'
+              : isDone ? '#34d399'
+              : isRejected ? '#ef4444'
+              : isFunding ? '#fbbf24'
+              : 'rgba(255,255,255,0.08)';
+            const nodeColor = isCurrent || isRejected ? '#ffffff'
+              : isDone ? '#053726'
+              : isFunding ? '#422006'
+              : '#fca5a5';
 
             return (
-              <div
-                key={p.key}
-                className="pt-phase-card"
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  minWidth: 260,
-                  maxWidth: 280,
-                  flex: '1 0 auto',
-                  background: isCurrent ? 'linear-gradient(145deg, #ffffff, #fff7ed)' : t.bg,
-                  border: `2px solid ${isCurrent ? '#f97316' : isLocked ? '#e2e8f0' : '#e2e8f0'}`,
-                  borderRadius: 24,
-                  padding: '24px',
-                  animation: `ptSlideBounce 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) ${i * 0.1}s both`,
-                  scrollSnapAlign: 'center',
-                  boxShadow: isCurrent ? '0 15px 35px -5px rgba(249, 115, 22, 0.3), 0 0 0 4px rgba(249,115,22,0.1)' : '0 4px 6px rgba(0,0,0,0.05)',
-                  transform: isCurrent ? 'scale(1.02)' : 'none',
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
-                  <div
-                    style={{
-                      width: 44,
-                      height: 44,
-                      borderRadius: 14,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      background: isCurrent ? 'linear-gradient(135deg, #f97316, #ea580c)' : t.iconBg,
-                      color: isCurrent ? '#fff' : t.ring,
-                      animation: isCurrent ? 'ptCrazyPulse 2s infinite' : 'none',
-                      boxShadow: isCurrent ? '0 4px 15px rgba(249,115,22,0.4)' : 'none'
-                    }}
-                  >
-                    <StateIcon state={p.state} index={i} />
+              <div key={p.key} style={{ position: 'relative', display: 'flex', scrollSnapAlign: 'start' }}>
+                <div
+                  className={`pt-card ${isLocked ? 'pt-locked' : ''}`}
+                  style={{
+                    flex: '0 0 auto',
+                    width: 248,
+                    minHeight: 210,
+                    borderRadius: 16,
+                    padding: '22px',
+                    background: cardBg,
+                    border: `1px solid ${cardBorder}`,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    boxShadow: isCurrent ? '0 12px 30px -8px rgba(230,57,70,0.35)' : 'none',
+                    animation: isCurrent ? 'ptCurrentGlow 2.4s infinite' : 'none',
+                  }}
+                >
+                  {/* node + phase icon */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
+                    <span style={{ width: 30, height: 30, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: nodeBg, color: nodeColor, border: `1px solid ${accent}` }}>
+                      <NodeIcon state={st} index={i} />
+                    </span>
+                    {isRegistration
+                      ? <Icon size={26} />
+                      : <Icon size={22} color={accent} style={{ opacity: isLocked ? 0.7 : 1 }} />}
                   </div>
-                  <div>
-                    {p.state === 'current' && <Badge tone="current">🚀 Up Next</Badge>}
-                    {p.state === 'done' && <Badge tone="done">🎉 Nailed It!</Badge>}
-                    {p.state === 'rejected' && <Badge tone="rejected">Not Selected</Badge>}
-                    {p.state === 'locked' && p.comingSoon && <Badge tone="locked">Coming Soon</Badge>}
-                    {p.state === 'locked' && !p.comingSoon && <Badge tone="locked">Locked</Badge>}
+
+                  {/* text */}
+                  <div style={{ flex: 1 }}>
+                    <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.2, textTransform: 'uppercase', color: isLocked && !isFunding ? '#c98a92' : '#fca5a5' }}>
+                      Phase {i + 1}
+                    </span>
+                    <h3 style={{ margin: '6px 0 6px', fontSize: 17, fontWeight: 700, color: isLocked && !isFunding ? '#fecaca' : '#ffffff', lineHeight: 1.25, letterSpacing: '-0.3px' }}>
+                      {p.title}
+                    </h3>
+                    <p style={{ margin: 0, fontSize: 13, color: isLocked && !isFunding ? '#e58b93' : '#fecaca', lineHeight: 1.5 }}>
+                      {p.subtitle}
+                    </p>
+                  </div>
+
+                  {/* status pill */}
+                  <div style={{ marginTop: 18 }}>
+                    <div style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 6,
+                      padding: '5px 11px', borderRadius: 8, width: 'fit-content',
+                      background: isCurrent ? 'rgba(255,255,255,0.12)' : isDone ? 'rgba(52,211,153,0.15)' : isRejected ? 'rgba(239,68,68,0.15)' : isFunding ? 'rgba(251,191,36,0.15)' : 'transparent',
+                      border: `1px solid ${isCurrent ? 'rgba(255,255,255,0.2)' : isDone ? 'rgba(52,211,153,0.3)' : isRejected ? 'rgba(239,68,68,0.3)' : isFunding ? 'rgba(251,191,36,0.3)' : 'transparent'}`,
+                    }}>
+                      {isLocked && <Lock size={12} color={accent} />}
+                      {isCurrent && <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#4ade80', boxShadow: '0 0 6px #4ade80' }} />}
+                      <span style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 0.3, color: isDone ? '#6ee7b7' : isRejected ? '#fca5a5' : isFunding ? '#fde68a' : isCurrent ? '#ffffff' : '#fca5a5' }}>
+                        {statusText}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                  <span style={{
-                    fontSize: 12,
-                    fontWeight: 900,
-                    color: p.state === 'locked' ? '#94a3b8' : '#f97316',
-                    textTransform: 'uppercase',
-                    letterSpacing: 1.5,
-                    marginBottom: 8,
-                  }}>
-                    Phase {i + 1}
-                  </span>
-                  <h3 style={{
-                    margin: '0 0 8px',
-                    fontSize: 19,
-                    fontWeight: 900,
-                    color: p.state === 'locked' ? '#94a3b8' : '#0f172a',
-                    letterSpacing: '-0.5px',
-                  }}>
-                    {p.title}
-                  </h3>
-                  <p style={{
-                    margin: '0 0 20px',
-                    fontSize: 14,
-                    color: p.state === 'locked' ? '#cbd5e1' : '#475569',
-                    lineHeight: 1.6,
-                    flex: 1,
-                    fontWeight: 500
-                  }}>
-                    {p.subtitle}
-                  </p>
-                  
-                  {isCurrent && (
-                    <div style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 6,
-                      marginTop: 'auto',
-                      padding: '10px 16px',
-                      background: '#fff7ed',
-                      borderRadius: 12,
-                      fontSize: 14,
-                      fontWeight: 800,
-                      color: '#ea580c',
-                      border: '1px solid #fed7aa',
-                      transition: 'all 0.2s'
-                    }}>
-                      Let's Go <ChevronRight size={16} strokeWidth={3} />
-                    </div>
-                  )}
-                </div>
+                {/* connector chevron */}
+                {i < phases.length - 1 && (
+                  <ArrowRight size={16} color="rgba(255,255,255,0.2)" style={{ position: 'absolute', right: -16, top: '50%', transform: 'translateY(-50%)', zIndex: 1 }} />
+                )}
               </div>
             );
           })}
         </div>
       </div>
-    </div>
-  );
-}
-
-function Badge({ tone, children }) {
-  const styles = {
-    done:     { bg: '#ecfdf5', color: '#059669', border: '#a7f3d0' },
-    current:  { bg: '#f97316', color: '#fff', border: '#ea580c' },
-    rejected: { bg: '#fef2f2', color: '#dc2626', border: '#fecdd3' },
-    locked:   { bg: '#f8fafc', color: '#94a3b8', border: '#e2e8f0' },
-  };
-  const s = styles[tone] || styles.locked;
-
-  return (
-    <span style={{
-      padding: '6px 14px',
-      borderRadius: 100,
-      fontSize: 11,
-      fontWeight: 900,
-      letterSpacing: 0.5,
-      textTransform: 'uppercase',
-      color: s.color,
-      background: s.bg,
-      border: `1px solid ${s.border}`,
-      boxShadow: tone === 'current' ? '0 4px 10px rgba(249,115,22,0.3)' : 'none'
-    }}>
-      {children}
-    </span>
+    </section>
   );
 }

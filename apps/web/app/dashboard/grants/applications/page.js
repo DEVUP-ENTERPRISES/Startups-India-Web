@@ -157,7 +157,7 @@ export default function MyApplicationsPage() {
             My Applications
           </h1>
           <p style={{ fontSize: '14.5px', color: '#6b7280', margin: 0 }}>
-            Track the status of your Startup Grant applications.
+            Track the status of your Startup Funding applications.
           </p>
         </div>
 

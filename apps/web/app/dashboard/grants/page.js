@@ -206,7 +206,7 @@ export default function GrantApplicationPage() {
           Applications are closed
         </h1>
         <p style={{ fontSize: '15px', color: '#6b7280', lineHeight: 1.7, margin: 0 }}>
-          The Startup Grant is not accepting new applications right now. Please check back later.
+          Startup Funding is not accepting new applications right now. Please check back later.
         </p>
       </div>
     );
@@ -225,7 +225,7 @@ export default function GrantApplicationPage() {
             marginBottom: '14px',
           }}
         >
-          <Rocket size={13} /> Startup Grant
+          <Rocket size={13} /> Startup Funding
         </div>
         <h1 style={{ fontSize: '30px', fontWeight: 900, color: '#111827', margin: '0 0 8px', letterSpacing: '-0.5px' }}>
           {config.title}

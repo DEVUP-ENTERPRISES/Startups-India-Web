@@ -2,11 +2,14 @@ const { STATUS } = require('./grant.status');
 
 /**
  * The 5-phase Startups India journey, derived from an application's status +
- * evaluation. This is the single source of truth the premium phase-tracker UI
- * renders from — the frontend never hardcodes phase logic.
+ * evaluation. This is the single source of truth the journey tracker, the
+ * sidebar and the pre-apply showcase all render from — the frontend never
+ * hardcodes phase logic.
  *
- * Phases 3–5 are live in the journey but "locked" (coming soon): an applicant
- * who clears Phase 2 is marked eligible for them, but there's no interaction yet.
+ * Phases 3–5 are real and admin-driven: an admin advances an applicant into
+ * Pre-Incubation, then Incubation, then Funding, and each move unlocks that
+ * phase here. `comingSoon` is kept only so the generic pre-apply showcase can
+ * label the later phases for someone who hasn't started the journey yet.
  */
 const PHASES = [
   { key: 'registration', title: 'Registration', subtitle: 'Free — submit your startup idea' },
@@ -16,11 +19,30 @@ const PHASES = [
   { key: 'funding', title: 'Funding', subtitle: 'Backed by top VCs and angel investors', comingSoon: true },
 ];
 
-// Which phase each status belongs to (0-based).
-const PHASE1 = [STATUS.DRAFT, STATUS.SUBMITTED, STATUS.UNDER_REVIEW, STATUS.SHORTLISTED, STATUS.CHANGES_REQUESTED];
-const PHASE2 = [STATUS.SELECTED, STATUS.EVALUATION_PENDING, STATUS.EVALUATION_PAID, STATUS.EVALUATION_SCHEDULED];
-// A completed (passed) evaluation has cleared Phase 2 and reached Phase 3.
-const ADVANCED = [STATUS.EVALUATION_COMPLETED, STATUS.FUNDING_STARTED, STATUS.GRANT_APPROVED, STATUS.COMPLETED];
+/**
+ * Each status → [phase index the applicant occupies, whether that phase is done].
+ * `done: true` means they've finished that phase and are awaiting the admin to
+ * start the next one — so the next phase renders locked, not current. That is
+ * what makes "passing the evaluation doesn't auto-open Pre-Incubation; an admin
+ * action does" true.
+ */
+const STATUS_POSITION = {
+  [STATUS.DRAFT]: [0, false],
+  [STATUS.SUBMITTED]: [0, false],
+  [STATUS.UNDER_REVIEW]: [0, false],
+  [STATUS.SHORTLISTED]: [0, false],
+  [STATUS.CHANGES_REQUESTED]: [0, false],
+  [STATUS.SELECTED]: [1, false],
+  [STATUS.EVALUATION_PENDING]: [1, false],
+  [STATUS.EVALUATION_PAID]: [1, false],
+  [STATUS.EVALUATION_SCHEDULED]: [1, false],
+  [STATUS.EVALUATION_COMPLETED]: [1, true], // cleared Phase 2; awaiting Pre-Incubation
+  [STATUS.PRE_INCUBATION]: [2, false],
+  [STATUS.INCUBATION]: [3, false],
+  [STATUS.FUNDING_STARTED]: [4, false],
+  [STATUS.GRANT_APPROVED]: [4, true],
+  [STATUS.COMPLETED]: [4, true],
+};
 
 /**
  * @returns {{ currentPhase: number, passedEvaluation: boolean|null, phases: object[] }}
@@ -30,16 +52,13 @@ const ADVANCED = [STATUS.EVALUATION_COMPLETED, STATUS.FUNDING_STARTED, STATUS.GR
 function computePhases(application, evaluation = null) {
   const status = application.status;
   const passed = evaluation?.submittedAt ? evaluation.passed === true : null;
-
-  // Which phase is the application "in".
-  let currentPhase;
-  if (PHASE1.includes(status)) currentPhase = 0;
-  else if (PHASE2.includes(status)) currentPhase = 1;
-  else if (ADVANCED.includes(status)) currentPhase = 2; // cleared evaluation
-  else currentPhase = 0; // rejected — resolved below
-
   const rejected = status === STATUS.REJECTED;
-  // A rejection after the evaluation was scored belongs to Phase 2; otherwise Phase 1.
+
+  // Where the applicant sits in the journey.
+  const [pos, complete] = STATUS_POSITION[status] || [0, false];
+
+  // A rejection doesn't record which phase it happened in; infer from the
+  // evaluation (scored → they'd at least reached Phase 2) as a fair fallback.
   const rejectedPhase = rejected ? (evaluation?.submittedAt ? 1 : 0) : -1;
 
   const phases = PHASES.map((p, i) => {
@@ -48,18 +67,18 @@ function computePhases(application, evaluation = null) {
       if (i < rejectedPhase) state = 'done';
       else if (i === rejectedPhase) state = 'rejected';
       else state = 'locked';
-    } else if (i < currentPhase) {
+    } else if (i < pos) {
       state = 'done';
-    } else if (i === currentPhase) {
-      // Phases 3–5 are coming soon: even when "reached", show them locked.
-      state = p.comingSoon ? 'locked' : 'current';
+    } else if (i === pos) {
+      // Finished this phase and awaiting the next → 'done' (next stays locked).
+      state = complete ? 'done' : 'current';
     } else {
       state = 'locked';
     }
     return { ...p, state };
   });
 
-  return { currentPhase, passedEvaluation: passed, phases };
+  return { currentPhase: pos, passedEvaluation: passed, phases };
 }
 
-module.exports = { PHASES, computePhases };
+module.exports = { PHASES, STATUS_POSITION, computePhases };

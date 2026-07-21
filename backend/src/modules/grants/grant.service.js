@@ -221,8 +221,8 @@ async function listMyApplications(userId) {
   const evalByApp = new Map(evaluations.map(e => [String(e.applicationId), e]));
 
   return applications.map(app => {
-    const { currentPhase, passedEvaluation } = computePhases(app, evalByApp.get(String(app._id)) || null);
-    return { ...app, currentPhase, passedEvaluation };
+    const { currentPhase, passedEvaluation, phases } = computePhases(app, evalByApp.get(String(app._id)) || null);
+    return { ...app, currentPhase, passedEvaluation, phases };
   });
 }
 

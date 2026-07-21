@@ -21,6 +21,10 @@ const STATUS = {
   EVALUATION_PAID: 'idea_evaluation_paid',
   EVALUATION_SCHEDULED: 'evaluation_scheduled',
   EVALUATION_COMPLETED: 'evaluation_completed',
+  // Phases 3 & 4 — admin advances an applicant into each. Reaching a status here
+  // unlocks that phase on the journey tracker.
+  PRE_INCUBATION: 'pre_incubation',
+  INCUBATION: 'incubation',
   FUNDING_STARTED: 'funding_process_started',
   GRANT_APPROVED: 'grant_approved',
   COMPLETED: 'completed',
@@ -41,6 +45,8 @@ const STATUS_LABELS = {
   [STATUS.EVALUATION_PAID]: 'Idea Evaluation Paid',
   [STATUS.EVALUATION_SCHEDULED]: 'Evaluation Scheduled',
   [STATUS.EVALUATION_COMPLETED]: 'Evaluation Completed',
+  [STATUS.PRE_INCUBATION]: 'Pre-Incubation',
+  [STATUS.INCUBATION]: 'Incubation',
   [STATUS.FUNDING_STARTED]: 'Funding Process Started',
   [STATUS.GRANT_APPROVED]: 'Grant Approved',
   [STATUS.COMPLETED]: 'Completed',
@@ -67,7 +73,12 @@ const TRANSITIONS = {
   [STATUS.EVALUATION_PENDING]: [STATUS.EVALUATION_PAID, STATUS.REJECTED],
   [STATUS.EVALUATION_PAID]: [STATUS.EVALUATION_SCHEDULED, STATUS.REJECTED],
   [STATUS.EVALUATION_SCHEDULED]: [STATUS.EVALUATION_COMPLETED, STATUS.REJECTED],
-  [STATUS.EVALUATION_COMPLETED]: [STATUS.FUNDING_STARTED, STATUS.GRANT_APPROVED, STATUS.REJECTED],
+  // Passing the evaluation opens Pre-Incubation. From there it's a linear climb:
+  // Pre-Incubation → Incubation → Funding → Grant Approved → Completed. Each step
+  // is an admin action that unlocks the next phase for the applicant.
+  [STATUS.EVALUATION_COMPLETED]: [STATUS.PRE_INCUBATION, STATUS.GRANT_APPROVED, STATUS.REJECTED],
+  [STATUS.PRE_INCUBATION]: [STATUS.INCUBATION, STATUS.REJECTED],
+  [STATUS.INCUBATION]: [STATUS.FUNDING_STARTED, STATUS.REJECTED],
   [STATUS.FUNDING_STARTED]: [STATUS.GRANT_APPROVED, STATUS.REJECTED],
   [STATUS.GRANT_APPROVED]: [STATUS.COMPLETED],
   [STATUS.REJECTED]: [],

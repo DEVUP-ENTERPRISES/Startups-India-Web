@@ -73,8 +73,10 @@ const SCHEMA = {
   },
 
   // ─── Copy / labels (admin-editable, no redeploy) ────────────────────
-  'grant.ui.sidebarLabel': { type: 'string', default: 'Apply for Startup Grant' },
-  'grant.ui.title': { type: 'string', default: 'Startup Grant Application' },
+  // User-facing wording says "Funding", not "Grant" — the internal keys stay
+  // `grant.*` so no data or route has to move.
+  'grant.ui.sidebarLabel': { type: 'string', default: 'Apply for Startup Funding' },
+  'grant.ui.title': { type: 'string', default: 'Startup Funding Application' },
   'grant.ui.description': {
     type: 'string',
     default: 'Apply for funding, mentorship and incubation support for your startup.',
