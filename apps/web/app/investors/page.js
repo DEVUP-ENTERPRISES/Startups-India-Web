@@ -11,6 +11,21 @@ import ScrollToTop from '@/components/ScrollToTop';
 import '../../styles/investors.css';
 import '../../styles/modal.css';
 
+// Self-contained SVG data URI: initials on the brand red. Used when an investor
+// has no photo, so the card never shows a broken image and needs no external
+// service. Mirrors the mentor cards.
+function initialsAvatar(name) {
+  const initials = String(name || 'I')
+    .split(' ')
+    .map(w => w[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256"><rect width="256" height="256" fill="#e63946"/><text x="50%" y="50%" dy=".35em" text-anchor="middle" fill="#fff" font-family="Arial, sans-serif" font-size="110" font-weight="700">${initials}</text></svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
+
 function ExploreInvestorsModal({ onClose, user }) {
   const [form, setForm] = useState({ name: user?.name || '', email: user?.email || '', phone: '', startup_name: '', sector: '', funding_amount: '', pitch: '' });
   const [submitted, setSubmitted] = useState(false);
@@ -163,7 +178,9 @@ export default function InvestorsPage() {
     setShowModal(true);
   };
 
-  const displayInvestors = investors.slice(0, 4);
+  // Show every approved investor. A slice(0, 4) here would hide each new investor
+  // approved after the first four — the same bug the mentors grid already fixed.
+  const displayInvestors = investors;
 
   // Investment data cards with irregular shapes
   const investmentCards = [
@@ -732,6 +749,163 @@ export default function InvestorsPage() {
               </motion.div>
             </div>
           </div>
+
+          {/* Approved investors. These come from the public profiles API
+              (status=approved + isVerified), so an admin approving an investor
+              makes them appear here — the same way mentors work. */}
+          {displayInvestors.length > 0 && (
+            <div className="investors-grid-elite" style={{ marginTop: '56px' }}>
+              {displayInvestors.map((inv, index) => (
+                <motion.div
+                  key={inv._id || index}
+                  className="investor-card-elite"
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  viewport={{ once: true }}
+                >
+                  <div className="investor-card-inner">
+                    {/* Front Face */}
+                    <div className="investor-card-front">
+                      <div className="inv-card-header-elite">
+                        <div className="investor-avatar-elite">
+                          {/* Initials avatar when there's no photo (or the URL is
+                              broken), so the card never shows a broken image. */}
+                          <img
+                            src={inv.profileImage || initialsAvatar(inv.fullName)}
+                            alt={inv.fullName}
+                            onError={e => { e.currentTarget.src = initialsAvatar(inv.fullName); }}
+                          />
+                        </div>
+                        {inv.investorType && (
+                          <div className="inv-type-badge-elite">{inv.investorType}</div>
+                        )}
+                      </div>
+
+                      <div className="inv-card-body-elite">
+                        <h3 className="investor-name-elite">{inv.fullName}</h3>
+                        <p className="investor-role-elite">
+                          {inv.investorType ? `${inv.investorType} Investor` : 'Investor'}
+                        </p>
+                        {inv.organizationName && (
+                          <div className="inv-org-badge-elite">{inv.organizationName}</div>
+                        )}
+
+                        <div className="inv-focus-tags-elite">
+                          {(inv.investmentFocus || []).slice(0, 3).map((f, idx) => (
+                            <span key={idx} className="inv-tag-elite">{f}</span>
+                          ))}
+                        </div>
+
+                        <div className="inv-meta-elite">
+                          <div className="inv-chips-elite">
+                            {inv.location && <span className="inv-chip-tag">{inv.location}</span>}
+                            {inv.ticketSize && <span className="inv-chip-tag">{inv.ticketSize}</span>}
+                            {inv.yearsOfExperience != null && (
+                              <span className="inv-chip-tag">{inv.yearsOfExperience} yrs</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Back Face */}
+                    <div className="investor-card-back">
+                      <div className="inv-back-ambient-glow" />
+
+                      <div className="inv-back-top-bar">
+                        <div className="inv-pill-glass">
+                          <span>{inv.investorType || 'Investor'}</span>
+                        </div>
+                        <div className="inv-flip-icon-glass">
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                          </svg>
+                        </div>
+                      </div>
+
+                      <div className="inv-back-middle-section">
+                        <div className="inv-section-header-pill">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                          </svg>
+                          <span>About Investor</span>
+                        </div>
+                        <p className="investor-bio-short">
+                          {inv.bio
+                            ? (inv.bio.length > 120 ? `${inv.bio.substring(0, 120)}...` : inv.bio)
+                            : `${inv.investorType || 'Investor'} supporting early-stage startups.`}
+                        </p>
+
+                        <div className="inv-back-divider" />
+
+                        <div className="inv-section-header-pill">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                          </svg>
+                          <span>Investment Focus</span>
+                        </div>
+                        <div className="inv-focus-tags-premium">
+                          {(inv.investmentFocus || []).slice(0, 4).map((f, idx) => (
+                            <span key={idx} className="inv-tag-glass-pill">{f}</span>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="inv-back-action-area">
+                        <div className="inv-secondary-actions">
+                          <a
+                            href={inv.linkedinUrl || '#'}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inv-action-btn-glass"
+                            // No LinkedIn on file → don't navigate to '#'.
+                            onClick={e => { if (!inv.linkedinUrl) e.preventDefault(); }}
+                            style={inv.linkedinUrl ? undefined : { opacity: 0.5, cursor: 'default' }}
+                            aria-disabled={!inv.linkedinUrl}
+                          >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
+                              <rect x="2" y="9" width="4" height="12"></rect>
+                              <circle cx="4" cy="4" r="2"></circle>
+                            </svg>
+                            <span>LinkedIn</span>
+                          </a>
+                          <a
+                            href={inv.websiteUrl || '#'}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inv-action-btn-glass"
+                            onClick={e => { if (!inv.websiteUrl) e.preventDefault(); }}
+                            style={inv.websiteUrl ? undefined : { opacity: 0.5, cursor: 'default' }}
+                            aria-disabled={!inv.websiteUrl}
+                          >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <circle cx="12" cy="12" r="10"></circle>
+                              <line x1="2" y1="12" x2="22" y2="12"></line>
+                              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                            </svg>
+                            <span>Website</span>
+                          </a>
+                        </div>
+
+                        <button className="inv-primary-cta-glow" onClick={handleExploreClick}>
+                          <span>Connect with Investor</span>
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="inv-cta-arrow">
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                            <polyline points="12 5 19 12 12 19"></polyline>
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

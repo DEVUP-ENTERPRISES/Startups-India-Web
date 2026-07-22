@@ -787,60 +787,24 @@ async function notifyEventRegistrants(eventId, { title, message, type = 'info', 
   if (deliveryMethods.includes('email')) {
     const uniqueEmails = [...new Map(registrations.map(r => [r.email, r])).values()];
 
-    // Build branded email HTML
-    const buildEmailHtml = (recipientName) => `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-</head>
-<body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;background:#f5f5f5;">
-  <table role="presentation" style="width:100%;border-collapse:collapse;background:#f5f5f5;">
-    <tr><td align="center" style="padding:40px 20px;">
-      <table role="presentation" style="max-width:600px;width:100%;border-collapse:collapse;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.08);">
-        <tr><td style="background:linear-gradient(135deg,#e63946 0%,#ff6b6b 100%);padding:40px 30px;text-align:center;">
-          <h1 style="margin:0;color:#fff;font-size:28px;font-weight:800;">🚀 Startup India Incubation</h1>
-          <p style="margin:8px 0 0;color:rgba(255,255,255,.9);font-size:14px;">Event Update</p>
-        </td></tr>
-        <tr><td style="padding:30px 30px 10px;text-align:center;">
-          <div style="display:inline-block;background:rgba(230,57,70,.08);border:1px solid rgba(230,57,70,.15);border-radius:12px;padding:12px 24px;">
-            <span style="font-size:16px;font-weight:700;color:#e63946;">📅 ${event.title}</span>
-          </div>
-        </td></tr>
-        <tr><td style="padding:20px 30px 30px;">
-          <h2 style="margin:0 0 16px;color:#1a1a1a;font-size:22px;font-weight:700;">Hi ${recipientName || 'there'},</h2>
-          <div style="color:#444;font-size:16px;line-height:1.7;white-space:pre-wrap;">${message}</div>
-        </td></tr>
-        <tr><td style="padding:0 30px;"><div style="height:1px;background:linear-gradient(90deg,transparent,rgba(0,0,0,.1),transparent);"></div></td></tr>
-        <tr><td style="padding:20px 30px 30px;background:#f9f9f9;">
-          <p style="margin:0;color:#666;font-size:14px;">Need help? Contact us at <a href="mailto:admin@startupsindia.in" style="color:#e63946;text-decoration:none;">admin@startupsindia.in</a></p>
-        </td></tr>
-        <tr><td style="padding:30px;text-align:center;background:linear-gradient(135deg,#1a1a1a 0%,#2d2d2d 100%);">
-          <p style="margin:0 0 8px;color:rgba(255,255,255,.9);font-size:14px;font-weight:600;">Startup India Incubation</p>
-          <p style="margin:0;color:rgba(255,255,255,.4);font-size:11px;">© ${new Date().getFullYear()} All rights reserved.</p>
-        </td></tr>
-      </table>
-    </td></tr>
-  </table>
-</body>
-</html>`;
-
+    const { getEventNotificationEmailTemplate } = require('../../utils/emailTemplates');
+    
     // Send emails in batches of 50 to avoid SMTP rate limits
     const BATCH_SIZE = 50;
     for (let i = 0; i < uniqueEmails.length; i += BATCH_SIZE) {
       const batch = uniqueEmails.slice(i, i + BATCH_SIZE);
-      const emailPromises = batch.map(reg =>
-        sendEmail({
+      const emailPromises = batch.map(reg => {
+        const tpl = getEventNotificationEmailTemplate(event.title, message, reg.fullName);
+        return sendEmail({
           to: reg.email,
           subject: `📢 ${event.title} — ${title}`,
-          html: buildEmailHtml(reg.fullName),
-          text: `${title}\n\nHi ${reg.fullName || 'there'},\n\n${message}\n\n---\nStartup India Incubation`,
+          html: tpl.html,
+          text: tpl.text,
         }).catch(err => {
           logger.error('Failed to send event notification email', { email: reg.email, error: err.message });
           return null;
-        })
-      );
+        });
+      });
       const results = await Promise.all(emailPromises);
       result.emailed += results.filter(Boolean).length;
 

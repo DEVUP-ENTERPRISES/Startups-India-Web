@@ -222,6 +222,14 @@ function SignupContent() {
                   </p>
                 </div>
 
+                {/* Above the form deliberately: this form creates a *founder*
+                    account, and mentors/investors apply through separate reviewed
+                    flows. At the bottom of the page they'd fill this in first and
+                    only then discover they were in the wrong place. */}
+                <div style={{ marginBottom: '22px' }}>
+                  <JoinAsSelect />
+                </div>
+
                 {error && (
                   <motion.div 
                     initial={{ opacity: 0, y: -10 }}
@@ -372,12 +380,6 @@ function SignupContent() {
 
                 <div className="signup-footer">
                   <p>Already have an account? <a href="/login" onClick={(e) => handleNavigation(e, '/login')} className="signup-action">Sign in</a></p>
-                  {/* This form creates a founder account. Mentors apply through a
-                      separate reviewed flow, so without this link they'd sign up
-                      here and never actually become a mentor. */}
-                  {/* Role picker — shared with the login page; add a role in
-                      JoinAsSelect and it appears in both places. */}
-                  <JoinAsSelect />
                 </div>
               </motion.div>
             )}

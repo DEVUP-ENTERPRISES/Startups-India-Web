@@ -323,6 +323,14 @@ function LoginContent() {
                   </p>
                 </div>
 
+                {/* Sits above the sign-in form on purpose: new mentors/investors
+                    were missing it entirely when it lived at the bottom of the
+                    page. Add a role in JoinAsSelect and it appears here and on
+                    signup automatically. */}
+                <div style={{ marginBottom: '22px' }}>
+                  <JoinAsSelect />
+                </div>
+
                 {error && (
                   <motion.div 
                     initial={{ opacity: 0, y: -10 }}
@@ -412,9 +420,6 @@ function LoginContent() {
 
                 <div className="signup-footer">
                   <p>Don't have an account? <a href="/signup" onClick={(e) => handleNavigation(e, '/signup')} className="signup-action">Sign up</a></p>
-                  {/* Role picker instead of one link per role — add a role in
-                      JoinAsSelect and it shows up here and on signup automatically. */}
-                  <JoinAsSelect />
                 </div>
               </motion.div>
             )}

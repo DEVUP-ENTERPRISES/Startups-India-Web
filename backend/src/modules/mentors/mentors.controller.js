@@ -2,6 +2,7 @@ const crypto = require('crypto');
 const { MentorApplication } = require('../../models/MentorApplication');
 const { MentorRequest } = require('../../models/MentorRequest');
 const { sendEmail } = require('../../utils/emailService');
+const { wrap, pill, hr } = require('../../utils/emailTemplates');
 const bcrypt = require('bcryptjs');
 const mentorsService = require('./mentors.service');
 const approvalService = require('./mentorApproval.service');
@@ -89,15 +90,28 @@ exports.applyMentor = async (req, res) => {
 
     await application.save();
 
-    const emailHtml = `
-      <h2>New Mentor Application</h2>
-      <p><strong>Name:</strong> ${fullName}</p>
-      <p><strong>Email:</strong> ${email}</p>
-      <p><strong>Phone:</strong> ${phone}</p>
-      <p><strong>Role:</strong> ${currentRole} at ${company}</p>
-      <p><strong>Experience:</strong> ${experience}</p>
-      <p>Please review the application in the Admin Dashboard.</p>
+    const adminInner = `
+      <tr>
+        <td style="padding:36px 32px 28px;">
+          ${pill('New Application')}
+          <h1 style="margin:0 0 12px;font-family:sans-serif;font-size:28px;font-weight:900;color:#0a0a0a;line-height:1.15;letter-spacing:-0.5px;">
+            New Mentor Application
+          </h1>
+          <table style="width:100%; border-collapse:collapse; font-family:sans-serif; font-size:14px; color:#333; margin-top:20px;">
+            <tr><td style="padding:8px 0; font-weight:bold; border-bottom:1px solid #f0f0f0;">Name:</td><td style="padding:8px 0; border-bottom:1px solid #f0f0f0;">${fullName}</td></tr>
+            <tr><td style="padding:8px 0; font-weight:bold; border-bottom:1px solid #f0f0f0;">Email:</td><td style="padding:8px 0; border-bottom:1px solid #f0f0f0;">${email}</td></tr>
+            <tr><td style="padding:8px 0; font-weight:bold; border-bottom:1px solid #f0f0f0;">Phone:</td><td style="padding:8px 0; border-bottom:1px solid #f0f0f0;">${phone}</td></tr>
+            <tr><td style="padding:8px 0; font-weight:bold; border-bottom:1px solid #f0f0f0;">Role:</td><td style="padding:8px 0; border-bottom:1px solid #f0f0f0;">${currentRole} at ${company}</td></tr>
+            <tr><td style="padding:8px 0; font-weight:bold; border-bottom:1px solid #f0f0f0;">Experience:</td><td style="padding:8px 0; border-bottom:1px solid #f0f0f0;">${experience}</td></tr>
+          </table>
+          <p style="margin:24px 0 0;font-family:sans-serif;font-size:15px;color:#555;line-height:1.75;">
+            Please review the application in the Admin Dashboard.
+          </p>
+        </td>
+      </tr>
+      ${hr()}
     `;
+    const emailHtml = wrap('New Mentor Application', 'Mentor Application', adminInner);
 
     await sendEmail({
       to: 'admin@startupsindia.in',
@@ -124,15 +138,28 @@ exports.findMentor = async (req, res) => {
 
     await request.save();
 
-    const emailHtml = `
-      <h2>New Find Mentor Request</h2>
-      <p><strong>User Name:</strong> ${name}</p>
-      <p><strong>Email:</strong> ${email}</p>
-      <p><strong>Phone:</strong> ${phone || 'N/A'}</p>
-      <p><strong>Area of Interest:</strong> ${area}</p>
-      <p><strong>Message:</strong> ${message || 'N/A'}</p>
-      <p>Please review and match a mentor in the Admin Dashboard.</p>
+    const requestInner = `
+      <tr>
+        <td style="padding:36px 32px 28px;">
+          ${pill('New Request')}
+          <h1 style="margin:0 0 12px;font-family:sans-serif;font-size:28px;font-weight:900;color:#0a0a0a;line-height:1.15;letter-spacing:-0.5px;">
+            Find Mentor Request
+          </h1>
+          <table style="width:100%; border-collapse:collapse; font-family:sans-serif; font-size:14px; color:#333; margin-top:20px;">
+            <tr><td style="padding:8px 0; font-weight:bold; border-bottom:1px solid #f0f0f0;">User Name:</td><td style="padding:8px 0; border-bottom:1px solid #f0f0f0;">${name}</td></tr>
+            <tr><td style="padding:8px 0; font-weight:bold; border-bottom:1px solid #f0f0f0;">Email:</td><td style="padding:8px 0; border-bottom:1px solid #f0f0f0;">${email}</td></tr>
+            <tr><td style="padding:8px 0; font-weight:bold; border-bottom:1px solid #f0f0f0;">Phone:</td><td style="padding:8px 0; border-bottom:1px solid #f0f0f0;">${phone || 'N/A'}</td></tr>
+            <tr><td style="padding:8px 0; font-weight:bold; border-bottom:1px solid #f0f0f0;">Area of Interest:</td><td style="padding:8px 0; border-bottom:1px solid #f0f0f0;">${area}</td></tr>
+            <tr><td style="padding:8px 0; font-weight:bold; border-bottom:1px solid #f0f0f0;">Message:</td><td style="padding:8px 0; border-bottom:1px solid #f0f0f0; white-space:pre-wrap;">${message || 'N/A'}</td></tr>
+          </table>
+          <p style="margin:24px 0 0;font-family:sans-serif;font-size:15px;color:#555;line-height:1.75;">
+            Please review and match a mentor in the Admin Dashboard.
+          </p>
+        </td>
+      </tr>
+      ${hr()}
     `;
+    const emailHtml = wrap('New Find Mentor Request', 'Mentor Match', requestInner);
 
     await sendEmail({
       to: 'admin@startupsindia.in',

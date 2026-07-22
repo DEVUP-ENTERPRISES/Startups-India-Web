@@ -4,7 +4,7 @@
 const BRAND_RED  = '#e63946';
 const SITE_URL   = 'https://startupsindia.in';
 const SUPPORT    = 'admin@startupsindia.in';
-const ADDRESS    = '91 Springboard, Sector 44, Gurugram, Haryana 122003, India';
+const ADDRESS    = '3rd Floor, Block C, Vaishnavi Cymbol, Financial District, HYD, Nanakramguda, Telangana 500032';
 const YEAR       = new Date().getFullYear();
 const F          = "Poppins,'Segoe UI','Helvetica Neue',Arial,sans-serif";
 
@@ -23,38 +23,14 @@ function topBar(text = 'Official communication from Startups India') {
   </tr>`;
 }
 
-// ── Header with dark mesh + logo ─────────────────────────────────────────────
+// ── Header with logo ─────────────────────────────────────────────────────────
 function headerBlock() {
   return `
   <tr>
-    <td style="background:linear-gradient(160deg,#0a0a0a 0%,#1c0507 55%,#0d0d0d 100%);padding:0;">
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td align="center" style="background:radial-gradient(ellipse at 50% -10%,rgba(230,57,70,0.22) 0%,transparent 60%);padding:44px 32px 40px;">
-
-            <!-- Wordmark -->
-            <table role="presentation" align="center" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto 20px;">
-              <tr>
-                <td style="padding:11px 24px;border-radius:8px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.10);">
-                  <span style="font-family:${F};font-size:24px;font-weight:900;color:#fff;letter-spacing:1px;">STARTUPS</span><span style="font-family:${F};font-size:24px;font-weight:900;color:${BRAND_RED};letter-spacing:1px;">INDIA</span>
-                </td>
-              </tr>
-            </table>
-
-            <!-- Divider line with tagline -->
-            <table role="presentation" align="center" cellpadding="0" cellspacing="0" border="0">
-              <tr>
-                <td width="36" style="height:1px;background:linear-gradient(90deg,transparent,rgba(230,57,70,0.6));vertical-align:middle;"><div style="height:1px;"></div></td>
-                <td style="padding:0 12px;vertical-align:middle;">
-                  <span style="font-family:${F};font-size:9px;font-weight:700;color:rgba(255,255,255,0.35);letter-spacing:3.5px;text-transform:uppercase;">FULLSTACK STARTUP ECOSYSTEM</span>
-                </td>
-                <td width="36" style="height:1px;background:linear-gradient(90deg,rgba(230,57,70,0.6),transparent);vertical-align:middle;"><div style="height:1px;"></div></td>
-              </tr>
-            </table>
-
-          </td>
-        </tr>
-      </table>
+    <td style="background:#ffffff;padding:40px 32px 10px;text-align:center;">
+      <a href="${SITE_URL}" target="_blank" style="text-decoration:none;">
+        <img src="${SITE_URL}/assets/images/logo.png" alt="Startups India" width="180" style="display:block; margin:0 auto; border:0; outline:none; text-decoration:none;" />
+      </a>
     </td>
   </tr>`;
 }
@@ -136,45 +112,45 @@ function helpRow() {
 function footerBlock(unsubscribeUrl = null) {
   return `
   <tr>
-    <td style="background:linear-gradient(180deg,#0e0e0e 0%,#111 100%);padding:32px 32px 28px;text-align:center;">
+    <td style="background:#fafafa;padding:32px 32px 28px;text-align:center;border-top:1px solid #f0f0f0;">
 
       <!-- Logo -->
-      <p style="margin:0 0 4px;font-family:${F};font-size:15px;font-weight:900;color:#fff;letter-spacing:1px;">
-        STARTUPS<span style="color:${BRAND_RED};">INDIA</span>
-      </p>
-      <p style="margin:0 0 22px;font-family:${F};font-size:9px;font-weight:700;color:rgba(255,255,255,0.28);letter-spacing:3.5px;text-transform:uppercase;">
+      <a href="${SITE_URL}" target="_blank" style="text-decoration:none; display:inline-block; margin-bottom: 16px;">
+         <img src="${SITE_URL}/assets/images/logo.png" alt="Startups India" width="120" style="display:block; border:0;" />
+      </a>
+      <p style="margin:0 0 22px;font-family:${F};font-size:10px;font-weight:600;color:#888;letter-spacing:1px;text-transform:uppercase;">
         Empowering India's Entrepreneurial Ecosystem
       </p>
 
       <!-- Nav links -->
       <table role="presentation" align="center" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto 20px;">
         <tr>
-          <td style="padding:0 10px;"><a href="${SITE_URL}/programs" style="font-family:${F};font-size:11px;color:rgba(255,255,255,0.45);text-decoration:none;">Programs</a></td>
-          <td style="font-family:${F};font-size:11px;color:rgba(255,255,255,0.15);">|</td>
-          <td style="padding:0 10px;"><a href="${SITE_URL}/mentors" style="font-family:${F};font-size:11px;color:rgba(255,255,255,0.45);text-decoration:none;">Mentors</a></td>
-          <td style="font-family:${F};font-size:11px;color:rgba(255,255,255,0.15);">|</td>
-          <td style="padding:0 10px;"><a href="${SITE_URL}/events" style="font-family:${F};font-size:11px;color:rgba(255,255,255,0.45);text-decoration:none;">Events</a></td>
-          <td style="font-family:${F};font-size:11px;color:rgba(255,255,255,0.15);">|</td>
-          <td style="padding:0 10px;"><a href="${SITE_URL}/community" style="font-family:${F};font-size:11px;color:rgba(255,255,255,0.45);text-decoration:none;">Community</a></td>
+          <td style="padding:0 10px;"><a href="${SITE_URL}/programs" style="font-family:${F};font-size:12px;color:#666;text-decoration:none;font-weight:500;">Programs</a></td>
+          <td style="font-family:${F};font-size:12px;color:#ddd;">|</td>
+          <td style="padding:0 10px;"><a href="${SITE_URL}/mentors" style="font-family:${F};font-size:12px;color:#666;text-decoration:none;font-weight:500;">Mentors</a></td>
+          <td style="font-family:${F};font-size:12px;color:#ddd;">|</td>
+          <td style="padding:0 10px;"><a href="${SITE_URL}/events" style="font-family:${F};font-size:12px;color:#666;text-decoration:none;font-weight:500;">Events</a></td>
+          <td style="font-family:${F};font-size:12px;color:#ddd;">|</td>
+          <td style="padding:0 10px;"><a href="${SITE_URL}/community" style="font-family:${F};font-size:12px;color:#666;text-decoration:none;font-weight:500;">Community</a></td>
         </tr>
       </table>
 
       <!-- Divider -->
-      <div style="height:1px;background:rgba(255,255,255,0.07);margin:0 0 20px;"></div>
+      <div style="height:1px;background:#eee;margin:0 0 20px;"></div>
 
       <!-- Address + legal -->
-      <p style="margin:0 0 8px;font-family:${F};font-size:10px;color:rgba(255,255,255,0.22);line-height:1.6;">${ADDRESS}</p>
+      <p style="margin:0 0 8px;font-family:${F};font-size:11px;color:#777;line-height:1.6;">${ADDRESS}</p>
       <table role="presentation" align="center" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto 16px;">
         <tr>
-          <td style="padding:0 8px;"><a href="${SITE_URL}/privacy" style="font-family:${F};font-size:10px;color:rgba(255,255,255,0.3);text-decoration:none;">Privacy Policy</a></td>
-          <td style="font-family:${F};font-size:10px;color:rgba(255,255,255,0.12);">|</td>
-          <td style="padding:0 8px;"><a href="${SITE_URL}/terms" style="font-family:${F};font-size:10px;color:rgba(255,255,255,0.3);text-decoration:none;">Terms of Service</a></td>
+          <td style="padding:0 8px;"><a href="${SITE_URL}/privacy" style="font-family:${F};font-size:11px;color:#777;text-decoration:underline;">Privacy Policy</a></td>
+          <td style="font-family:${F};font-size:11px;color:#ddd;">|</td>
+          <td style="padding:0 8px;"><a href="${SITE_URL}/terms" style="font-family:${F};font-size:11px;color:#777;text-decoration:underline;">Terms of Service</a></td>
           ${unsubscribeUrl ? `
-          <td style="font-family:${F};font-size:10px;color:rgba(255,255,255,0.12);">|</td>
-          <td style="padding:0 8px;"><a href="${unsubscribeUrl}" style="font-family:${F};font-size:10px;color:rgba(255,255,255,0.3);text-decoration:none;">Unsubscribe</a></td>` : ''}
+          <td style="font-family:${F};font-size:11px;color:#ddd;">|</td>
+          <td style="padding:0 8px;"><a href="${unsubscribeUrl}" style="font-family:${F};font-size:11px;color:#777;text-decoration:underline;">Unsubscribe</a></td>` : ''}
         </tr>
       </table>
-      <p style="margin:0;font-family:${F};font-size:10px;color:rgba(255,255,255,0.18);">&copy; ${YEAR} Startups India. All rights reserved.</p>
+      <p style="margin:0;font-family:${F};font-size:11px;color:#999;">&copy; ${YEAR} Startups India. All rights reserved.</p>
     </td>
   </tr>`;
 }
@@ -456,4 +432,9 @@ module.exports = {
   getPasswordResetTemplate,
   getOAuthOnlyResetTemplate,
   getPasswordChangedTemplate,
+  wrap,
+  pill,
+  ctaBtn,
+  hr,
+  statStrip,
 };

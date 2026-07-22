@@ -4,6 +4,7 @@ const { ApiError } = require('../../utils/apiError');
 const { logger } = require('../../infrastructure/observability/logger');
 const { sendEmail } = require('../../utils/emailService');
 const templateService = require('./crm.template.service');
+const { wrap } = require('../../utils/emailTemplates');
 const {
   LeadList, LeadContact, EmailTemplate, EmailCampaign, CampaignRecipient,
   EmailSuppression, EmailSendLog,
@@ -35,7 +36,7 @@ function trackingUrls(token) {
 // Rewrites every http(s) link to route through our click tracker, appends a 1px
 // open pixel, and adds a plain-text unsubscribe footer. Recipients' opens/clicks
 // then land on our API and update their status — the basis for follow-ups.
-function withTracking(html, token) {
+function withTracking(html, token, subject = 'From Startups India') {
   const t = trackingUrls(token);
 
   const rewritten = html.replace(/href\s*=\s*"(https?:\/\/[^"]+)"/gi, (m, url) => {
@@ -45,13 +46,28 @@ function withTracking(html, token) {
   });
 
   const pixel = `<img src="${t.open}" width="1" height="1" alt="" style="display:none" />`;
-  const footer = `
-    <div style="margin-top:24px;padding-top:16px;border-top:1px solid #eee;font-family:Arial,sans-serif;font-size:12px;color:#999;text-align:center;">
-      You received this because your details are in our records.
-      <a href="${t.unsubscribe}" style="color:#999;">Unsubscribe</a>.
-    </div>`;
+  
+  const innerHtml = `
+    <tr>
+      <td style="padding:36px 32px 28px; font-family: sans-serif; font-size: 15px; color: #444; line-height: 1.85;">
+        ${rewritten}
+      </td>
+    </tr>
+    <tr>
+      <td style="padding:0 32px 24px;">
+        <div style="height:1px;background:linear-gradient(90deg,transparent,rgba(0,0,0,0.07),transparent);"></div>
+      </td>
+    </tr>
+  `;
 
-  return `${rewritten}${pixel}${footer}`;
+  const finalHtml = wrap(
+    subject, // Preheader
+    'Startups India Campaign', // Top Bar Text
+    innerHtml,
+    t.unsubscribe // Unsubscribe URL
+  );
+
+  return `${finalHtml}${pixel}`;
 }
 
 // ─── DAILY CAP ──────────────────────────────────────────────────────────
@@ -193,7 +209,7 @@ async function processCampaign(campaign, budgetLeft) {
     const contact = await LeadContact.findById(recipient.contactId).lean();
     const subject = templateService.render(campaign.subjectSnapshot, contact, { escape: false });
     const bodyHtml = templateService.render(campaign.htmlSnapshot, contact);
-    const html = withTracking(bodyHtml, recipient.trackingToken);
+    const html = withTracking(bodyHtml, recipient.trackingToken, subject);
 
     try {
       const result = await sendEmail({ to: recipient.email, subject, html });

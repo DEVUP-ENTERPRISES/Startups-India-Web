@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, UserPlus } from 'lucide-react';
 
 /**
  * "Join as…" role picker for the login / signup pages.
@@ -28,12 +28,22 @@ export default function JoinAsSelect() {
   };
 
   return (
-    <div style={{ marginTop: '14px' }}>
+    // Rendered as a tinted, bordered card so it reads as its own call-to-action.
+    // It used to be plain text at the very bottom of the page and people simply
+    // never found it.
+    <div
+      style={{
+        padding: '14px 16px',
+        background: 'linear-gradient(135deg,#fff5f5 0%,#ffffff 100%)',
+        border: '1.5px solid #fecaca',
+        borderRadius: '14px',
+      }}
+    >
       <label
         htmlFor="join-as"
-        style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}
+        style={{ display: 'flex', alignItems: 'center', gap: '7px', fontSize: '13.5px', fontWeight: 700, color: '#b91c1c', marginBottom: '10px' }}
       >
-        New here? Join as…
+        <UserPlus size={15} /> New here? Join as…
       </label>
       <div style={{ display: 'flex', gap: '8px' }}>
         <select

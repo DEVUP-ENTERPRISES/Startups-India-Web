@@ -4,6 +4,7 @@ const { InvestorRequest } = require('../../models/InvestorRequest');
 const { ExploreInvestorRequest } = require('../../models/ExploreInvestorRequest');
 const { InvestorApplication } = require('../../models/InvestorApplication');
 const { sendEmail } = require('../../utils/emailService');
+const { wrap, pill, hr } = require('../../utils/emailTemplates');
 const { generateUploadUrl } = require('../../utils/s3');
 const approvalService = require('./investorApproval.service');
 
@@ -25,23 +26,35 @@ exports.submitRequest = async (req, res) => {
 
     await request.save();
 
-    const emailHtml = `
-      <h2>New Investor Registration Request</h2>
-      <p><strong>Name:</strong> ${full_name}</p>
-      <p><strong>Email:</strong> ${email}</p>
-      <p><strong>Phone:</strong> ${phone || 'N/A'}</p>
-      <p><strong>Type:</strong> ${investor_type}</p>
-      <p><strong>Organization:</strong> ${organization_name || 'N/A'}</p>
-      <p><strong>Ticket Size:</strong> ${ticket_size || 'N/A'}</p>
-      <p><strong>Focus Areas:</strong> ${investment_focus?.join(', ') || 'N/A'}</p>
-      <p><strong>Stages:</strong> ${preferred_stages?.join(', ') || 'N/A'}</p>
-      <p>Please review this application in the Admin Dashboard or via the database.</p>
+    const adminInner = `
+      <tr>
+        <td style="padding:36px 32px 28px;">
+          ${pill('New Application')}
+          <h1 style="margin:0 0 12px;font-family:sans-serif;font-size:28px;font-weight:900;color:#0a0a0a;line-height:1.15;letter-spacing:-0.5px;">
+            Investor Registration Request
+          </h1>
+          <table style="width:100%; border-collapse:collapse; font-family:sans-serif; font-size:14px; color:#333; margin-top:20px;">
+            <tr><td style="padding:8px 0; font-weight:bold; border-bottom:1px solid #f0f0f0;">Name:</td><td style="padding:8px 0; border-bottom:1px solid #f0f0f0;">${full_name}</td></tr>
+            <tr><td style="padding:8px 0; font-weight:bold; border-bottom:1px solid #f0f0f0;">Email:</td><td style="padding:8px 0; border-bottom:1px solid #f0f0f0;">${email}</td></tr>
+            <tr><td style="padding:8px 0; font-weight:bold; border-bottom:1px solid #f0f0f0;">Phone:</td><td style="padding:8px 0; border-bottom:1px solid #f0f0f0;">${phone || 'N/A'}</td></tr>
+            <tr><td style="padding:8px 0; font-weight:bold; border-bottom:1px solid #f0f0f0;">Type:</td><td style="padding:8px 0; border-bottom:1px solid #f0f0f0;">${investor_type}</td></tr>
+            <tr><td style="padding:8px 0; font-weight:bold; border-bottom:1px solid #f0f0f0;">Organization:</td><td style="padding:8px 0; border-bottom:1px solid #f0f0f0;">${organization_name || 'N/A'}</td></tr>
+            <tr><td style="padding:8px 0; font-weight:bold; border-bottom:1px solid #f0f0f0;">Ticket Size:</td><td style="padding:8px 0; border-bottom:1px solid #f0f0f0;">${ticket_size || 'N/A'}</td></tr>
+            <tr><td style="padding:8px 0; font-weight:bold; border-bottom:1px solid #f0f0f0;">Focus Areas:</td><td style="padding:8px 0; border-bottom:1px solid #f0f0f0;">${investment_focus?.join(', ') || 'N/A'}</td></tr>
+            <tr><td style="padding:8px 0; font-weight:bold; border-bottom:1px solid #f0f0f0;">Stages:</td><td style="padding:8px 0; border-bottom:1px solid #f0f0f0;">${preferred_stages?.join(', ') || 'N/A'}</td></tr>
+          </table>
+          <p style="margin:24px 0 0;font-family:sans-serif;font-size:15px;color:#555;line-height:1.75;">
+            Please review this application in the Admin Dashboard.
+          </p>
+        </td>
+      </tr>
+      ${hr()}
     `;
 
     await sendEmail({
       to: 'admin@startupsindia.in',
       subject: 'New Investor Registration Received',
-      html: emailHtml
+      html: wrap('New Investor Registration', 'New Application', adminInner)
     });
 
     res.status(201).json({ success: true, message: 'Investor request submitted successfully' });
@@ -62,22 +75,34 @@ exports.exploreRequest = async (req, res) => {
 
     await request.save();
 
-    const emailHtml = `
-      <h2>New Find Investor Request</h2>
-      <p><strong>User Name:</strong> ${name}</p>
-      <p><strong>Email:</strong> ${email}</p>
-      <p><strong>Phone:</strong> ${phone || 'N/A'}</p>
-      <p><strong>Startup Name:</strong> ${startup_name}</p>
-      <p><strong>Sector:</strong> ${sector}</p>
-      <p><strong>Funding Amount:</strong> ${funding_amount}</p>
-      <p><strong>Pitch:</strong> ${pitch || 'N/A'}</p>
-      <p>Please review and match an investor in the Admin Dashboard.</p>
+    const exploreInner = `
+      <tr>
+        <td style="padding:36px 32px 28px;">
+          ${pill('New Request')}
+          <h1 style="margin:0 0 12px;font-family:sans-serif;font-size:28px;font-weight:900;color:#0a0a0a;line-height:1.15;letter-spacing:-0.5px;">
+            Find Investor Request
+          </h1>
+          <table style="width:100%; border-collapse:collapse; font-family:sans-serif; font-size:14px; color:#333; margin-top:20px;">
+            <tr><td style="padding:8px 0; font-weight:bold; border-bottom:1px solid #f0f0f0;">User Name:</td><td style="padding:8px 0; border-bottom:1px solid #f0f0f0;">${name}</td></tr>
+            <tr><td style="padding:8px 0; font-weight:bold; border-bottom:1px solid #f0f0f0;">Email:</td><td style="padding:8px 0; border-bottom:1px solid #f0f0f0;">${email}</td></tr>
+            <tr><td style="padding:8px 0; font-weight:bold; border-bottom:1px solid #f0f0f0;">Phone:</td><td style="padding:8px 0; border-bottom:1px solid #f0f0f0;">${phone || 'N/A'}</td></tr>
+            <tr><td style="padding:8px 0; font-weight:bold; border-bottom:1px solid #f0f0f0;">Startup Name:</td><td style="padding:8px 0; border-bottom:1px solid #f0f0f0;">${startup_name}</td></tr>
+            <tr><td style="padding:8px 0; font-weight:bold; border-bottom:1px solid #f0f0f0;">Sector:</td><td style="padding:8px 0; border-bottom:1px solid #f0f0f0;">${sector}</td></tr>
+            <tr><td style="padding:8px 0; font-weight:bold; border-bottom:1px solid #f0f0f0;">Funding Amount:</td><td style="padding:8px 0; border-bottom:1px solid #f0f0f0;">${funding_amount}</td></tr>
+            <tr><td style="padding:8px 0; font-weight:bold; border-bottom:1px solid #f0f0f0;">Pitch:</td><td style="padding:8px 0; border-bottom:1px solid #f0f0f0; white-space:pre-wrap;">${pitch || 'N/A'}</td></tr>
+          </table>
+          <p style="margin:24px 0 0;font-family:sans-serif;font-size:15px;color:#555;line-height:1.75;">
+            Please review and match an investor in the Admin Dashboard.
+          </p>
+        </td>
+      </tr>
+      ${hr()}
     `;
 
     await sendEmail({
       to: 'admin@startupsindia.in',
       subject: 'New Explore Investor Request Received',
-      html: emailHtml
+      html: wrap('New Explore Investor Request', 'Investor Match', exploreInner)
     });
 
     res.status(201).json({ success: true, message: 'Explore investor request submitted successfully' });
@@ -151,10 +176,30 @@ exports.applyInvestor = async (req, res) => {
       ticketSize, bio, linkedin, websiteUrl, location, yearsOfExperience,
     });
 
+    const appInner = `
+      <tr>
+        <td style="padding:36px 32px 28px;">
+          ${pill('New Application')}
+          <h1 style="margin:0 0 12px;font-family:sans-serif;font-size:28px;font-weight:900;color:#0a0a0a;line-height:1.15;letter-spacing:-0.5px;">
+            Investor Application
+          </h1>
+          <table style="width:100%; border-collapse:collapse; font-family:sans-serif; font-size:14px; color:#333; margin-top:20px;">
+            <tr><td style="padding:8px 0; font-weight:bold; border-bottom:1px solid #f0f0f0;">Name:</td><td style="padding:8px 0; border-bottom:1px solid #f0f0f0;">${fullName}</td></tr>
+            <tr><td style="padding:8px 0; font-weight:bold; border-bottom:1px solid #f0f0f0;">Email:</td><td style="padding:8px 0; border-bottom:1px solid #f0f0f0;">${email}</td></tr>
+            <tr><td style="padding:8px 0; font-weight:bold; border-bottom:1px solid #f0f0f0;">Type:</td><td style="padding:8px 0; border-bottom:1px solid #f0f0f0;">${investorType}</td></tr>
+          </table>
+          <p style="margin:24px 0 0;font-family:sans-serif;font-size:15px;color:#555;line-height:1.75;">
+            Please review it in the Admin Dashboard.
+          </p>
+        </td>
+      </tr>
+      ${hr()}
+    `;
+
     await sendEmail({
       to: 'admin@startupsindia.in',
       subject: 'New Investor Application Received',
-      html: `<h2>New Investor Application</h2><p><strong>Name:</strong> ${fullName}</p><p><strong>Email:</strong> ${email}</p><p><strong>Type:</strong> ${investorType}</p><p>Please review it in the Admin Dashboard.</p>`,
+      html: wrap('New Investor Application', 'New Application', appInner),
     });
 
     res.status(201).json({ success: true, message: 'Application submitted successfully' });

@@ -4,6 +4,7 @@ const { Investor } = require('../profiles/investor.model');
 const { sendEmail } = require('../../utils/emailService');
 const { ApiError } = require('../../utils/apiError');
 const env = require('../../config/env');
+const { wrap, pill, ctaBtn, hr } = require('../../utils/emailTemplates');
 
 // Mirror of mentorApproval.service.js. An investor application only becomes a
 // login account + public profile on approval; the chosen password lives on the
@@ -193,53 +194,67 @@ async function updateInvestorProfile(userId, updates) {
 
 // ─── EMAIL TEMPLATES ────────────────────────────────────────────────
 function getInvestorApprovalEmail(fullName, loginLink, email, resetLink) {
-  return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-<body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f5f5f5;">
-  <table role="presentation" style="width:100%;border-collapse:collapse;background:#f5f5f5;"><tr><td align="center" style="padding:40px 20px;">
-    <table role="presentation" style="max-width:600px;width:100%;border-collapse:collapse;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.08);">
-      <tr><td style="background:linear-gradient(135deg,#e63946,#ff6b6b);padding:40px 30px;text-align:center;">
-        <h1 style="margin:0;color:#fff;font-size:28px;font-weight:800;">🚀 Startup India Incubation</h1>
-        <p style="margin:8px 0 0;color:rgba(255,255,255,0.9);font-size:14px;">Empowering Entrepreneurs, Building Tomorrow</p>
-      </td></tr>
-      <tr><td style="padding:40px 30px;">
-        <div style="text-align:center;margin-bottom:24px;"><span style="font-size:48px;">🎉</span></div>
-        <h2 style="margin:0 0 16px;color:#1a1a1a;font-size:24px;font-weight:700;text-align:center;">Congratulations, ${fullName}!</h2>
-        <p style="margin:0 0 16px;color:#666;font-size:16px;line-height:1.6;">Your investor application has been <strong style="color:#10B981;">approved</strong>! Welcome to the Startup India Incubation investor network.</p>
-        <p style="margin:0 0 20px;color:#666;font-size:16px;line-height:1.6;">You can now log in to your Investor Dashboard to manage your profile and connect with startups.</p>
-        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:18px;margin-bottom:20px;">
-          <p style="margin:0 0 10px;color:#1a1a1a;font-size:14px;font-weight:700;">Your sign-in details</p>
-          <p style="margin:0 0 6px;color:#475569;font-size:14px;"><strong style="color:#1a1a1a;">Email:</strong> ${email}</p>
-          <p style="margin:0 0 12px;color:#475569;font-size:14px;"><strong style="color:#1a1a1a;">Password:</strong> the password you created when you applied</p>
-          <p style="margin:0;color:#64748b;font-size:13px;line-height:1.6;">For your security we never store your password in a readable form, so we can't include it here. Forgotten it? <a href="${resetLink}" style="color:#e63946;font-weight:600;">Reset your password</a>.</p>
+  const inner = `
+    <tr>
+      <td style="padding:36px 32px 28px;">
+        ${pill('Approved')}
+        <h1 style="margin:0 0 12px;font-family:sans-serif;font-size:32px;font-weight:900;color:#0a0a0a;line-height:1.15;letter-spacing:-0.5px;">
+          Congratulations, ${fullName}!
+        </h1>
+        <p style="margin:0 0 16px;font-family:sans-serif;font-size:15px;color:#555;line-height:1.75;">
+          Your investor application has been <strong style="color:#10B981;">approved</strong>! Welcome to the Startup India Incubation investor network.
+        </p>
+        <p style="margin:0 0 20px;font-family:sans-serif;font-size:15px;color:#555;line-height:1.75;">
+          You can now log in to your Investor Dashboard to manage your profile and connect with startups.
+        </p>
+
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px; margin-bottom: 24px;">
+          <p style="margin: 0 0 10px 0; color: #1a1a1a; font-family:sans-serif; font-size: 14px; font-weight: 700;">Your sign-in details</p>
+          <p style="margin: 0 0 6px 0; color: #475569; font-family:sans-serif; font-size: 14px; line-height: 1.6;">
+            <strong style="color: #1a1a1a;">Email:</strong> ${email}
+          </p>
+          <p style="margin: 0 0 12px 0; color: #475569; font-family:sans-serif; font-size: 14px; line-height: 1.6;">
+            <strong style="color: #1a1a1a;">Password:</strong> the password you created when you applied
+          </p>
+          <p style="margin: 0; color: #64748b; font-family:sans-serif; font-size: 13px; line-height: 1.6;">
+            Forgotten it? <a href="${resetLink}" style="color: #e63946; font-weight: 600;">Reset your password</a>.
+          </p>
         </div>
-        <table role="presentation" style="width:100%;border-collapse:collapse;"><tr><td align="center" style="padding:8px 0 24px;">
-          <a href="${loginLink}" style="display:inline-block;padding:14px 36px;background:linear-gradient(135deg,#e63946,#ff6b6b);color:#fff;text-decoration:none;border-radius:8px;font-weight:700;font-size:16px;">Log In to Your Dashboard →</a>
-        </td></tr></table>
-      </td></tr>
-      <tr><td style="background:#fafafa;padding:24px 30px;text-align:center;border-top:1px solid #eee;">
-        <p style="margin:0;color:#999;font-size:12px;">© ${new Date().getFullYear()} Startup India Incubation. All rights reserved.</p>
-      </td></tr>
-    </table>
-  </td></tr></table></body></html>`;
+
+        ${ctaBtn(loginLink, 'Log In to Your Dashboard')}
+      </td>
+    </tr>
+    ${hr()}
+  `;
+  return wrap('Your application has been approved!', 'Investor Approval', inner);
 }
 
 function getInvestorRejectionEmail(fullName, reason) {
-  return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-<body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f5f5f5;">
-  <table role="presentation" style="width:100%;border-collapse:collapse;background:#f5f5f5;"><tr><td align="center" style="padding:40px 20px;">
-    <table role="presentation" style="max-width:600px;width:100%;border-collapse:collapse;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.08);">
-      <tr><td style="background:#1a1a1a;padding:40px 30px;text-align:center;">
-        <h1 style="margin:0;color:#fff;font-size:24px;font-weight:800;">Startup India Incubation</h1>
-      </td></tr>
-      <tr><td style="padding:40px 30px;">
-        <h2 style="margin:0 0 16px;color:#1a1a1a;font-size:22px;font-weight:700;">Dear ${fullName},</h2>
-        <p style="margin:0 0 16px;color:#666;font-size:16px;line-height:1.6;">Thank you for your interest in joining the Startup India Incubation investor network. We appreciate the time you took to apply.</p>
-        <p style="margin:0 0 16px;color:#666;font-size:16px;line-height:1.6;">After careful review, we are unable to approve your application at this time.</p>
-        ${reason ? `<div style="background:#fef3c7;border-left:4px solid #f59e0b;padding:16px;border-radius:8px;margin-bottom:16px;"><p style="margin:0;color:#92400e;font-size:14px;font-weight:600;">Feedback:</p><p style="margin:8px 0 0;color:#78350f;font-size:14px;line-height:1.6;">${reason}</p></div>` : ''}
-        <p style="margin:0;color:#666;font-size:16px;line-height:1.6;">You are welcome to reapply in the future.<br><br>Best regards,<br><strong>The Startup India Incubation Team</strong></p>
-      </td></tr>
-    </table>
-  </td></tr></table></body></html>`;
+  const inner = `
+    <tr>
+      <td style="padding:36px 32px 28px;">
+        <h2 style="margin:0 0 16px;font-family:sans-serif;font-size:24px;font-weight:900;color:#0a0a0a;">
+          Dear ${fullName},
+        </h2>
+        <p style="margin:0 0 16px;font-family:sans-serif;font-size:15px;color:#555;line-height:1.75;">
+          Thank you for your interest in joining the Startup India Incubation investor network. We appreciate the time you took to apply.
+        </p>
+        <p style="margin:0 0 16px;font-family:sans-serif;font-size:15px;color:#555;line-height:1.75;">
+          After careful review, we are unable to approve your application at this time.
+        </p>
+        ${reason ? `
+        <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
+          <p style="margin: 0; color: #92400e; font-family:sans-serif; font-size: 14px; font-weight: 600;">Feedback:</p>
+          <p style="margin: 8px 0 0 0; color: #78350f; font-family:sans-serif; font-size: 14px; line-height: 1.6;">${reason}</p>
+        </div>` : ''}
+        <p style="margin:0 0 16px;font-family:sans-serif;font-size:15px;color:#555;line-height:1.75;">
+          You are welcome to reapply in the future.
+        </p>
+      </td>
+    </tr>
+    ${hr()}
+  `;
+  return wrap('Update on your investor application', 'Investor Application', inner);
 }
 
 module.exports = {
