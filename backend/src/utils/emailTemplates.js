@@ -29,7 +29,7 @@ function headerBlock() {
   <tr>
     <td style="background:#ffffff;padding:40px 32px 10px;text-align:center;">
       <a href="${SITE_URL}" target="_blank" style="text-decoration:none;">
-        <img src="${SITE_URL}/assets/images/logo.png" alt="Startups India" width="180" style="display:block; margin:0 auto; border:0; outline:none; text-decoration:none;" />
+        <img src="${SITE_URL}/assets/images/logo.png" alt="Startups India Ecosystem" width="180" style="display:block; margin:0 auto; border:0; outline:none; text-decoration:none;" />
       </a>
     </td>
   </tr>`;
@@ -116,7 +116,7 @@ function footerBlock(unsubscribeUrl = null) {
 
       <!-- Logo -->
       <a href="${SITE_URL}" target="_blank" style="text-decoration:none; display:inline-block; margin-bottom: 16px;">
-         <img src="${SITE_URL}/assets/images/logo.png" alt="Startups India" width="120" style="display:block; border:0;" />
+         <img src="${SITE_URL}/assets/images/logo.png" alt="Startups India Ecosystem" width="120" style="display:block; border:0;" />
       </a>
       <p style="margin:0 0 22px;font-family:${F};font-size:10px;font-weight:600;color:#888;letter-spacing:1px;text-transform:uppercase;">
         Empowering India's Entrepreneurial Ecosystem
@@ -165,7 +165,7 @@ function wrap(preheaderText, topBarText, innerRows, unsubscribeUrl = null) {
   <meta name="color-scheme" content="light">
   <meta name="supported-color-schemes" content="light">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>Startups India</title>
+  <title>Startups India Ecosystem</title>
   <!--[if mso]>
   <noscript><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript>
   <style>td{font-family:Arial,sans-serif!important;}a{text-decoration:none;}</style>

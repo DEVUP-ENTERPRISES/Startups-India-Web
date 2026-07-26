@@ -305,7 +305,15 @@ export default function AdminMentorsPage() {
                 <div style={s.cardHeader} onClick={() => setExpandedId(expandedId === app._id ? null : app._id)}>
                   <div style={s.cardLeft}>
                     <div style={s.avatar()}>
-                      {app.fullName?.charAt(0)?.toUpperCase() || '?'}
+                      {app.profileImage ? (
+                        <img
+                          src={app.profileImage}
+                          alt={app.fullName}
+                          style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }}
+                        />
+                      ) : (
+                        app.fullName?.charAt(0)?.toUpperCase() || '?'
+                      )}
                     </div>
                     <div style={s.cardInfo}>
                       <p style={s.cardName}>{app.fullName}</p>
@@ -321,6 +329,25 @@ export default function AdminMentorsPage() {
 
                 {expandedId === app._id && (
                   <div style={s.expandedContent}>
+                    {/* Large photo so the admin can actually see the applicant's
+                        face before approving. Click to open full size. */}
+                    <div style={{ marginBottom: '16px' }}>
+                      <div style={s.detailLabel}>Profile Photo</div>
+                      {app.profileImage ? (
+                        <a href={app.profileImage} target="_blank" rel="noopener noreferrer" title="Open full size">
+                          <img
+                            src={app.profileImage}
+                            alt={`${app.fullName} profile`}
+                            style={{ marginTop: '6px', width: '110px', height: '110px', borderRadius: '12px', objectFit: 'cover', border: '1px solid #e5e7eb', cursor: 'zoom-in', display: 'block' }}
+                          />
+                        </a>
+                      ) : (
+                        <div style={{ marginTop: '6px', fontSize: '13px', color: '#b91c1c', fontWeight: 600 }}>
+                          No photo provided
+                        </div>
+                      )}
+                    </div>
+
                     <div style={s.detailGrid}>
                       <div style={s.detailItem}>
                         <div style={s.detailLabel}>Phone</div>

@@ -116,7 +116,7 @@ async function rejectMentorApplication(applicationId, reason) {
   // Send rejection email
   await sendEmail({
     to: application.email,
-    subject: 'Update on Your Mentor Application — Startup India Incubation',
+    subject: 'Update on Your Mentor Application — Startups India Ecosystem',
     html: getMentorRejectionEmail(application.fullName, reason),
   });
 
@@ -210,7 +210,7 @@ function getMentorApprovalEmail(fullName, loginLink, email, resetLink) {
           Congratulations, ${fullName}!
         </h1>
         <p style="margin:0 0 16px;font-family:sans-serif;font-size:15px;color:#555;line-height:1.75;">
-          We are thrilled to inform you that your mentor application has been <strong style="color: #10B981;">approved</strong>! Welcome to the Startup India Incubation mentor community.
+          We are thrilled to inform you that your mentor application has been <strong style="color: #10B981;">approved</strong>! Welcome to the Startups India Ecosystem mentor community.
         </p>
         <p style="margin:0 0 20px;font-family:sans-serif;font-size:15px;color:#555;line-height:1.75;">
           You can now log in to your Mentor Dashboard to manage your mentees, set your availability, and start making an impact.
@@ -255,7 +255,7 @@ function getMentorRejectionEmail(fullName, reason) {
           Dear ${fullName},
         </h2>
         <p style="margin:0 0 16px;font-family:sans-serif;font-size:15px;color:#555;line-height:1.75;">
-          Thank you for your interest in becoming a mentor with Startup India Incubation. We truly appreciate the time you took to apply.
+          Thank you for your interest in becoming a mentor with Startups India Ecosystem. We truly appreciate the time you took to apply.
         </p>
         <p style="margin:0 0 16px;font-family:sans-serif;font-size:15px;color:#555;line-height:1.75;">
           After careful review, we are unable to approve your application at this time.

@@ -14,7 +14,7 @@ async function sendWelcomeEmail({ email, fullName, expertise }) {
           Welcome, ${fullName}!
         </h1>
         <p style="margin:0 0 16px;font-family:sans-serif;font-size:15px;color:#555;line-height:1.75;">
-          You are now part of the Startup India Incubation mentor network.
+          You are now part of the Startups India Ecosystem mentor network.
         </p>
         <p style="margin:0 0 16px;font-family:sans-serif;font-size:15px;color:#555;line-height:1.75;">
           <strong>Your expertise areas:</strong> ${expertiseList}

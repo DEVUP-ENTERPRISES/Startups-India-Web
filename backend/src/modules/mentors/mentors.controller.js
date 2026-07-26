@@ -58,9 +58,14 @@ exports.applyMentor = async (req, res) => {
     if (!Array.isArray(expertise) || expertise.length === 0) {
       return res.status(400).json({ success: false, message: 'Please add at least one area of expertise.' });
     }
+    // A profile photo is mandatory — the admin needs a face to review before
+    // approving, and approved mentors are shown publicly with their photo.
+    if (!profileImage) {
+      return res.status(400).json({ success: false, message: 'Please upload a profile photo.' });
+    }
     // Only accept an image URL that came from our own S3 uploader — never an
     // arbitrary external URL a caller could point at anything.
-    if (profileImage && !/^https:\/\/[a-z0-9.-]*amazonaws\.com\//i.test(profileImage)) {
+    if (!/^https:\/\/[a-z0-9.-]*amazonaws\.com\//i.test(profileImage)) {
       return res.status(400).json({ success: false, message: 'Invalid profile image.' });
     }
 

@@ -116,6 +116,11 @@ export default function MentorRegistrationModal({ onClose }) {
       setError('Please wait for your photo to finish uploading.');
       return;
     }
+    // A photo is mandatory — the admin reviews it before approving.
+    if (!photo.url) {
+      setError('Please upload a profile photo.');
+      return;
+    }
 
     setLoading(true);
     const { error: err } = await applyAsMentor({
@@ -244,9 +249,11 @@ export default function MentorRegistrationModal({ onClose }) {
               ) : null}
             </div>
             <div>
-              <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: '#111827' }}>Profile photo</p>
+              <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: '#111827' }}>
+                Profile photo <span style={{ color: '#e63946' }}>*</span>
+              </p>
               <p style={{ margin: '2px 0 6px', fontSize: 12.5, color: '#9ca3af' }}>
-                JPG, PNG or WebP. Shown on your public mentor card.
+                Required · JPG, PNG or WebP. Shown on your public mentor card.
               </p>
               <button
                 type="button"

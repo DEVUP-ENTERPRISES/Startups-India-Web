@@ -116,7 +116,7 @@ async function rejectInvestorApplication(applicationId, reason) {
 
   await sendEmail({
     to: application.email,
-    subject: 'Update on Your Investor Application — Startup India Incubation',
+    subject: 'Update on Your Investor Application — Startups India Ecosystem',
     html: getInvestorRejectionEmail(application.fullName, reason),
   });
 
@@ -202,7 +202,7 @@ function getInvestorApprovalEmail(fullName, loginLink, email, resetLink) {
           Congratulations, ${fullName}!
         </h1>
         <p style="margin:0 0 16px;font-family:sans-serif;font-size:15px;color:#555;line-height:1.75;">
-          Your investor application has been <strong style="color:#10B981;">approved</strong>! Welcome to the Startup India Incubation investor network.
+          Your investor application has been <strong style="color:#10B981;">approved</strong>! Welcome to the Startups India Ecosystem investor network.
         </p>
         <p style="margin:0 0 20px;font-family:sans-serif;font-size:15px;color:#555;line-height:1.75;">
           You can now log in to your Investor Dashboard to manage your profile and connect with startups.
@@ -237,7 +237,7 @@ function getInvestorRejectionEmail(fullName, reason) {
           Dear ${fullName},
         </h2>
         <p style="margin:0 0 16px;font-family:sans-serif;font-size:15px;color:#555;line-height:1.75;">
-          Thank you for your interest in joining the Startup India Incubation investor network. We appreciate the time you took to apply.
+          Thank you for your interest in joining the Startups India Ecosystem investor network. We appreciate the time you took to apply.
         </p>
         <p style="margin:0 0 16px;font-family:sans-serif;font-size:15px;color:#555;line-height:1.75;">
           After careful review, we are unable to approve your application at this time.
