@@ -2,7 +2,7 @@
 
 // ── Design tokens ────────────────────────────────────────────────────────────
 const BRAND_RED  = '#e63946';
-const SITE_URL   = 'https://startupsindia.in';
+const SITE_URL   = 'https://www.startupsindia.in';
 const SUPPORT    = 'admin@startupsindia.in';
 const ADDRESS    = '3rd Floor, Block C, Vaishnavi Cymbol, Financial District, HYD, Nanakramguda, Telangana 500032';
 const YEAR       = new Date().getFullYear();
