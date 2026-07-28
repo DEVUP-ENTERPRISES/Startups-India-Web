@@ -35,5 +35,6 @@ router.get('/me/dashboard', authRequired, requireRole('mentor', 'admin'), mentor
 router.get('/me/profile', authRequired, requireRole('mentor', 'admin'), mentorsController.getMentorProfile);
 router.patch('/me/profile', authRequired, requireRole('mentor', 'admin'), mentorsController.updateMentorProfile);
 router.get('/me/requests', authRequired, requireRole('mentor', 'admin'), mentorsController.getMentorRequests);
+router.post('/me/support', authRequired, requireRole('mentor', 'admin'), mentorsController.submitSupportTicket);
 
 module.exports = router;

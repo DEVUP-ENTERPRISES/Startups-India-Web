@@ -288,6 +288,35 @@ exports.getMentorRequests = async (req, res) => {
   }
 };
 
+// ─── MENTOR: Help & Support ─────────────────────────────────────────
+// Emails the support inbox with the mentor's ticket. Kept simple — no ticket
+// model yet; the team replies over email.
+exports.submitSupportTicket = async (req, res) => {
+  const { subject, category, message } = req.body || {};
+  if (!subject || !message) {
+    return res.status(400).json({ success: false, message: 'Please provide a subject and a message.' });
+  }
+  try {
+    let who = req.user.userId;
+    try {
+      const profile = await approvalService.getMentorProfile(req.user.userId);
+      if (profile) who = `${profile.fullName} &lt;${profile.email}&gt;`;
+    } catch (_) { /* fall back to the user id */ }
+
+    const safe = String(message).replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    await sendEmail({
+      to: process.env.SUPPORT_EMAIL || 'admin@startupsindia.in',
+      subject: `[Mentor Support] ${category || 'General'} — ${subject}`,
+      html: `<p><strong>From:</strong> ${who}</p><p><strong>Category:</strong> ${category || 'General'}</p><p><strong>Subject:</strong> ${subject}</p><hr/><p>${safe}</p>`,
+      text: `Mentor support ticket\nFrom: ${who}\nCategory: ${category || 'General'}\nSubject: ${subject}\n\n${message}`,
+    });
+    res.json({ success: true, message: 'Support ticket submitted.' });
+  } catch (error) {
+    console.error('Mentor support ticket failed:', error);
+    res.status(500).json({ success: false, message: 'Could not submit your ticket. Please try again.' });
+  }
+};
+
 // ─── PUBLIC: Welcome Email ──────────────────────────────────────────
 exports.sendWelcomeEmail = async (req, res) => {
   try {
