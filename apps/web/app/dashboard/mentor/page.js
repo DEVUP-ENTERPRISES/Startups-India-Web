@@ -153,25 +153,20 @@ function MentorDashboardContent() {
   const [currentCalMonth, setCurrentCalMonth] = useState(new Date().getMonth());
   const [selectedCalDay, setSelectedCalDay] = useState(new Date().getDate());
 
+  // Starts blank — real values come from /me/profile on load. No mock/preset data.
   const [profileData, setProfileData] = useState({
-    fullName: 'Rahul Sharma',
-    currentRole: 'Product Strategy Expert',
-    company: 'Google',
-    experience: '10+ Years',
-    location: 'Bangalore, India',
-    email: 'rahul.sharma@google.com',
-    phone: '+91 98765 43210',
-    linkedin: 'linkedin.com/in/rahul-strategy',
-    bio: 'Experienced product strategist helping early-stage founders build scalable products and launch GTM loops.',
-    achievements: 'Helped 15+ startups secure Seed funding; Ex-Google Product Lead',
-    expertise: ['Product Strategy', 'GTM Launch', 'User Growth', 'SaaS', 'Fundraising'],
-    availabilitySlots: [
-      { day: 'Monday', time: '06:00 PM - 09:00 PM', enabled: true },
-      { day: 'Tuesday', time: '06:00 PM - 09:00 PM', enabled: true },
-      { day: 'Wednesday', time: '11:00 AM - 02:00 PM', enabled: true },
-      { day: 'Thursday', time: '08:00 PM - 09:00 PM', enabled: true },
-      { day: 'Friday', time: '06:00 PM - 09:00 PM', enabled: true }
-    ]
+    fullName: '',
+    currentRole: '',
+    company: '',
+    experience: '',
+    location: '',
+    email: '',
+    phone: '',
+    linkedin: '',
+    bio: '',
+    achievements: '',
+    expertise: [],
+    availabilitySlots: []
   });
 
   const [resources, setResources] = useState([
