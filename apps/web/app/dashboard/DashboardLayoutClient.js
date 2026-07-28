@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import DashboardSidebar from '@/components/DashboardSidebar';
 import DashboardHeader from '@/components/DashboardHeader';
@@ -16,7 +16,13 @@ const PushToast = dynamic(() => import('@/components/PushToast'), { ssr: false }
 
 export default function DashboardLayoutClient({ children }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // The mentor dashboard brings its own full-page chrome (its own sidebar +
+  // header), so it renders edge-to-edge without the dashboard shell — otherwise
+  // there'd be two sidebars. Auth still runs above; only the wrapper differs.
+  const isFullBleed = pathname === '/dashboard/mentor';
   
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
@@ -155,11 +161,21 @@ export default function DashboardLayoutClient({ children }) {
     );
   }
 
+  // Full-page routes (mentor dashboard): no dashboard sidebar/header wrapper.
+  if (isFullBleed) {
+    return (
+      <DashboardProvider authUser={user}>
+        {children}
+        <PushToast />
+      </DashboardProvider>
+    );
+  }
+
   return (
     <DashboardProvider authUser={user}>
       <div className="dashboard-layout">
         {/* Fixed Sidebar */}
-        <DashboardSidebar 
+        <DashboardSidebar
           user={user} 
           isPro={false} 
           isOpen={isMobileMenuOpen} 
