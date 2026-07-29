@@ -345,6 +345,21 @@ export default function AdminLayout({ children }) {
     async function verifySession() {
       let token = localStorage.getItem('access_token');
 
+      // Check if access token is expired; if so, treat it as missing/null to trigger refresh
+      if (token) {
+        try {
+          const parts = token.split('.');
+          if (parts.length === 3) {
+            const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+            if (payload.exp && Date.now() >= payload.exp * 1000) {
+              token = null;
+            }
+          }
+        } catch {
+          token = null;
+        }
+      }
+
       // Fast client-side check: 24hr session expiry
       const expiry = Number(localStorage.getItem('admin_session_expiry') || '0');
       if (expiry > 0 && Date.now() > expiry) {

@@ -3,6 +3,8 @@ const bcrypt = require('bcryptjs');
 const { InvestorRequest } = require('../../models/InvestorRequest');
 const { ExploreInvestorRequest } = require('../../models/ExploreInvestorRequest');
 const { InvestorApplication } = require('../../models/InvestorApplication');
+const { User } = require('../users/user.model');
+const { MentorApplication } = require('../../models/MentorApplication');
 const { sendEmail } = require('../../utils/emailService');
 const { wrap, pill, hr } = require('../../utils/emailTemplates');
 const { generateUploadUrl } = require('../../utils/s3');
@@ -153,7 +155,8 @@ exports.applyInvestor = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Invalid profile image.' });
     }
 
-    const existing = await InvestorApplication.findOne({ email: email.toLowerCase() });
+    const emailLower = email.toLowerCase();
+    const existing = await InvestorApplication.findOne({ email: emailLower });
     if (existing) {
       if (existing.status === 'pending') {
         return res.status(409).json({ success: false, message: 'An application with this email is already under review.' });
@@ -164,6 +167,27 @@ exports.applyInvestor = async (req, res) => {
       if (existing.status === 'rejected') {
         await InvestorApplication.deleteOne({ _id: existing._id });
       }
+    }
+
+    // Check if email exists in User schema
+    const existingUser = await User.findOne({ email: emailLower });
+    if (existingUser) {
+      return res.status(409).json({
+        success: false,
+        message: `This email is already registered as a ${existingUser.role || 'user'}. Please use a different email.`
+      });
+    }
+
+    // Check if email exists in MentorApplication (pending or approved)
+    const existingMentor = await MentorApplication.findOne({
+      email: emailLower,
+      status: { $in: ['pending', 'approved'] }
+    });
+    if (existingMentor) {
+      return res.status(409).json({
+        success: false,
+        message: 'This email is already registered as a mentor application.'
+      });
     }
 
     const salt = await bcrypt.genSalt(10);

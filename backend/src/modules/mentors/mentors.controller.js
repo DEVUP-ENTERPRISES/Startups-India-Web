@@ -1,6 +1,8 @@
 const crypto = require('crypto');
 const { MentorApplication } = require('../../models/MentorApplication');
 const { MentorRequest } = require('../../models/MentorRequest');
+const { User } = require('../users/user.model');
+const { InvestorApplication } = require('../../models/InvestorApplication');
 const { sendEmail } = require('../../utils/emailService');
 const { wrap, pill, hr } = require('../../utils/emailTemplates');
 const bcrypt = require('bcryptjs');
@@ -70,7 +72,8 @@ exports.applyMentor = async (req, res) => {
     }
 
     // Check for duplicate application
-    const existing = await MentorApplication.findOne({ email: email.toLowerCase() });
+    const emailLower = email.toLowerCase();
+    const existing = await MentorApplication.findOne({ email: emailLower });
     if (existing) {
       if (existing.status === 'pending') {
         return res.status(409).json({ success: false, message: 'An application with this email is already under review.' });
@@ -82,6 +85,27 @@ exports.applyMentor = async (req, res) => {
       if (existing.status === 'rejected') {
         await MentorApplication.deleteOne({ _id: existing._id });
       }
+    }
+
+    // Check if email exists in User schema
+    const existingUser = await User.findOne({ email: emailLower });
+    if (existingUser) {
+      return res.status(409).json({
+        success: false,
+        message: `This email is already registered as a ${existingUser.role || 'user'}. Please use a different email.`
+      });
+    }
+
+    // Check if email exists in InvestorApplication (pending or approved)
+    const existingInvestor = await InvestorApplication.findOne({
+      email: emailLower,
+      status: { $in: ['pending', 'approved'] }
+    });
+    if (existingInvestor) {
+      return res.status(409).json({
+        success: false,
+        message: 'This email is already registered as an investor application.'
+      });
     }
 
     const salt = await bcrypt.genSalt(10);

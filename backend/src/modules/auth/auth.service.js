@@ -42,8 +42,26 @@ async function generateAndStoreTokens(user) {
 }
 
 async function signup({ email, password, fullName, phone }) {
-  const existing = await User.findOne({ email });
+  const emailLower = String(email).trim().toLowerCase();
+
+  const existing = await User.findOne({ email: emailLower });
   if (existing) throw new ApiError(409, 'Email already registered');
+
+  const existingMentor = await MentorApplication.findOne({
+    email: emailLower,
+    status: { $in: ['pending', 'approved'] }
+  });
+  if (existingMentor) {
+    throw new ApiError(409, 'This email is already registered as a mentor application');
+  }
+
+  const existingInvestor = await InvestorApplication.findOne({
+    email: emailLower,
+    status: { $in: ['pending', 'approved'] }
+  });
+  if (existingInvestor) {
+    throw new ApiError(409, 'This email is already registered as an investor application');
+  }
 
   // The number is captured here but stored UNVERIFIED — phoneVerifiedAt stays
   // null until an OTP is actually echoed back. Nothing security-relevant trusts
@@ -204,6 +222,24 @@ async function loginWithGoogle({ idToken }, envConfig) {
   });
 
   if (!user) {
+    const emailLower = String(email).trim().toLowerCase();
+
+    const existingMentor = await MentorApplication.findOne({
+      email: emailLower,
+      status: { $in: ['pending', 'approved'] }
+    });
+    if (existingMentor) {
+      throw new ApiError(409, 'This email is already registered as a mentor application');
+    }
+
+    const existingInvestor = await InvestorApplication.findOne({
+      email: emailLower,
+      status: { $in: ['pending', 'approved'] }
+    });
+    if (existingInvestor) {
+      throw new ApiError(409, 'This email is already registered as an investor application');
+    }
+
     user = await User.create({
       email,
       fullName: name || email.split('@')[0],
