@@ -202,6 +202,37 @@ exports.applyInvestor = async (req, res) => {
       html: wrap('New Investor Application', 'New Application', appInner),
     });
 
+    // Send receipt confirmation email to applicant
+    try {
+      await sendEmail({
+        to: email.toLowerCase(),
+        subject: 'We Have Received Your Investor Application — Startups India',
+        html: wrap(
+          'Your investor application has been received.',
+          'Application Received',
+          `<tr>
+            <td style="padding:36px 32px 28px;">
+              <h2 style="margin:0 0 16px;font-family:sans-serif;font-size:24px;font-weight:900;color:#0a0a0a;">
+                Hi ${fullName},
+              </h2>
+              <p style="margin:0 0 16px;font-family:sans-serif;font-size:15px;color:#555;line-height:1.75;">
+                Thank you for applying to join the Startups India Ecosystem as an investor.
+              </p>
+              <p style="margin:0 0 16px;font-family:sans-serif;font-size:15px;color:#555;line-height:1.75;">
+                Our team is currently reviewing your application. We will notify you via email as soon as a decision is made (usually within 24-48 hours).
+              </p>
+              <p style="margin:0;font-family:sans-serif;font-size:15px;color:#555;line-height:1.75;">
+                In the meantime, feel free to explore our platform.
+              </p>
+            </td>
+          </tr>
+          ${hr()}`
+        )
+      });
+    } catch (emailErr) {
+      console.error('Failed to send receipt confirmation email to investor:', emailErr);
+    }
+
     res.status(201).json({ success: true, message: 'Application submitted successfully' });
   } catch (error) {
     console.error('Apply investor error:', error);

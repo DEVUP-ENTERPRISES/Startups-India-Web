@@ -14,6 +14,7 @@ const {
   getPasswordResetTemplate,
   getOAuthOnlyResetTemplate,
   getPasswordChangedTemplate,
+  getWelcomeEmailTemplate,
 } = require('../../utils/emailTemplates');
 const {
   recordFailedLogin,
@@ -62,6 +63,20 @@ async function signup({ email, password, fullName, phone }) {
     provider: 'email',
     phoneE164,
   });
+
+  // Send Welcome Email
+  try {
+    const welcomeTpl = getWelcomeEmailTemplate(fullName);
+    await sendEmail({
+      to: email,
+      subject: welcomeTpl.subject,
+      html: welcomeTpl.html,
+      text: welcomeTpl.text,
+    });
+  } catch (emailErr) {
+    logger.error('Failed to send welcome email during signup:', emailErr);
+  }
+
   const tokens = await generateAndStoreTokens(user);
   return { user, ...tokens };
 }
@@ -197,6 +212,19 @@ async function loginWithGoogle({ idToken }, envConfig) {
       providerIds: { google: googleId },
       authProviders: ['google'],
     });
+
+    // Send Welcome Email for new Google user
+    try {
+      const welcomeTpl = getWelcomeEmailTemplate(user.fullName);
+      await sendEmail({
+        to: email,
+        subject: welcomeTpl.subject,
+        html: welcomeTpl.html,
+        text: welcomeTpl.text,
+      });
+    } catch (emailErr) {
+      logger.error('Failed to send welcome email during Google signup:', emailErr);
+    }
   } else {
     if (!user.providerIds?.google) {
       user.providerIds = { ...(user.providerIds || {}), google: googleId };

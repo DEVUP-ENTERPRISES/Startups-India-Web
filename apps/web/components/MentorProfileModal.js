@@ -10,7 +10,6 @@ import {
   Globe, 
   Briefcase, 
   Calendar, 
-  Linkedin, 
   ExternalLink,
   MessageSquare,
   Clock,
@@ -21,6 +20,36 @@ import {
 } from 'lucide-react';
 import '../styles/mentor-profile-modal.css';
 import BookSessionModal from '@/components/BookSessionModal';
+
+const LinkedInIcon = ({ size = 20, ...props }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
+    <rect x="2" y="9" width="4" height="12" />
+    <circle cx="4" cy="4" r="2" />
+  </svg>
+);
+
+function initialsAvatar(name) {
+  const initials = String(name || 'M')
+    .split(' ')
+    .map(w => w[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256"><rect width="256" height="256" fill="#e63946"/><text x="50%" y="50%" dy=".35em" text-anchor="middle" fill="#fff" font-family="Arial, sans-serif" font-size="110" font-weight="700">${initials}</text></svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
 
 export default function MentorProfileModal({ mentor, onClose }) {
   const [showBookSession, setShowBookSession] = useState(false);
@@ -73,7 +102,11 @@ export default function MentorProfileModal({ mentor, onClose }) {
             {/* Top Section */}
             <header className="profile-header-premium">
               <div className="profile-image-container">
-                <img src={mentor.profile_image} alt={mentor.full_name} />
+                <img
+                  src={mentor.profile_image || initialsAvatar(mentor.full_name)}
+                  alt={mentor.full_name}
+                  onError={e => { e.currentTarget.src = initialsAvatar(mentor.full_name); }}
+                />
                 <div className="profile-image-overlay"></div>
               </div>
               
@@ -244,8 +277,16 @@ export default function MentorProfileModal({ mentor, onClose }) {
           {/* Sticky Footer */}
           <footer className="profile-footer-sticky">
             <div className="footer-social-links">
-              <a href="#" className="social-btn-premium" aria-label="LinkedIn">
-                <Linkedin size={20} />
+              <a
+                href={mentor.linkedin_url || '#'}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="social-btn-premium"
+                aria-label="LinkedIn"
+                onClick={e => { if (!mentor.linkedin_url) e.preventDefault(); }}
+                style={mentor.linkedin_url ? undefined : { opacity: 0.5, cursor: 'default' }}
+              >
+                <LinkedInIcon size={20} />
               </a>
               <a href="#" className="social-btn-premium" aria-label="Portfolio">
                 <ExternalLink size={20} />
@@ -253,8 +294,24 @@ export default function MentorProfileModal({ mentor, onClose }) {
             </div>
 
             <div className="footer-actions-main">
-              <button className="btn-secondary-premium">Send Request</button>
-              <button className="btn-primary-premium" onClick={() => setShowBookSession(true)}>Book a Session</button>
+              <button
+                className="btn-secondary-premium"
+                style={{ cursor: 'default', opacity: 0.6, pointerEvents: 'none' }}
+                disabled
+              >
+                Send Request
+              </button>
+              <button
+                className="btn-primary-premium"
+                style={{ cursor: 'default', opacity: 0.6, pointerEvents: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                disabled
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+                <span>Coming Soon</span>
+              </button>
             </div>
           </footer>
         </motion.div>

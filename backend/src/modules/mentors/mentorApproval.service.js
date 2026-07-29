@@ -302,6 +302,34 @@ async function deleteMentor(applicationId) {
 
   await MentorApplication.deleteOne({ _id: application._id });
 
+  // Send status removal email
+  try {
+    await sendEmail({
+      to: email,
+      subject: 'Update on Your Mentor Status — Startups India Ecosystem',
+      html: wrap(
+        'Your mentor profile has been removed.',
+        'Profile Update',
+        `<tr>
+          <td style="padding:36px 32px 28px;">
+            <h2 style="margin:0 0 16px;font-family:sans-serif;font-size:24px;font-weight:900;color:#0a0a0a;">
+              Dear ${application.fullName},
+            </h2>
+            <p style="margin:0 0 16px;font-family:sans-serif;font-size:15px;color:#555;line-height:1.75;">
+              This is to inform you that your mentor status has been deactivated and your public profile has been removed from the Startups India Ecosystem platform.
+            </p>
+            <p style="margin:0;font-family:sans-serif;font-size:15px;color:#555;line-height:1.75;">
+              If you have any questions or believe this is an error, please reach out to our support team at <a href="mailto:${env.SMTP_FROM || 'support@startupsindia.in'}" style="color:#e63946;text-decoration:none;font-weight:600;">${env.SMTP_FROM || 'support@startupsindia.in'}</a>.
+            </p>
+          </td>
+        </tr>
+        ${hr()}`
+      )
+    });
+  } catch (emailErr) {
+    console.error('Failed to send mentor deletion email:', emailErr);
+  }
+
   return { deleted: true };
 }
 

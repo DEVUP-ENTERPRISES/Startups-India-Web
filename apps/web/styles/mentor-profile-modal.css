@@ -10,7 +10,7 @@
   bottom: 0;
   background: rgba(0, 0, 0, 0.85);
   backdrop-filter: blur(12px);
-  z-index: 1000;
+  z-index: 999999;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -75,13 +75,13 @@
 /* Header Section */
 .profile-header-premium {
   display: grid;
-  grid-template-columns: 380px 1fr;
+  grid-template-columns: 320px 1fr;
   gap: 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .profile-image-container {
-  height: 500px;
+  height: 400px;
   position: relative;
   overflow: hidden;
 }
@@ -103,7 +103,7 @@
 }
 
 .profile-info-main {
-  padding: 60px;
+  padding: 40px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -140,7 +140,7 @@
 }
 
 .profile-name-premium {
-  font-size: 48px;
+  font-size: 38px;
   font-weight: 800;
   color: #fff;
   margin-bottom: 12px;
@@ -180,15 +180,15 @@
 /* Grid Layout for Content */
 .profile-content-grid {
   display: grid;
-  grid-template-columns: 1fr 380px;
+  grid-template-columns: 1fr 340px;
   gap: 40px;
-  padding: 60px;
+  padding: 40px;
 }
 
 .profile-main-column {
   display: flex;
   flex-direction: column;
-  gap: 60px;
+  gap: 40px;
 }
 
 .profile-side-column {
@@ -202,7 +202,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 30px;
+  margin-bottom: 20px;
 }
 
 .profile-section-title span {
@@ -233,7 +233,7 @@
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 24px;
-  padding: 30px;
+  padding: 24px;
 }
 
 .stats-mini-grid {
@@ -329,7 +329,7 @@
 
 /* Footer Actions */
 .profile-footer-sticky {
-  padding: 24px 60px;
+  padding: 20px 40px;
   background: rgba(15, 15, 15, 0.8);
   backdrop-filter: blur(20px);
   border-top: 1px solid rgba(255, 255, 255, 0.05);
