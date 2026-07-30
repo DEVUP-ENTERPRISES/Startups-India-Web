@@ -960,12 +960,6 @@ export default function MentorsPage() {
                               onError={e => { e.currentTarget.src = initialsAvatar(mentor.full_name); }}
                             />
                           </div>
-                          <div className="rating-badge-elite">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                            </svg>
-                            {mentor.rating}
-                          </div>
                         </div>
 
                         <div className="card-body-elite">
@@ -997,11 +991,7 @@ export default function MentorsPage() {
                         <div className="back-ambient-glow" />
                         
                         {/* Top: Rating & Close/Flip */}
-                        <div className="back-top-bar">
-                          <div className="rating-pill-glass">
-                            <Star size={14} className="star-icon-red" fill="currentColor" />
-                            <span>{mentor.rating || '4.9'}</span>
-                          </div>
+                        <div className="back-top-bar" style={{ justifyContent: 'flex-end' }}>
                           <div className="flip-icon-glass">
                             {/* Close SVG */}
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-white/60">

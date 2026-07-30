@@ -125,15 +125,6 @@ export default function MentorProfileModal({ mentor, onClose }) {
                 <h2 className="profile-name-premium">{mentor.full_name}</h2>
                 <p className="profile-title-premium">{mentor.current_role}</p>
                 
-                <div className="profile-rating-hero">
-                  <div className="rating-stars">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} size={16} fill={i < 5 ? "#F59E0B" : "transparent"} color="#F59E0B" />
-                    ))}
-                  </div>
-                  <span className="rating-value">{mentor.rating || "4.9"}</span>
-                  <span className="rating-label">Based on {mentor.total_sessions || "400"}+ sessions</span>
-                </div>
               </div>
             </header>
 

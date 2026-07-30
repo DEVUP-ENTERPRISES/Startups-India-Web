@@ -551,7 +551,6 @@ function MentorDashboardContent() {
             { id: 'calendar', label: 'Calendar', icon: <Calendar size={18} />, locked: true },
             { id: 'mentees', label: 'My Mentees', icon: <Users size={18} />, locked: true },
             { id: 'messages', label: 'Messages', icon: <MessageSquare size={18} />, locked: true },
-            { id: 'reviews', label: 'Reviews & Ratings', icon: <Star size={18} />, locked: true },
             { id: 'earnings', label: 'Earnings', icon: <DollarSign size={18} />, locked: true },
             { id: 'resources', label: 'Resources', icon: <BookOpen size={18} />, locked: true },
             { id: 'analytics', label: 'Reports & Analytics', icon: <BarChart3 size={18} />, locked: true },
@@ -667,14 +666,11 @@ function MentorDashboardContent() {
 
                 <div style={s.statCard}>
                   <div style={s.statIconCircle('#faf5ff')}>
-                    <Star size={22} color="#7c3aed" />
+                    <Video size={22} color="#7c3aed" />
                   </div>
                   <div>
-                    <div style={s.statValue}>{stats.rating ? Number(stats.rating).toFixed(1) : '—'}</div>
-                    <div style={s.statLabel}>Avg. Rating</div>
-                    <div style={{ display: 'flex', gap: '2px', marginTop: '4px' }}>
-                      {[1,2,3,4,5].map(i => <Star key={i} size={12} fill="#eab308" color="#eab308" />)}
-                    </div>
+                    <div style={s.statValue}>{stats.totalSessions || 0}</div>
+                    <div style={s.statLabel}>Total Sessions</div>
                   </div>
                 </div>
               </div>

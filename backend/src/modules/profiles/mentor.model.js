@@ -25,7 +25,6 @@ const mentorSchema = new mongoose.Schema(
       default: 'pending',
     },
     isActive: { type: Boolean, default: true },
-    rating: { type: Number, min: 0, max: 5, default: 0 },
     totalMentees: { type: Number, default: 0 },
     totalSessions: { type: Number, default: 0 },
   },
