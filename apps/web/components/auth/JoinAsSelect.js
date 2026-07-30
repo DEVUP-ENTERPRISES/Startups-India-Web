@@ -48,6 +48,7 @@ export default function JoinAsSelect() {
       <div style={{ display: 'flex', gap: '8px' }}>
         <select
           id="join-as"
+          suppressHydrationWarning
           value={dest}
           onChange={e => setDest(e.target.value)}
           style={{
