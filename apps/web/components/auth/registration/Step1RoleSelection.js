@@ -5,13 +5,6 @@ import { motion } from 'framer-motion';
 export default function Step1RoleSelection({ selectedRole, onSelectRole }) {
   const roles = [
     {
-      id: 'student',
-      title: 'Student',
-      description: 'Learning, exploring and preparing for the startup ecosystem.',
-      icon: <GraduationCap size={26} />,
-      requiresApproval: false,
-    },
-    {
       id: 'startup',
       title: 'Startup',
       description: 'Building my venture and looking for funding & acceleration.',
@@ -21,9 +14,9 @@ export default function Step1RoleSelection({ selectedRole, onSelectRole }) {
     {
       id: 'founder',
       title: 'Founder',
-      description: 'Leading a company, scaling product, market & team.',
+      description: 'Leading a company, scaling product, market & team (includes students).',
       icon: <User size={26} />,
-      requiresApproval: true,
+      requiresApproval: false, // Combined student/founder lands on founder dashboard directly
     },
     {
       id: 'mentor',
@@ -37,13 +30,6 @@ export default function Step1RoleSelection({ selectedRole, onSelectRole }) {
       title: 'Investor',
       description: 'Investing in promising high-growth startups and ideas.',
       icon: <TrendingUp size={26} />,
-      requiresApproval: true,
-    },
-    {
-      id: 'service_provider',
-      title: 'Service Provider',
-      description: 'Offering legal, tech, design, or accounting solutions.',
-      icon: <Briefcase size={26} />,
       requiresApproval: true,
     },
   ];

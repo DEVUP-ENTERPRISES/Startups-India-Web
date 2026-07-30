@@ -8,8 +8,8 @@ export default function SuccessPage({ role, requiresApproval, returnUrl }) {
   const router = useRouter();
   const [countdown, setCountdown] = useState(8);
 
-  // All roles except Student require higher authority review & admin approval before login
-  const isPending = requiresApproval || (role || '').toLowerCase() !== 'student';
+  // All roles except Founder/Startup/Student require higher authority review & admin approval before login
+  const isPending = requiresApproval || !['student', 'founder', 'startup'].includes((role || '').toLowerCase());
 
   const getRoleDashboard = (r) => {
     switch ((r || '').toLowerCase()) {
@@ -129,7 +129,7 @@ export default function SuccessPage({ role, requiresApproval, returnUrl }) {
       </h2>
 
       <p style={{ fontSize: '14px', color: '#64748b', maxWidth: '420px', margin: '0 auto 24px auto', lineHeight: 1.6 }}>
-        Your account and profile have been activated! Redirecting you directly to your Student Dashboard...
+        Your account and profile have been activated! Redirecting you directly to your Dashboard...
       </p>
 
       <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>

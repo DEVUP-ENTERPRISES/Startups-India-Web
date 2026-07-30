@@ -1,5 +1,6 @@
 const { Mentor } = require('./mentor.model');
 const { Investor } = require('./investor.model');
+const { Profile } = require('./profile.model');
 
 async function listMentors() {
   return Mentor.find({ status: 'approved', isActive: true }).lean();
@@ -35,6 +36,26 @@ async function updateInvestorStatus(id, input) {
   ).lean();
 }
 
+async function upsertUserProfile(userId, role, dynamicProfileData, status = 'approved') {
+  return Profile.findOneAndUpdate(
+    { userId },
+    {
+      $set: {
+        userId,
+        role,
+        dynamicProfileData,
+        profileCompleted: true,
+        status,
+      },
+    },
+    { upsert: true, new: true, runValidators: true }
+  ).lean();
+}
+
+async function getUserProfile(userId) {
+  return Profile.findOne({ userId }).lean();
+}
+
 module.exports = {
   listMentors,
   createMentor,
@@ -42,4 +63,7 @@ module.exports = {
   createInvestor,
   updateMentorStatus,
   updateInvestorStatus,
+  upsertUserProfile,
+  getUserProfile,
 };
+

@@ -14,7 +14,6 @@ const {
   getPasswordResetTemplate,
   getOAuthOnlyResetTemplate,
   getPasswordChangedTemplate,
-  getWelcomeEmailTemplate,
 } = require('../../utils/emailTemplates');
 const {
   recordFailedLogin,
@@ -42,26 +41,8 @@ async function generateAndStoreTokens(user) {
 }
 
 async function signup({ email, password, fullName, phone }) {
-  const emailLower = String(email).trim().toLowerCase();
-
-  const existing = await User.findOne({ email: emailLower });
+  const existing = await User.findOne({ email });
   if (existing) throw new ApiError(409, 'Email already registered');
-
-  const existingMentor = await MentorApplication.findOne({
-    email: emailLower,
-    status: { $in: ['pending', 'approved'] }
-  });
-  if (existingMentor) {
-    throw new ApiError(409, 'This email is already registered as a mentor application');
-  }
-
-  const existingInvestor = await InvestorApplication.findOne({
-    email: emailLower,
-    status: { $in: ['pending', 'approved'] }
-  });
-  if (existingInvestor) {
-    throw new ApiError(409, 'This email is already registered as an investor application');
-  }
 
   // The number is captured here but stored UNVERIFIED — phoneVerifiedAt stays
   // null until an OTP is actually echoed back. Nothing security-relevant trusts
@@ -81,23 +62,104 @@ async function signup({ email, password, fullName, phone }) {
     provider: 'email',
     phoneE164,
   });
-
-  // Send Welcome Email
-  try {
-    const welcomeTpl = getWelcomeEmailTemplate(fullName);
-    await sendEmail({
-      to: email,
-      subject: welcomeTpl.subject,
-      html: welcomeTpl.html,
-      text: welcomeTpl.text,
-    });
-  } catch (emailErr) {
-    logger.error('Failed to send welcome email during signup:', emailErr);
-  }
-
   const tokens = await generateAndStoreTokens(user);
   return { user, ...tokens };
 }
+
+async function signupV2({ email, password, fullName, phone, role = 'user', isVerified = false, dynamicProfileData = {} }) {
+  const existingEmail = await User.findOne({ email: String(email).toLowerCase() });
+  if (existingEmail) throw new ApiError(409, 'This mail ID already exists in our database');
+
+  if (phone) {
+    const existingPhone = await User.findOne({ phone: String(phone).trim() });
+    if (existingPhone) throw new ApiError(409, 'This phone number already exists in our database');
+  }
+
+  let phoneE164 = null;
+  if (phone) {
+    const parsed = normalizePhone(phone);
+    if (parsed.ok) {
+      phoneE164 = parsed.e164;
+    } else {
+      phoneE164 = phone;
+    }
+  }
+
+  const requiresApproval = ['mentor', 'investor'].includes((role || '').toLowerCase());
+  const userStatus = requiresApproval ? 'pending' : 'approved';
+  const isApproved = !requiresApproval;
+
+  const passwordHash = await bcrypt.hash(password, 10);
+  const user = await User.create({
+    email,
+    passwordHash,
+    fullName,
+    role: role || 'user',
+    phone: phone || '',
+    phoneE164,
+    phoneVerifiedAt: isVerified ? new Date() : null,
+    provider: 'email',
+    status: userStatus,
+    isApproved,
+  });
+
+  const { upsertUserProfile } = require('../profiles/profiles.service');
+  const profile = await upsertUserProfile(user._id, role, dynamicProfileData, userStatus);
+
+  if (role === 'mentor') {
+    const { MentorApplication } = require('../../models/MentorApplication');
+    const mentorExpertise = Array.isArray(dynamicProfileData.expertise)
+      ? dynamicProfileData.expertise
+      : (dynamicProfileData.domainExpertise ? [dynamicProfileData.domainExpertise] : []);
+    if (dynamicProfileData.expertiseOther) {
+      mentorExpertise.push(dynamicProfileData.expertiseOther);
+    }
+
+    await MentorApplication.create({
+      fullName,
+      email: String(email).toLowerCase(),
+      password: passwordHash,
+      phone: phone || '',
+      currentRole: dynamicProfileData.designation || 'Mentor',
+      company: dynamicProfileData.currentCompany || 'Independent',
+      experience: String(dynamicProfileData.yearsOfExperience || ''),
+      linkedin: dynamicProfileData.linkedin || null,
+      expertise: mentorExpertise,
+      bio: dynamicProfileData.bio || 'Mentor registration',
+      status: userStatus,
+    }).catch(() => {});
+  }
+
+  if (role === 'investor') {
+    const { InvestorApplication } = require('../../models/InvestorApplication');
+    const focusList = Array.isArray(dynamicProfileData.preferredIndustries)
+      ? dynamicProfileData.preferredIndustries
+      : (dynamicProfileData.preferredIndustries ? [dynamicProfileData.preferredIndustries] : []);
+    const stageList = Array.isArray(dynamicProfileData.investmentStage)
+      ? dynamicProfileData.investmentStage
+      : (dynamicProfileData.investmentStage ? [dynamicProfileData.investmentStage] : []);
+
+    await InvestorApplication.create({
+      fullName,
+      email: String(email).toLowerCase(),
+      password: passwordHash,
+      phone: phone || '',
+      investorType: dynamicProfileData.investorType || 'Angel Investor',
+      organizationName: dynamicProfileData.organizationName || null,
+      investmentFocus: focusList,
+      preferredStages: stageList,
+      ticketSize: dynamicProfileData.ticketSize || null,
+      bio: dynamicProfileData.investorType || 'Investor registration',
+      linkedin: dynamicProfileData.linkedin || null,
+      status: userStatus,
+    }).catch(() => {});
+  }
+
+  const tokens = await generateAndStoreTokens(user);
+  return { user, profile, requiresApproval, ...tokens };
+}
+
+
 
 /**
  * A mentor's User account is only created when an admin approves them, so an
@@ -182,6 +244,18 @@ async function login({ email, password }, req) {
   }
   if (!user.isActive) throw new ApiError(403, 'Account suspended');
 
+  // Enforce higher authority approval for mentor and investor roles
+  const requiresApprovalRole = ['mentor', 'investor'].includes((user.role || '').toLowerCase());
+  if (
+    requiresApprovalRole &&
+    (user.status === 'pending' || user.isApproved === false)
+  ) {
+    throw new ApiError(
+      403,
+      'Our higher authorities will review your details and give you permission to login. Admin credentials and authorization are required.'
+    );
+  }
+
   // Second factor. The password was correct, but for a 2FA account that only
   // earns a short-lived pending token — no access/refresh token is minted here,
   // so a stolen password alone buys nothing.
@@ -222,24 +296,6 @@ async function loginWithGoogle({ idToken }, envConfig) {
   });
 
   if (!user) {
-    const emailLower = String(email).trim().toLowerCase();
-
-    const existingMentor = await MentorApplication.findOne({
-      email: emailLower,
-      status: { $in: ['pending', 'approved'] }
-    });
-    if (existingMentor) {
-      throw new ApiError(409, 'This email is already registered as a mentor application');
-    }
-
-    const existingInvestor = await InvestorApplication.findOne({
-      email: emailLower,
-      status: { $in: ['pending', 'approved'] }
-    });
-    if (existingInvestor) {
-      throw new ApiError(409, 'This email is already registered as an investor application');
-    }
-
     user = await User.create({
       email,
       fullName: name || email.split('@')[0],
@@ -248,19 +304,6 @@ async function loginWithGoogle({ idToken }, envConfig) {
       providerIds: { google: googleId },
       authProviders: ['google'],
     });
-
-    // Send Welcome Email for new Google user
-    try {
-      const welcomeTpl = getWelcomeEmailTemplate(user.fullName);
-      await sendEmail({
-        to: email,
-        subject: welcomeTpl.subject,
-        html: welcomeTpl.html,
-        text: welcomeTpl.text,
-      });
-    } catch (emailErr) {
-      logger.error('Failed to send welcome email during Google signup:', emailErr);
-    }
   } else {
     if (!user.providerIds?.google) {
       user.providerIds = { ...(user.providerIds || {}), google: googleId };
@@ -532,6 +575,7 @@ async function resetPassword({ token, password }, req) {
 
 module.exports = {
   signup,
+  signupV2,
   login,
   loginWithGoogle,
   loginWithFacebook,

@@ -12,7 +12,7 @@ const userSchema = new mongoose.Schema(
       facebook: { type: String },
     },
     authProviders: { type: [String], default: ['email'] },
-    role: { type: String, enum: ['admin', 'user', 'mentor', 'investor'], default: 'user' },
+    role: { type: String, enum: ['admin', 'user', 'student', 'startup', 'founder', 'mentor', 'investor', 'service_provider', 'other'], default: 'user' },
     headline: { type: String, trim: true, maxlength: 200 },
     missionStatement: { type: String, trim: true, maxlength: 500 },
     bio: { type: String, trim: true, maxlength: 2000 },
@@ -35,6 +35,10 @@ const userSchema = new mongoose.Schema(
       showGoals: { type: Boolean, default: true }
     },
     isActive: { type: Boolean, default: true },
+    status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'approved' },
+    isApproved: { type: Boolean, default: true },
+    isEmailVerified: { type: Boolean, default: false },
+    isPhoneVerified: { type: Boolean, default: false },
     wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Course' }],
     refreshTokenHash: { type: String, default: null },
     fcmTokens: [{ type: String }], // push notification device tokens (one per device)

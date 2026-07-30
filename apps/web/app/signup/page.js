@@ -106,17 +106,6 @@ function SignupContent() {
             return str.trim().split(/\s+/).filter(Boolean).length;
           };
 
-          if (selectedRole === 'student') {
-            return (
-              !!profileData.collegeName &&
-              !!profileData.degree &&
-              !!profileData.stream &&
-              !!profileData.yearOfStudy &&
-              !!profileData.graduationYear &&
-              !!profileData.city &&
-              !!profileData.linkedin
-            );
-          }
           if (selectedRole === 'startup') {
             return (
               !!profileData.startupName &&
@@ -131,10 +120,11 @@ function SignupContent() {
             );
           }
           if (selectedRole === 'founder') {
+            const isStudent = profileData.isStudent === 'Yes';
             return (
               !!profileData.designation &&
               !!profileData.startupName &&
-              !!profileData.startupStage &&
+              (isStudent || !!profileData.startupStage) &&
               !!profileData.industry &&
               !!profileData.yearsOfExperience &&
               !!profileData.domainExpertise &&
@@ -164,15 +154,6 @@ function SignupContent() {
               !!profileData.ticketSize &&
               !!profileData.geography &&
               !!profileData.linkedin
-            );
-          }
-          if (selectedRole === 'service_provider') {
-            return (
-              !!profileData.companyName &&
-              !!profileData.serviceCategory &&
-              !!profileData.yearsInBusiness &&
-              !!profileData.city &&
-              countWords(profileData.description) >= 20
             );
           }
           return true;
@@ -291,12 +272,12 @@ function SignupContent() {
       if (!response.ok || !resData.success) {
         throw new Error(resData.message || 'Registration failed. Please check your details.');
       } else {
-        const isStudent = selectedRole === 'student';
-        if (isStudent && resData.data?.session?.access_token) {
+        const noApproval = ['founder', 'startup'].includes(selectedRole);
+        if (noApproval && resData.data?.session?.access_token) {
           localStorage.setItem('access_token', resData.data.session.access_token);
           window.dispatchEvent(new CustomEvent('user:login'));
         }
-        setRequiresApproval(!isStudent);
+        setRequiresApproval(!noApproval);
       }
 
       setDirection(1);
