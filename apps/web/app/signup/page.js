@@ -20,10 +20,14 @@ function SignupContent() {
   const searchParams = useSearchParams();
   const returnUrl = searchParams.get('returnUrl') || '/dashboard';
 
+  const paramRole = searchParams.get('role');
+  const validRoles = ['startup', 'founder', 'mentor', 'investor'];
+  const initialRole = paramRole && validRoles.includes(paramRole) ? paramRole : '';
+
   // Stepper State
   const [currentStep, setCurrentStep] = useState(1);
   const [direction, setDirection] = useState(1); // 1 = forward, -1 = backward
-  const [selectedRole, setSelectedRole] = useState('');
+  const [selectedRole, setSelectedRole] = useState(initialRole);
   
   // Step 2 Form State
   const [basicInfo, setBasicInfo] = useState({

@@ -13,7 +13,7 @@ export default function Step1RoleSelection({ selectedRole, onSelectRole }) {
     },
     {
       id: 'founder',
-      title: 'Founder',
+      title: 'Founder / Student',
       description: 'Leading a company, scaling product, market & team (includes students).',
       icon: <User size={26} />,
       requiresApproval: false, // Combined student/founder lands on founder dashboard directly

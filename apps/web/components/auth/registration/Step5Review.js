@@ -19,7 +19,7 @@ export default function Step5Review({
     switch (r) {
       case 'student': return 'Student';
       case 'startup': return 'Startup';
-      case 'founder': return 'Founder';
+      case 'founder': return 'Founder / Student';
       case 'mentor': return 'Mentor';
       case 'investor': return 'Investor';
       case 'service_provider': return 'Service Provider';

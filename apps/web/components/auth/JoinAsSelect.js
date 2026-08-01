@@ -14,9 +14,10 @@ import { ArrowRight, UserPlus } from 'lucide-react';
  * application.
  */
 const ROLES = [
-  { value: '/signup', label: 'Startup Founder' },
-  { value: '/mentors#become-mentor', label: 'Mentor' },
-  { value: '/investors#become-investor', label: 'Investor' },
+  { value: '/signup?role=startup', label: 'Startup' },
+  { value: '/signup?role=founder', label: 'Founder / Student' },
+  { value: '/signup?role=mentor', label: 'Mentor' },
+  { value: '/signup?role=investor', label: 'Investor' },
 ];
 
 export default function JoinAsSelect() {
@@ -34,16 +35,18 @@ export default function JoinAsSelect() {
     <div
       style={{
         padding: '14px 16px',
-        background: 'linear-gradient(135deg,#fff5f5 0%,#ffffff 100%)',
-        border: '1.5px solid #fecaca',
-        borderRadius: '14px',
+        background: 'linear-gradient(135deg, #fff5f5 0%, #ffffff 100%)',
+        border: '1.5px solid #fee2e2',
+        borderRadius: '16px',
+        boxShadow: '0 4px 15px rgba(239, 68, 68, 0.05)',
+        transition: 'all 0.3s ease',
       }}
     >
       <label
         htmlFor="join-as"
-        style={{ display: 'flex', alignItems: 'center', gap: '7px', fontSize: '13.5px', fontWeight: 700, color: '#b91c1c', marginBottom: '10px' }}
+        style={{ display: 'flex', alignItems: 'center', gap: '7px', fontSize: '13.5px', fontWeight: 700, color: '#dc2626', marginBottom: '10px' }}
       >
-        <UserPlus size={15} /> New here? Join as…
+        <UserPlus size={16} /> New here? Join as…
       </label>
       <div style={{ display: 'flex', gap: '8px' }}>
         <select
@@ -53,20 +56,22 @@ export default function JoinAsSelect() {
           onChange={e => setDest(e.target.value)}
           style={{
             flex: 1,
-            padding: '11px 13px',
-            border: '1.5px solid #e5e7eb',
-            borderRadius: '10px',
-            fontSize: '14px',
-            color: dest ? '#111827' : '#9ca3af',
-            background: '#fff',
+            padding: '11px 14px',
+            border: '1.5px solid #fecaca',
+            borderRadius: '12px',
+            fontSize: '13.5px',
+            fontWeight: 500,
+            color: dest ? '#0f172a' : '#64748b',
+            background: '#ffffff',
             outline: 'none',
             cursor: 'pointer',
             fontFamily: 'inherit',
+            transition: 'border-color 0.2s ease',
           }}
         >
           <option value="">Select a role…</option>
           {ROLES.map(r => (
-            <option key={r.value} value={r.value} style={{ color: '#111827' }}>
+            <option key={r.value} value={r.value} style={{ color: '#0f172a', fontWeight: 500 }}>
               {r.label}
             </option>
           ))}
@@ -79,16 +84,18 @@ export default function JoinAsSelect() {
           style={{
             display: 'inline-flex',
             alignItems: 'center',
-            gap: '5px',
-            padding: '0 18px',
-            borderRadius: '10px',
+            gap: '6px',
+            padding: '0 20px',
+            borderRadius: '12px',
             border: 'none',
-            background: dest ? 'linear-gradient(135deg,#e63946,#ff6b6b)' : '#f3f4f6',
-            color: dest ? '#fff' : '#9ca3af',
+            background: dest ? 'linear-gradient(135deg, #dc2626, #b91c1c)' : '#f1f5f9',
+            color: dest ? '#ffffff' : '#94a3b8',
             fontWeight: 700,
             fontSize: '13.5px',
-            cursor: dest ? 'pointer' : 'default',
+            cursor: dest ? 'pointer' : 'not-allowed',
             whiteSpace: 'nowrap',
+            boxShadow: dest ? '0 4px 12px rgba(220, 38, 38, 0.25)' : 'none',
+            transition: 'all 0.2s ease',
           }}
         >
           Continue <ArrowRight size={15} />
