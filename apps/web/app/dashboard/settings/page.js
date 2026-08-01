@@ -151,17 +151,20 @@ function ProfileTab({ toast }) {
     fullName: '', headline: '', missionStatement: '', bio: '', avatarUrl: '',
     city: '', state: '', phone: '',
     socialLinks: [],
+    dynamicProfileData: {},
   };
   const [form, setForm] = useState(empty);
   const [initial, setInitial] = useState(JSON.parse(JSON.stringify(empty)));
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showAvatarModal, setShowAvatarModal] = useState(false);
+  const [role, setRole] = useState('');
 
   useEffect(() => {
     apiGet('/api/v1/settings/profile').then(res => {
       if (!res.error) {
         const d = res.data;
+        setRole(d.role || '');
         let parsedLinks = [
           { name: 'LinkedIn', url: '' },
           { name: 'Twitter', url: '' }
@@ -189,6 +192,7 @@ function ProfileTab({ toast }) {
           state: d.state || '',
           phone: d.phone || '',
           socialLinks: parsedLinks,
+          dynamicProfileData: d.dynamicProfileData || {},
         };
         setForm(JSON.parse(JSON.stringify(formatted)));
         setInitial(JSON.parse(JSON.stringify(formatted)));
@@ -458,6 +462,307 @@ function ProfileTab({ toast }) {
           </button>
         </div>
       </Card>
+
+      {role === 'startup' && (
+        <Card title="Startup Profile Details" subtitle="Edit details related to your startup, visible on incubation applications.">
+          <div className="stg-grid-2">
+            <FieldGroup label="Startup Name" required>
+              <input
+                className="stg-input"
+                value={form.dynamicProfileData?.startupName || ''}
+                onChange={e => {
+                  const dp = { ...form.dynamicProfileData, startupName: e.target.value };
+                  setForm(f => ({ ...f, dynamicProfileData: dp }));
+                }}
+                placeholder="My Startup LLC"
+              />
+            </FieldGroup>
+            <FieldGroup label="Startup Stage" required>
+              <select
+                className="stg-input"
+                value={form.dynamicProfileData?.startupStage || ''}
+                onChange={e => {
+                  const dp = { ...form.dynamicProfileData, startupStage: e.target.value };
+                  setForm(f => ({ ...f, dynamicProfileData: dp }));
+                }}
+              >
+                <option value="">Select Stage</option>
+                <option value="Idea">Idea</option>
+                <option value="MVP">MVP</option>
+                <option value="Early Revenue">Early Revenue</option>
+                <option value="Growth">Growth</option>
+                <option value="Scaling">Scaling</option>
+              </select>
+            </FieldGroup>
+          </div>
+
+          <div className="stg-grid-2">
+            <FieldGroup label="Industry" required>
+              <input
+                className="stg-input"
+                value={form.dynamicProfileData?.industry || ''}
+                onChange={e => {
+                  const dp = { ...form.dynamicProfileData, industry: e.target.value };
+                  setForm(f => ({ ...f, dynamicProfileData: dp }));
+                }}
+                placeholder="e.g. EdTech, FinTech"
+              />
+            </FieldGroup>
+            <FieldGroup label="Team Size" required>
+              <select
+                className="stg-input"
+                value={form.dynamicProfileData?.teamSize || ''}
+                onChange={e => {
+                  const dp = { ...form.dynamicProfileData, teamSize: e.target.value };
+                  setForm(f => ({ ...f, dynamicProfileData: dp }));
+                }}
+              >
+                <option value="">Select Size</option>
+                <option value="1-5">1 - 5 members</option>
+                <option value="6-20">6 - 20 members</option>
+                <option value="21-50">21 - 50 members</option>
+                <option value="50+">50+ members</option>
+              </select>
+            </FieldGroup>
+          </div>
+
+          <div className="stg-grid-2">
+            <FieldGroup label="Year Founded" required>
+              <select
+                className="stg-input"
+                value={form.dynamicProfileData?.yearFounded || ''}
+                onChange={e => {
+                  const dp = { ...form.dynamicProfileData, yearFounded: e.target.value };
+                  setForm(f => ({ ...f, dynamicProfileData: dp }));
+                }}
+              >
+                <option value="">Select Year</option>
+                {['2026', '2025', '2024', '2023', '2022', '2021', '2020', 'Before 2020'].map(y => (
+                  <option key={y} value={y}>{y}</option>
+                ))}
+              </select>
+            </FieldGroup>
+            <FieldGroup label="Registered Company?" required>
+              <select
+                className="stg-input"
+                value={form.dynamicProfileData?.isRegistered || ''}
+                onChange={e => {
+                  const dp = { ...form.dynamicProfileData, isRegistered: e.target.value };
+                  setForm(f => ({ ...f, dynamicProfileData: dp }));
+                }}
+              >
+                <option value="">Select Option</option>
+                <option value="Yes">Yes (Pvt Ltd / LLP / OPC)</option>
+                <option value="No">No (Proprietorship / Unregistered)</option>
+              </select>
+            </FieldGroup>
+          </div>
+
+          <div className="stg-grid-2">
+            <FieldGroup label="Website">
+              <input
+                className="stg-input"
+                value={form.dynamicProfileData?.website || ''}
+                onChange={e => {
+                  const dp = { ...form.dynamicProfileData, website: e.target.value };
+                  setForm(f => ({ ...f, dynamicProfileData: dp }));
+                }}
+                placeholder="https://mycompany.com"
+              />
+            </FieldGroup>
+            <FieldGroup label="LinkedIn">
+              <input
+                className="stg-input"
+                value={form.dynamicProfileData?.linkedin || ''}
+                onChange={e => {
+                  const dp = { ...form.dynamicProfileData, linkedin: e.target.value };
+                  setForm(f => ({ ...f, dynamicProfileData: dp }));
+                }}
+                placeholder="https://linkedin.com/company/mycompany"
+              />
+            </FieldGroup>
+          </div>
+
+          <FieldGroup label="Problem Statement" required>
+            <textarea
+              className="stg-input stg-textarea"
+              rows={2}
+              value={form.dynamicProfileData?.problemStatement || ''}
+              onChange={e => {
+                const dp = { ...form.dynamicProfileData, problemStatement: e.target.value };
+                setForm(f => ({ ...f, dynamicProfileData: dp }));
+              }}
+              placeholder="What core problem does your startup solve?"
+            />
+          </FieldGroup>
+
+          <FieldGroup label="Elevator Pitch / Description" required>
+            <textarea
+              className="stg-input stg-textarea"
+              rows={3}
+              value={form.dynamicProfileData?.description || ''}
+              onChange={e => {
+                const dp = { ...form.dynamicProfileData, description: e.target.value };
+                setForm(f => ({ ...f, dynamicProfileData: dp }));
+              }}
+              placeholder="Describe your solution, target market, product & vision..."
+            />
+          </FieldGroup>
+        </Card>
+      )}
+
+      {role === 'founder' && (
+        <Card title="Founder Profile Details" subtitle="Edit details related to your professional background.">
+          <div className="stg-grid-2">
+            <FieldGroup label="Designation / Title" required>
+              <input
+                className="stg-input"
+                value={form.dynamicProfileData?.designation || ''}
+                onChange={e => {
+                  const dp = { ...form.dynamicProfileData, designation: e.target.value };
+                  setForm(f => ({ ...f, dynamicProfileData: dp }));
+                }}
+                placeholder="e.g. Founder & CEO"
+              />
+            </FieldGroup>
+            <FieldGroup label="Startup or College Name" required>
+              <input
+                className="stg-input"
+                value={form.dynamicProfileData?.startupName || ''}
+                onChange={e => {
+                  const dp = { ...form.dynamicProfileData, startupName: e.target.value };
+                  setForm(f => ({ ...f, dynamicProfileData: dp }));
+                }}
+                placeholder="Enter startup name"
+              />
+            </FieldGroup>
+          </div>
+
+          <div className="stg-grid-2">
+            <FieldGroup label="Startup Stage" required>
+              <select
+                className="stg-input"
+                value={form.dynamicProfileData?.startupStage || ''}
+                onChange={e => {
+                  const dp = { ...form.dynamicProfileData, startupStage: e.target.value };
+                  setForm(f => ({ ...f, dynamicProfileData: dp }));
+                }}
+              >
+                <option value="">Select Stage</option>
+                <option value="Idea">Idea / Conceptual stage</option>
+                <option value="MVP">MVP built</option>
+                <option value="Early Revenue">Early Revenue</option>
+                <option value="Growth">Growth</option>
+                <option value="Scaling">Scaling</option>
+              </select>
+            </FieldGroup>
+            <FieldGroup label="Industry" required>
+              <input
+                className="stg-input"
+                value={form.dynamicProfileData?.industry || ''}
+                onChange={e => {
+                  const dp = { ...form.dynamicProfileData, industry: e.target.value };
+                  setForm(f => ({ ...f, dynamicProfileData: dp }));
+                }}
+                placeholder="e.g. EdTech, FinTech"
+              />
+            </FieldGroup>
+          </div>
+
+          <div className="stg-grid-2">
+            <FieldGroup label="Years of Experience" required>
+              <input
+                className="stg-input"
+                value={form.dynamicProfileData?.yearsOfExperience || ''}
+                onChange={e => {
+                  const dp = { ...form.dynamicProfileData, yearsOfExperience: e.target.value };
+                  setForm(f => ({ ...f, dynamicProfileData: dp }));
+                }}
+                placeholder="e.g. 5"
+              />
+            </FieldGroup>
+            <FieldGroup label="Previous Startup?">
+              <select
+                className="stg-input"
+                value={form.dynamicProfileData?.previousStartup || ''}
+                onChange={e => {
+                  const dp = { ...form.dynamicProfileData, previousStartup: e.target.value };
+                  setForm(f => ({ ...f, dynamicProfileData: dp }));
+                }}
+              >
+                <option value="">Select Option</option>
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
+              </select>
+            </FieldGroup>
+          </div>
+
+          <div className="stg-grid-2">
+            <FieldGroup label="Domain Expertise" required>
+              <input
+                className="stg-input"
+                value={form.dynamicProfileData?.domainExpertise || ''}
+                onChange={e => {
+                  const dp = { ...form.dynamicProfileData, domainExpertise: e.target.value };
+                  setForm(f => ({ ...f, dynamicProfileData: dp }));
+                }}
+                placeholder="e.g. AI, Product Strategy"
+              />
+            </FieldGroup>
+            <FieldGroup label="Website">
+              <input
+                className="stg-input"
+                value={form.dynamicProfileData?.website || ''}
+                onChange={e => {
+                  const dp = { ...form.dynamicProfileData, website: e.target.value };
+                  setForm(f => ({ ...f, dynamicProfileData: dp }));
+                }}
+                placeholder="https://mywebsite.com"
+              />
+            </FieldGroup>
+          </div>
+
+          <div className="stg-grid-2">
+            <FieldGroup label="LinkedIn" required>
+              <input
+                className="stg-input"
+                value={form.dynamicProfileData?.linkedin || ''}
+                onChange={e => {
+                  const dp = { ...form.dynamicProfileData, linkedin: e.target.value };
+                  setForm(f => ({ ...f, dynamicProfileData: dp }));
+                }}
+                placeholder="https://linkedin.com/in/myprofile"
+              />
+            </FieldGroup>
+            <FieldGroup label="Are you registering as a Student?" required>
+              <select
+                className="stg-input"
+                value={form.dynamicProfileData?.isStudent || 'No'}
+                onChange={e => {
+                  const dp = { ...form.dynamicProfileData, isStudent: e.target.value };
+                  setForm(f => ({ ...f, dynamicProfileData: dp }));
+                }}
+              >
+                <option value="No">No, I am a professional founder</option>
+                <option value="Yes">Yes, I am a student / aspiring founder</option>
+              </select>
+            </FieldGroup>
+          </div>
+
+          <FieldGroup label="Short Bio" required>
+            <textarea
+              className="stg-input stg-textarea"
+              rows={3}
+              value={form.dynamicProfileData?.bio || ''}
+              onChange={e => {
+                const dp = { ...form.dynamicProfileData, bio: e.target.value };
+                setForm(f => ({ ...f, dynamicProfileData: dp }));
+              }}
+              placeholder="Share your background, achievements, and vision..."
+            />
+          </FieldGroup>
+        </Card>
+      )}
 
       <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'flex-end' }}>
         <button 

@@ -69,6 +69,55 @@ const SORT_OPTIONS = [
   { value: 'price-high', label: 'Price: High to Low' },
 ];
 
+function CourseImage({ src, alt, title, i }) {
+  const [imgSrc, setImgSrc] = useState(src);
+  const [isBroken, setIsBroken] = useState(false);
+
+  if (isBroken || !imgSrc) {
+    return (
+      <div
+        style={{
+          height: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: [
+            'linear-gradient(135deg,#8b5cf6,#d946ef)',
+            'linear-gradient(135deg,#3b82f6,#06b6d4)',
+            'linear-gradient(135deg,#f59e0b,#ef4444)',
+            'linear-gradient(135deg,#10b981,#14b8a6)',
+          ][i % 4],
+        }}
+      >
+        <span
+          style={{
+            fontSize: '3.5rem',
+            color: '#fff',
+            fontWeight: 900,
+            opacity: 0.9,
+          }}
+        >
+          {title?.charAt(0) || 'C'}
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <Image
+      src={imgSrc}
+      alt={alt || 'Course'}
+      fill
+      className="ex-thumb-img"
+      style={{ objectFit: 'cover' }}
+      sizes="(max-width: 640px) 100vw, 33vw"
+      onError={() => {
+        setIsBroken(true);
+      }}
+    />
+  );
+}
+
 function SkeletonCard() {
   return (
     <div
@@ -779,42 +828,12 @@ export default function ExplorePage() {
                       overflow: 'hidden',
                     }}
                   >
-                    {thumbnailUrl ? (
-                      <Image
-                        src={thumbnailUrl}
-                        alt={course.title || 'Course'}
-                        fill
-                        className="ex-thumb-img"
-                        style={{ objectFit: 'cover' }}
-                        sizes="(max-width: 640px) 100vw, 33vw"
-                      />
-                    ) : (
-                      <div
-                        style={{
-                          height: '100%',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          background: [
-                            'linear-gradient(135deg,#8b5cf6,#d946ef)',
-                            'linear-gradient(135deg,#3b82f6,#06b6d4)',
-                            'linear-gradient(135deg,#f59e0b,#ef4444)',
-                            'linear-gradient(135deg,#10b981,#14b8a6)',
-                          ][i % 4],
-                        }}
-                      >
-                        <span
-                          style={{
-                            fontSize: '3.5rem',
-                            color: '#fff',
-                            fontWeight: 900,
-                            opacity: 0.9,
-                          }}
-                        >
-                          {course.title?.charAt(0) || 'C'}
-                        </span>
-                      </div>
-                    )}
+                    <CourseImage
+                      src={thumbnailUrl}
+                      alt={course.title}
+                      title={course.title}
+                      i={i}
+                    />
 
                     {/* Top row: price + wishlist */}
                     <div

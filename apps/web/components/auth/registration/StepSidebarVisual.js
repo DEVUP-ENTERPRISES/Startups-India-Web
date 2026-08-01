@@ -223,12 +223,15 @@ export default function StepSidebarVisual({ currentStep }) {
       {/* Top Header Logo */}
       <div className="reg-v2-sidebar-header">
         <div className="reg-v2-logo">
-          <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '2px', fontFamily: 'Inter, sans-serif', fontWeight: 800, fontSize: '24px', letterSpacing: '-0.02em' }}>
-              <span style={{ color: '#dc2626' }}>Startups</span>
-              <span style={{ color: '#0f172a' }}>India</span>
-              <span style={{ color: '#dc2626', fontSize: '20px', marginLeft: '2px' }}>↗</span>
-            </div>
+          <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
+            <Image
+              src="/assets/images/logo.png"
+              alt="Startups India"
+              width={160}
+              height={44}
+              priority
+              style={{ width: 'auto', height: '36px', objectFit: 'contain' }}
+            />
           </Link>
         </div>
       </div>

@@ -22,8 +22,10 @@ async function approveMentorApplication(applicationId) {
   let user = await User.findOne({ email: application.email.toLowerCase() });
 
   if (user) {
-    // Existing user — upgrade role to mentor
+    // Existing user — upgrade role to mentor and approve login
     user.role = 'mentor';
+    user.isApproved = true;
+    user.status = 'approved';
     // If user has no password (e.g. Google-only), store the one from the application
     if (!user.passwordHash) {
       user.passwordHash = application.password;
@@ -40,6 +42,8 @@ async function approveMentorApplication(applicationId) {
       phone: application.phone,
       role: 'mentor',
       provider: 'email',
+      isApproved: true,
+      status: 'approved',
     });
   }
 
@@ -58,6 +62,9 @@ async function approveMentorApplication(applicationId) {
     mentorProfile.availability = application.availability;
     mentorProfile.linkedinUrl = application.linkedin || null;
     mentorProfile.phone = application.phone;
+    mentorProfile.industry = application.industry || '';
+    mentorProfile.startupsMentored = application.startupsMentored || '';
+    mentorProfile.websiteUrl = application.website || '';
     // Only overwrite the photo if the application actually has one, so a
     // re-approval never blanks an image the mentor set later.
     if (application.profileImage) mentorProfile.profileImage = application.profileImage;
@@ -76,6 +83,9 @@ async function approveMentorApplication(applicationId) {
       bio: application.bio,
       availability: application.availability,
       linkedinUrl: application.linkedin || null,
+      industry: application.industry || '',
+      startupsMentored: application.startupsMentored || '',
+      websiteUrl: application.website || '',
       status: 'approved',
       isActive: true,
     });
@@ -177,6 +187,7 @@ async function updateMentorProfile(userId, updates) {
   const allowed = [
     'bio', 'availability', 'linkedinUrl', 'phone', 'profileImage', 'achievements',
     'expertise', 'previousCompanies', 'currentRole', 'company', 'experience',
+    'industry', 'startupsMentored', 'websiteUrl',
   ];
   const filtered = {};
   for (const key of allowed) {

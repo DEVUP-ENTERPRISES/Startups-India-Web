@@ -610,7 +610,15 @@ function MentorDashboardContent() {
             </button>
 
             <div className="ms-user-chip" style={s.headerUser} onClick={() => setActiveTab('profile')}>
-              <div style={s.avatar(36)}>{profileData.fullName.split(' ').map(n=>n[0]).join('')}</div>
+              {profileData.profileImage ? (
+                <img
+                  src={profileData.profileImage}
+                  alt="Avatar"
+                  style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover' }}
+                />
+              ) : (
+                <div style={s.avatar(36)}>{profileData.fullName.split(' ').map(n=>n[0]).join('')}</div>
+              )}
               <div className="ms-user-text" style={s.headerUserInfo}>
                 <div style={s.headerName}>{profileData.fullName}</div>
                 <div style={s.headerRole}>Mentor</div>

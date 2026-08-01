@@ -280,7 +280,9 @@ export default function DashboardSidebar({
   const navigation =
     user?.role === 'mentor' ? mentorNavigation
       : user?.role === 'investor' ? investorNavigation
-        : studentNavigation;
+        : user?.role === 'startup'
+          ? studentNavigation.filter(item => !item.isLocked)
+          : studentNavigation;
 
   const isActive = path => {
     if (path === '/dashboard') return pathname === '/dashboard';
@@ -821,24 +823,26 @@ export default function DashboardSidebar({
         </nav>
 
         {/* Level Up Progress Card */}
-        <div className="sidebar-level-card">
-          <div className="level-card-header">
-            <span className="level-rocket" style={{ display: 'flex', alignItems: 'center' }}><Icon name="rocket" size={18} color="#fff" /></span>
-            <div className="level-info">
-              <span className="level-card-title">Level up your community journey!</span>
-              <span className="level-card-sub">You're on Level 3</span>
+        {user?.role !== 'mentor' && user?.role !== 'investor' && (
+          <div className="sidebar-level-card">
+            <div className="level-card-header">
+              <span className="level-rocket" style={{ display: 'flex', alignItems: 'center' }}><Icon name="rocket" size={18} color="#fff" /></span>
+              <div className="level-info">
+                <span className="level-card-title">Level up your community journey!</span>
+                <span className="level-card-sub">You're on Level 3</span>
+              </div>
+            </div>
+            <div className="level-progress-bar-container">
+              <div className="level-progress-bar" style={{ width: '62.5%' }}></div>
+            </div>
+            <div className="level-card-footer">
+              <span className="level-xp">750 / 1200 XP</span>
+              <Link href="/dashboard/achievements" className="level-btn" onClick={onClose}>
+                View My Progress
+              </Link>
             </div>
           </div>
-          <div className="level-progress-bar-container">
-            <div className="level-progress-bar" style={{ width: '62.5%' }}></div>
-          </div>
-          <div className="level-card-footer">
-            <span className="level-xp">750 / 1200 XP</span>
-            <Link href="/dashboard/achievements" className="level-btn" onClick={onClose}>
-              View My Progress
-            </Link>
-          </div>
-        </div>
+        )}
 
         <div className="sidebar-bottom">
           <div className="bottom-actions">

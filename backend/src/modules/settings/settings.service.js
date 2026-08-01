@@ -23,9 +23,16 @@ class SettingsService {
   async getProfile(userId) {
     const user = await User.findById(userId).select(
       '-passwordHash -refreshTokenHash'
-    );
+    ).lean();
     if (!user) throw Object.assign(new Error('User not found'), { status: 404 });
-    return user;
+
+    const { Profile } = require('../profiles/profile.model');
+    const profile = await Profile.findOne({ userId }).lean();
+
+    return {
+      ...user,
+      dynamicProfileData: profile ? profile.dynamicProfileData : {},
+    };
   }
 
   async updateProfile(userId, data) {
@@ -35,7 +42,7 @@ class SettingsService {
       if (data[key] !== undefined) safe[key] = data[key];
     }
 
-    if (Object.keys(safe).length === 0) {
+    if (Object.keys(safe).length === 0 && data.dynamicProfileData === undefined) {
       throw Object.assign(new Error('No valid fields provided'), { status: 400 });
     }
 
@@ -44,13 +51,44 @@ class SettingsService {
       throw Object.assign(new Error('Bio must be 300 characters or less'), { status: 400 });
     }
 
-    const updated = await User.findByIdAndUpdate(
-      userId,
-      { $set: safe },
-      { new: true, runValidators: true }
-    ).select('-passwordHash -refreshTokenHash');
+    let updated = null;
+    if (Object.keys(safe).length > 0) {
+      updated = await User.findByIdAndUpdate(
+        userId,
+        { $set: safe },
+        { new: true, runValidators: true }
+      ).select('-passwordHash -refreshTokenHash').lean();
+    } else {
+      updated = await User.findById(userId).select('-passwordHash -refreshTokenHash').lean();
+    }
 
     if (!updated) throw Object.assign(new Error('User not found'), { status: 404 });
+
+    if (data.dynamicProfileData && typeof data.dynamicProfileData === 'object') {
+      const { Profile } = require('../profiles/profile.model');
+      let profile = await Profile.findOne({ userId });
+      if (!profile) {
+        profile = new Profile({
+          userId,
+          role: updated.role || 'user',
+          dynamicProfileData: {},
+        });
+      }
+
+      profile.dynamicProfileData = {
+        ...profile.dynamicProfileData,
+        ...data.dynamicProfileData,
+      };
+      profile.markModified('dynamicProfileData');
+      await profile.save();
+
+      updated.dynamicProfileData = profile.dynamicProfileData;
+    } else {
+      const { Profile } = require('../profiles/profile.model');
+      const profile = await Profile.findOne({ userId }).lean();
+      updated.dynamicProfileData = profile ? profile.dynamicProfileData : {};
+    }
+
     return updated;
   }
 

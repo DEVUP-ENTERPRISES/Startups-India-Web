@@ -228,6 +228,10 @@ export default function AdminInvestorsPage() {
                   <div style={s.detailItem}><div style={s.detailLabel}>Investor Type</div><div style={s.detailValue}>{app.investorType || '—'}</div></div>
                   <div style={s.detailItem}><div style={s.detailLabel}>Ticket Size</div><div style={s.detailValue}>{app.ticketSize || '—'}</div></div>
                   <div style={s.detailItem}><div style={s.detailLabel}>LinkedIn</div><div style={s.detailValue}>{app.linkedin ? <a href={app.linkedin} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'none' }}>View</a> : '—'}</div></div>
+                  <div style={s.detailItem}><div style={s.detailLabel}>Geography</div><div style={s.detailValue}>{app.geography || '—'}</div></div>
+                  <div style={s.detailItem}><div style={s.detailLabel}>Investments Count</div><div style={s.detailValue}>{app.numberOfInvestments || '—'}</div></div>
+                  <div style={s.detailItem}><div style={s.detailLabel}>Portfolio Website</div><div style={s.detailValue}>{app.portfolioWebsite ? <a href={app.portfolioWebsite} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'none' }}>View</a> : '—'}</div></div>
+                  <div style={s.detailItem}><div style={s.detailLabel}>Website</div><div style={s.detailValue}>{app.websiteUrl ? <a href={app.websiteUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'none' }}>View</a> : '—'}</div></div>
                 </div>
 
                 {app.bio && <div style={{ ...s.detailItem, marginTop: '12px' }}><div style={s.detailLabel}>Bio</div><div style={{ ...s.detailValue, fontWeight: '400', lineHeight: '1.6' }}>{app.bio}</div></div>}

@@ -41,6 +41,29 @@ function SignupContent() {
   const [isEmailVerified, setIsEmailVerified] = useState(false);
   const [isPhoneVerified, setIsPhoneVerified] = useState(false);
   const [otpError, setOtpError] = useState('');
+  const [phoneSessionId, setPhoneSessionId] = useState('');
+
+  const sendPhoneOtp = async (phoneNumber) => {
+    try {
+      setOtpError('');
+      const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
+      const res = await fetch(`${apiBase}/api/v1/auth/phone/send-otp-public`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: phoneNumber }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setPhoneSessionId(data.data.sessionId);
+        console.log('2factor OTP sent, session:', data.data.sessionId);
+      } else {
+        setOtpError(data.message || 'Failed to send SMS verification code.');
+      }
+    } catch (err) {
+      console.error('Error sending phone OTP:', err);
+      setOtpError('Failed to send SMS verification code.');
+    }
+  };
 
   // Step 4 Dynamic Profile Data
   const [profileData, setProfileData] = useState({});
@@ -198,11 +221,13 @@ function SignupContent() {
         return;
       }
 
+      const fullPhone = `${basicInfo.countryCode}${basicInfo.phone}`;
+      sendPhoneOtp(fullPhone);
       setDirection(1);
       setCurrentStep(3);
     } else if (currentStep === 3) {
-      if (!isEmailVerified && !isPhoneVerified) {
-        setError('Please verify at least your Email Address or Mobile Number before proceeding.');
+      if (!isPhoneVerified) {
+        setError('Please verify your Mobile Number before proceeding.');
         return;
       }
       setDirection(1);
@@ -224,16 +249,35 @@ function SignupContent() {
   };
 
   // Dual Target OTP Verification handler
-  const handleVerifyTarget = (targetType, code) => {
+  const handleVerifyTarget = async (targetType, code) => {
     setOtpError('');
-    if (code === '123456' || code.length === 6) {
-      if (targetType === 'email') {
+    if (targetType === 'email') {
+      if (code === '123456' || code.length === 6) {
         setIsEmailVerified(true);
       } else {
-        setIsPhoneVerified(true);
+        setOtpError('Invalid verification code');
       }
     } else {
-      setOtpError('Invalid verification code');
+      if (!phoneSessionId) {
+        setOtpError('No active verification session. Please resend code.');
+        return;
+      }
+      try {
+        const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
+        const res = await fetch(`${apiBase}/api/v1/auth/phone/verify-otp-public`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sessionId: phoneSessionId, code }),
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          setIsPhoneVerified(true);
+        } else {
+          setOtpError(data.message || 'OTP mismatch or expired. Please try again.');
+        }
+      } catch (err) {
+        setOtpError('Failed to connect to verification server.');
+      }
     }
   };
 
@@ -253,8 +297,8 @@ function SignupContent() {
       phone: `${basicInfo.countryCode} ${basicInfo.phone}`,
       password: basicInfo.password,
       role: selectedRole,
-      isVerified: isEmailVerified || isPhoneVerified,
-      isEmailVerified,
+      isVerified: isPhoneVerified,
+      isEmailVerified: false,
       isPhoneVerified,
       dynamicProfileData: profileData,
     };
@@ -368,6 +412,7 @@ function SignupContent() {
                   isEmailVerified={isEmailVerified}
                   isPhoneVerified={isPhoneVerified}
                   onVerifyTarget={handleVerifyTarget}
+                  onResendPhoneOtp={() => sendPhoneOtp(`${basicInfo.countryCode}${basicInfo.phone}`)}
                   error={otpError || error}
                 />
               )}
@@ -384,8 +429,8 @@ function SignupContent() {
                 <Step5Review
                   role={selectedRole}
                   basicInfo={basicInfo}
-                  isVerified={isEmailVerified || isPhoneVerified}
-                  isEmailVerified={isEmailVerified}
+                  isVerified={isPhoneVerified}
+                  isEmailVerified={false}
                   isPhoneVerified={isPhoneVerified}
                   profileData={profileData}
                   onGoToStep={(s) => {

@@ -13,6 +13,7 @@ const { Testimonial } = require('../../models/Testimonial');
 const { Notification } = require('../../models/Notification');
 const { Settings } = require('../../models/Settings');
 const { EcosystemEntry } = require('../../models/EcosystemEntry');
+const { Profile } = require('../profiles/profile.model');
 const { ApiError } = require('../../utils/apiError');
 const mediaService = require('../media/media.service');
 const { Media } = require('../media/media.model');
@@ -161,7 +162,7 @@ async function getUser(id) {
   const user = await User.findById(id).select('-passwordHash -refreshTokenHash');
   if (!user) throw new ApiError(404, 'User not found');
 
-  const [enrollments, payments, lessonProgressCount, quizAttempts, certificates] =
+  const [enrollments, payments, lessonProgressCount, quizAttempts, certificates, profile] =
     await Promise.all([
       Enrollment.find({ userId: id })
         .populate('courseId', 'title slug thumbnailUrl priceInr')
@@ -174,6 +175,7 @@ async function getUser(id) {
         .populate('courseId', 'title')
         .populate('moduleId', 'title'),
       Certificate.find({ userId: id }).sort({ createdAt: -1 }),
+      Profile.findOne({ userId: id }).lean(),
     ]);
 
   const totalSpent = payments
@@ -188,7 +190,7 @@ async function getUser(id) {
     totalSpentInr: totalSpent,
   };
 
-  return { user, enrollments, payments, quizAttempts, certificates, stats };
+  return { user, enrollments, payments, quizAttempts, certificates, stats, profile };
 }
 
 async function updateUser(id, updates) {

@@ -120,12 +120,19 @@ async function signupV2({ email, password, fullName, phone, role = 'user', isVer
       email: String(email).toLowerCase(),
       password: passwordHash,
       phone: phone || '',
+      profileImage: dynamicProfileData.profilePhoto || null,
       currentRole: dynamicProfileData.designation || 'Mentor',
       company: dynamicProfileData.currentCompany || 'Independent',
       experience: String(dynamicProfileData.yearsOfExperience || ''),
       linkedin: dynamicProfileData.linkedin || null,
       expertise: mentorExpertise,
       bio: dynamicProfileData.bio || 'Mentor registration',
+      availability: dynamicProfileData.weeklyAvailability && dynamicProfileData.availabilityMode
+        ? `${dynamicProfileData.weeklyAvailability} (${dynamicProfileData.availabilityMode})`
+        : (dynamicProfileData.weeklyAvailability || dynamicProfileData.availabilityMode || ''),
+      industry: dynamicProfileData.industry || '',
+      startupsMentored: dynamicProfileData.startupsMentored || '',
+      website: dynamicProfileData.website || '',
       status: userStatus,
     }).catch(() => {});
   }
@@ -144,14 +151,70 @@ async function signupV2({ email, password, fullName, phone, role = 'user', isVer
       email: String(email).toLowerCase(),
       password: passwordHash,
       phone: phone || '',
+      profileImage: dynamicProfileData.profilePhoto || null,
       investorType: dynamicProfileData.investorType || 'Angel Investor',
       organizationName: dynamicProfileData.organizationName || null,
       investmentFocus: focusList,
       preferredStages: stageList,
       ticketSize: dynamicProfileData.ticketSize || null,
-      bio: dynamicProfileData.investorType || 'Investor registration',
+      bio: `Investor focused on ${focusList.join(', ') || 'multiple industries'}.`,
       linkedin: dynamicProfileData.linkedin || null,
+      websiteUrl: dynamicProfileData.website || null,
+      geography: dynamicProfileData.geography || '',
+      numberOfInvestments: dynamicProfileData.numberOfInvestments || '',
+      portfolioWebsite: dynamicProfileData.portfolioWebsite || '',
       status: userStatus,
+    }).catch(() => {});
+  }
+
+  if (role === 'startup') {
+    const { StartupApplication } = require('../../models/StartupApplication');
+    await StartupApplication.create({
+      fullName,
+      email: String(email).toLowerCase(),
+      phone: phone || '',
+      startupName: dynamicProfileData.startupName || '',
+      startupStage: dynamicProfileData.startupStage || '',
+      startupLogo: dynamicProfileData.startupLogo || null,
+      website: dynamicProfileData.website || '',
+      industry: dynamicProfileData.industry || '',
+      yearFounded: dynamicProfileData.yearFounded || '',
+      teamSize: dynamicProfileData.teamSize || '',
+      city: dynamicProfileData.city || '',
+      isRegistered: dynamicProfileData.isRegistered || '',
+      problemStatement: dynamicProfileData.problemStatement || '',
+      description: dynamicProfileData.description || '',
+      fundingStage: dynamicProfileData.fundingStage || '',
+      revenueRange: dynamicProfileData.revenueRange || '',
+      startupNeeds: dynamicProfileData.startupNeeds || [],
+      status: 'approved',
+      approvedAt: new Date(),
+    }).catch(() => {});
+  }
+
+  if (role === 'founder') {
+    const { FounderApplication } = require('../../models/FounderApplication');
+    await FounderApplication.create({
+      fullName,
+      email: String(email).toLowerCase(),
+      phone: phone || '',
+      isStudent: dynamicProfileData.isStudent || 'No',
+      designation: dynamicProfileData.designation || '',
+      startupName: dynamicProfileData.startupName || '',
+      startupStage: dynamicProfileData.startupStage || '',
+      industry: dynamicProfileData.industry || '',
+      yearsOfExperience: dynamicProfileData.yearsOfExperience || '',
+      previousStartup: dynamicProfileData.previousStartup || '',
+      previousCompany: dynamicProfileData.previousCompany || '',
+      domainExpertise: dynamicProfileData.domainExpertise || '',
+      city: dynamicProfileData.city || '',
+      bio: dynamicProfileData.bio || '',
+      lookingFor: dynamicProfileData.lookingFor || [],
+      linkedin: dynamicProfileData.linkedin || '',
+      website: dynamicProfileData.website || '',
+      profilePhoto: dynamicProfileData.profilePhoto || null,
+      status: 'approved',
+      approvedAt: new Date(),
     }).catch(() => {});
   }
 
@@ -250,10 +313,31 @@ async function login({ email, password }, req) {
     requiresApprovalRole &&
     (user.status === 'pending' || user.isApproved === false)
   ) {
-    throw new ApiError(
-      403,
-      'Our higher authorities will review your details and give you permission to login. Admin credentials and authorization are required.'
-    );
+    let isApprovedInProfile = false;
+    try {
+      if (user.role === 'mentor') {
+        const { Mentor } = require('../profiles/mentor.model');
+        const p = await Mentor.findOne({ email: user.email });
+        if (p && p.status === 'approved') isApprovedInProfile = true;
+      } else if (user.role === 'investor') {
+        const { Investor } = require('../profiles/investor.model');
+        const p = await Investor.findOne({ email: user.email });
+        if (p && p.status === 'approved') isApprovedInProfile = true;
+      }
+    } catch (e) {
+      console.error('Self-healing profile check error:', e);
+    }
+
+    if (isApprovedInProfile) {
+      user.isApproved = true;
+      user.status = 'approved';
+      await user.save();
+    } else {
+      throw new ApiError(
+        403,
+        'Our higher authorities will review your details and give you permission to login. Admin credentials and authorization are required.'
+      );
+    }
   }
 
   // Second factor. The password was correct, but for a 2FA account that only

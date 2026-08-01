@@ -26,6 +26,9 @@ const investorApplicationSchema = new mongoose.Schema(
     websiteUrl: { type: String, default: null },
     location: { type: String, default: '' },
     yearsOfExperience: { type: Number, default: null },
+    geography: { type: String, default: '' },
+    numberOfInvestments: { type: String, default: '' },
+    portfolioWebsite: { type: String, default: '' },
 
     status: {
       type: String,

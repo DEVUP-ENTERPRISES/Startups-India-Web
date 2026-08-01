@@ -71,6 +71,9 @@ const env = {
   // Default country for bare 10-digit numbers typed by Indian users.
   DEFAULT_PHONE_COUNTRY: process.env.DEFAULT_PHONE_COUNTRY || 'IN',
 
+  TWOFACTOR_API_KEY: process.env.TWOFACTOR_API_KEY || '16ac4ef8-8a8a-11f1-908b-0200cd936042',
+  TWOFACTOR_TEMPLATE_NAME: process.env.TWOFACTOR_TEMPLATE_NAME || '',
+
   OTP_LENGTH: Number(process.env.OTP_LENGTH || 6),
   OTP_TTL_MINUTES: Number(process.env.OTP_TTL_MINUTES || 5),
   // A 6-digit code is only ~1M wide, so the attempt cap is what actually secures
@@ -106,10 +109,13 @@ if (env.NODE_ENV === 'production') {
     // The console driver prints OTPs to stdout. If that ever ran in production it
     // would mean every 2FA code is sitting in the logs and no SMS is being sent.
     if (env.SMS_PROVIDER === 'console') {
-      throw new Error('SMS_PROVIDER must not be "console" when TWO_FACTOR_ENABLED — set it to "msg91"');
+      throw new Error('SMS_PROVIDER must not be "console" when TWO_FACTOR_ENABLED — set it to "msg91" or "2factor"');
     }
     if (env.SMS_PROVIDER === 'msg91' && !env.MSG91_AUTH_KEY) {
       throw new Error('MSG91_AUTH_KEY is required when SMS_PROVIDER=msg91');
+    }
+    if ((env.SMS_PROVIDER === '2factor' || env.SMS_PROVIDER === 'twofactor') && !env.TWOFACTOR_API_KEY) {
+      throw new Error('TWOFACTOR_API_KEY is required when SMS_PROVIDER=2factor');
     }
   }
 }

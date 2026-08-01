@@ -14,15 +14,25 @@ const PushToast = dynamic(() => import('@/components/PushToast'), { ssr: false }
 
 
 
+const LOCKED_DASHBOARD_PATHS = [
+  '/dashboard/explore-courses',
+  '/dashboard/my-courses',
+  '/dashboard/learning',
+  '/dashboard/assessment',
+  '/dashboard/analytics',
+  '/dashboard/achievements',
+  '/dashboard/payments',
+];
+
 export default function DashboardLayoutClient({ children }) {
   const router = useRouter();
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // The mentor dashboard brings its own full-page chrome (its own sidebar +
-  // header), so it renders edge-to-edge without the dashboard shell — otherwise
+  // The mentor and investor dashboards bring their own full-page chrome (their own sidebar +
+  // header), so they render edge-to-edge without the dashboard shell — otherwise
   // there'd be two sidebars. Auth still runs above; only the wrapper differs.
-  const isFullBleed = pathname === '/dashboard/mentor';
+  const isFullBleed = pathname === '/dashboard/mentor' || pathname?.startsWith('/dashboard/investor');
   
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
@@ -76,6 +86,20 @@ export default function DashboardLayoutClient({ children }) {
     }
     checkAuth();
   }, [router]);
+
+  // Protect locked dashboard routes — only the startup role has academic
+  // sections locked; founders, mentors, investors, and general users can access them.
+  useEffect(() => {
+    if (!user) return;
+    if (user.role !== 'startup') return;
+
+    const isLockedPath = LOCKED_DASHBOARD_PATHS.some(
+      p => pathname === p || pathname.startsWith(p + '/')
+    );
+    if (isLockedPath) {
+      router.replace('/dashboard');
+    }
+  }, [user, pathname, router]);
 
   // Redirect mentors and investors to their role-specific dashboard.
   useEffect(() => {

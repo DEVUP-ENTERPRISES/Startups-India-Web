@@ -250,7 +250,7 @@ export default function AdminDashboardPro() {
                 {role}
               </span>
               <span
-                className={`badge ${role === 'admin' ? 'badge-red' : role === 'mentor' ? 'badge-purple' : role === 'investor' ? 'badge-yellow' : 'badge-blue'}`}
+                className={`badge ${role === 'admin' ? 'badge-red' : role === 'mentor' ? 'badge-purple' : role === 'investor' ? 'badge-yellow' : role === 'startup' ? 'badge-green' : role === 'founder' ? 'badge-blue' : 'badge-gray'}`}
               >
                 {count}
               </span>

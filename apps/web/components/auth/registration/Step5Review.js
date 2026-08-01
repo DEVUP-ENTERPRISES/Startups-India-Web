@@ -28,46 +28,18 @@ export default function Step5Review({
   };
 
   const getVerificationText = () => {
-    if (isEmailVerified && isPhoneVerified) {
+    if (isPhoneVerified) {
       return (
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#059669', fontWeight: 600 }}>
           <CheckCircle2 size={16} />
-          <span>Email Address & Mobile Number Verified ✓</span>
-        </div>
-      );
-    }
-    if (isEmailVerified && !isPhoneVerified) {
-      return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#059669', fontWeight: 600 }}>
-            <CheckCircle2 size={16} />
-            <span>Email Address Verified ✓</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#64748b', fontSize: '11px' }}>
-            <AlertCircle size={13} color="#94a3b8" />
-            <span>Mobile Number Unverified (Optional)</span>
-          </div>
-        </div>
-      );
-    }
-    if (!isEmailVerified && isPhoneVerified) {
-      return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#059669', fontWeight: 600 }}>
-            <CheckCircle2 size={16} />
-            <span>Mobile Number Verified ✓</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#64748b', fontSize: '11px' }}>
-            <AlertCircle size={13} color="#94a3b8" />
-            <span>Email Address Unverified (Optional)</span>
-          </div>
+          <span>Mobile Number Verified ✓</span>
         </div>
       );
     }
     return (
-      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#059669', fontWeight: 600 }}>
-        <CheckCircle2 size={16} />
-        <span>Contact Verified ✓</span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#ef4444', fontWeight: 600 }}>
+        <AlertCircle size={16} color="#ef4444" />
+        <span>Mobile Number Unverified</span>
       </div>
     );
   };
@@ -155,8 +127,27 @@ export default function Step5Review({
                 {Object.entries(profileData).length > 0 ? (
                   Object.entries(profileData).map(([key, val]) => (
                     val ? (
-                      <div key={key}>
-                        <strong>{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}:</strong> {String(val)}
+                      <div key={key} style={{ marginBottom: '8px' }}>
+                        <strong>{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}:</strong>{' '}
+                        {key === 'profilePhoto' || (typeof val === 'string' && val.startsWith('data:image/')) ? (
+                          <div style={{ marginTop: '6px' }}>
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={val}
+                              alt="Profile Thumbnail"
+                              style={{
+                                width: '70px',
+                                height: '70px',
+                                borderRadius: '50%',
+                                objectFit: 'cover',
+                                border: '2px solid #dc2626',
+                                boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
+                              }}
+                            />
+                          </div>
+                        ) : (
+                          <span>{String(val)}</span>
+                        )}
                       </div>
                     ) : null
                   ))

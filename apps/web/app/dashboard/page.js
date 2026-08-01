@@ -2,8 +2,12 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useDashboard } from '@/contexts/DashboardProvider';
 import SecurePhonePrompt from '@/components/auth/SecurePhonePrompt';
+import { listMyApplications } from '@/lib/grants';
+import '@/styles/startup-dashboard.css';
+import { Check, Lock, X, Sparkles, GraduationCap, Building2, Landmark, ArrowRight, Rocket, Users, DollarSign, Calendar } from 'lucide-react';
 
 /* ──── SVG Icon Components ──── */
 const Icons = {
@@ -743,6 +747,246 @@ function MonthlyStreakCalendar({ streak }) {
   );
 }
 
+function StartupDashboardView({ user }) {
+  const router = useRouter();
+  const [app, setApp] = useState(null);
+  const [loadingApp, setLoadingApp] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data, error } = await listMyApplications();
+        if (!error && data && data.length > 0) {
+          setApp(data[0]);
+        }
+      } catch (err) {
+        console.error('Error fetching applications:', err);
+      } finally {
+        setLoadingApp(false);
+      }
+    })();
+  }, []);
+
+  const appStatus = app?.status || 'not_applied';
+
+  const STATUS_POSITION = {
+    'draft': [0, false],
+    'submitted': [0, false],
+    'under_review': [0, false],
+    'shortlisted': [0, false],
+    'changes_requested': [0, false],
+    'selected': [1, false],
+    'idea_evaluation_pending': [1, false],
+    'idea_evaluation_paid': [1, false],
+    'evaluation_scheduled': [1, false],
+    'evaluation_completed': [1, true],
+    'pre_incubation': [2, false],
+    'incubation': [3, false],
+    'funding_process_started': [4, false],
+    'grant_approved': [4, true],
+    'completed': [4, true],
+  };
+
+  const PHASES = [
+    { key: 'registration', title: 'Registration', subtitle: 'Submit your startup idea for seeding.' },
+    { key: 'idea_evaluation', title: 'Idea Evaluation', subtitle: 'VC evaluation & scheduled pitch session.' },
+    { key: 'pre_incubation', title: 'Pre-Incubation', subtitle: 'Mentorship to refine business & deck.' },
+    { key: 'incubation', title: 'Incubation', subtitle: 'Physical space, labs, and pilot support.' },
+    { key: 'funding', title: 'Funding', subtitle: 'Receive up to ₹20L in seed funding.' },
+  ];
+
+  const pos = STATUS_POSITION[appStatus]?.[0] ?? 0;
+  const complete = STATUS_POSITION[appStatus]?.[1] ?? false;
+  const rejected = appStatus === 'rejected';
+
+  const phases = PHASES.map((p, i) => {
+    let state;
+    if (rejected) {
+      state = i === 0 ? 'done' : 'locked';
+    } else if (i < pos) {
+      state = 'done';
+    } else if (i === pos) {
+      state = complete ? 'done' : 'current';
+    } else {
+      state = 'locked';
+    }
+    return { ...p, state };
+  });
+
+  const getActionDetails = () => {
+    switch (appStatus) {
+      case 'not_applied':
+        return {
+          title: 'Apply for DPIIT Startup Seed Fund (SISFS)',
+          desc: 'Get up to ₹20 Lakhs in non-dilutive seed grants to build, validate, and scale your venture.',
+          btnText: 'Start Application',
+          action: () => router.push('/dashboard/grants'),
+        };
+      case 'draft':
+        return {
+          title: 'Complete your SISFS Application Draft',
+          desc: 'You have an active draft. Submit your startup details to advance to the review phase.',
+          btnText: 'Continue Application',
+          action: () => router.push('/dashboard/grants'),
+        };
+      case 'submitted':
+      case 'under_review':
+      case 'shortlisted':
+      case 'changes_requested':
+        return {
+          title: 'Application is Under Review',
+          desc: 'Our review board is evaluating your pitch deck. You will be notified of selection status.',
+          btnText: 'Track Timeline & Notes',
+          action: () => router.push(`/dashboard/grants/applications/${app._id}`),
+        };
+      case 'selected':
+      case 'idea_evaluation_pending':
+        return {
+          title: 'Selected for VC Pitch Evaluation',
+          desc: 'Pay the evaluation review fee to book your slot and pitch to leading investors.',
+          btnText: 'Proceed to Payment',
+          action: () => router.push(`/dashboard/grants/applications/${app._id}`),
+        };
+      case 'idea_evaluation_paid':
+      case 'evaluation_scheduled':
+        return {
+          title: 'VC Pitch Session Booked',
+          desc: 'Your pitch meeting is active. Make sure to prepare your deck and slides.',
+          btnText: 'View Meeting Details',
+          action: () => router.push(`/dashboard/grants/applications/${app._id}`),
+        };
+      case 'evaluation_completed':
+      case 'pre_incubation':
+      case 'incubation':
+      case 'funding_process_started':
+      case 'grant_approved':
+      case 'completed':
+        return {
+          title: 'Incubation Journey Active',
+          desc: 'You have cleared evaluation! Access mentorship resources, events, and tracks.',
+          btnText: 'View Incubation Details',
+          action: () => router.push(`/dashboard/grants/applications/${app._id}`),
+        };
+      case 'rejected':
+        return {
+          title: 'Application Disapproved',
+          desc: 'Your application was not selected for seed funding this round. Contact support for options.',
+          btnText: 'View Feedback',
+          action: () => router.push(`/dashboard/grants/applications/${app._id}`),
+        };
+      default:
+        return {
+          title: 'Track your Funding Application',
+          desc: 'Manage your active government seed funding and incubator lifecycle stages.',
+          btnText: 'View Application',
+          action: () => router.push('/dashboard/grants/applications'),
+        };
+    }
+  };
+
+  const cta = getActionDetails();
+
+  const getPhaseIcon = (key) => {
+    switch (key) {
+      case 'registration': return <Rocket size={20} />;
+      case 'idea_evaluation': return <Sparkles size={20} />;
+      case 'pre_incubation': return <GraduationCap size={20} />;
+      case 'incubation': return <Building2 size={20} />;
+      case 'funding': return <Landmark size={20} />;
+      default: return <Rocket size={20} />;
+    }
+  };
+
+  return (
+    <div className="startup-db-container">
+      {/* Top Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <h1 style={{ fontSize: '28px', fontWeight: 800, color: '#0f172a', margin: 0 }}>
+            Welcome, {user?.fullName || 'Founder'}! 👋
+          </h1>
+          <p style={{ margin: '4px 0 0', fontSize: '15px', color: '#64748b' }}>
+            Grow and track your business acceleration from your central workspace.
+          </p>
+        </div>
+      </div>
+
+      {/* Stepper Card */}
+      <div className="startup-stepper-card">
+        <h2 className="startup-stepper-title">DPIIT Startup Seed Fund (SISFS) Journey</h2>
+        <p className="startup-stepper-desc">
+          Complete the phases to advance your startup. Clear VC screening, join incubation programs, and unlock seed funding.
+        </p>
+
+        <div className="startup-stepper-grid">
+          {phases.map((p, i) => (
+            <div key={p.key} className={`startup-phase-node ${p.state}`}>
+              <div className="startup-phase-header">
+                <span className="startup-phase-num">
+                  {p.state === 'done' ? <Check size={14} strokeWidth={3} /> : i + 1}
+                </span>
+                {getPhaseIcon(p.key)}
+              </div>
+              <span className="startup-phase-label">Phase {i + 1}</span>
+              <h3 className="startup-phase-title">{p.title}</h3>
+              <p className="startup-phase-desc">{p.subtitle}</p>
+              <div className={`startup-phase-badge`}>
+                {p.state === 'done' ? 'Cleared' : p.state === 'current' ? 'Active' : 'Locked'}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Action CTA Card */}
+      <div className="startup-action-box">
+        <div className="startup-action-content">
+          <h3 className="startup-action-title">{cta.title}</h3>
+          <p className="startup-action-desc">{cta.desc}</p>
+        </div>
+        <button className="startup-action-btn" onClick={cta.action}>
+          {cta.btnText} <ArrowRight size={16} />
+        </button>
+      </div>
+
+      {/* Key Metrics Grid */}
+      <div className="startup-metrics-grid">
+        <div className="startup-metric-card">
+          <div className="startup-metric-icon" style={{ background: '#eff6ff', color: '#3b82f6' }}>
+            <Building2 size={24} />
+          </div>
+          <div>
+            <p className="startup-metric-val">{user?.dynamicProfileData?.stage || 'Ideation'}</p>
+            <p className="startup-metric-lbl">Startup Stage</p>
+          </div>
+        </div>
+
+        <div className="startup-metric-card">
+          <div className="startup-metric-icon" style={{ background: '#f0fdf4', color: '#22c55e' }}>
+            <Users size={24} />
+          </div>
+          <div>
+            <p className="startup-metric-val">{user?.dynamicProfileData?.teamSize || '1-5'} Members</p>
+            <p className="startup-metric-lbl">Active Team</p>
+          </div>
+        </div>
+
+        <div className="startup-metric-card">
+          <div className="startup-metric-icon" style={{ background: '#fdf2f8', color: '#ec4899' }}>
+            <DollarSign size={24} />
+          </div>
+          <div>
+            <p className="startup-metric-val">
+              {appStatus === 'not_applied' ? 'Not Applied' : appStatus === 'draft' ? 'Draft' : appStatus === 'rejected' ? 'Rejected' : 'In Progress'}
+            </p>
+            <p className="startup-metric-lbl">Seed Funding status</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function DashboardPage() {
   const { user, enrolledCourses, courses, certificates, activities, isLoading } = useDashboard();
   const [activeCategory, setActiveCategory] = useState('expert');
@@ -875,6 +1119,10 @@ export default function DashboardPage() {
         </div>
       </div>
     );
+  }
+
+  if (user?.role === 'startup') {
+    return <StartupDashboardView user={user} />;
   }
 
   return (

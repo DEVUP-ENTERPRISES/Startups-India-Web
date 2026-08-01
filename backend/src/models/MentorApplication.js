@@ -17,6 +17,9 @@ const mentorApplicationSchema = new mongoose.Schema(
     expertise: [{ type: String }],
     bio: { type: String, required: true },
     availability: { type: String, default: '' },
+    industry: { type: String, default: '' },
+    startupsMentored: { type: String, default: '' },
+    website: { type: String, default: '' },
     status: {
       type: String,
       enum: ['pending', 'approved', 'rejected'],

@@ -56,7 +56,47 @@ async function msg91Driver({ to, variables }) {
   return { provider: 'msg91', messageId: body.request_id || body.message || null };
 }
 
-const DRIVERS = { console: consoleDriver, msg91: msg91Driver };
+/**
+ * 2Factor SMS driver.
+ *
+ * Uses the 2Factor custom OTP API syntax:
+ * https://2factor.in/API/V1/{api_key}/SMS/{phone_number}/{otp_value}/{template_name}
+ * template_name is optional. If provided, it overrides the default template.
+ */
+async function twoFactorDriver({ to, code }) {
+  const apiKey = env.TWOFACTOR_API_KEY;
+  if (!apiKey) {
+    throw new Error('TWOFACTOR_API_KEY is not configured');
+  }
+
+  const cleanPhone = to.replace(/^\+/, '');
+  const templateName = env.TWOFACTOR_TEMPLATE_NAME || '';
+  
+  let url = `https://2factor.in/API/V1/${apiKey}/SMS/${cleanPhone}/${code}`;
+  if (templateName) {
+    url += `/${templateName}`;
+  }
+
+  const res = await fetch(url, {
+    method: 'GET'
+  });
+
+  const body = await res.json().catch(() => ({}));
+
+  if (!res.ok || body.Status !== 'Success') {
+    const reason = body.Details || `HTTP ${res.status}`;
+    throw new Error(`2Factor send failed: ${reason}`);
+  }
+
+  return { provider: '2factor', messageId: body.Details || null };
+}
+
+const DRIVERS = {
+  console: consoleDriver,
+  msg91: msg91Driver,
+  '2factor': twoFactorDriver,
+  twofactor: twoFactorDriver,
+};
 
 /**
  * Send an OTP. Throws if delivery fails — the caller must not tell a user
@@ -75,6 +115,7 @@ async function sendOtpSms(to, code, ttlMin) {
   const result = await driver({
     to,
     message,
+    code,
     // Variable names must match the DLT-approved template's placeholders.
     variables: { OTP: code, EXPIRY: String(ttlMin) },
   });

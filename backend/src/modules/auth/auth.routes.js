@@ -119,49 +119,51 @@ router.post(
   })
 );
 
-router.post(
-  '/send-registration-otp',
-  validateBody(
-    z.object({
-      target: z.string().min(3),
-    })
-  ),
-  asyncHandler(async (req, res) => {
-    // Generate simulated/testable 6-digit OTP
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    res.json({
-      success: true,
-      message: 'OTP sent successfully',
-      // Return otp in dev/test mode for seamless user testing
-      otp: process.env.NODE_ENV !== 'production' ? '123456' : undefined,
-    });
-  })
-);
-
-router.post(
-  '/verify-registration-otp',
-  validateBody(
-    z.object({
-      target: z.string().min(3),
-      otp: z.string().min(6).max(6),
-    })
-  ),
-  asyncHandler(async (req, res) => {
-    const { otp } = req.body;
-    // Standard test OTPs (e.g. 123456 or 274916 or any 6-digit)
-    if (otp && otp.length === 6) {
-      return res.json({
+// ─── LEGACY OTP ROUTES (dev/test only — disabled in production) ─────────
+// These mock OTP routes exist for local development convenience. In production,
+// use the real hash-verified /phone/send-otp-public and /phone/verify-otp-public
+// routes below.
+if (process.env.NODE_ENV !== 'production') {
+  router.post(
+    '/send-registration-otp',
+    validateBody(
+      z.object({
+        target: z.string().min(3),
+      })
+    ),
+    asyncHandler(async (req, res) => {
+      res.json({
         success: true,
-        isVerified: true,
-        message: 'OTP verified successfully',
+        message: 'OTP sent successfully',
+        otp: '123456',
       });
-    }
-    res.status(400).json({
-      success: false,
-      message: 'Invalid OTP code',
-    });
-  })
-);
+    })
+  );
+
+  router.post(
+    '/verify-registration-otp',
+    validateBody(
+      z.object({
+        target: z.string().min(3),
+        otp: z.string().min(6).max(6),
+      })
+    ),
+    asyncHandler(async (req, res) => {
+      const { otp } = req.body;
+      if (otp === '123456') {
+        return res.json({
+          success: true,
+          isVerified: true,
+          message: 'OTP verified successfully',
+        });
+      }
+      res.status(400).json({
+        success: false,
+        message: 'Invalid OTP code',
+      });
+    })
+  );
+}
 
 
 router.post(
@@ -574,7 +576,7 @@ router.post(
   asyncHandler(async (req, res) => {
     const { token } = req.body;
     if (!token) return res.status(400).json({ success: false, message: 'token required' });
-    await User.findByIdAndUpdate(req.user._id, { $addToSet: { fcmTokens: token } });
+    await User.findByIdAndUpdate(req.user.userId, { $addToSet: { fcmTokens: token } });
     res.json({ success: true });
   })
 );
@@ -584,8 +586,137 @@ router.delete(
   authRequired,
   asyncHandler(async (req, res) => {
     const { token } = req.body;
-    if (token) await User.findByIdAndUpdate(req.user._id, { $pull: { fcmTokens: token } });
+    if (token) await User.findByIdAndUpdate(req.user.userId, { $pull: { fcmTokens: token } });
     res.json({ success: true });
+  })
+);
+
+// ─── CENTRALIZED PUBLIC SIGNUP OTP ROUTES ───────────────────────
+// Per-phone rate limit: max 5 OTP requests per hour to prevent SMS credit drain
+const publicOtpPhoneLimit = redisRateLimit({
+  windowSeconds: 60 * 60,
+  max: 5,
+  prefix: 'rl:public-otp-phone',
+  keyGenerator: req => String(req.body?.phone || '').replace(/\D/g, '') || req.ip,
+});
+
+router.post(
+  '/phone/send-otp-public',
+  publicOtpPhoneLimit,
+  validateBody(z.object({ phone: z.string().min(6).max(20) })),
+  asyncHandler(async (req, res) => {
+    const { phone } = req.body;
+    
+    const { normalizePhone } = require('../../utils/phone');
+    const parsed = normalizePhone(phone);
+    if (!parsed.ok) {
+      return res.status(400).json({ success: false, message: parsed.reason || 'Invalid phone number format.' });
+    }
+    const phoneE164 = parsed.e164;
+    const cleanPhone = phoneE164.replace(/\D/g, '');
+    const crypto = require('crypto');
+    const { PublicOtpSession } = require('../../models/PublicOtpSession');
+
+    const code = twoFactorService.generateOtpCode();
+    const sessionId = crypto.randomUUID();
+
+    // If utilizing mock/console SMS provider or clean phone contains mock values (strictly restricted to non-production env)
+    const isDev = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test';
+    if (isDev && (env.SMS_PROVIDER === 'console' || cleanPhone.includes('9999999999') || cleanPhone.includes('0000000000'))) {
+      await PublicOtpSession.create({
+        sessionId,
+        phone: cleanPhone,
+        codeHash: twoFactorService.hashOtp(code),
+        expiresAt: new Date(Date.now() + 5 * 60 * 1000), // 5 minutes TTL
+      });
+
+      const { sendOtpSms } = require('../../utils/smsService');
+      await sendOtpSms(phoneE164, code, 5).catch(() => {});
+
+      return res.json({
+        success: true,
+        data: {
+          sessionId
+        }
+      });
+    }
+
+    try {
+      await PublicOtpSession.create({
+        sessionId,
+        phone: cleanPhone,
+        codeHash: twoFactorService.hashOtp(code),
+        expiresAt: new Date(Date.now() + 5 * 60 * 1000), // 5 minutes TTL
+      });
+
+      const { sendOtpSms } = require('../../utils/smsService');
+      await sendOtpSms(phoneE164, code, 5);
+
+      res.json({
+        success: true,
+        data: {
+          sessionId
+        }
+      });
+    } catch (err) {
+      res.status(400).json({
+        success: false,
+        message: err.message || 'Failed to dispatch verification code.'
+      });
+    }
+  })
+);
+
+router.post(
+  '/phone/verify-otp-public',
+  validateBody(z.object({
+    sessionId: z.string().min(1),
+    code: z.string().min(4).max(8)
+  })),
+  asyncHandler(async (req, res) => {
+    const { sessionId, code } = req.body;
+    
+    // Developer bypass check - ONLY active in non-production environments
+    const isDev = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test';
+    if (isDev && (code === '123456' || sessionId === 'DEV_MOCK_SESSION_ID')) {
+      return res.json({
+        success: true,
+        message: 'OTP verified successfully (Dev Bypass)'
+      });
+    }
+
+    const { PublicOtpSession } = require('../../models/PublicOtpSession');
+    const session = await PublicOtpSession.findOne({
+      sessionId,
+      expiresAt: { $gt: new Date() }
+    });
+
+    if (!session) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid or expired verification session. Please request a new code.'
+      });
+    }
+
+    const inputHash = twoFactorService.hashOtp(code);
+    const crypto = require('crypto');
+    const bufA = Buffer.from(inputHash);
+    const bufB = Buffer.from(session.codeHash);
+    
+    if (bufA.length === bufB.length && crypto.timingSafeEqual(bufA, bufB)) {
+      session.verified = true;
+      await session.save();
+      
+      res.json({
+        success: true,
+        message: 'OTP verified successfully'
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        message: 'Incorrect verification code. Please try again.'
+      });
+    }
   })
 );
 

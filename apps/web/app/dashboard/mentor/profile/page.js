@@ -80,6 +80,9 @@ export default function MentorProfilePage() {
         achievements: data.achievements || '',
         expertise: (data.expertise || []).join(', '),
         previousCompanies: (data.previousCompanies || []).join(', '),
+        industry: data.industry || '',
+        startupsMentored: data.startupsMentored || '',
+        websiteUrl: data.websiteUrl || '',
       });
     })();
   }, []);
@@ -118,6 +121,9 @@ export default function MentorProfilePage() {
       // Comma-separated in the UI, arrays in the model.
       expertise: form.expertise.split(',').map(s => s.trim()).filter(Boolean),
       previousCompanies: form.previousCompanies.split(',').map(s => s.trim()).filter(Boolean),
+      industry: form.industry,
+      startupsMentored: form.startupsMentored,
+      websiteUrl: form.websiteUrl,
     });
 
     setBusy(false);
@@ -169,9 +175,15 @@ export default function MentorProfilePage() {
             onClick={() => !photo.uploading && fileRef.current?.click()}
             role="button"
             tabIndex={0}
-            style={{ width: 76, height: 76, borderRadius: '50%', flexShrink: 0, cursor: 'pointer', background: photo.url ? `url(${photo.url}) center/cover` : '#f3f4f6', border: '2px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}
+            style={{ width: 76, height: 76, borderRadius: '50%', flexShrink: 0, cursor: 'pointer', background: '#f3f4f6', border: '2px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', position: 'relative' }}
           >
-            {photo.uploading ? <Loader2 size={22} color="#ef4444" className="mp-spin" /> : !photo.url ? <Camera size={22} color="#9ca3af" /> : null}
+            {photo.uploading ? (
+              <Loader2 size={22} color="#ef4444" className="mp-spin" />
+            ) : photo.url ? (
+              <img src={photo.url} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ) : (
+              <Camera size={22} color="#9ca3af" />
+            )}
           </div>
           <div>
             <p style={{ margin: 0, fontSize: 15, fontWeight: 700, color: '#111827' }}>Profile photo</p>
@@ -225,6 +237,18 @@ export default function MentorProfilePage() {
 
         <Field label="Achievements">
           <textarea rows={3} value={form.achievements} onChange={e => setForm({ ...form, achievements: e.target.value })} style={{ ...inputStyle, resize: 'vertical' }} />
+        </Field>
+
+        <Field label="Industry">
+          <input value={form.industry} onChange={e => setForm({ ...form, industry: e.target.value })} style={inputStyle} />
+        </Field>
+
+        <Field label="Startups Mentored">
+          <input value={form.startupsMentored} onChange={e => setForm({ ...form, startupsMentored: e.target.value })} style={inputStyle} />
+        </Field>
+
+        <Field label="Personal Website">
+          <input value={form.websiteUrl} onChange={e => setForm({ ...form, websiteUrl: e.target.value })} placeholder="https://" style={inputStyle} />
         </Field>
 
         <Field label="LinkedIn URL">

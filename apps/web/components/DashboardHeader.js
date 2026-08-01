@@ -42,6 +42,25 @@ export default function DashboardHeader({ onOpenMobileMenu }) {
     }
   }, []);
 
+  const [profileImage, setProfileImage] = useState(null);
+
+  useEffect(() => {
+    if (!user) return;
+    if (user.role === 'mentor') {
+      import('@/lib/mentors').then(({ getMentorProfile }) => {
+        getMentorProfile().then(({ data }) => {
+          if (data?.profileImage) setProfileImage(data.profileImage);
+        });
+      });
+    } else if (user.role === 'investor') {
+      import('@/lib/investors').then(({ getInvestorProfile }) => {
+        getInvestorProfile().then(({ data }) => {
+          if (data?.profileImage) setProfileImage(data.profileImage);
+        });
+      });
+    }
+  }, [user]);
+
   // Global Page Index for Search
   const dashboardPages = [
     { title: 'Dashboard Home', path: '/dashboard', category: 'Module', icon: 'layout' },
@@ -336,15 +355,15 @@ export default function DashboardHeader({ onOpenMobileMenu }) {
             onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
           >
             <div className="user-avatar header-avatar-glow">
-              {user?.avatarUrl ? (
-                <img src={user.avatarUrl} alt="Avatar" />
+              {profileImage || user?.avatarUrl ? (
+                <img src={profileImage || user.avatarUrl} alt="Avatar" style={{ objectFit: 'cover' }} />
               ) : (
                 initials
               )}
             </div>
             <div className="user-info hide-mobile">
               <span className="user-name" style={{ fontWeight: 700 }}>{activeName}</span>
-              <span className="user-role" style={{ color: user?.role === 'mentor' ? '#10b981' : user?.role === 'admin' ? '#6366f1' : '#E63946', fontWeight: 800, textTransform: 'uppercase', fontSize: '9px', letterSpacing: '0.05em' }}>{user?.role === 'mentor' ? 'Mentor' : user?.role === 'admin' ? 'Admin' : 'Founder'}</span>
+              <span className="user-role" style={{ color: user?.role === 'mentor' ? '#10b981' : user?.role === 'investor' ? '#3b82f6' : user?.role === 'admin' ? '#6366f1' : '#E63946', fontWeight: 800, textTransform: 'uppercase', fontSize: '9px', letterSpacing: '0.05em' }}>{user?.role === 'mentor' ? 'Mentor' : user?.role === 'investor' ? 'Investor' : user?.role === 'admin' ? 'Admin' : 'Founder'}</span>
             </div>
           </div>
 

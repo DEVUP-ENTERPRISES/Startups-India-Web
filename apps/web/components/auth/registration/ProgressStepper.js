@@ -6,10 +6,12 @@ export default function ProgressStepper({ currentStep, steps, onStepClick }) {
 
   return (
     <div className="reg-v2-stepper">
-      <div 
-        className="reg-v2-stepper-progress" 
-        style={{ width: `calc(${progressPercent}% * 0.85)` }}
-      />
+      <div className="reg-v2-stepper-line-bg">
+        <div 
+          className="reg-v2-stepper-progress" 
+          style={{ width: `${progressPercent}%` }}
+        />
+      </div>
       {steps.map((step) => {
         const isCompleted = step.id < currentStep;
         const isActive = step.id === currentStep;

@@ -1,5 +1,9 @@
 /* StartUp India - Registration Flow Version 2.0 CSS */
 
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
 :root {
   --primary-red: #dc2626;
   --primary-red-hover: #b91c1c;
@@ -13,7 +17,8 @@
 /* Page Container - Fits exact viewport height on desktop, scrolls conditionally if content exceeds height */
 .reg-v2-container {
   min-height: 100vh;
-  width: 100vw;
+  width: 100%;
+  max-width: 100%;
   display: flex;
   background: #f8fafc;
   font-family: var(--font-inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
@@ -27,9 +32,9 @@
   width: 38%;
   max-width: 440px;
   height: 100vh;
-  position: sticky;
+  position: fixed;
+  left: 0;
   top: 0;
-  align-self: flex-start;
   background: linear-gradient(180deg, #fff5f5 0%, #ffffff 100%);
   border-right: 1px solid #fee2e2;
   padding: 32px 32px 24px 32px;
@@ -37,6 +42,7 @@
   flex-direction: column;
   justify-content: space-between;
   overflow: hidden;
+  z-index: 10;
 }
 
 @media (max-width: 1024px) {
@@ -298,11 +304,26 @@
   height: auto;
   display: flex;
   flex-direction: column;
-  padding: 24px 40px 32px 40px;
-  max-width: 860px;
+  padding: 32px 40px 48px 40px;
+  max-width: 1100px;
+  width: 100%;
   margin: 0 auto;
   overflow: visible;
   position: relative;
+}
+
+@media (min-width: 1025px) {
+  .reg-v2-main {
+    margin-left: 38% !important;
+    max-width: calc(100% - 38%) !important;
+  }
+}
+
+@media (min-width: 1158px) {
+  .reg-v2-main {
+    margin-left: 440px !important;
+    max-width: calc(100% - 440px) !important;
+  }
 }
 
 .reg-v2-main *::-webkit-scrollbar {
@@ -327,8 +348,7 @@
   padding: 0 10px;
 }
 
-.reg-v2-stepper::before {
-  content: '';
+.reg-v2-stepper-line-bg {
   position: absolute;
   top: 16px;
   left: 25px;
@@ -340,9 +360,9 @@
 
 .reg-v2-stepper-progress {
   position: absolute;
-  top: 16px;
-  left: 25px;
-  height: 2px;
+  top: 0;
+  left: 0;
+  height: 100%;
   background: var(--primary-red);
   z-index: 1;
   transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -436,14 +456,20 @@
 /* Step 1: Role Grid */
 .reg-v2-role-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 16px;
   margin-bottom: 20px;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1200px) {
   .reg-v2-role-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 580px) {
+  .reg-v2-role-grid {
+    grid-template-columns: 1fr;
   }
 }
 

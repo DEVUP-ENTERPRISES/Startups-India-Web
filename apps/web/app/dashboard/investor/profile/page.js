@@ -55,6 +55,9 @@ export default function InvestorProfilePage() {
         location: data.location || '',
         investmentFocus: (data.investmentFocus || []).join(', '),
         preferredStages: (data.preferredStages || []).join(', '),
+        geography: data.geography || '',
+        numberOfInvestments: data.numberOfInvestments || '',
+        portfolioWebsite: data.portfolioWebsite || '',
       });
     })();
   }, []);
@@ -84,6 +87,9 @@ export default function InvestorProfilePage() {
       location: form.location,
       investmentFocus: form.investmentFocus.split(',').map(s => s.trim()).filter(Boolean),
       preferredStages: form.preferredStages.split(',').map(s => s.trim()).filter(Boolean),
+      geography: form.geography,
+      numberOfInvestments: form.numberOfInvestments,
+      portfolioWebsite: form.portfolioWebsite,
     });
     setBusy(false);
     if (err) { setError(err.message || 'Could not save your profile.'); return; }
@@ -112,8 +118,14 @@ export default function InvestorProfilePage() {
       <div style={card}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 18, marginBottom: 18 }}>
           <div onClick={() => !photo.uploading && fileRef.current?.click()} role="button" tabIndex={0}
-            style={{ width: 76, height: 76, borderRadius: '50%', flexShrink: 0, cursor: 'pointer', background: photo.url ? `url(${photo.url}) center/cover` : '#f3f4f6', border: '2px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-            {photo.uploading ? <Loader2 size={22} color="#ef4444" className="ip-spin" /> : !photo.url ? <Camera size={22} color="#9ca3af" /> : null}
+            style={{ width: 76, height: 76, borderRadius: '50%', flexShrink: 0, cursor: 'pointer', background: '#f3f4f6', border: '2px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', position: 'relative' }}>
+            {photo.uploading ? (
+              <Loader2 size={22} color="#ef4444" className="ip-spin" />
+            ) : photo.url ? (
+              <img src={photo.url} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ) : (
+              <Camera size={22} color="#9ca3af" />
+            )}
           </div>
           <div>
             <p style={{ margin: 0, fontSize: 15, fontWeight: 700, color: '#111827' }}>Profile photo</p>
@@ -144,6 +156,9 @@ export default function InvestorProfilePage() {
         <Field label="Preferred Stages" hint="Comma separated, e.g. Seed, Series A"><input style={inputStyle} value={form.preferredStages} onChange={e => setForm({ ...form, preferredStages: e.target.value })} /></Field>
         <Field label="Typical Ticket Size"><input style={inputStyle} value={form.ticketSize} onChange={e => setForm({ ...form, ticketSize: e.target.value })} /></Field>
         <Field label="Location"><input style={inputStyle} value={form.location} onChange={e => setForm({ ...form, location: e.target.value })} /></Field>
+        <Field label="Geography"><input style={inputStyle} value={form.geography} onChange={e => setForm({ ...form, geography: e.target.value })} /></Field>
+        <Field label="Investments Count"><input style={inputStyle} value={form.numberOfInvestments} onChange={e => setForm({ ...form, numberOfInvestments: e.target.value })} /></Field>
+        <Field label="Portfolio Website"><input style={inputStyle} placeholder="https://" value={form.portfolioWebsite} onChange={e => setForm({ ...form, portfolioWebsite: e.target.value })} /></Field>
         <Field label="LinkedIn URL"><input style={inputStyle} placeholder="https://" value={form.linkedinUrl} onChange={e => setForm({ ...form, linkedinUrl: e.target.value })} /></Field>
         <Field label="Website"><input style={inputStyle} placeholder="https://" value={form.websiteUrl} onChange={e => setForm({ ...form, websiteUrl: e.target.value })} /></Field>
         <Field label="Phone"><input style={inputStyle} value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} /></Field>

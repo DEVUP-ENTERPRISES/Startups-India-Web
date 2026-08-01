@@ -367,6 +367,20 @@ export default function AdminMentorsPage() {
                           {app.linkedin ? <a href={app.linkedin} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'none' }}>{app.linkedin}</a> : '—'}
                         </div>
                       </div>
+                      <div style={s.detailItem}>
+                        <div style={s.detailLabel}>Industry</div>
+                        <div style={s.detailValue}>{app.industry || '—'}</div>
+                      </div>
+                      <div style={s.detailItem}>
+                        <div style={s.detailLabel}>Startups Mentored</div>
+                        <div style={s.detailValue}>{app.startupsMentored || '—'}</div>
+                      </div>
+                      <div style={s.detailItem}>
+                        <div style={s.detailLabel}>Personal Website</div>
+                        <div style={s.detailValue}>
+                          {app.website ? <a href={app.website} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'none' }}>{app.website}</a> : '—'}
+                        </div>
+                      </div>
                     </div>
 
                     {app.bio && (

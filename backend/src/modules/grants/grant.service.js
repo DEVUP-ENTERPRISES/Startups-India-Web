@@ -131,6 +131,10 @@ async function saveDraft(userId, input) {
     existing.founder = input.founder;
     existing.startup = input.startup;
     await existing.save();
+    
+    // Sync application details to User & Profile documents
+    await syncApplicationToUserProfile(userId, input.founder, input.startup);
+    
     return existing;
   }
 
@@ -157,6 +161,9 @@ async function saveDraft(userId, input) {
     actorId: userId,
     actorRole: 'student',
   });
+
+  // Sync application details to User & Profile documents
+  await syncApplicationToUserProfile(userId, input.founder, input.startup);
 
   return application;
 }
@@ -203,6 +210,9 @@ async function submitApplication(userId, applicationDbId, { termsAccepted }) {
   }).catch(() => {});
 
   await notifyStatusChange({ userId, application, status: STATUS.SUBMITTED });
+
+  // Sync application details to User & Profile documents
+  await syncApplicationToUserProfile(userId, application.founder, application.startup);
 
   return application;
 }
@@ -340,7 +350,7 @@ async function getApplicationForAdmin(applicationDbId) {
     .lean();
   if (!application) throw new ApiError(404, 'Application not found');
 
-  const [timeline, documents, comments] = await Promise.all([
+  const [timeline, documents, comments, userProfile] = await Promise.all([
     ApplicationTimeline.find({ applicationId: application._id })
       .sort({ createdAt: -1 })
       .populate('actorId', 'fullName email')
@@ -350,6 +360,10 @@ async function getApplicationForAdmin(applicationDbId) {
       .sort({ createdAt: -1 })
       .populate('authorId', 'fullName email')
       .lean(),
+    (async () => {
+      const { Profile } = require('../profiles/profile.model');
+      return Profile.findOne({ userId: application.userId?._id || application.userId }).lean();
+    })(),
   ]);
 
   return {
@@ -358,6 +372,7 @@ async function getApplicationForAdmin(applicationDbId) {
     timeline,
     documents,
     comments,
+    userProfile: userProfile || null,
   };
 }
 
@@ -499,6 +514,95 @@ async function setRevisionAllowed({ applicationDbId, allowed, adminUserId }) {
   return application;
 }
 
+/**
+ * Syncs details from a Startup Grant/Incubation Application into the User and Profile models.
+ * This guarantees that when a user registers/applies, all their detailed information
+ * is saved dynamically and displayed in the Admin panel profile views.
+ */
+async function syncApplicationToUserProfile(userId, founder, startup) {
+  try {
+    const { Profile } = require('../profiles/profile.model');
+    const { User } = require('../users/user.model');
+
+    // 1. Update basic information on User collection
+    const user = await User.findById(userId);
+    if (user) {
+      let userUpdated = false;
+      if (founder?.fullName && user.fullName !== founder.fullName) {
+        user.fullName = founder.fullName;
+        userUpdated = true;
+      }
+      if (founder?.phone && user.phone !== founder.phone) {
+        user.phone = founder.phone;
+        // Keep phoneE164 aligned
+        const { normalizePhone } = require('../../utils/phone');
+        if (normalizePhone) {
+          const parsed = normalizePhone(founder.phone);
+          if (parsed.ok) {
+            user.phoneE164 = parsed.e164;
+          }
+        }
+        userUpdated = true;
+      }
+      if (founder?.city && user.city !== founder.city) {
+        user.city = founder.city;
+        userUpdated = true;
+      }
+      if (founder?.state && user.state !== founder.state) {
+        user.state = founder.state;
+        userUpdated = true;
+      }
+      if (userUpdated) {
+        await user.save();
+      }
+    }
+
+    // 2. Update role-specific metadata inside Profile collection
+    let profile = await Profile.findOne({ userId });
+    if (!profile) {
+      profile = new Profile({
+        userId,
+        role: user ? user.role : 'startup',
+        dynamicProfileData: {},
+      });
+    }
+
+    if (!profile.dynamicProfileData) {
+      profile.dynamicProfileData = {};
+    }
+
+    // Merge founder details into dynamicProfileData
+    if (founder) {
+      if (founder.collegeName) profile.dynamicProfileData.collegeName = founder.collegeName;
+      if (founder.university) profile.dynamicProfileData.university = founder.university;
+      if (founder.city) profile.dynamicProfileData.city = founder.city;
+      if (founder.state) profile.dynamicProfileData.state = founder.state;
+    }
+
+    // Merge startup details into dynamicProfileData
+    if (startup) {
+      if (startup.name) profile.dynamicProfileData.startupName = startup.name;
+      if (startup.stage) profile.dynamicProfileData.startupStage = startup.stage;
+      if (startup.category) profile.dynamicProfileData.industry = startup.category;
+      if (startup.teamSize) profile.dynamicProfileData.teamSize = startup.teamSize;
+      if (startup.problemStatement) profile.dynamicProfileData.problemStatement = startup.problemStatement;
+      if (startup.solution) profile.dynamicProfileData.description = startup.solution;
+      if (startup.targetAudience) profile.dynamicProfileData.targetAudience = startup.targetAudience;
+      if (startup.businessModel) profile.dynamicProfileData.businessModel = startup.businessModel;
+      if (startup.traction) profile.dynamicProfileData.traction = startup.traction;
+      if (startup.fundingRaised) profile.dynamicProfileData.fundingStage = startup.fundingRaised;
+      if (startup.website) profile.dynamicProfileData.website = startup.website;
+      if (startup.linkedin) profile.dynamicProfileData.linkedin = startup.linkedin;
+      if (startup.demoVideoUrl) profile.dynamicProfileData.demoVideoUrl = startup.demoVideoUrl;
+    }
+
+    profile.markModified('dynamicProfileData');
+    await profile.save();
+  } catch (err) {
+    console.error('[Sync] Failed to sync grant application to user profile:', err);
+  }
+}
+
 module.exports = {
   generateApplicationId,
   addTimelineEntry,
@@ -515,4 +619,5 @@ module.exports = {
   addComment,
   setInternalNotes,
   setRevisionAllowed,
+  syncApplicationToUserProfile,
 };

@@ -112,6 +112,8 @@ export default function AdminUsersPage() {
           <option value="admin">Admin</option>
           <option value="mentor">Mentor</option>
           <option value="investor">Investor</option>
+          <option value="startup">Startup</option>
+          <option value="founder">Founder</option>
         </select>
       </div>
 
@@ -150,7 +152,11 @@ export default function AdminUsersPage() {
                             ? 'badge-purple'
                             : u.role === 'investor'
                               ? 'badge-yellow'
-                              : 'badge-blue'
+                              : u.role === 'startup'
+                                ? 'badge-green'
+                                : u.role === 'founder'
+                                  ? 'badge-blue'
+                                  : 'badge-gray'
                       }`}
                     >
                       {u.role || 'user'}

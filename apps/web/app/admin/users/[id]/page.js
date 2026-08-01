@@ -10,6 +10,8 @@ const ROLE_COLORS = {
   admin: { bg: '#fee2e2', color: '#b91c1c' },
   mentor: { bg: '#ede9fe', color: '#6d28d9' },
   investor: { bg: '#fef3c7', color: '#b45309' },
+  startup: { bg: '#d1fae5', color: '#059669' },
+  founder: { bg: '#e0f2fe', color: '#0369a1' },
   user: { bg: '#dbeafe', color: '#1d4ed8' },
 };
 
@@ -190,7 +192,7 @@ export default function AdminUserDetailPage() {
     );
   }
 
-  const { user, enrollments = [], payments = [], quizAttempts = [], certificates = [], stats = {} } = data;
+  const { user, enrollments = [], payments = [], quizAttempts = [], certificates = [], stats = {}, profile } = data;
   const roleStyle = ROLE_COLORS[user.role] || ROLE_COLORS.user;
   const isSelf = user.email === currentAdminEmail;
 
@@ -448,6 +450,30 @@ export default function AdminUserDetailPage() {
               </div>
             )}
           </Section>
+
+          {/* Dynamic Role Profile Information */}
+          {profile && profile.dynamicProfileData && Object.keys(profile.dynamicProfileData).length > 0 && (
+            <Section title={`${user.role.charAt(0).toUpperCase() + user.role.slice(1)} Profile Details`}>
+              {Object.entries(profile.dynamicProfileData)
+                .filter(([k]) => !['profilePhoto', 'resume', 'certificates'].includes(k)) // exclude binary/large files handled separately
+                .map(([key, val]) => {
+                  const humanKey = key
+                    .replace(/([A-Z])/g, ' $1')
+                    .replace(/^./, str => str.toUpperCase());
+                  
+                  let displayVal = val;
+                  if (Array.isArray(val)) {
+                    displayVal = val.join(', ');
+                  } else if (typeof val === 'boolean') {
+                    displayVal = val ? 'Yes' : 'No';
+                  } else if (typeof val === 'object' && val !== null) {
+                    displayVal = JSON.stringify(val);
+                  }
+
+                  return <InfoRow key={key} label={humanKey} value={displayVal} />;
+                })}
+            </Section>
+          )}
 
           {/* Quiz Attempts */}
           {quizAttempts.length > 0 && (

@@ -21,6 +21,8 @@ async function approveInvestorApplication(applicationId) {
   let user = await User.findOne({ email: application.email.toLowerCase() });
   if (user) {
     user.role = 'investor';
+    user.isApproved = true;
+    user.status = 'approved';
     if (!user.passwordHash) user.passwordHash = application.password;
     user.fullName = user.fullName || application.fullName;
     user.phone = user.phone || application.phone;
@@ -33,6 +35,8 @@ async function approveInvestorApplication(applicationId) {
       phone: application.phone,
       role: 'investor',
       provider: 'email',
+      isApproved: true,
+      status: 'approved',
     });
   }
 
@@ -55,6 +59,9 @@ async function approveInvestorApplication(applicationId) {
     profile.location = application.location || null;
     profile.yearsOfExperience = application.yearsOfExperience ?? null;
     profile.phone = application.phone;
+    profile.geography = application.geography || null;
+    profile.numberOfInvestments = application.numberOfInvestments || null;
+    profile.portfolioWebsite = application.portfolioWebsite || null;
     // Only overwrite the photo if the application has one, so a re-approval never
     // blanks an image the investor set later.
     if (application.profileImage) profile.profileImage = application.profileImage;
@@ -77,6 +84,9 @@ async function approveInvestorApplication(applicationId) {
       websiteUrl: application.websiteUrl || null,
       location: application.location || null,
       yearsOfExperience: application.yearsOfExperience ?? null,
+      geography: application.geography || null,
+      numberOfInvestments: application.numberOfInvestments || null,
+      portfolioWebsite: application.portfolioWebsite || null,
       status: 'approved',
       isVerified: true,
       approvedAt: new Date(),
@@ -205,7 +215,8 @@ async function updateInvestorProfile(userId, updates) {
   const allowed = [
     'bio', 'linkedinUrl', 'websiteUrl', 'phone', 'profileImage', 'location',
     'investmentFocus', 'preferredStages', 'ticketSize', 'organizationName',
-    'yearsOfExperience', 'investorType',
+    'yearsOfExperience', 'investorType', 'geography', 'numberOfInvestments',
+    'portfolioWebsite',
   ];
   const filtered = {};
   for (const key of allowed) {

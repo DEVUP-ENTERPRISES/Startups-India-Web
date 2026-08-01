@@ -7,6 +7,7 @@ const nextConfig = {
       { protocol: 'https', hostname: 'www.innovationandentrepreneurshipcouncil.org' },
       { protocol: 'https', hostname: '*.amazonaws.com' },
       { protocol: 'https', hostname: '*.cloudfront.net' },
+      { protocol: 'https', hostname: 'kommodo.ai' },
     ],
     formats: ['image/avif', 'image/webp'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920],

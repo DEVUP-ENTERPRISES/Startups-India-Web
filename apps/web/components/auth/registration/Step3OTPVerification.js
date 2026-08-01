@@ -8,9 +8,10 @@ export default function Step3OTPVerification({
   isEmailVerified,
   isPhoneVerified,
   onVerifyTarget,
+  onResendPhoneOtp,
   error,
 }) {
-  const [activeTab, setActiveTab] = useState('email'); // 'email' | 'phone'
+  const [activeTab, setActiveTab] = useState('phone'); // Only 'phone' is used now, email OTP is removed
   const [otpDigits, setOtpDigits] = useState(['', '', '', '', '', '']);
   const [timer, setTimer] = useState(60);
   const [canResend, setCanResend] = useState(false);
@@ -69,11 +70,18 @@ export default function Step3OTPVerification({
 
   const handleCheckCode = (code) => {
     setLocalError('');
-    // Accepts test OTP 123456 or any valid 6-digit code
-    if (code === '123456' || code.length === 6) {
-      onVerifyTarget(activeTab, code);
+    if (activeTab === 'email') {
+      if (code === '123456' || code.length === 6) {
+        onVerifyTarget(activeTab, code);
+      } else {
+        setLocalError('Invalid OTP code. Use 123456 for testing.');
+      }
     } else {
-      setLocalError('Invalid OTP code. Use 123456 for testing.');
+      if (code.length === 6) {
+        onVerifyTarget(activeTab, code);
+      } else {
+        setLocalError('Please enter a 6-digit verification code.');
+      }
     }
   };
 
@@ -84,6 +92,9 @@ export default function Step3OTPVerification({
     setCanResend(false);
     setLocalError('');
     inputRefs.current[0]?.focus();
+    if (activeTab === 'phone' && onResendPhoneOtp) {
+      onResendPhoneOtp();
+    }
   };
 
   const formatTimer = (seconds) => {
@@ -95,72 +106,10 @@ export default function Step3OTPVerification({
   return (
     <div>
       <div className="reg-v2-content-header">
-        <h2 className="reg-v2-content-title">Verify Your <span>Account</span></h2>
+        <h2 className="reg-v2-content-title">Verify Your <span>Mobile Number</span></h2>
         <p className="reg-v2-content-subtitle">
-          Verify your Email Address or Mobile Number to secure your account.
+          Verify your mobile number to complete your registration.
         </p>
-      </div>
-
-      {/* Verification Target Tabs */}
-      <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginBottom: '24px' }}>
-        <button
-          type="button"
-          onClick={() => {
-            setActiveTab('email');
-            setOtpDigits(['', '', '', '', '', '']);
-            setLocalError('');
-          }}
-          style={{
-            flex: 1,
-            maxWidth: '220px',
-            padding: '10px 14px',
-            borderRadius: '10px',
-            border: activeTab === 'email' ? '2px solid #dc2626' : '1px solid #cbd5e1',
-            background: activeTab === 'email' ? '#fff5f5' : '#ffffff',
-            color: activeTab === 'email' ? '#dc2626' : '#475569',
-            fontWeight: 600,
-            fontSize: '13px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px',
-            position: 'relative',
-          }}
-        >
-          <Mail size={16} />
-          <span>Email</span>
-          {isEmailVerified && <CheckCircle2 size={16} color="#059669" style={{ marginLeft: '4px' }} />}
-        </button>
-
-        <button
-          type="button"
-          onClick={() => {
-            setActiveTab('phone');
-            setOtpDigits(['', '', '', '', '', '']);
-            setLocalError('');
-          }}
-          style={{
-            flex: 1,
-            maxWidth: '220px',
-            padding: '10px 14px',
-            borderRadius: '10px',
-            border: activeTab === 'phone' ? '2px solid #dc2626' : '1px solid #cbd5e1',
-            background: activeTab === 'phone' ? '#fff5f5' : '#ffffff',
-            color: activeTab === 'phone' ? '#dc2626' : '#475569',
-            fontWeight: 600,
-            fontSize: '13px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px',
-          }}
-        >
-          <Phone size={16} />
-          <span>Mobile Number</span>
-          {isPhoneVerified && <CheckCircle2 size={16} color="#059669" style={{ marginLeft: '4px' }} />}
-        </button>
       </div>
 
       <div className="reg-v2-otp-container">
@@ -224,15 +173,17 @@ export default function Step3OTPVerification({
               )}
             </div>
 
-            <div className="reg-v2-alert-info">
-              <Info size={18} style={{ flexShrink: 0, marginTop: '2px' }} />
-              <div>
-                <strong>Test OTP Code: 1 2 3 4 5 6</strong>
-                <p style={{ margin: 0, marginTop: '2px', opacity: 0.9 }}>
-                  Enter <strong>123456</strong> to instantly verify your {activeTab}.
-                </p>
+            {activeTab === 'phone' && (
+              <div className="reg-v2-alert-info">
+                <Info size={18} style={{ flexShrink: 0, marginTop: '2px' }} />
+                <div>
+                  <strong>Verification Code Sent</strong>
+                  <p style={{ margin: 0, marginTop: '2px', opacity: 0.9 }}>
+                    A verification code has been dispatched to your phone.
+                  </p>
+                </div>
               </div>
-            </div>
+            )}
           </>
         )}
       </div>

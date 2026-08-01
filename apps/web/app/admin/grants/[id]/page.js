@@ -278,6 +278,41 @@ export default function AdminGrantDetailPage() {
               ))}
           </div>
 
+          {app.userProfile && (
+            <div style={card}>
+              <h2 style={{ fontSize: '15px', fontWeight: 800, color: '#111827', margin: '0 0 14px' }}>
+                User Registration Profile ({app.userProfile.role})
+              </h2>
+              {app.userProfile.dynamicProfileData && Object.keys(app.userProfile.dynamicProfileData).length > 0 ? (
+                Object.entries(app.userProfile.dynamicProfileData)
+                  .filter(([k]) => !['profilePhoto', 'resume', 'certificates'].includes(k)) // exclude binary/large files
+                  .map(([key, val]) => {
+                    const humanKey = key
+                      .replace(/([A-Z])/g, ' $1')
+                      .replace(/^./, str => str.toUpperCase());
+                    
+                    let displayVal = val;
+                    if (Array.isArray(val)) {
+                      displayVal = val.join(', ');
+                    } else if (typeof val === 'boolean') {
+                      displayVal = val ? 'Yes' : 'No';
+                    } else if (typeof val === 'object' && val !== null) {
+                      displayVal = JSON.stringify(val);
+                    }
+
+                    return (
+                      <div key={key} style={{ display: 'flex', gap: '12px', marginBottom: '9px', fontSize: '13.5px', lineHeight: 1.6 }}>
+                        <span style={{ minWidth: '120px', color: '#9ca3af', flexShrink: 0 }}>{humanKey}</span>
+                        <span style={{ color: '#374151', wordBreak: 'break-word' }}>{displayVal || '-'}</span>
+                      </div>
+                    );
+                  })
+              ) : (
+                <p style={{ margin: 0, fontSize: '13.5px', color: '#9ca3af' }}>No registration profile details found.</p>
+              )}
+            </div>
+          )}
+
           {/* Documents */}
           <div style={card}>
             <h2 style={{ fontSize: '15px', fontWeight: 800, color: '#111827', margin: '0 0 14px' }}>Documents</h2>
