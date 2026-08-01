@@ -101,13 +101,17 @@ export default function DashboardLayoutClient({ children }) {
     }
   }, [user, pathname, router]);
 
-  // Redirect mentors and investors to their role-specific dashboard.
+  // Redirect admins, mentors, and investors to their role-specific dashboard.
   useEffect(() => {
     if (!user) return;
     const path = typeof window !== 'undefined' ? window.location.pathname : '';
-    if (path !== '/dashboard') return;
-    if (user.role === 'mentor') router.replace('/dashboard/mentor');
-    else if (user.role === 'investor') router.replace('/dashboard/investor');
+    const ADMIN_SLUG = process.env.NEXT_PUBLIC_ADMIN_SLUG || 'ctrl-x9k2m3-panel';
+    if (user.role === 'admin') {
+      router.replace(`/${ADMIN_SLUG}/dashboard`);
+    } else if (path === '/dashboard') {
+      if (user.role === 'mentor') router.replace('/dashboard/mentor');
+      else if (user.role === 'investor') router.replace('/dashboard/investor');
+    }
   }, [user, router]);
 
   // Lock body scroll when mobile menu is open
