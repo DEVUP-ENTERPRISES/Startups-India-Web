@@ -33,7 +33,7 @@ async function generateAndStoreTokens(user) {
     expiresIn: env.JWT_REFRESH_EXPIRES_IN || '30d',
   });
 
-  // Store hashed refresh token — rounds=8 is fast (~10ms) and sufficient
+  // Store hashed refresh token - rounds=8 is fast (~10ms) and sufficient
   const refreshTokenHash = await bcrypt.hash(refreshToken, 8);
   await User.updateOne({ _id: user._id }, { $set: { refreshTokenHash } });
 
@@ -44,7 +44,7 @@ async function signup({ email, password, fullName, phone }) {
   const existing = await User.findOne({ email });
   if (existing) throw new ApiError(409, 'Email already registered');
 
-  // The number is captured here but stored UNVERIFIED — phoneVerifiedAt stays
+  // The number is captured here but stored UNVERIFIED - phoneVerifiedAt stays
   // null until an OTP is actually echoed back. Nothing security-relevant trusts
   // it before that, which is the whole difference from the legacy `phone` field.
   let phoneE164 = null;
@@ -227,7 +227,7 @@ async function signupV2({ email, password, fullName, phone, role = 'user', isVer
 /**
  * A mentor's User account is only created when an admin approves them, so an
  * applicant who signs up and immediately tries to log in would otherwise be told
- * "Invalid credentials" — baffling, since they just set a password.
+ * "Invalid credentials" - baffling, since they just set a password.
  *
  * This explains the real state, but ONLY to someone who supplies the password
  * from their own application. Answering on email alone would let anyone
@@ -254,7 +254,7 @@ async function explainPendingMentor(email, password) {
   return null;
 }
 
-// Same idea for investor applicants — no login account exists until approval, so
+// Same idea for investor applicants - no login account exists until approval, so
 // explain the state, but only when the password matches their application.
 async function explainPendingInvestor(email, password) {
   const application = await InvestorApplication.findOne({ email: String(email).toLowerCase() })
@@ -286,7 +286,7 @@ async function login({ email, password }, req) {
       || (await explainPendingInvestor(email, password));
     if (pending) throw pending;
 
-    // Record security event — use best-effort, don't fail the auth flow
+    // Record security event - use best-effort, don't fail the auth flow
     recordFailedLogin(
       req?.ip || 'unknown',
       email,
@@ -341,7 +341,7 @@ async function login({ email, password }, req) {
   }
 
   // Second factor. The password was correct, but for a 2FA account that only
-  // earns a short-lived pending token — no access/refresh token is minted here,
+  // earns a short-lived pending token - no access/refresh token is minted here,
   // so a stolen password alone buys nothing.
   //
   // Gated by the global TWO_FACTOR_ENABLED switch: while 2FA is paused, even an
@@ -422,7 +422,7 @@ async function refresh(token, envConfig) {
   const user = await User.findById(payload.sub);
   if (!user || !user.isActive) throw new ApiError(401, 'User not found');
 
-  // Validate stored hash — prevents replay of stolen/old refresh tokens
+  // Validate stored hash - prevents replay of stolen/old refresh tokens
   if (!user.refreshTokenHash) {
     throw new ApiError(401, 'Session invalidated. Please log in again.');
   }
@@ -464,7 +464,7 @@ function clientMeta(req) {
 /**
  * Issue a password-reset email.
  *
- * Always resolves the same way regardless of whether the address is registered —
+ * Always resolves the same way regardless of whether the address is registered -
  * the caller returns one fixed response, so this endpoint cannot be used to
  * enumerate accounts. Every early return below is deliberate silence, not an error.
  */
@@ -487,7 +487,7 @@ async function forgotPassword({ email }, req) {
   if (!user || !user.isActive) return;
 
   // OAuth-only account: there is no password to reset. Mail the real owner an
-  // explanation instead of a reset link — a stranger probing the endpoint still
+  // explanation instead of a reset link - a stranger probing the endpoint still
   // sees the identical API response and receives nothing.
   if (!user.passwordHash) {
     const provider = user.providerIds?.google ? 'google' : user.provider;
@@ -498,7 +498,7 @@ async function forgotPassword({ email }, req) {
     return;
   }
 
-  // Resend cooldown — stops this endpoint being used to flood someone's inbox.
+  // Resend cooldown - stops this endpoint being used to flood someone's inbox.
   // The previous link stays valid, so the user is never stranded.
   const sentAt = user.resetPasswordSentAt?.getTime();
   if (sentAt && Date.now() - sentAt < env.PASSWORD_RESET_COOLDOWN_SECONDS * 1000) {
@@ -511,7 +511,7 @@ async function forgotPassword({ email }, req) {
   const rawToken = crypto.randomBytes(RESET_TOKEN_BYTES).toString('hex');
   const expiresAt = new Date(Date.now() + env.PASSWORD_RESET_TTL_MINUTES * 60 * 1000);
 
-  // Issuing a new token invalidates any previous one — only the newest link works.
+  // Issuing a new token invalidates any previous one - only the newest link works.
   await User.updateOne(
     { _id: user._id },
     {
@@ -538,7 +538,7 @@ async function forgotPassword({ email }, req) {
       text: tpl.text,
     });
   } catch (err) {
-    // The mail never left, so the token is dead weight — revoke it rather than
+    // The mail never left, so the token is dead weight - revoke it rather than
     // leaving a live credential lying in the database.
     await User.updateOne(
       { _id: user._id },
@@ -568,7 +568,7 @@ async function forgotPassword({ email }, req) {
 
 /**
  * Consume a reset token and set a new password.
- * Throws 400 for anything unusable — expired, already spent, or unknown.
+ * Throws 400 for anything unusable - expired, already spent, or unknown.
  */
 async function resetPassword({ token, password }, req) {
   const meta = clientMeta(req);
@@ -592,7 +592,7 @@ async function resetPassword({ token, password }, req) {
   }
 
   // Reusing the current password would silently no-op a reset the user believes
-  // succeeded — and if the token leaked, it leaves the old secret in place.
+  // succeeded - and if the token leaked, it leaves the old secret in place.
   if (user.passwordHash && (await bcrypt.compare(password, user.passwordHash))) {
     throw new ApiError(400, 'Your new password must be different from your current password.');
   }
@@ -602,7 +602,7 @@ async function resetPassword({ token, password }, req) {
 
   // Re-match the token inside the write so it is consumed atomically. If two
   // requests race on the same link, exactly one update matches and the other
-  // gets null — the token is genuinely single-use, not just usually so.
+  // gets null - the token is genuinely single-use, not just usually so.
   const consumed = await User.findOneAndUpdate(
     {
       _id: user._id,
@@ -638,7 +638,7 @@ async function resetPassword({ token, password }, req) {
     userId: consumed._id,
   }).catch(() => {});
 
-  // Tripwire email — best-effort. The password is already changed; a mail outage
+  // Tripwire email - best-effort. The password is already changed; a mail outage
   // must not turn a successful reset into an error the user cannot act on.
   const tpl = getPasswordChangedTemplate(
     consumed.fullName,

@@ -52,7 +52,7 @@ async function getCourseDashboard(userId, courseId) {
     };
   }
 
-  // Active state — return full course content with progress
+  // Active state - return full course content with progress
   // Check progress cache first
   const progressCacheKey = `progress:${userId}:${courseId}`;
   const cachedDashboard = await cacheGet(progressCacheKey);
@@ -107,7 +107,7 @@ async function getCourseDashboard(userId, courseId) {
     },
   };
 
-  // Cache progress for 120s (short TTL — progress changes frequently)
+  // Cache progress for 120s (short TTL - progress changes frequently)
   cacheSet(progressCacheKey, dashboardResult, 120).catch(() => {});
 
   return dashboardResult;

@@ -12,7 +12,7 @@ const { ApiError } = require('../../utils/apiError');
 
 const router = express.Router();
 
-// ─── PUBLIC TRACKING (no auth — hit by recipients' email clients) ───────
+// ─── PUBLIC TRACKING (no auth - hit by recipients' email clients) ───────
 // Open pixel. Always returns the 1x1 gif, even on a bad token, so a broken
 // link never shows a broken image in someone's inbox.
 router.get('/track/open/:token.png', asyncHandler(async (req, res) => {

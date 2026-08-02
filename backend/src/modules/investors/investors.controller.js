@@ -230,7 +230,7 @@ exports.applyInvestor = async (req, res) => {
     try {
       await sendEmail({
         to: email.toLowerCase(),
-        subject: 'We Have Received Your Investor Application — Startups India',
+        subject: 'We Have Received Your Investor Application - Startups India',
         html: wrap(
           'Your investor application has been received.',
           'Application Received',

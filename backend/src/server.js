@@ -59,12 +59,12 @@ async function bootstrap() {
 
 // ─── GRACEFUL SHUTDOWN ────────────────────────────────────────
 async function gracefulShutdown(signal) {
-  logger.info(`${signal} received — graceful shutdown starting`, { pid: process.pid });
+  logger.info(`${signal} received - graceful shutdown starting`, { pid: process.pid });
 
   // 1. Stop accepting new connections
   if (server) {
     await new Promise(resolve => server.close(resolve));
-    logger.info('HTTP server closed — no more new connections');
+    logger.info('HTTP server closed - no more new connections');
   }
 
   // 2. Drain in-flight background jobs

@@ -22,7 +22,7 @@ async function approveMentorApplication(applicationId) {
   let user = await User.findOne({ email: application.email.toLowerCase() });
 
   if (user) {
-    // Existing user — upgrade role to mentor and approve login
+    // Existing user - upgrade role to mentor and approve login
     user.role = 'mentor';
     user.isApproved = true;
     user.status = 'approved';
@@ -34,7 +34,7 @@ async function approveMentorApplication(applicationId) {
     user.phone = user.phone || application.phone;
     await user.save();
   } else {
-    // New user — create with the hashed password from the application
+    // New user - create with the hashed password from the application
     user = await User.create({
       email: application.email.toLowerCase(),
       passwordHash: application.password, // Already bcrypt-hashed in the apply step
@@ -115,7 +115,7 @@ async function rejectMentorApplication(applicationId, reason) {
   const application = await MentorApplication.findById(applicationId);
   if (!application) throw new ApiError(404, 'Application not found');
   if (application.status !== 'pending') {
-    throw new ApiError(400, `Cannot reject — application is already ${application.status}`);
+    throw new ApiError(400, `Cannot reject - application is already ${application.status}`);
   }
 
   application.status = 'rejected';
@@ -126,7 +126,7 @@ async function rejectMentorApplication(applicationId, reason) {
   // Send rejection email
   await sendEmail({
     to: application.email,
-    subject: 'Update on Your Mentor Application — Startups India Ecosystem',
+    subject: 'Update on Your Mentor Application - Startups India Ecosystem',
     html: getMentorRejectionEmail(application.fullName, reason),
   });
 
@@ -291,7 +291,7 @@ function getMentorRejectionEmail(fullName, reason) {
  * they drop off the public listing), and downgrade the linked User back to a
  * normal 'user'.
  *
- * The User account itself is NOT deleted — it may own enrolments, payments or
+ * The User account itself is NOT deleted - it may own enrolments, payments or
  * other data, and nuking it would orphan those. Downgrading the role is the
  * reversible, non-destructive way to revoke mentor status.
  */
@@ -317,7 +317,7 @@ async function deleteMentor(applicationId) {
   try {
     await sendEmail({
       to: email,
-      subject: 'Update on Your Mentor Status — Startups India Ecosystem',
+      subject: 'Update on Your Mentor Status - Startups India Ecosystem',
       html: wrap(
         'Your mentor profile has been removed.',
         'Profile Update',

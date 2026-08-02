@@ -50,7 +50,7 @@ exports.applyMentor = async (req, res) => {
   } = req.body;
 
   try {
-    // Public endpoint — validate the essentials rather than trusting the client.
+    // Public endpoint - validate the essentials rather than trusting the client.
     if (!fullName || !email || !password || !phone || !currentRole || !company || !bio) {
       return res.status(400).json({ success: false, message: 'Please fill in all required fields.' });
     }
@@ -60,12 +60,12 @@ exports.applyMentor = async (req, res) => {
     if (!Array.isArray(expertise) || expertise.length === 0) {
       return res.status(400).json({ success: false, message: 'Please add at least one area of expertise.' });
     }
-    // A profile photo is mandatory — the admin needs a face to review before
+    // A profile photo is mandatory - the admin needs a face to review before
     // approving, and approved mentors are shown publicly with their photo.
     if (!profileImage) {
       return res.status(400).json({ success: false, message: 'Please upload a profile photo.' });
     }
-    // Only accept an image URL that came from our own S3 uploader — never an
+    // Only accept an image URL that came from our own S3 uploader - never an
     // arbitrary external URL a caller could point at anything.
     if (!/^https:\/\/[a-z0-9.-]*amazonaws\.com\//i.test(profileImage)) {
       return res.status(400).json({ success: false, message: 'Invalid profile image.' });
@@ -81,7 +81,7 @@ exports.applyMentor = async (req, res) => {
       if (existing.status === 'approved') {
         return res.status(409).json({ success: false, message: 'This email is already an approved mentor. Please log in.' });
       }
-      // If rejected, allow re-application — delete old one
+      // If rejected, allow re-application - delete old one
       if (existing.status === 'rejected') {
         await MentorApplication.deleteOne({ _id: existing._id });
       }
@@ -152,7 +152,7 @@ exports.applyMentor = async (req, res) => {
     try {
       await sendEmail({
         to: email.toLowerCase(),
-        subject: 'We Have Received Your Mentor Application — Startups India',
+        subject: 'We Have Received Your Mentor Application - Startups India',
         html: wrap(
           'Your mentor application has been received.',
           'Application Received',
@@ -344,7 +344,7 @@ exports.getMentorRequests = async (req, res) => {
 };
 
 // ─── MENTOR: Help & Support ─────────────────────────────────────────
-// Emails the support inbox with the mentor's ticket. Kept simple — no ticket
+// Emails the support inbox with the mentor's ticket. Kept simple - no ticket
 // model yet; the team replies over email.
 exports.submitSupportTicket = async (req, res) => {
   const { subject, category, message } = req.body || {};
@@ -361,7 +361,7 @@ exports.submitSupportTicket = async (req, res) => {
     const safe = String(message).replace(/</g, '&lt;').replace(/>/g, '&gt;');
     await sendEmail({
       to: process.env.SUPPORT_EMAIL || 'admin@startupsindia.in',
-      subject: `[Mentor Support] ${category || 'General'} — ${subject}`,
+      subject: `[Mentor Support] ${category || 'General'} - ${subject}`,
       html: `<p><strong>From:</strong> ${who}</p><p><strong>Category:</strong> ${category || 'General'}</p><p><strong>Subject:</strong> ${subject}</p><hr/><p>${safe}</p>`,
       text: `Mentor support ticket\nFrom: ${who}\nCategory: ${category || 'General'}\nSubject: ${subject}\n\n${message}`,
     });

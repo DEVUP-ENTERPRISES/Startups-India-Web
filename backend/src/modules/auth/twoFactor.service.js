@@ -72,12 +72,12 @@ function verifyPendingToken(token) {
  * Create (or replace) a challenge and text the code.
  *
  * @param {'auto'|'explicit'} intent
- *   'explicit' — the user pressed "Resend". Throttling them with a 429 is the
+ *   'explicit' - the user pressed "Resend". Throttling them with a 429 is the
  *   correct, expected answer.
  *
- *   'auto' — a side effect of some other action they took (signing in, starting
+ *   'auto' - a side effect of some other action they took (signing in, starting
  *   phone verification). Throwing here would be perverse: someone who signs in,
- *   closes the tab, and signs in again 20s later would be told to wait — locked
+ *   closes the tab, and signs in again 20s later would be told to wait - locked
  *   out of their own account by the anti-spam guard. So when a live code already
  *   exists and we're inside the cooldown, we silently REUSE it. The user still
  *   has that SMS; it is still valid; no second message is sent and nothing is
@@ -110,7 +110,7 @@ async function issueChallenge({ user, purpose, phoneE164, intent = 'auto' }) {
       if (capped) throw new ApiError(429, 'Too many codes requested. Please try again later.');
     } else if (withinCooldown || capped) {
       // Reuse the live challenge as-is. The phone may differ only in the
-      // phone_verify case, where the user changed the number mid-flow — then we
+      // phone_verify case, where the user changed the number mid-flow - then we
       // must not reuse a code bound to the old one.
       if (existing.phoneE164 === phoneE164) return existing;
     }
@@ -122,7 +122,7 @@ async function issueChallenge({ user, purpose, phoneE164, intent = 'auto' }) {
   const expiresAt = new Date(now + env.OTP_TTL_MINUTES * 60 * 1000);
 
   // Upsert: one live challenge per (user, purpose). A new code invalidates the
-  // old one — two valid codes at once would double an attacker's guessing odds.
+  // old one - two valid codes at once would double an attacker's guessing odds.
   const challenge = await OtpChallenge.findOneAndUpdate(
     { userId: user._id, purpose, consumedAt: null },
     {
@@ -152,7 +152,7 @@ async function issueChallenge({ user, purpose, phoneE164, intent = 'auto' }) {
 
 /**
  * Called by login() once the password checks out. Returns the payload the client
- * needs to complete the second step — and no tokens.
+ * needs to complete the second step - and no tokens.
  */
 async function beginLoginChallenge(user, req) {
   const challenge = await issueChallenge({
@@ -190,7 +190,7 @@ async function resendLoginCode(pendingToken) {
     user,
     purpose: 'login_2fa',
     phoneE164: user.phoneE164,
-    // The user pressed "Resend" — throttle them properly rather than silently
+    // The user pressed "Resend" - throttle them properly rather than silently
     // handing back the old code they just told us they never received.
     intent: 'explicit',
   });
@@ -294,7 +294,7 @@ async function verifyLoginCode({ pendingToken, code }, issueTokens, req) {
 // ─── BACKUP CODES ───────────────────────────────────────────────────────
 
 // Shown to the user exactly once, at enrolment. We store only bcrypt hashes, so
-// we genuinely cannot recover them — losing them means re-generating the set.
+// we genuinely cannot recover them - losing them means re-generating the set.
 function generateBackupCodes(count = 10) {
   return Array.from({ length: count }, () =>
     crypto.randomBytes(5).toString('hex').toUpperCase().match(/.{1,5}/g).join('-')
@@ -435,7 +435,7 @@ async function confirmPhoneVerification({ userId, code }, req) {
 // ─── ENABLE / DISABLE ───────────────────────────────────────────────────
 
 async function enableTwoFactor({ userId }, req) {
-  // Feature is paused globally — don't let anyone switch on something that won't
+  // Feature is paused globally - don't let anyone switch on something that won't
   // challenge at login anyway (and would just confuse them).
   if (!env.TWO_FACTOR_ENABLED) {
     throw new ApiError(503, 'Two-factor authentication is temporarily unavailable.');
@@ -520,7 +520,7 @@ async function regenerateBackupCodes({ userId, password }) {
     { _id: user._id },
     { $set: { twoFactorBackupCodes: await hashBackupCodes(codes) } }
   );
-  // Regenerating invalidates the previous set — that is the point of the button.
+  // Regenerating invalidates the previous set - that is the point of the button.
   return { backupCodes: codes };
 }
 

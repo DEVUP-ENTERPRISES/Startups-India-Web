@@ -6,7 +6,7 @@ const { User } = require('../users/user.model');
 
 const pushRouter = Router();
 
-// Public — no auth required. Stores FCM token for any visitor.
+// Public - no auth required. Stores FCM token for any visitor.
 // If user is logged in, also associates with their account (via optional bearer token).
 pushRouter.post('/subscribe', asyncHandler(async (req, res) => {
   const { token } = req.body;
@@ -31,7 +31,7 @@ pushRouter.post('/subscribe', asyncHandler(async (req, res) => {
         return res.json({ success: true, type: 'user' });
       }
     } catch (_) {
-      // Invalid/expired token — fall through to guest
+      // Invalid/expired token - fall through to guest
     }
   }
 

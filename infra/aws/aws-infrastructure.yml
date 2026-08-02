@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: >
-  Incubation Platform — Auto-scaling backend with ALB, ElastiCache, and CloudFront.
+  Incubation Platform - Auto-scaling backend with ALB, ElastiCache, and CloudFront.
   Deploy: aws cloudformation deploy --template-file aws-infrastructure.yml --stack-name incubation-prod --capabilities CAPABILITY_NAMED_IAM
 
 Parameters:

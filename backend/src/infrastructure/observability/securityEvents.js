@@ -24,13 +24,13 @@ const SEVERITY_MAP = {
   anomaly_detected: 'high',
   password_reset_requested: 'low',
   password_reset_completed: 'medium',
-  // Someone is submitting reset tokens that don't resolve — either a stale link
+  // Someone is submitting reset tokens that don't resolve - either a stale link
   // or an attacker guessing. Worth surfacing.
   password_reset_failed: 'high',
   two_factor_challenged: 'low',
   two_factor_success: 'low',
   // A wrong OTP means someone already had the correct password. That is the
-  // signal that 2FA just earned its keep — page it, don't bury it.
+  // signal that 2FA just earned its keep - page it, don't bury it.
   two_factor_failed: 'high',
   two_factor_enabled: 'low',
   two_factor_disabled: 'high',
@@ -57,7 +57,7 @@ async function recordSecurityEvent(type, data = {}) {
     recentEvents = recentEvents.slice(0, MAX_IN_MEMORY);
   }
 
-  // Persist non-blocking — never fail the request
+  // Persist non-blocking - never fail the request
   SecurityEvent.create(event).catch(() => {});
 
   return event;

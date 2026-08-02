@@ -17,8 +17,8 @@ const { computePhases } = require('./grant.phases');
 /**
  * GRANT-2026-000125
  *
- * Uses an atomic $inc on a per-year counter document. The obvious alternative —
- * countDocuments() + 1 — hands the same number to two people who submit in the
+ * Uses an atomic $inc on a per-year counter document. The obvious alternative -
+ * countDocuments() + 1 - hands the same number to two people who submit in the
  * same millisecond, and the unique index then rejects one of them at random.
  */
 async function generateApplicationId() {
@@ -61,7 +61,7 @@ async function addTimelineEntry({
 // ─── VALIDATION AGAINST ADMIN SETTINGS ──────────────────────────────────
 /**
  * Everything that could block a submission, checked in one place against the
- * live settings — never against a literal.
+ * live settings - never against a literal.
  */
 async function assertCanSubmit(userId, { excludeApplicationId = null } = {}) {
   const s = await getGrantSettings();
@@ -138,8 +138,8 @@ async function saveDraft(userId, input) {
     return existing;
   }
 
-  // A draft doesn't consume capacity or trip the duplicate rule — only a
-  // submission does — but it must still be possible to apply at all.
+  // A draft doesn't consume capacity or trip the duplicate rule - only a
+  // submission does - but it must still be possible to apply at all.
   const s = await getGrantSettings();
   if (!s['grant.applications.enabled']) {
     throw new ApiError(403, 'Grant applications are currently closed.');
@@ -185,7 +185,7 @@ async function submitApplication(userId, applicationDbId, { termsAccepted }) {
   const from = application.status;
   assertTransition(from, STATUS.SUBMITTED);
 
-  // Phase 1 is a free idea check — no documents required. Business plans, pitch
+  // Phase 1 is a free idea check - no documents required. Business plans, pitch
   // deck and financial models are collected in Phase 2 (Idea Evaluation), which
   // only unlocks after an admin accepts the idea.
 
@@ -330,7 +330,7 @@ async function getStats() {
   return {
     total,
     byStatus,
-    // The headline numbers the admin dashboard asks for, derived — never
+    // The headline numbers the admin dashboard asks for, derived - never
     // maintained as separate counters that can drift out of sync.
     pending: byStatus[STATUS.SUBMITTED] || 0,
     underReview: byStatus[STATUS.UNDER_REVIEW] || 0,
@@ -380,7 +380,7 @@ async function getApplicationForAdmin(applicationDbId) {
 /**
  * The only way an application's status is ever allowed to change.
  *
- * Every path — approve, reject, shortlist, select — funnels through here so that
+ * Every path - approve, reject, shortlist, select - funnels through here so that
  * the legality check, the timeline entry, the audit trail and the student
  * notification cannot be forgotten by a new caller.
  */
@@ -447,7 +447,7 @@ async function assignReviewer({ applicationDbId, reviewerId, adminUserId }) {
     message: 'A reviewer was assigned to this application.',
     actorId: adminUserId,
     actorRole: 'admin',
-    // Who is reviewing is internal — the student sees only that review is underway.
+    // Who is reviewing is internal - the student sees only that review is underway.
     visibleToStudent: false,
     metadata: { reviewerId: String(reviewerId) },
   });

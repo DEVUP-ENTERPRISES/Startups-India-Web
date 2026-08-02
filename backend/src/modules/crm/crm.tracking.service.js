@@ -49,7 +49,7 @@ async function recordClick(token, url) {
       await EmailCampaign.updateOne({ _id: r.campaignId }, { $inc: inc });
     }
   }
-  // Only allow http(s) redirects — never javascript:/data: from a crafted link.
+  // Only allow http(s) redirects - never javascript:/data: from a crafted link.
   return /^https?:\/\//i.test(url) ? url : null;
 }
 

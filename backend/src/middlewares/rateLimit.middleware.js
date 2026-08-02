@@ -22,7 +22,7 @@ function redisRateLimit({ windowSeconds = 60, max = 100, prefix = 'rl', keyGener
     const key = `${prefix}:${identifier}`;
 
     const count = await cacheIncr(key, windowSeconds);
-    if (count === null) return next(); // Redis hiccup — allow
+    if (count === null) return next(); // Redis hiccup - allow
 
     res.setHeader('X-RateLimit-Limit', max);
     res.setHeader('X-RateLimit-Remaining', Math.max(0, max - count));

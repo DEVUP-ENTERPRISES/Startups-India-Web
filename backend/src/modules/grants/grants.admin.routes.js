@@ -49,7 +49,7 @@ router.get(
 );
 
 // The UI renders its action buttons from this rather than hardcoding which
-// buttons are legal in which state — so the machine stays the single authority.
+// buttons are legal in which state - so the machine stays the single authority.
 router.get(
   '/status-machine',
   asyncHandler(async (req, res) => {
@@ -63,7 +63,7 @@ router.get(
 // ─── ACTIONS ────────────────────────────────────────────────────────────
 // Approve / reject / shortlist / select / under-review are all the same
 // operation: a guarded status transition. One endpoint, one code path, one
-// timeline entry, one notification — instead of five near-identical handlers
+// timeline entry, one notification - instead of five near-identical handlers
 // that each forget a different thing.
 router.post(
   '/applications/:id/status',

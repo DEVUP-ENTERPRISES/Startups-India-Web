@@ -16,7 +16,7 @@ async function connectDatabase(uri) {
   const connection = await mongoose.connect(uri, {
     maxPoolSize: poolSize,
     minPoolSize: 2,
-    // Avoid building indexes in production — run migrations separately
+    // Avoid building indexes in production - run migrations separately
     autoIndex: !isProduction,
     // Read from secondaries when available (Atlas read replicas)
     readPreference: isProduction ? 'secondaryPreferred' : 'primary',

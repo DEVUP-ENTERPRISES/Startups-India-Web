@@ -61,7 +61,7 @@ async function connectRedis() {
   });
 
   client.connect().catch(err => {
-    logger.warn('Redis: initial connection failed — running without cache', {
+    logger.warn('Redis: initial connection failed - running without cache', {
       message: err.message,
     });
     isConnected = false;
@@ -92,7 +92,7 @@ async function connectRedis() {
   if (isConnected) {
     logger.info('Redis: cache layer active');
   } else {
-    logger.warn('Redis: unavailable — app will use DB directly');
+    logger.warn('Redis: unavailable - app will use DB directly');
   }
 }
 
@@ -140,11 +140,11 @@ async function cacheDel(...keys) {
   try {
     await client.del(keys);
   } catch {
-    // silent — invalidation is best-effort
+    // silent - invalidation is best-effort
   }
 }
 
-// ─── STAMPEDE PROTECTION — stale-while-revalidate + mutex ───────
+// ─── STAMPEDE PROTECTION - stale-while-revalidate + mutex ───────
 
 // In-memory lock map to prevent thundering herd within the same process
 const _locks = new Map();
@@ -174,7 +174,7 @@ async function cacheGetOrSet(key, ttlSeconds, computeFn) {
     return _locks.get(key);
   }
 
-  // 3. Acquire lock — only this caller recomputes
+  // 3. Acquire lock - only this caller recomputes
   const promise = (async () => {
     try {
       const value = await computeFn();

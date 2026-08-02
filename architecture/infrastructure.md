@@ -1,4 +1,4 @@
-# Infrastructure — Startup India Incubation Platform
+# Infrastructure - Startup India Incubation Platform
 
 ## Deployment Architecture
 
@@ -12,14 +12,14 @@ Production:
            → Nginx reverse proxy (SSL termination)
            → Domain: API endpoint behind same domain or subdomain
 
-  Database → MongoDB (Cloud — likely Atlas based on URI pattern)
+  Database → MongoDB (Cloud - likely Atlas based on URI pattern)
   Cache    → Redis (optional, graceful fallback if unavailable)
   Storage  → AWS S3 (ap-south-1 region)
 ```
 
 ## Process Management (PM2)
 **File:** `backend/ecosystem.config.js`
-- PM2 cluster mode — multiple workers per CPU
+- PM2 cluster mode - multiple workers per CPU
 - Env vars injected via PM2 ecosystem config
 - Zero-downtime restarts
 
@@ -68,7 +68,7 @@ Key collections and their critical indexes:
 ## Cache: Redis
 **File:** `backend/src/infrastructure/cache/redis.js`
 
-- Optional — app runs fully without Redis
+- Optional - app runs fully without Redis
 - TTL-based caching (default 300s)
 - Stampede protection via in-memory lock map + request coalescing
 - Pattern-based cache invalidation via SCAN iterator
@@ -108,7 +108,7 @@ SMTP-based transactional emails:
 - **Logger:** Winston-based structured logging (`LOG_LEVEL` env var, default 'info')
 - **Metrics:** Custom middleware tracking req count, response times, error rates
   - Available at `GET /metrics`
-- **Activity Log:** `utils/activityLogger.js` — per-user activity feed
+- **Activity Log:** `utils/activityLogger.js` - per-user activity feed
   - Available at `GET /api/v1/activity`
 
 ## Monitoring Scripts
@@ -120,9 +120,9 @@ Shell scripts for:
 - SSL setup via `setup-ssl.sh`
 
 ## Frontend Deployment (Vercel/Netlify)
-- `netlify.toml` — Netlify deployment config (alternative to Vercel)
-- `next.config.js` — Next.js build configuration
-- `.env.local` / `.env.prod` — Frontend env vars (API URLs, Stripe public key, etc.)
+- `netlify.toml` - Netlify deployment config (alternative to Vercel)
+- `next.config.js` - Next.js build configuration
+- `.env.local` / `.env.prod` - Frontend env vars (API URLs, Stripe public key, etc.)
 
 ## Environment Split
 

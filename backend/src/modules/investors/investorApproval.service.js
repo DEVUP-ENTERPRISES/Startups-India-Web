@@ -98,7 +98,7 @@ async function approveInvestorApplication(applicationId) {
   application.approvedAt = new Date();
   await application.save();
 
-  // 4. Approval email with sign-in guidance (no plaintext password — we only
+  // 4. Approval email with sign-in guidance (no plaintext password - we only
   //    stored a hash).
   const loginLink = `${FRONTEND_URL}/investor-login`;
   const resetLink = `${FRONTEND_URL}/forgot-password`;
@@ -116,7 +116,7 @@ async function rejectInvestorApplication(applicationId, reason) {
   const application = await InvestorApplication.findById(applicationId);
   if (!application) throw new ApiError(404, 'Application not found');
   if (application.status !== 'pending') {
-    throw new ApiError(400, `Cannot reject — application is already ${application.status}`);
+    throw new ApiError(400, `Cannot reject - application is already ${application.status}`);
   }
 
   application.status = 'rejected';
@@ -126,7 +126,7 @@ async function rejectInvestorApplication(applicationId, reason) {
 
   await sendEmail({
     to: application.email,
-    subject: 'Update on Your Investor Application — Startups India Ecosystem',
+    subject: 'Update on Your Investor Application - Startups India Ecosystem',
     html: getInvestorRejectionEmail(application.fullName, reason),
   });
 
@@ -155,7 +155,7 @@ async function deleteInvestor(applicationId) {
   try {
     await sendEmail({
       to: email,
-      subject: 'Update on Your Investor Status — Startups India Ecosystem',
+      subject: 'Update on Your Investor Status - Startups India Ecosystem',
       html: wrap(
         'Your investor profile has been removed.',
         'Profile Update',

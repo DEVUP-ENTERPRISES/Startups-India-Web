@@ -1,4 +1,4 @@
-# System Design — Startup India Incubation Platform
+# System Design - Startup India Incubation Platform
 
 ## Architecture Overview
 

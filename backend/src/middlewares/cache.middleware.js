@@ -1,7 +1,7 @@
 const { cacheGetOrSet } = require('../infrastructure/cache/redis');
 
 /**
- * Express middleware — stampede-protected response caching.
+ * Express middleware - stampede-protected response caching.
  *
  * Uses cacheGetOrSet internally:
  *   - On HIT:  returns cached JSON immediately (X-Cache: HIT)
@@ -24,7 +24,7 @@ function cacheMiddleware(keyOrFn, ttl = 300) {
     });
 
     const result = await cacheGetOrSet(cacheKey, ttl, () => {
-      // Cache miss — run the real handler and capture its output
+      // Cache miss - run the real handler and capture its output
       return new Promise((resolve, reject) => {
         const originalJson = res.json.bind(res);
         res.json = body => {
@@ -42,7 +42,7 @@ function cacheMiddleware(keyOrFn, ttl = 300) {
         // If next() throws or the route errors, reject so the lock releases
         const originalEnd = res.end.bind(res);
         res.end = function (...args) {
-          resolve(null); // non-JSON response — don't cache
+          resolve(null); // non-JSON response - don't cache
           return originalEnd(...args);
         };
 

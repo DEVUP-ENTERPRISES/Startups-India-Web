@@ -1,4 +1,4 @@
-# Security Map — Startup India Incubation Platform
+# Security Map - Startup India Incubation Platform
 
 ## Authentication
 
@@ -22,12 +22,12 @@ authMiddleware.js:
 - **Google OAuth 2.0:** ID token verified server-side via `google-auth-library` OAuth2Client
   - If user doesn't exist → auto-create with provider: 'google'
   - If user exists → link Google ID to existing account
-- **Facebook:** Stub — returns 501 Not Implemented
+- **Facebook:** Stub - returns 501 Not Implemented
 
 ### Password Handling
 - bcryptjs with salt rounds = 10
 - `passwordHash` stored in User document
-- `refreshTokenHash` field exists (but refresh validation uses jwt.verify not hash comparison — note: no token rotation)
+- `refreshTokenHash` field exists (but refresh validation uses jwt.verify not hash comparison - note: no token rotation)
 
 ---
 
@@ -144,31 +144,31 @@ Redis rate limiter gracefully falls back to in-memory if Redis is unavailable.
 ## Environment Variables Required
 
 ```
-MONGODB_URI            # Required — MongoDB connection string
-JWT_ACCESS_SECRET      # Required — JWT signing secret
-JWT_REFRESH_SECRET     # Required — JWT refresh signing secret
-JWT_ACCESS_EXPIRES_IN  # Optional — default 15m
-JWT_REFRESH_EXPIRES_IN # Optional — default 30d
-STRIPE_SECRET_KEY      # Optional — Stripe payments
-STRIPE_WEBHOOK_SECRET  # Optional — Stripe webhook validation
-RAZORPAY_KEY_ID        # Optional — Razorpay payments
-RAZORPAY_KEY_SECRET    # Optional — Razorpay signature verification
-RAZORPAY_WEBHOOK_SECRET# Optional — Razorpay webhook validation
-GOOGLE_CLIENT_ID       # Optional — Google OAuth
-AWS_ACCESS_KEY_ID      # Optional — S3 media uploads
-AWS_SECRET_ACCESS_KEY  # Optional — S3 media uploads
-AWS_S3_BUCKET          # Optional — S3 bucket name
-AWS_REGION             # Optional — default ap-south-1
-REDIS_URL              # Optional — default redis://127.0.0.1:6379
-ADMIN_EMAIL            # Optional — seeded admin account
-ADMIN_PASSWORD         # Optional — seeded admin password
+MONGODB_URI            # Required - MongoDB connection string
+JWT_ACCESS_SECRET      # Required - JWT signing secret
+JWT_REFRESH_SECRET     # Required - JWT refresh signing secret
+JWT_ACCESS_EXPIRES_IN  # Optional - default 15m
+JWT_REFRESH_EXPIRES_IN # Optional - default 30d
+STRIPE_SECRET_KEY      # Optional - Stripe payments
+STRIPE_WEBHOOK_SECRET  # Optional - Stripe webhook validation
+RAZORPAY_KEY_ID        # Optional - Razorpay payments
+RAZORPAY_KEY_SECRET    # Optional - Razorpay signature verification
+RAZORPAY_WEBHOOK_SECRET# Optional - Razorpay webhook validation
+GOOGLE_CLIENT_ID       # Optional - Google OAuth
+AWS_ACCESS_KEY_ID      # Optional - S3 media uploads
+AWS_SECRET_ACCESS_KEY  # Optional - S3 media uploads
+AWS_S3_BUCKET          # Optional - S3 bucket name
+AWS_REGION             # Optional - default ap-south-1
+REDIS_URL              # Optional - default redis://127.0.0.1:6379
+ADMIN_EMAIL            # Optional - seeded admin account
+ADMIN_PASSWORD         # Optional - seeded admin password
 ```
 
 ---
 
 ## Security Risks (See gaps-and-risks.md)
 
-1. No refresh token rotation — stolen refresh token valid for 30 days
+1. No refresh token rotation - stolen refresh token valid for 30 days
 2. `passwordHash` duplicate `wishlist` field in user schema (schema bug)
 3. Facebook login stub throws 501 but could mislead users
 4. No CSRF protection on cookie-based auth

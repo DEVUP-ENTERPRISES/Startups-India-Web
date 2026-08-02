@@ -4,7 +4,7 @@ const router = express.Router();
 const investorsController = require('./investors.controller');
 const { authRequired, requireRole } = require('../../middlewares/authMiddleware');
 
-// Public + unauthenticated photo presign — capped so it can't spam S3.
+// Public + unauthenticated photo presign - capped so it can't spam S3.
 const uploadLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 20,

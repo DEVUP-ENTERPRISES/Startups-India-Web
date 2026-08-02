@@ -13,7 +13,7 @@ const { STATUS, STATUS_LABELS } = require('./grant.status');
  *
  * Every channel is best-effort and independently guarded. A dead SMTP server or
  * an expired FCM token must never roll back a status change that already
- * happened — the application's state is the source of truth, and the notification
+ * happened - the application's state is the source of truth, and the notification
  * is a side effect of it, not a precondition for it.
  *
  * SMS is intentionally left as a seam (see `sms` below): the 2FA work already
@@ -42,7 +42,7 @@ const STATUS_MESSAGES = {
   },
   [STATUS.SHORTLISTED]: {
     title: 'You have been shortlisted!',
-    message: 'Congratulations — your startup has been shortlisted for the Startup Grant.',
+    message: 'Congratulations - your startup has been shortlisted for the Startup Grant.',
     type: 'success',
   },
   [STATUS.REJECTED]: {
@@ -51,7 +51,7 @@ const STATUS_MESSAGES = {
     type: 'error',
   },
   [STATUS.SELECTED]: {
-    title: 'Congratulations — you have been selected!',
+    title: 'Congratulations - you have been selected!',
     message: 'You have been selected for the Startup Grant. Please proceed with your Idea Evaluation.',
     type: 'success',
   },
@@ -77,12 +77,12 @@ const STATUS_MESSAGES = {
   },
   [STATUS.FUNDING_STARTED]: {
     title: 'Funding process started',
-    message: 'Great news — the funding process for your startup has begun.',
+    message: 'Great news - the funding process for your startup has begun.',
     type: 'success',
   },
   [STATUS.GRANT_APPROVED]: {
     title: 'Grant approved!',
-    message: 'Congratulations — your Startup Grant has been approved.',
+    message: 'Congratulations - your Startup Grant has been approved.',
     type: 'success',
   },
   [STATUS.COMPLETED]: {
@@ -101,7 +101,7 @@ const STATUS_MESSAGES = {
  * @param {object} [opts.data]  deep-link payload (applicationId etc.)
  */
 async function notifyUser({ userId, title, message, type = 'info', data = {} }) {
-  // 1. Dashboard bell — the only channel we care enough about to await, since it
+  // 1. Dashboard bell - the only channel we care enough about to await, since it
   //    is the durable record the student will actually come back and look at.
   try {
     await Notification.create({
@@ -118,7 +118,7 @@ async function notifyUser({ userId, title, message, type = 'info', data = {} }) 
   // 2. Activity feed.
   logActivity(userId, 'grant.notification', title, data).catch(() => {});
 
-  // 3. Email + push — fire and forget.
+  // 3. Email + push - fire and forget.
   (async () => {
     try {
       const user = await User.findById(userId).select('email fullName notificationPrefs').lean();

@@ -10,25 +10,41 @@ on:
     - cron: '0 2 * * *'
 
 jobs:
-  # Job 1: Dependency Vulnerability Scanning
+  # ── Job 1: Dependency Vulnerability Scanning ─────────────────
   dependency-scan:
     name: Dependency Vulnerability Scan
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      - name: Install dependencies
+      - name: Install frontend dependencies
         run: npm ci
+        working-directory: frontend
 
-      - name: Run npm audit
+      - name: Install backend dependencies
+        run: pnpm install --frozen-lockfile
+        working-directory: backend
+
+      - name: npm audit (frontend)
         run: npm audit --audit-level=moderate
+        working-directory: frontend
+        continue-on-error: true
+
+      - name: pnpm audit (backend)
+        run: pnpm audit --audit-level=moderate
+        working-directory: backend
         continue-on-error: true
 
       - name: Snyk Security Scan
@@ -39,11 +55,11 @@ jobs:
         with:
           args: --severity-threshold=high --all-projects
 
-  # Job 2: Secret Scanning
+  # ── Job 2: Secret Scanning ───────────────────────────────────
   secret-scan:
     name: Secret Scanning
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -64,12 +80,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # Job 3: Code Security Analysis
+  # ── Job 3: Code Security Analysis ───────────────────────────
   code-security:
     name: Code Security Analysis
     runs-on: ubuntu-latest
     continue-on-error: true
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -84,12 +100,12 @@ jobs:
         uses: github/codeql-action/analyze@v3
         continue-on-error: true
 
-  # Job 4: Container Security (if using Docker)
+  # ── Job 4: Container Security ────────────────────────────────
   container-scan:
     name: Container Security Scan
     runs-on: ubuntu-latest
     if: false # Enable when using Docker
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -109,12 +125,12 @@ jobs:
         with:
           sarif_file: 'trivy-results.sarif'
 
-  # Job 5: OWASP ZAP Security Test
+  # ── Job 5: OWASP ZAP ────────────────────────────────────────
   owasp-zap:
     name: OWASP ZAP Security Test
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

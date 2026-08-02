@@ -10,13 +10,13 @@ async function sendToTokens(tokens, { title, body, imageUrl, data = {} }) {
   const firebase = getFirebaseAdmin();
 
   if (!firebase) {
-    const msg = '[FCM] Firebase Admin not initialized — set FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY in backend .env and restart';
+    const msg = '[FCM] Firebase Admin not initialized - set FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY in backend .env and restart';
     console.error(msg);
     return { sent: 0, failed: 0, error: 'Firebase not configured on server' };
   }
 
   if (!tokens.length) {
-    console.warn('[FCM] sendToTokens called with 0 tokens — no subscribers yet');
+    console.warn('[FCM] sendToTokens called with 0 tokens - no subscribers yet');
     return { sent: 0, failed: 0, error: 'No subscribers yet' };
   }
 
@@ -53,7 +53,7 @@ async function sendToTokens(tokens, { title, body, imageUrl, data = {} }) {
       const stale = [];
       res.responses.forEach((r, idx) => {
         if (!r.success) {
-          console.warn(`[FCM] Token failed: ${r.error?.code} — ${chunk[idx].slice(0, 20)}...`);
+          console.warn(`[FCM] Token failed: ${r.error?.code} - ${chunk[idx].slice(0, 20)}...`);
           if (['messaging/registration-token-not-registered', 'messaging/invalid-registration-token'].includes(r.error?.code)) {
             stale.push(chunk[idx]);
           }
@@ -71,7 +71,7 @@ async function sendToTokens(tokens, { title, body, imageUrl, data = {} }) {
     }
   }
 
-  console.log(`[FCM] Done — sent: ${sent}, failed: ${failed}`);
+  console.log(`[FCM] Done - sent: ${sent}, failed: ${failed}`);
   return { sent, failed };
 }
 
@@ -84,7 +84,7 @@ async function sendToAll(payload) {
     ...users.flatMap(u => u.fcmTokens),
     ...guests.map(g => g.token),
   ];
-  console.log(`[FCM] sendToAll — ${users.length} users, ${guests.length} guests, ${tokens.length} total tokens`);
+  console.log(`[FCM] sendToAll - ${users.length} users, ${guests.length} guests, ${tokens.length} total tokens`);
   return sendToTokens(tokens, payload);
 }
 

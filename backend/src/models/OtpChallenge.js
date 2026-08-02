@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 // One pending OTP. Kept in its own collection rather than on the User document so
-// that a challenge is cheap to expire, index, and reason about — and so a leaked
+// that a challenge is cheap to expire, index, and reason about - and so a leaked
 // User read can never expose a live code.
 const OTP_PURPOSES = [
   'login_2fa', // second factor after a correct password
@@ -30,7 +30,7 @@ const otpChallengeSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Mongo reaps expired challenges on its own — no cron, no unbounded growth.
+// Mongo reaps expired challenges on its own - no cron, no unbounded growth.
 // (This only deletes the row; single-use is enforced by consumedAt, not by TTL.)
 otpChallengeSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 

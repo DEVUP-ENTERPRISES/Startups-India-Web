@@ -239,7 +239,7 @@ function getConfirmationEmailTemplate(userName, confirmationLink) {
       </td>
     </tr>`;
   const text = `Hi ${name},\n\nConfirm your Startups India account:\n${confirmationLink}\n\nExpires in 24 hours.\n\n-- Startups India Team`;
-  return { subject: `${name}, confirm your email — Startups India`, html: wrap(`Confirm your email to access India's top startup ecosystem platform.`, 'Action Required', inner), text };
+  return { subject: `${name}, confirm your email - Startups India`, html: wrap(`Confirm your email to access India's top startup ecosystem platform.`, 'Action Required', inner), text };
 }
 
 function getWelcomeEmailTemplate(userName) {
@@ -279,7 +279,7 @@ function getWelcomeEmailTemplate(userName) {
       </td>
     </tr>`;
   const text = `Welcome to Startups India, ${name}!\n\nYour account is live. Start here:\nhttps://startupsindia.in/dashboard\n\n-- Startups India Team`;
-  return { subject: `Welcome aboard, ${name} — Startups India`, html: wrap(`Your Startups India account is live. Explore, connect, and build.`, "You're In", inner), text };
+  return { subject: `Welcome aboard, ${name} - Startups India`, html: wrap(`Your Startups India account is live. Explore, connect, and build.`, "You're In", inner), text };
 }
 
 function getEventNotificationEmailTemplate(eventTitle, messageBody, recipientName) {
@@ -298,7 +298,7 @@ function getEventNotificationEmailTemplate(eventTitle, messageBody, recipientNam
     </tr>
     ${hr()}`;
   const text = `${eventTitle}\n\nHi ${name},\n\n${messageBody}\n\nNeed help? ${SUPPORT}\n\n-- Startups India Team`;
-  return { subject: `${eventTitle} — Event Update`, html: wrap(`Important update about ${eventTitle} on Startups India.`, 'Event Update', inner), text };
+  return { subject: `${eventTitle} - Event Update`, html: wrap(`Important update about ${eventTitle} on Startups India.`, 'Event Update', inner), text };
 }
 
 function getBroadcastEmailTemplate({ subject, body, ctaUrl, ctaText }) {
@@ -312,7 +312,7 @@ function getBroadcastEmailTemplate({ subject, body, ctaUrl, ctaText }) {
     ${ctaUrl ? ctaBtn(ctaUrl, ctaText || 'Learn More') : ''}
     ${hr()}`;
   const text = `${body}${ctaUrl ? `\n\n${ctaText || 'Learn More'}: ${ctaUrl}` : ''}\n\n--\nStartups India | ${SUPPORT}`;
-  return { subject, html: wrap(`${subject} — An update from the Startups India team.`, 'New Update', inner, `${SITE_URL}/unsubscribe`), text };
+  return { subject, html: wrap(`${subject} - An update from the Startups India team.`, 'New Update', inner, `${SITE_URL}/unsubscribe`), text };
 }
 
 // ── Security templates (password reset + 2FA) ────────────────────────────────
@@ -347,14 +347,14 @@ function getPasswordResetTemplate(userName, resetLink, expiryMinutes) {
     <tr>
       <td style="padding:0 32px 28px;">
         <p style="margin:0 0 14px;font-family:${F};font-size:13px;color:#555;line-height:1.7;">
-          <strong style="color:#0a0a0a;">Didn't request this?</strong> Ignore this email — your password stays exactly as it is, and nobody can get into your account through this link.
+          <strong style="color:#0a0a0a;">Didn't request this?</strong> Ignore this email - your password stays exactly as it is, and nobody can get into your account through this link.
         </p>
         <p style="margin:0 0 6px;font-family:${F};font-size:11.5px;color:#bbb;">Button not working? Paste this into your browser:</p>
         <p style="margin:0;word-break:break-all;"><a href="${resetLink}" style="font-family:${F};font-size:11.5px;color:${BRAND_RED};text-decoration:none;">${resetLink}</a></p>
         <p style="margin:12px 0 0;font-family:${F};font-size:11px;color:#ccc;">This link expires in ${expiryMinutes} minutes and can only be used once.</p>
       </td>
     </tr>`;
-  const text = `Hi ${userName || 'Founder'},\n\nReset your Startups India password:\n${resetLink}\n\nExpires in ${expiryMinutes} minutes. Single use.\n\nDidn't request this? Ignore this email — your password will not change.\n\n-- Startups India Team`;
+  const text = `Hi ${userName || 'Founder'},\n\nReset your Startups India password:\n${resetLink}\n\nExpires in ${expiryMinutes} minutes. Single use.\n\nDidn't request this? Ignore this email - your password will not change.\n\n-- Startups India Team`;
   return {
     subject: 'Reset your Startups India password',
     html: wrap('Reset the password on your Startups India account.', 'Password Reset', inner),
@@ -376,12 +376,12 @@ function getOAuthOnlyResetTemplate(userName, provider, loginLink) {
           Nothing to reset<br>here.
         </h1>
         <p style="margin:0 0 28px;font-family:${F};font-size:15px;color:#555;line-height:1.75;">
-          Hi ${name}, someone asked to reset the password for this email. Your account signs in with <strong>${esc(providerName)}</strong> and doesn't have a password — just use the &ldquo;Continue with ${esc(providerName)}&rdquo; button on the sign-in page.
+          Hi ${name}, someone asked to reset the password for this email. Your account signs in with <strong>${esc(providerName)}</strong> and doesn't have a password - just use the &ldquo;Continue with ${esc(providerName)}&rdquo; button on the sign-in page.
         </p>
       </td>
     </tr>
     ${ctaBtn(loginLink, 'Go to Sign In')}`;
-  const text = `Hi ${userName || 'Founder'},\n\nSomeone asked to reset the password for this email. There's nothing to reset — your account signs in with ${providerName} and has no password.\n\nSign in here: ${loginLink}\n\n-- Startups India Team`;
+  const text = `Hi ${userName || 'Founder'},\n\nSomeone asked to reset the password for this email. There's nothing to reset - your account signs in with ${providerName} and has no password.\n\nSign in here: ${loginLink}\n\n-- Startups India Team`;
   return {
     subject: 'About your Startups India password reset request',
     html: wrap('Your account signs in with a social provider.', 'Password Reset', inner),

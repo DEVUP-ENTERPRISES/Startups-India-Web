@@ -63,7 +63,7 @@ const userSchema = new mongoose.Schema(
     // out of every incidental User.find() that later gets serialised to a client.
     resetPasswordTokenHash: { type: String, default: null, select: false },
     resetPasswordExpiresAt: { type: Date, default: null, select: false },
-    // Timestamp of the last reset email — enforces the resend cooldown.
+    // Timestamp of the last reset email - enforces the resend cooldown.
     resetPasswordSentAt: { type: Date, default: null, select: false },
     // Set on every successful password change. A reset also nulls refreshTokenHash,
     // so long-lived sessions die at once; already-issued access tokens still run out

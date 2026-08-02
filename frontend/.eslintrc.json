@@ -1,0 +1,24 @@
+{
+  "extends": [
+    "next/core-web-vitals"
+  ],
+  "settings": {
+    "next": {
+      "rootDir": "."
+    }
+  },
+  "rules": {
+    "no-console": "off",
+    "no-unused-vars": "off",
+    "prefer-const": "off",
+    "react/no-unescaped-entities": "off",
+    "react/prop-types": "off",
+    "@next/next/no-img-element": "off"
+  },
+  "env": {
+    "browser": true,
+    "node": true,
+    "es2021": true,
+    "jest": true
+  }
+}

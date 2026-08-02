@@ -10,7 +10,7 @@ const { logger } = require('../infrastructure/observability/logger');
  * boot with this driver in production.
  */
 async function consoleDriver({ to, message }) {
-  logger.warn('─────────────── [DEV SMS — not actually sent] ───────────────', {
+  logger.warn('─────────────── [DEV SMS - not actually sent] ───────────────', {
     to,
     message,
   });
@@ -20,7 +20,7 @@ async function consoleDriver({ to, message }) {
 /**
  * MSG91 driver.
  *
- * Uses the Flow API, which sends a DLT-registered *template* plus variables —
+ * Uses the Flow API, which sends a DLT-registered *template* plus variables -
  * not free-form text. Indian carriers reject transactional SMS whose template
  * isn't registered under TRAI's DLT regime, so `##OTP##` (or whatever variable
  * name your approved template declares) must line up with MSG91_TEMPLATE_ID.
@@ -51,7 +51,7 @@ async function msg91Driver({ to, variables }) {
   }
 
   // On success the v5 flow API returns the request id in `message`
-  // (e.g. {"message":"36676f…","type":"success"}) — NOT `request_id`. This id is
+  // (e.g. {"message":"36676f…","type":"success"}) - NOT `request_id`. This id is
   // what you paste into MSG91's delivery report to trace a specific send.
   return { provider: 'msg91', messageId: body.request_id || body.message || null };
 }
@@ -99,7 +99,7 @@ const DRIVERS = {
 };
 
 /**
- * Send an OTP. Throws if delivery fails — the caller must not tell a user
+ * Send an OTP. Throws if delivery fails - the caller must not tell a user
  * "code sent" when it wasn't.
  *
  * @param {string} to      E.164 number
@@ -120,7 +120,7 @@ async function sendOtpSms(to, code, ttlMin) {
     variables: { OTP: code, EXPIRY: String(ttlMin) },
   });
 
-  // The code itself is never logged — only that a send happened.
+  // The code itself is never logged - only that a send happened.
   logger.info('OTP SMS dispatched', { provider: result.provider, messageId: result.messageId });
   return result;
 }

@@ -1,4 +1,4 @@
-# Project Map — Startup India Incubation Platform
+# Project Map - Startup India Incubation Platform
 
 ## Repository Root
 ```

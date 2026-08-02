@@ -13,7 +13,7 @@ function getFirebaseAdmin() {
   const privateKey  = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n');
 
   if (!projectId || !clientEmail || !privateKey) {
-    console.warn('[FCM] Firebase credentials not set — push notifications disabled.');
+    console.warn('[FCM] Firebase credentials not set - push notifications disabled.');
     return null;
   }
 

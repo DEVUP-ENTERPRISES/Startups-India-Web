@@ -65,7 +65,7 @@ class InMemoryJobQueue {
     }
   }
 
-  // Wait for all in-flight jobs to complete — used in graceful shutdown
+  // Wait for all in-flight jobs to complete - used in graceful shutdown
   drain(timeoutMs = 10000) {
     if (this.queue.length === 0 && !this.processing) {
       return Promise.resolve();
@@ -74,7 +74,7 @@ class InMemoryJobQueue {
       this._drainResolve = resolve;
       setTimeout(() => {
         if (this._drainResolve) {
-          logger.warn('Job queue drain timeout — forcing shutdown', {
+          logger.warn('Job queue drain timeout - forcing shutdown', {
             remainingJobs: this.queue.length,
           });
           this._drainResolve = null;

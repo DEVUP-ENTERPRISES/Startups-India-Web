@@ -1,4 +1,4 @@
-# Code Patterns — Startup India Incubation Platform
+# Code Patterns - Startup India Incubation Platform
 
 ## Backend Patterns
 
@@ -17,7 +17,7 @@ modules/<domain>/
 
 ### Controller Pattern
 ```javascript
-// asyncHandler wraps async functions — catches errors and passes to errorMiddleware
+// asyncHandler wraps async functions - catches errors and passes to errorMiddleware
 const { asyncHandler } = require('../../utils/asyncHandler');
 
 router.get('/endpoint', authRequired, asyncHandler(async (req, res) => {
@@ -81,7 +81,7 @@ jobQueue.enqueue('payment.succeeded', { paymentId, ... });
 
 ### Next.js App Router
 - All pages in `apps/web/app/` directory
-- File-based routing — folder = route segment, `page.js` = route handler
+- File-based routing - folder = route segment, `page.js` = route handler
 - `layout.js` files for shared layouts
 - `(auth)` group folder for auth-specific layout (no Navbar/Footer)
 - Dynamic routes: `[slug]`, `[id]`, `[courseId]`, `[certificateNumber]`
@@ -130,8 +130,8 @@ Framer Motion used for section entrance animations:
 ## Shared Patterns
 
 ### Environment Variables
-- Backend: `backend/src/config/env.js` — validates required vars at startup
-- Frontend: `.env.local` / `.env.prod` — Next.js env vars (`NEXT_PUBLIC_*` for client)
+- Backend: `backend/src/config/env.js` - validates required vars at startup
+- Frontend: `.env.local` / `.env.prod` - Next.js env vars (`NEXT_PUBLIC_*` for client)
 
 ### Validation
 - `validateBody.js` middleware validates request body schema before controller

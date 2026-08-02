@@ -20,7 +20,7 @@ function auditLogMiddleware(req, res, next) {
   const startMs = Date.now();
 
   res.on('finish', () => {
-    // Skip safe reads — only log writes and deletes
+    // Skip safe reads - only log writes and deletes
     if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) return;
 
     const duration = Date.now() - startMs;

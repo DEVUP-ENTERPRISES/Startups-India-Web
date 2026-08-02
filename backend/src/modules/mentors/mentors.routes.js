@@ -4,7 +4,7 @@ const router = express.Router();
 const mentorsController = require('./mentors.controller');
 const { authRequired, requireRole } = require('../../middlewares/authMiddleware');
 
-// Public + unauthenticated, and it mints S3 upload URLs — cap it so it can't be
+// Public + unauthenticated, and it mints S3 upload URLs - cap it so it can't be
 // turned into a bucket-spamming faucet.
 const uploadLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,

@@ -1,0 +1,470 @@
+/* ════════════════════════════════════════════════════════════════════════════
+   Programs Section - Glassmorphism
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* ── Section shell ───────────────────────────────────────────────────────── */
+.pglass-section {
+  position: relative;
+  padding: 110px 0 100px;
+  background:
+    radial-gradient(ellipse 75% 55% at 10% 0%, rgba(160, 8, 28, 0.3) 0%, transparent 52%),
+    radial-gradient(ellipse 65% 50% at 92% 100%, rgba(130, 4, 22, 0.24) 0%, transparent 52%),
+    linear-gradient(155deg, #0d0610 0%, #130810 38%, #0a0a12 68%, #07070f 100%);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* ── Background blobs ────────────────────────────────────────────────────── */
+.pglass-blob {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(90px);
+}
+
+.pglass-blob--1 {
+  width: 500px;
+  height: 500px;
+  top: -140px;
+  left: -100px;
+  background: radial-gradient(circle, rgba(190, 12, 32, 0.28) 0%, transparent 68%);
+}
+
+.pglass-blob--2 {
+  width: 380px;
+  height: 380px;
+  bottom: -80px;
+  right: -60px;
+  background: radial-gradient(circle, rgba(160, 8, 28, 0.2) 0%, transparent 68%);
+}
+
+.pglass-blob--3 {
+  width: 320px;
+  height: 320px;
+  top: 45%;
+  left: 42%;
+  background: radial-gradient(circle, rgba(130, 4, 22, 0.15) 0%, transparent 68%);
+}
+
+/* ── Container ───────────────────────────────────────────────────────────── */
+.pglass-container {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Header ──────────────────────────────────────────────────────────────── */
+.pglass-header {
+  text-align: center;
+  max-width: 760px;
+  margin: 0 auto 72px;
+}
+
+.pglass-title {
+  font-size: 44px !important;
+  font-weight: 800 !important;
+  color: #ffffff !important; /* override .iec-homepage h2 { color:#111 } */
+  line-height: 1.15 !important;
+  letter-spacing: -0.025em !important;
+  margin: 0 0 20px !important;
+  text-shadow: 0 2px 28px rgba(0, 0, 0, 0.45) !important;
+}
+
+.pglass-title-red {
+  color: #ff3d57 !important;
+  text-shadow: 0 0 38px rgba(255, 61, 87, 0.42) !important;
+}
+
+.pglass-subtitle {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.52);
+  line-height: 1.7;
+  margin: 0;
+  max-width: 640px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ── Grid ────────────────────────────────────────────────────────────────── */
+.pglass-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+  align-items: stretch;
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   Card base
+   ════════════════════════════════════════════════════════════════════════════ */
+.pglass-card {
+  position: relative;
+  border-radius: 20px;
+  padding: 26px 22px 24px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  cursor: pointer;
+  will-change: transform;
+  transform: translateZ(0); /* GPU compositing layer */
+  transition:
+    box-shadow 0.32s ease,
+    border-color 0.32s ease,
+    background 0.32s ease;
+}
+
+/* ── Dark glass ── */
+.pglass-card--pglass-dark {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  box-shadow:
+    0 4px 28px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.09);
+}
+.pglass-card--pglass-dark:hover {
+  background: rgba(255, 255, 255, 0.13);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow:
+    0 20px 52px rgba(0, 0, 0, 0.52),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+/* ── Red-tinted glass ── */
+.pglass-card--pglass-red {
+  background: rgba(210, 16, 52, 0.14);
+  backdrop-filter: blur(18px) saturate(180%);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  border: 1px solid rgba(255, 55, 75, 0.24);
+  box-shadow:
+    0 4px 28px rgba(170, 8, 24, 0.28),
+    inset 0 1px 0 rgba(255, 80, 100, 0.12);
+}
+.pglass-card--pglass-red:hover {
+  background: rgba(210, 16, 52, 0.22);
+  border-color: rgba(255, 65, 85, 0.4);
+  box-shadow:
+    0 20px 52px rgba(170, 8, 24, 0.46),
+    inset 0 1px 0 rgba(255, 80, 100, 0.18);
+}
+
+/* ── Per-card icon glow blob ── */
+.pglass-card-glow {
+  position: absolute;
+  top: -30px;
+  left: -20px;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  filter: blur(55px);
+  pointer-events: none;
+  opacity: 0.9;
+  transition: opacity 0.35s ease;
+}
+.pglass-card:hover .pglass-card-glow {
+  opacity: 1;
+}
+
+/* ── Top rim light ── */
+.pglass-rim-light {
+  position: absolute;
+  top: 0;
+  left: 8%;
+  width: 84%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.24), transparent);
+  pointer-events: none;
+  border-radius: 50%;
+}
+
+/* ── Badge ───────────────────────────────────────────────────────────────── */
+.pglass-badge {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  padding: 4px 12px;
+  border-radius: 50px;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 16px;
+}
+
+.badge-red {
+  background: rgba(220, 30, 50, 0.85);
+  color: #fff;
+}
+.badge-slate {
+  background: rgba(100, 116, 140, 0.65);
+  color: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+.badge-blue {
+  background: rgba(30, 120, 220, 0.6);
+  color: rgba(255, 255, 255, 0.92);
+}
+.badge-amber {
+  background: rgba(210, 140, 10, 0.65);
+  color: rgba(255, 255, 255, 0.92);
+}
+
+/* ── Icon box ────────────────────────────────────────────────────────────── */
+.pglass-icon-wrap {
+  margin-bottom: 20px;
+}
+
+.pglass-icon-box {
+  width: 58px;
+  height: 58px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  box-shadow:
+    inset 0 -2px 8px rgba(0, 0, 0, 0.2),
+    0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+/* Icon - Always visible, no hover changes */
+.pglass-icon-svg {
+  color: #ffffff;
+  position: relative;
+  z-index: 1;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+/* Icon box - static styling */
+.pglass-icon-box {
+  width: 58px;
+  height: 58px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  box-shadow:
+    inset 0 -2px 8px rgba(0, 0, 0, 0.2),
+    0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+/* Remove all hover effects from icons - icons stay stable */
+.pglass-icon-box:hover {
+  box-shadow:
+    inset 0 -2px 8px rgba(0, 0, 0, 0.2),
+    0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+.pglass-icon-box:hover .pglass-icon-svg {
+  color: #ffffff;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+  transform: none;
+}
+
+/* ── Content block ───────────────────────────────────────────────────────── */
+.pglass-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+/* Title row: title + duration pill */
+.pglass-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+/* Card titles: !important to beat .iec-homepage h3 { color:#111 } */
+.pglass-section h3,
+.pglass-card-title {
+  font-size: 20px !important;
+  font-weight: 700 !important;
+  color: #ffffff !important;
+  line-height: 1.25 !important;
+  margin: 0 !important;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5) !important;
+}
+
+.pglass-duration {
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  padding: 3px 10px;
+  border-radius: 50px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.pglass-card--pglass-dark .pglass-duration {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.65);
+}
+.pglass-card--pglass-red .pglass-duration {
+  background: rgba(255, 80, 100, 0.16);
+  border: 1px solid rgba(255, 80, 100, 0.26);
+  color: rgba(255, 210, 215, 0.9);
+}
+
+/* Description */
+.pglass-card-desc {
+  font-size: 13.5px;
+  line-height: 1.65;
+  margin: 0 0 16px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+.pglass-card--pglass-dark .pglass-card-desc {
+  color: rgba(255, 255, 255, 0.72);
+}
+.pglass-card--pglass-red .pglass-card-desc {
+  color: rgba(255, 230, 232, 0.82);
+}
+
+/* ── Features list ───────────────────────────────────────────────────────── */
+.pglass-features {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.pglass-feature {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  line-height: 1.45;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.pglass-card--pglass-dark .pglass-feature {
+  color: rgba(255, 255, 255, 0.78);
+}
+.pglass-card--pglass-red .pglass-feature {
+  color: rgba(255, 232, 234, 0.86);
+}
+
+.pglass-check {
+  flex-shrink: 0;
+}
+.pglass-card--pglass-dark .pglass-check {
+  color: rgba(255, 61, 87, 0.9);
+}
+.pglass-card--pglass-red .pglass-check {
+  color: rgba(255, 230, 232, 0.8);
+}
+
+/* ── CTA button ──────────────────────────────────────────────────────────── */
+.pglass-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 20px;
+  border-radius: 10px;
+  font-size: 13.5px;
+  font-weight: 700;
+  text-decoration: none;
+  letter-spacing: 0.01em;
+  transition:
+    background 0.28s ease,
+    color 0.28s ease,
+    box-shadow 0.28s ease,
+    gap 0.22s ease;
+  align-self: flex-start;
+  position: relative;
+  z-index: 1;
+}
+
+.pglass-card--pglass-dark .pglass-cta {
+  background: rgba(255, 255, 255, 0.09);
+  color: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+.pglass-card--pglass-dark:hover .pglass-cta {
+  background: rgba(255, 61, 87, 0.85);
+  color: #ffffff;
+  border-color: rgba(255, 61, 87, 0.5);
+  box-shadow: 0 4px 20px rgba(255, 61, 87, 0.3);
+}
+
+.pglass-card--pglass-red .pglass-cta {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 230, 232, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+}
+.pglass-card--pglass-red:hover .pglass-cta {
+  background: #ffffff;
+  color: #c1001a;
+  border-color: transparent;
+  box-shadow: 0 4px 20px rgba(200, 0, 26, 0.22);
+}
+
+.pglass-cta-arrow {
+  transition: transform 0.24s ease;
+}
+.pglass-card:hover .pglass-cta-arrow {
+  transform: translateX(5px);
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   Responsive
+   ════════════════════════════════════════════════════════════════════════════ */
+@media (max-width: 1200px) {
+  .pglass-title {
+    font-size: 38px !important;
+  }
+}
+
+@media (max-width: 1024px) {
+  .pglass-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+  .pglass-title {
+    font-size: 32px !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .pglass-section {
+    padding: 80px 0 70px;
+  }
+  .pglass-header {
+    margin-bottom: 48px;
+  }
+  .pglass-title {
+    font-size: 27px !important;
+  }
+
+  .pglass-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .pglass-card {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  /* Tone down blobs on mobile */
+  .pglass-blob--1 {
+    width: 280px;
+    height: 280px;
+  }
+  .pglass-blob--2 {
+    width: 220px;
+    height: 220px;
+  }
+  .pglass-blob--3 {
+    display: none;
+  }
+}

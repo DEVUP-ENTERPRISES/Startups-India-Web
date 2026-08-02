@@ -4,7 +4,7 @@ const { logger } = require('../../infrastructure/observability/logger');
 /**
  * Predefined, ready-to-send email templates.
  *
- * Seeded on boot (idempotent — matched by name) so an admin can pick a list, pick
+ * Seeded on boot (idempotent - matched by name) so an admin can pick a list, pick
  * a template, and press Start without writing any HTML. Merge tags ({{name}},
  * {{collegeName}} …) are filled per recipient; the unsubscribe footer and
  * open/click tracking are added automatically by the sender, so they are NOT in
@@ -42,7 +42,7 @@ const DEFAULT_TEMPLATES = [
     subject: '{{name}}, join the Startups India Incubation Program',
     htmlBody: shell(
       `<p style="margin:0 0 16px;">Hi <strong>{{name}}</strong>,</p>
-       <p style="margin:0 0 16px;">We'd love to invite you to the <strong>Startups India Incubation Program</strong> — where founders get funding access, expert mentorship, and hands-on support to build and scale their startup.</p>
+       <p style="margin:0 0 16px;">We'd love to invite you to the <strong>Startups India Incubation Program</strong> - where founders get funding access, expert mentorship, and hands-on support to build and scale their startup.</p>
        <p style="margin:0 0 16px;">Applications are open now, and spots are limited. It only takes a few minutes to apply.</p>`,
       'Apply Now',
       'https://startupsindia.in/programs/incubation'
@@ -54,7 +54,7 @@ const DEFAULT_TEMPLATES = [
     htmlBody: shell(
       `<p style="margin:0 0 16px;">Hi <strong>{{name}}</strong>,</p>
        <p style="margin:0 0 16px;">We're reaching out to talented students from <strong>{{collegeName}}</strong>. If you've ever thought about building your own startup, this is your chance.</p>
-       <p style="margin:0 0 16px;">The Startups India Incubation Program gives student founders mentorship, funding pathways, and a community of builders — while you're still in college.</p>`,
+       <p style="margin:0 0 16px;">The Startups India Incubation Program gives student founders mentorship, funding pathways, and a community of builders - while you're still in college.</p>`,
       'Learn More & Apply',
       'https://startupsindia.in/campus-startup'
     ),
@@ -64,7 +64,7 @@ const DEFAULT_TEMPLATES = [
     subject: "You're invited, {{name}} 🎉",
     htmlBody: shell(
       `<p style="margin:0 0 16px;">Hi <strong>{{name}}</strong>,</p>
-       <p style="margin:0 0 16px;">You're invited to an exclusive Startups India event — a chance to meet mentors, investors, and fellow founders, and learn what it takes to build a successful startup.</p>
+       <p style="margin:0 0 16px;">You're invited to an exclusive Startups India event - a chance to meet mentors, investors, and fellow founders, and learn what it takes to build a successful startup.</p>
        <p style="margin:0 0 16px;">Seats are limited, so register early to reserve yours.</p>`,
       'Register for the Event',
       'https://startupsindia.in/events'
@@ -76,7 +76,7 @@ const DEFAULT_TEMPLATES = [
     htmlBody: shell(
       `<p style="margin:0 0 16px;">Hi <strong>{{name}}</strong>,</p>
        <p style="margin:0 0 16px;">Just following up on our earlier note about the Startups India Incubation Program. We didn't want you to miss the deadline.</p>
-       <p style="margin:0 0 16px;">If you're serious about building your startup, this is one of the best ways to get started — with mentorship, funding access, and a strong founder community behind you.</p>`,
+       <p style="margin:0 0 16px;">If you're serious about building your startup, this is one of the best ways to get started - with mentorship, funding access, and a strong founder community behind you.</p>`,
       'Apply Before It Closes',
       'https://startupsindia.in/programs/incubation'
     ),
@@ -87,7 +87,7 @@ const DEFAULT_TEMPLATES = [
     htmlBody: shell(
       `<p style="margin:0 0 16px;">Hi <strong>{{name}}</strong>,</p>
        <p style="margin:0 0 16px;">Thank you for your interest in Startups India! We're excited to have you as part of our growing community of founders and innovators.</p>
-       <p style="margin:0 0 16px;">Explore our programs, mentors, and resources whenever you're ready — we're here to help you build.</p>`,
+       <p style="margin:0 0 16px;">Explore our programs, mentors, and resources whenever you're ready - we're here to help you build.</p>`,
       'Explore Startups India',
       'https://startupsindia.in'
     ),

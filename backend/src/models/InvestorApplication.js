@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 // Mirrors MentorApplication: a pending investor application that holds the
 // applicant's chosen (hashed) password until an admin approves it. The login
 // account (User with role='investor') and the public Investor profile are only
-// created on approval — so the password lives here, not on User, until then.
+// created on approval - so the password lives here, not on User, until then.
 const investorApplicationSchema = new mongoose.Schema(
   {
     fullName: { type: String, required: true, trim: true },

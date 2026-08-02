@@ -18,7 +18,7 @@ function getTransporter() {
 async function sendEmail({ to, subject, html, text }) {
   const transporter = getTransporter();
   if (!transporter) {
-    console.warn('[Email] SMTP not configured — skipping');
+    console.warn('[Email] SMTP not configured - skipping');
     return { skipped: true };
   }
   const info = await transporter.sendMail({
@@ -28,7 +28,7 @@ async function sendEmail({ to, subject, html, text }) {
     html,
     text,
   });
-  console.log(`[Email] Sent to ${to} — ${info.messageId}`);
+  console.log(`[Email] Sent to ${to} - ${info.messageId}`);
   return { sent: 1, messageId: info.messageId };
 }
 
@@ -51,9 +51,9 @@ async function sendToAll(payload) {
   const { User } = require('../modules/users/user.model');
   const users = await User.find({ email: { $exists: true, $ne: '' } }, 'email').lean();
   const emails = users.map(u => u.email).filter(Boolean);
-  console.log(`[Email] sendToAll — ${emails.length} recipients`);
+  console.log(`[Email] sendToAll - ${emails.length} recipients`);
   const result = await _sendBulk(emails, payload);
-  console.log(`[Email] Done — sent: ${result.sent}, failed: ${result.failed}`);
+  console.log(`[Email] Done - sent: ${result.sent}, failed: ${result.failed}`);
   return { ...result, total: emails.length };
 }
 
@@ -61,9 +61,9 @@ async function sendToRole(role, payload) {
   const { User } = require('../modules/users/user.model');
   const users = await User.find({ role, email: { $exists: true, $ne: '' } }, 'email').lean();
   const emails = users.map(u => u.email).filter(Boolean);
-  console.log(`[Email] sendToRole(${role}) — ${emails.length} recipients`);
+  console.log(`[Email] sendToRole(${role}) - ${emails.length} recipients`);
   const result = await _sendBulk(emails, payload);
-  console.log(`[Email] Done — sent: ${result.sent}, failed: ${result.failed}`);
+  console.log(`[Email] Done - sent: ${result.sent}, failed: ${result.failed}`);
   return { ...result, total: emails.length };
 }
 
@@ -100,7 +100,7 @@ async function sendTransactionalEmail({ to, subject, text, html }) {
     if (process.env.NODE_ENV === 'production') {
       throw new Error('SMTP is not configured; cannot send transactional email');
     }
-    console.warn('[DEV] SMTP not configured — email not sent. Body follows.');
+    console.warn('[DEV] SMTP not configured - email not sent. Body follows.');
     console.warn(`[DEV]   to: ${to}\n[DEV]   subject: ${subject}\n[DEV]   ${text}`);
     return { skipped: true, dev: true };
   }

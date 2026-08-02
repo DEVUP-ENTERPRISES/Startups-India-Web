@@ -6,10 +6,10 @@ const ctrl = require('./learningEngine.controller');
 
 const router = express.Router();
 
-// GET /api/v1/learn/:courseId — Main course dashboard (enrollment + cohort check)
+// GET /api/v1/learn/:courseId - Main course dashboard (enrollment + cohort check)
 router.get('/:courseId', authRequired, asyncHandler(ctrl.getCourseDashboard));
 
-// GET /api/v1/learn/:courseId/lesson/:lessonId — Lesson detail with signed video URL
+// GET /api/v1/learn/:courseId/lesson/:lessonId - Lesson detail with signed video URL
 router.get(
   '/:courseId/lesson/:lessonId',
   authRequired,
@@ -17,7 +17,7 @@ router.get(
   asyncHandler(ctrl.getLessonDetail)
 );
 
-// POST /api/v1/learn/:courseId/lesson/:lessonId/complete — Mark lesson as complete
+// POST /api/v1/learn/:courseId/lesson/:lessonId/complete - Mark lesson as complete
 router.post(
   '/:courseId/lesson/:lessonId/complete',
   authRequired,
@@ -25,7 +25,7 @@ router.post(
   asyncHandler(ctrl.markLessonComplete)
 );
 
-// GET /api/v1/learn/:courseId/module/:moduleId/quiz — Get module quiz (no answers)
+// GET /api/v1/learn/:courseId/module/:moduleId/quiz - Get module quiz (no answers)
 router.get(
   '/:courseId/module/:moduleId/quiz',
   authRequired,
@@ -33,7 +33,7 @@ router.get(
   asyncHandler(ctrl.getModuleQuiz)
 );
 
-// POST /api/v1/learn/:courseId/module/:moduleId/quiz — Submit module quiz
+// POST /api/v1/learn/:courseId/module/:moduleId/quiz - Submit module quiz
 router.post(
   '/:courseId/module/:moduleId/quiz',
   authRequired,

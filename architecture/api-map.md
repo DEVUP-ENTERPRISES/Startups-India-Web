@@ -1,8 +1,8 @@
-# API Map — Backend REST API (Base: /api/v1)
+# API Map - Backend REST API (Base: /api/v1)
 
 All routes are Express-based. Auth uses JWT Bearer token or `accessToken` cookie.
 
-## Auth — `/api/v1/auth`
+## Auth - `/api/v1/auth`
 | Method | Endpoint | Auth | Description |
 |--------|----------|------|-------------|
 | POST | `/signup` | Public | Create account (email+password) |
@@ -16,7 +16,7 @@ Rate limited: 20 req / 15 min on login, signup, forgot-password.
 
 ---
 
-## Users — `/api/v1/users`
+## Users - `/api/v1/users`
 | Method | Endpoint | Auth | Description |
 |--------|----------|------|-------------|
 | GET | `/me` | authRequired | Get own profile |
@@ -31,7 +31,7 @@ Rate limited: 20 req / 15 min on login, signup, forgot-password.
 
 ---
 
-## Courses — `/api/v1/courses`
+## Courses - `/api/v1/courses`
 | Method | Endpoint | Auth | Description |
 |--------|----------|------|-------------|
 | GET | `/` | Public | List published courses |
@@ -46,7 +46,7 @@ Rate limited: 20 req / 15 min on login, signup, forgot-password.
 
 ---
 
-## Enrollments — `/api/v1/enrollments`
+## Enrollments - `/api/v1/enrollments`
 | Method | Endpoint | Auth | Description |
 |--------|----------|------|-------------|
 | GET | `/` | authRequired | Get own enrollments |
@@ -56,7 +56,7 @@ Rate limited: 20 req / 15 min on login, signup, forgot-password.
 
 ---
 
-## Payments — `/api/v1/payments`
+## Payments - `/api/v1/payments`
 | Method | Endpoint | Auth | Description |
 |--------|----------|------|-------------|
 | GET | `/` | authRequired | List own payments |
@@ -73,7 +73,7 @@ Rate limited: 20 req / 15 min on login, signup, forgot-password.
 
 ---
 
-## Learning — `/api/v1/learning`
+## Learning - `/api/v1/learning`
 | Method | Endpoint | Auth | Description |
 |--------|----------|------|-------------|
 | GET | `/` | authRequired | Get learning overview |
@@ -84,7 +84,7 @@ Rate limited: 20 req / 15 min on login, signup, forgot-password.
 | GET | `/notes` | authRequired | Get notes |
 | POST | `/notes` | authRequired | Create note |
 
-### Learning Engine — `/api/v1/learn`
+### Learning Engine - `/api/v1/learn`
 | Method | Endpoint | Auth | Description |
 |--------|----------|------|-------------|
 | GET | `/:courseId` | authRequired (enrolled) | Full course learning view |
@@ -93,7 +93,7 @@ Rate limited: 20 req / 15 min on login, signup, forgot-password.
 
 ---
 
-## Certificates — `/api/v1/certificates`
+## Certificates - `/api/v1/certificates`
 | Method | Endpoint | Auth | Description |
 |--------|----------|------|-------------|
 | GET | `/` | authRequired | List own certificates |
@@ -103,7 +103,7 @@ Rate limited: 20 req / 15 min on login, signup, forgot-password.
 
 ---
 
-## Assessments — `/api/v1/assessments`
+## Assessments - `/api/v1/assessments`
 | Method | Endpoint | Auth | Description |
 |--------|----------|------|-------------|
 | GET | `/` | authRequired | List assessments |
@@ -117,7 +117,7 @@ Rate limited: 20 req / 15 min on login, signup, forgot-password.
 
 ---
 
-## Achievements — `/api/v1/achievements`
+## Achievements - `/api/v1/achievements`
 | Method | Endpoint | Auth | Description |
 |--------|----------|------|-------------|
 | GET | `/` | authRequired | Get own badges/achievements |
@@ -126,7 +126,7 @@ Rate limited: 20 req / 15 min on login, signup, forgot-password.
 
 ---
 
-## Community — `/api/v1/community`
+## Community - `/api/v1/community`
 | Method | Endpoint | Auth | Description |
 |--------|----------|------|-------------|
 | GET | `/discussions` | authRequired | List discussions |
@@ -140,7 +140,7 @@ Rate limited: 20 req / 15 min on login, signup, forgot-password.
 
 ---
 
-## Events — `/api/v1/events`
+## Events - `/api/v1/events`
 | Method | Endpoint | Auth | Description |
 |--------|----------|------|-------------|
 | GET | `/` | Public | List events (paginated) |
@@ -155,7 +155,7 @@ Rate limited: 20 req / 15 min on login, signup, forgot-password.
 
 ---
 
-## Articles (Public Blog) — `/api/v1/articles`
+## Articles (Public Blog) - `/api/v1/articles`
 | Method | Endpoint | Auth | Description |
 |--------|----------|------|-------------|
 | GET | `/` | Public | List published articles |
@@ -168,7 +168,7 @@ Rate limited: 20 req / 15 min on login, signup, forgot-password.
 
 ---
 
-## Profiles (Mentors/Investors) — `/api/v1/profiles`
+## Profiles (Mentors/Investors) - `/api/v1/profiles`
 | Method | Endpoint | Auth | Description |
 |--------|----------|------|-------------|
 | GET | `/mentors` | Public | List approved mentors |
@@ -180,7 +180,7 @@ Rate limited: 20 req / 15 min on login, signup, forgot-password.
 
 ---
 
-## Admin — `/api/v1/admin`
+## Admin - `/api/v1/admin`
 | Method | Endpoint | Auth | Role |
 |--------|----------|------|------|
 | GET | `/dashboard` | authRequired | admin |
@@ -194,7 +194,7 @@ Rate limited: 20 req / 15 min on login, signup, forgot-password.
 
 ---
 
-## Analytics — `/api/v1/analytics`
+## Analytics - `/api/v1/analytics`
 | Method | Endpoint | Auth | Description |
 |--------|----------|------|-------------|
 | GET | `/learning` | authRequired | Learning time stats |
@@ -204,17 +204,17 @@ Rate limited: 20 req / 15 min on login, signup, forgot-password.
 
 ---
 
-## Media — `/api/v1/media`
+## Media - `/api/v1/media`
 | Method | Endpoint | Auth | Role |
 |--------|----------|------|------|
-| POST | `/upload-url` | authRequired | admin/instructor — S3 presigned URL |
-| POST | `/complete` | authRequired | admin/instructor — Confirm S3 upload |
+| POST | `/upload-url` | authRequired | admin/instructor - S3 presigned URL |
+| POST | `/complete` | authRequired | admin/instructor - Confirm S3 upload |
 
 Also available at `/api/v1/upload-url` and `/api/v1/upload-complete` (aliases).
 
 ---
 
-## Settings — `/api/v1/settings`
+## Settings - `/api/v1/settings`
 | Method | Endpoint | Auth | Description |
 |--------|----------|------|-------------|
 | GET | `/` | authRequired | Get platform settings |
@@ -222,7 +222,7 @@ Also available at `/api/v1/upload-url` and `/api/v1/upload-complete` (aliases).
 
 ---
 
-## Public — `/api/v1/public`
+## Public - `/api/v1/public`
 | Method | Endpoint | Auth | Description |
 |--------|----------|------|-------------|
 | GET | `/featured` | Public | Featured courses, events, articles |

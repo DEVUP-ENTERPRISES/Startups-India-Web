@@ -5,7 +5,7 @@ const { EmailTemplate } = require('./crm.models');
  * Email templates + merge-tag rendering.
  *
  * Tags are {{field}} where field is one of the merge fields below. Rendering is
- * a plain, safe substitution — no template engine, no eval — so a template can
+ * a plain, safe substitution - no template engine, no eval - so a template can
  * never execute code, only fill in a contact's fields.
  */
 const MERGE_FIELDS = ['name', 'email', 'phone', 'collegeName', 'additional1', 'additional2', 'additional3'];

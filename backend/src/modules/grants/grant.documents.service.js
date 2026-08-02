@@ -15,7 +15,7 @@ const { addTimelineEntry } = require('./grant.service');
 /**
  * Document uploads for grant applications.
  *
- * Files go straight from the browser to S3 via a presigned PUT — bytes never
+ * Files go straight from the browser to S3 via a presigned PUT - bytes never
  * transit the API. Mongo only ever holds the object key, and the download URL is
  * signed on demand, so a leaked DB row cannot be turned into permanent public
  * access to a founder's pitch deck.
@@ -38,12 +38,12 @@ function sanitizeFileName(name) {
 
 /**
  * The application must exist, belong to the caller, and still be open for edits.
- * Both checks live in the query/state, not in a caller's `if` — an upload into
+ * Both checks live in the query/state, not in a caller's `if` - an upload into
  * someone else's application must be impossible, not merely discouraged.
  */
 // Documents can be uploaded in two windows: while the Phase 1 form is still
 // editable (draft / changes requested), and during Phase 2 once the idea is
-// accepted but the fee hasn't been paid yet (SELECTED / EVALUATION_PENDING) —
+// accepted but the fee hasn't been paid yet (SELECTED / EVALUATION_PENDING) -
 // this is where business plans and the pitch deck are actually collected.
 const PHASE2_UPLOAD_STATUSES = [STATUS.SELECTED, STATUS.EVALUATION_PENDING];
 
@@ -61,7 +61,7 @@ async function assertOwnedAndEditable(userId, applicationDbId) {
 
 /**
  * Step 1: hand the browser a short-lived presigned PUT URL.
- * Type and size are validated HERE, against admin settings — the client-side
+ * Type and size are validated HERE, against admin settings - the client-side
  * check is UX, this is the enforcement.
  */
 async function requestUploadUrl(userId, { applicationDbId, kind, fileName, fileType, fileSize }) {
@@ -106,7 +106,7 @@ async function requestUploadUrl(userId, { applicationDbId, kind, fileName, fileT
     .randomBytes(8)
     .toString('hex')}-${sanitizeFileName(fileName)}`;
 
-  // generateUploadUrl returns { uploadUrl, fileUrl, key, expiresIn } — it is NOT
+  // generateUploadUrl returns { uploadUrl, fileUrl, key, expiresIn } - it is NOT
   // the URL string itself. Passing the object straight through made the browser
   // PUT to "[object Object]", a relative path, which 404'd against the Next server.
   const presigned = await generateUploadUrl({
@@ -123,7 +123,7 @@ async function requestUploadUrl(userId, { applicationDbId, kind, fileName, fileT
  *
  * We re-HEAD the object rather than trusting the client. Otherwise a caller could
  * skip the upload entirely and POST a made-up key, producing an application whose
- * "pitch deck" is a 404 — and reviewers would only find out at review time.
+ * "pitch deck" is a 404 - and reviewers would only find out at review time.
  */
 async function completeUpload(userId, { applicationDbId, kind, key, fileName, fileType }) {
   const rule = KIND_RULES[kind];
@@ -131,7 +131,7 @@ async function completeUpload(userId, { applicationDbId, kind, key, fileName, fi
 
   const application = await assertOwnedAndEditable(userId, applicationDbId);
 
-  // The key must live under this application's prefix — otherwise a user could
+  // The key must live under this application's prefix - otherwise a user could
   // attach another founder's already-uploaded file to their own application.
   const expectedPrefix = `grants/${application.applicationId}/${kind}/`;
   if (!String(key).startsWith(expectedPrefix)) {
@@ -189,7 +189,7 @@ async function getSignedUrl({ documentId, userId = null, isAdmin = false }) {
 
   if (!isAdmin) {
     // Ownership is checked against the application, not the document's userId
-    // alone — they should agree, but the application is the authority.
+    // alone - they should agree, but the application is the authority.
     const owns = await GrantApplication.exists({
       _id: document.applicationId,
       userId,

@@ -119,7 +119,7 @@ router.post(
   })
 );
 
-// ─── LEGACY OTP ROUTES (dev/test only — disabled in production) ─────────
+// ─── LEGACY OTP ROUTES (dev/test only - disabled in production) ─────────
 // These mock OTP routes exist for local development convenience. In production,
 // use the real hash-verified /phone/send-otp-public and /phone/verify-otp-public
 // routes below.
@@ -178,7 +178,7 @@ router.post(
     const result = await authService.login(req.body, req);
 
     // 2FA account: the password was right, but the session does not exist yet.
-    // No cookies, no tokens — only a pending token that unlocks the OTP step.
+    // No cookies, no tokens - only a pending token that unlocks the OTP step.
     if (result.twoFactorRequired) {
       return res.json({
         success: true,
@@ -285,7 +285,7 @@ router.post(
   })
 );
 
-// Fixed response for every /forgot-password outcome — registered, unknown,
+// Fixed response for every /forgot-password outcome - registered, unknown,
 // suspended, OAuth-only, or throttled. The client cannot tell them apart, which
 // is the whole point: this endpoint must not confirm whether an email exists.
 const FORGOT_PASSWORD_RESPONSE = {

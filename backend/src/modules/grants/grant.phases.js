@@ -3,7 +3,7 @@ const { STATUS } = require('./grant.status');
 /**
  * The 5-phase Startups India journey, derived from an application's status +
  * evaluation. This is the single source of truth the journey tracker, the
- * sidebar and the pre-apply showcase all render from — the frontend never
+ * sidebar and the pre-apply showcase all render from - the frontend never
  * hardcodes phase logic.
  *
  * Phases 3–5 are real and admin-driven: an admin advances an applicant into
@@ -12,7 +12,7 @@ const { STATUS } = require('./grant.status');
  * label the later phases for someone who hasn't started the journey yet.
  */
 const PHASES = [
-  { key: 'registration', title: 'Registration', subtitle: 'Free — submit your startup idea' },
+  { key: 'registration', title: 'Registration', subtitle: 'Free - submit your startup idea' },
   { key: 'idea_evaluation', title: 'Idea Evaluation', subtitle: 'Reviewed & scored by top VCs and mentors' },
   { key: 'pre_incubation', title: 'Pre-Incubation', subtitle: 'Structured mentorship to get investor-ready', comingSoon: true },
   { key: 'incubation', title: 'Incubation', subtitle: 'Hands-on support to build and scale', comingSoon: true },
@@ -22,7 +22,7 @@ const PHASES = [
 /**
  * Each status → [phase index the applicant occupies, whether that phase is done].
  * `done: true` means they've finished that phase and are awaiting the admin to
- * start the next one — so the next phase renders locked, not current. That is
+ * start the next one - so the next phase renders locked, not current. That is
  * what makes "passing the evaluation doesn't auto-open Pre-Incubation; an admin
  * action does" true.
  */

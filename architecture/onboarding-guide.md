@@ -1,4 +1,4 @@
-# Onboarding Guide — Startup India Incubation Platform
+# Onboarding Guide - Startup India Incubation Platform
 
 Welcome! This guide gets you productive in under 30 minutes.
 
@@ -6,7 +6,7 @@ Welcome! This guide gets you productive in under 30 minutes.
 
 ## What Is This Project?
 
-**Startup India Incubation Platform** — an online learning + incubation platform for Indian entrepreneurs.
+**Startup India Incubation Platform** - an online learning + incubation platform for Indian entrepreneurs.
 
 Users can:
 - Enroll in startup courses (free + paid via Razorpay/Stripe)
@@ -30,7 +30,7 @@ Admins can:
 /apps/web         → Next.js 14 frontend (what users see)
 /backend          → Express.js REST API (all business logic + data)
 /infra            → Nginx, AWS, deployment scripts
-/architecture     → This folder — compressed architecture docs
+/architecture     → This folder - compressed architecture docs
 ```
 
 ---
@@ -46,7 +46,7 @@ cp backend/.env.example backend/.env
 # Required: MONGODB_URI, JWT_ACCESS_SECRET, JWT_REFRESH_SECRET
 
 # 3. Set up frontend env
-# apps/web/.env.local already exists — add NEXT_PUBLIC_API_URL=http://localhost:5000
+# apps/web/.env.local already exists - add NEXT_PUBLIC_API_URL=http://localhost:5000
 
 # 4. Start everything
 npm run dev:full   # starts backend (port 5000) + frontend (port 3000)
@@ -104,7 +104,7 @@ All database models:
 
 ## Where APIs Live
 
-All APIs are at `/api/v1/*` — full list in `architecture/api-map.md`.
+All APIs are at `/api/v1/*` - full list in `architecture/api-map.md`.
 
 Key groups:
 ```

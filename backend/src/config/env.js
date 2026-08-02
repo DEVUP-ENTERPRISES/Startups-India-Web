@@ -31,10 +31,10 @@ const env = {
   // Secret path segment for all admin API routes. Must not be 'admin' or any common slug.
   ADMIN_SLUG: process.env.ADMIN_SLUG || 'ctrl-x9k2m3-panel',
 
-  // Public origin of the Next.js app — used to build password-reset links.
+  // Public origin of the Next.js app - used to build password-reset links.
   FRONTEND_URL: (process.env.FRONTEND_URL || 'http://localhost:3000').replace(/\/+$/, ''),
 
-  // Public origin of THIS API — used to build CRM open/click/unsubscribe URLs
+  // Public origin of THIS API - used to build CRM open/click/unsubscribe URLs
   // that recipients' email clients hit. Must be publicly reachable in prod.
   API_PUBLIC_URL: (process.env.API_PUBLIC_URL || 'http://localhost:5000').replace(/\/+$/, ''),
   // Global ceiling on marketing emails sent per rolling 24h.
@@ -56,7 +56,7 @@ const env = {
   // ─── SMS / PHONE OTP ──────────────────────────────────────────────────
   // Global kill-switch for SMS two-factor. Default OFF (paused) while SMS
   // delivery is being sorted out. When false, login never issues a 2FA
-  // challenge — so a user who already enabled 2FA is NOT locked out by an SMS
+  // challenge - so a user who already enabled 2FA is NOT locked out by an SMS
   // they can't receive. Flip to 'true' to switch the whole flow back on.
   TWO_FACTOR_ENABLED: process.env.TWO_FACTOR_ENABLED === 'true',
 
@@ -77,7 +77,7 @@ const env = {
   OTP_LENGTH: Number(process.env.OTP_LENGTH || 6),
   OTP_TTL_MINUTES: Number(process.env.OTP_TTL_MINUTES || 5),
   // A 6-digit code is only ~1M wide, so the attempt cap is what actually secures
-  // it — not the code length. Burn the challenge after this many wrong guesses.
+  // it - not the code length. Burn the challenge after this many wrong guesses.
   OTP_MAX_ATTEMPTS: Number(process.env.OTP_MAX_ATTEMPTS || 5),
   OTP_RESEND_COOLDOWN_SECONDS: Number(process.env.OTP_RESEND_COOLDOWN_SECONDS || 60),
   OTP_MAX_SENDS_PER_HOUR: Number(process.env.OTP_MAX_SENDS_PER_HOUR || 5),
@@ -94,7 +94,7 @@ for (const key of required) {
 }
 
 // In production a reset link that points at localhost is a silent, user-facing
-// breakage — fail fast at boot instead of mailing dead links.
+// breakage - fail fast at boot instead of mailing dead links.
 if (env.NODE_ENV === 'production') {
   if (env.FRONTEND_URL.includes('localhost')) {
     throw new Error('FRONTEND_URL must be set to the public site origin in production');
@@ -109,7 +109,7 @@ if (env.NODE_ENV === 'production') {
     // The console driver prints OTPs to stdout. If that ever ran in production it
     // would mean every 2FA code is sitting in the logs and no SMS is being sent.
     if (env.SMS_PROVIDER === 'console') {
-      throw new Error('SMS_PROVIDER must not be "console" when TWO_FACTOR_ENABLED — set it to "msg91" or "2factor"');
+      throw new Error('SMS_PROVIDER must not be "console" when TWO_FACTOR_ENABLED - set it to "msg91" or "2factor"');
     }
     if (env.SMS_PROVIDER === 'msg91' && !env.MSG91_AUTH_KEY) {
       throw new Error('MSG91_AUTH_KEY is required when SMS_PROVIDER=msg91');

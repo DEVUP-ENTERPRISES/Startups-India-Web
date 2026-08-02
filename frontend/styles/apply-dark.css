@@ -1,0 +1,631 @@
+/* ════════════════════════════════════════════════════════════════════════════
+    Apply Dark Section - Pixel-Perfect Premium UI
+    ════════════════════════════════════════════════════════════════════════════ */
+
+.apply-dark-section {
+  position: relative;
+  padding: 80px 0 0;
+  background: #0B0B0C;
+  background-image: radial-gradient(
+    circle at center,
+    rgba(229, 57, 53, 0.12),
+    transparent 60%
+  );
+  overflow: hidden;
+  color: #FFFFFF;
+}
+
+/* ── Section Header ────────────────────────────────────────────────────────── */
+.apply-section-header {
+  text-align: center;
+  max-width: 800px;
+  margin: 0 auto 48px;
+  padding: 0 20px;
+}
+
+.apply-main-title {
+  font-size: clamp(32px, 5vw, 42px);
+  font-weight: 700;
+  color: #FFFFFF;
+  margin-bottom: 16px;
+  letter-spacing: -0.02em;
+}
+
+.apply-main-subtitle {
+  font-size: 15px;
+  color: #9CA3AF;
+  line-height: 1.6;
+  max-width: 650px;
+  margin: 0 auto;
+}
+
+/* ── Main Glass Container ─────────────────────────────────────────────────── */
+.apply-glass-container {
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 40px;
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 32px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  box-sizing: border-box;
+}
+
+/* ── LEFT COLUMN ──────────────────────────────────────────────────────────── */
+.apply-left-col {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.apply-panel-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #FFFFFF;
+  margin-bottom: 8px;
+}
+
+.apply-feature-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.apply-feature-list li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 15px;
+  color: #d1d5db;
+}
+
+.red-dot {
+  width: 7px;
+  height: 7px;
+  background: #E53935;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 8px rgba(229, 57, 53, 0.6);
+}
+
+/* Contact Grid */
+.apply-contact-cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.contact-card-glass {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  transition: all 0.3s ease;
+  cursor: default;
+}
+
+.contact-card-glass:hover {
+  transform: translateY(-4px);
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.contact-card-icon {
+  width: 36px;
+  height: 36px;
+  background: rgba(229, 57, 53, 0.1);
+  border: 1px solid rgba(229, 57, 53, 0.2);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #E53935;
+}
+
+.contact-card-data {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.contact-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #9CA3AF;
+  letter-spacing: 0.05em;
+}
+
+.contact-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: #FFFFFF;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+/* Stats */
+.apply-stats-horizontal {
+  display: flex;
+  gap: 40px;
+  margin-top: auto;
+  padding-top: 16px;
+}
+
+.apply-stat-box {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-number {
+  font-size: 28px;
+  font-weight: 700;
+  color: #FFFFFF;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.stat-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #6b7280;
+  letter-spacing: 0.05em;
+}
+
+/* ── RIGHT COLUMN (FORM) ─────────────────────────────────────────────────── */
+.apply-right-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.apply-form-glass {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.form-group-glass {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group-glass label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #9CA3AF !important;
+  letter-spacing: 0.05em;
+}
+
+.form-group-glass input,
+.form-group-glass select,
+.form-group-glass textarea {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 14px;
+  color: #FFFFFF !important;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.form-group-glass input::placeholder,
+.form-group-glass textarea::placeholder {
+  color: #9ca3af !important;
+}
+
+.form-group-glass input:focus,
+.form-group-glass select:focus,
+.form-group-glass textarea:focus {
+  border-color: #E53935;
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 15px rgba(229, 57, 53, 0.1);
+}
+
+/* ── CUSTOM DROPDOWN ─────────────────────────────────────────────────────── */
+.custom-dropdown {
+  position: relative;
+  width: 100%;
+}
+
+.dropdown-trigger {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 14px;
+  color: #FFFFFF !important;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.dropdown-trigger:hover,
+.dropdown-trigger.active {
+  border-color: #E53935;
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow:(, , , 0.4);
+}
+
+.arrow-icon {
+  color: #9CA3AF;
+  transition: transform 0.3s ease;
+}
+
+.arrow-icon.rotate {
+  transform: rotate(180deg);
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 100%;
+  background: rgba(15, 15, 16, 0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  overflow: hidden;
+  z-index: 100;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+}
+
+.dropdown-option {
+  padding: 12px 14px;
+  color: #FFFFFF;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: transparent;
+}
+
+.dropdown-option:hover {
+  background: rgba(229, 57, 53, 0.15);
+  color: #FFFFFF;
+}
+
+.dropdown-option.selected {
+  background: rgba(229, 57, 53, 0.2);
+  font-weight: 500;
+}
+
+/* Button */
+.apply-now-btn {
+  width: 100%;
+  height: 52px;
+  background: #E53935;
+  border: none;
+  border-radius: 12px;
+  color: #FFFFFF;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 8px;
+  box-shadow: 0 4px 15px rgba(229, 57, 53, 0.2);
+}
+
+.apply-now-btn:hover {
+  background: #f44336;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(229, 57, 53, 0.4);
+}
+
+.apply-now-btn:disabled {
+  opacity: 0.8;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ── SUCCESS MESSAGE ───────────────────────────────────────────────────────── */
+.success-message-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px 20px;
+  background: rgba(229, 57, 53, 0.03);
+  border-radius: 16px;
+  border: 1px solid rgba(229, 57, 53, 0.1);
+}
+
+.success-icon-wrapper {
+  margin-bottom: 24px;
+}
+
+.success-icon-bg {
+  width: 80px;
+  height: 80px;
+  background: rgba(229, 57, 53, 0.1);
+  border: 2px solid rgba(229, 57, 53, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #E53935;
+  box-shadow: 0 0 30px rgba(229, 57, 53, 0.15);
+}
+
+.success-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #FFFFFF;
+  margin-bottom: 12px;
+}
+
+.success-text {
+  font-size: 15px;
+  color: #9CA3AF;
+  line-height: 1.6;
+  max-width: 320px;
+  margin-bottom: 24px;
+}
+
+.success-timeline {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 10px 16px;
+  border-radius: 30px;
+  margin-bottom: 32px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.timeline-dot {
+  width: 8px;
+  height: 8px;
+  background: #E53935;
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(229, 57, 53, 0.8);
+}
+
+.timeline-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: #FFFFFF;
+}
+
+.reset-form-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #9CA3AF;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.reset-form-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #FFFFFF;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Loader */
+.btn-loader {
+  width: 24px;
+  height: 24px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #FFFFFF;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── RESPONSIVE ───────────────────────────────────────────────────────────── */
+
+@media (max-width: 1100px) {
+  .apply-glass-container {
+    width: calc(100% - 40px);
+    margin: 0 20px;
+  }
+}
+
+@media (max-width: 992px) {
+  .apply-glass-container {
+    grid-template-columns: 1fr;
+    padding: 32px;
+    width: calc(100% - 32px);
+    margin: 0 16px;
+  }
+
+  .apply-section-header {
+    margin-bottom: 32px;
+  }
+
+  .apply-stats-horizontal {
+    margin-top: 24px;
+    margin-bottom: 24px;
+  }
+}
+
+/* ════════════════════════════════════
+   MOBILE - FULL RESPONSIVE OVERHAUL
+   ════════════════════════════════════ */
+@media (max-width: 768px) {
+  .apply-dark-section {
+    padding: 48px 0 0;
+  }
+
+  .apply-section-header {
+    padding: 0 16px;
+    margin-bottom: 20px;
+  }
+
+  .apply-main-title {
+    font-size: clamp(22px, 6vw, 30px);
+    margin-bottom: 10px;
+  }
+
+  .apply-main-subtitle {
+    font-size: 13.5px;
+    line-height: 1.55;
+  }
+
+  /* Container - full width, no side gaps cutting content */
+  .apply-glass-container {
+    grid-template-columns: 1fr;
+    width: calc(100% - 24px);
+    margin: 0 12px;
+    padding: 22px 16px;
+    border-radius: 16px;
+    gap: 24px;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+
+  /* Panel title */
+  .apply-panel-title {
+    font-size: 18px;
+    margin-bottom: 14px;
+  }
+
+  /* Feature list */
+  .apply-feature-list li {
+    font-size: 14px;
+    gap: 10px;
+  }
+
+  /* Contact cards - keep 2-column grid, more compact */
+  .apply-contact-cards {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 16px;
+  }
+
+  .contact-card-glass {
+    padding: 12px 10px;
+    gap: 10px;
+    border-radius: 12px;
+  }
+
+  .contact-card-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    flex-shrink: 0;
+  }
+
+  .contact-card-icon svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  .contact-label {
+    font-size: 9px;
+  }
+
+  .contact-value {
+    font-size: 11.5px;
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  /* Form */
+  .apply-form-glass {
+    gap: 14px;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .form-group-glass label {
+    font-size: 10px;
+  }
+
+  .form-group-glass input,
+  .form-group-glass select,
+  .form-group-glass textarea {
+    padding: 11px 14px;
+    font-size: 14px;
+    border-radius: 10px;
+  }
+
+  .dropdown-trigger {
+    padding: 11px 14px;
+    font-size: 14px;
+    border-radius: 10px;
+  }
+
+  .apply-now-btn {
+    height: 48px;
+    font-size: 13px;
+    border-radius: 10px;
+  }
+
+  /* Stats row */
+  .apply-stats-horizontal {
+    gap: 24px;
+    padding-top: 12px;
+  }
+
+  .stat-number {
+    font-size: 22px;
+  }
+
+  .stat-label {
+    font-size: 10px;
+  }
+}
+
+/* ── Extra small phones ── */
+@media (max-width: 400px) {
+  .apply-glass-container {
+    width: calc(100% - 16px);
+    margin: 0 8px;
+    padding: 18px 14px;
+    border-radius: 14px;
+  }
+
+  /* Stack contact cards 1 per row on tiny screens */
+  .apply-contact-cards {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .contact-card-glass {
+    flex-direction: row;
+    padding: 11px 12px;
+  }
+
+  .apply-main-title {
+    font-size: 20px;
+  }
+}

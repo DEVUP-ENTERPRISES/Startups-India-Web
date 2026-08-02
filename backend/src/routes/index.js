@@ -40,15 +40,15 @@ function registerRoutes(app) {
   const { crmRouter } = require('../modules/crm/crm.routes');
   app.use('/api/v1/crm', crmRouter);
 
-  // Startup Grant — student-facing. Every route is scoped to the caller.
+  // Startup Grant - student-facing. Every route is scoped to the caller.
   app.use('/api/v1/grants', grantsRouter);
 
-  // Startup Grant — admin. Mounted BEFORE adminRouter so the more specific
+  // Startup Grant - admin. Mounted BEFORE adminRouter so the more specific
   // /grants prefix wins, and gated by an admin role check of its own: knowing
   // the secret slug is not authorisation.
   app.use(`/api/v1/${env.ADMIN_SLUG}/grants`, grantsAdminRouter);
 
-  // Admin routes mounted under the secret slug — /api/v1/admin returns 404
+  // Admin routes mounted under the secret slug - /api/v1/admin returns 404
   app.use(`/api/v1/${env.ADMIN_SLUG}`, adminRouter);
 
   // Harden: explicitly 404 any attempt to reach the old /admin path
@@ -70,7 +70,7 @@ function registerRoutes(app) {
   const investorsRouter = require('../modules/investors/investors.routes');
   app.use('/api/v1/investors', investorsRouter);
 
-  // Public push subscribe (no auth — any visitor can subscribe)
+  // Public push subscribe (no auth - any visitor can subscribe)
   const { pushRouter } = require('../modules/push/push.routes');
   app.use('/api/v1/push', pushRouter);
 

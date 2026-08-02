@@ -13,7 +13,7 @@ const { PHASES } = require('./grant.phases');
 const router = express.Router();
 
 // Which settings key holds the price for each paid phase. Keeps the config route
-// from hardcoding fee amounts — the numbers live in grant.settings.js only.
+// from hardcoding fee amounts - the numbers live in grant.settings.js only.
 const PHASE_FEE_KEYS = {
   idea_evaluation: 'grant.evaluation.fee',
   pre_incubation: 'grant.preIncubation.fee',
@@ -21,7 +21,7 @@ const PHASE_FEE_KEYS = {
 };
 
 // Every route here is student-facing and scoped to the caller. There is no route
-// on this router that can read another user's application — admin access lives on
+// on this router that can read another user's application - admin access lives on
 // the separate admin router, behind the secret slug and a role check.
 router.use(authRequired);
 
@@ -207,7 +207,7 @@ router.get(
 );
 
 // Note there is NO amount in the request body. The price is computed server-side
-// from admin settings — a client cannot propose what it would like to pay.
+// from admin settings - a client cannot propose what it would like to pay.
 router.post(
   '/applications/:id/evaluation/order',
   asyncHandler(async (req, res) => {

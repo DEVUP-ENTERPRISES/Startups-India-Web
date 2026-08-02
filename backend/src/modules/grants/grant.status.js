@@ -7,7 +7,7 @@ const { ApiError } = require('../../utils/apiError');
  * Without this, an application could go Rejected → Grant Approved, or a student
  * could reach Evaluation Scheduled without ever paying. Every transition in the
  * product is enumerated here, and anything not listed is rejected at the service
- * boundary — so a bug in a controller cannot corrupt an application's history.
+ * boundary - so a bug in a controller cannot corrupt an application's history.
  */
 const STATUS = {
   DRAFT: 'draft',
@@ -21,7 +21,7 @@ const STATUS = {
   EVALUATION_PAID: 'idea_evaluation_paid',
   EVALUATION_SCHEDULED: 'evaluation_scheduled',
   EVALUATION_COMPLETED: 'evaluation_completed',
-  // Phases 3 & 4 — admin advances an applicant into each. Reaching a status here
+  // Phases 3 & 4 - admin advances an applicant into each. Reaching a status here
   // unlocks that phase on the journey tracker.
   PRE_INCUBATION: 'pre_incubation',
   INCUBATION: 'incubation',
@@ -32,7 +32,7 @@ const STATUS = {
 
 const ALL_STATUSES = Object.values(STATUS);
 
-// Human labels — the student UI never invents its own copy for a status.
+// Human labels - the student UI never invents its own copy for a status.
 const STATUS_LABELS = {
   [STATUS.DRAFT]: 'Draft',
   [STATUS.SUBMITTED]: 'Submitted',
@@ -69,7 +69,7 @@ const TRANSITIONS = {
   [STATUS.SHORTLISTED]: [STATUS.SELECTED, STATUS.REJECTED, STATUS.UNDER_REVIEW],
   // Selection is what opens the paid evaluation.
   [STATUS.SELECTED]: [STATUS.EVALUATION_PENDING, STATUS.GRANT_APPROVED, STATUS.REJECTED],
-  // Only a verified payment moves this on — see grant.service.
+  // Only a verified payment moves this on - see grant.service.
   [STATUS.EVALUATION_PENDING]: [STATUS.EVALUATION_PAID, STATUS.REJECTED],
   [STATUS.EVALUATION_PAID]: [STATUS.EVALUATION_SCHEDULED, STATUS.REJECTED],
   [STATUS.EVALUATION_SCHEDULED]: [STATUS.EVALUATION_COMPLETED, STATUS.REJECTED],

@@ -8,7 +8,7 @@ const { notifyUser } = require('./grant.notify');
 /**
  * Idea Evaluation: scheduling the meeting and recording the reviewer's verdict.
  *
- * Nothing here can run before the fee is settled — scheduling reads the payment
+ * Nothing here can run before the fee is settled - scheduling reads the payment
  * record, not an admin's word for it.
  */
 
@@ -67,7 +67,7 @@ async function getEvaluation(applicationDbId) {
 
 /**
  * Schedule the evaluation meeting.
- * Requires a settled payment — an unpaid student cannot be booked in.
+ * Requires a settled payment - an unpaid student cannot be booked in.
  */
 async function scheduleMeeting({ applicationDbId, mode, scheduledAt, link, location, adminUserId }) {
   if (!MEETING_MODES.includes(mode)) {
@@ -205,8 +205,8 @@ async function submitResult({ applicationDbId, score, feedback, reviewerId }) {
     applicationId: application._id,
     event: 'evaluation_completed',
     message: passed
-      ? `Idea Evaluation cleared — scored ${n}/100.`
-      : `Idea Evaluation scored ${n}/100 — below the ${threshold} pass mark.`,
+      ? `Idea Evaluation cleared - scored ${n}/100.`
+      : `Idea Evaluation scored ${n}/100 - below the ${threshold} pass mark.`,
     actorId: reviewerId,
     actorRole: 'admin',
     reason: feedback || '',
@@ -220,7 +220,7 @@ async function submitResult({ applicationDbId, score, feedback, reviewerId }) {
       userId: application.userId,
       title: '🎉 You cleared the Idea Evaluation!',
       message:
-        'Congratulations — your idea passed evaluation by our panel. '
+        'Congratulations - your idea passed evaluation by our panel. '
         + 'You are now eligible for the next phases (Pre-Incubation, Incubation and Funding). '
         + 'We will be in touch with the next steps.'
         + (feedback ? `\n\nPanel note: ${feedback}` : ''),

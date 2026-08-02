@@ -22,12 +22,12 @@ const razorpay =
  *
  *  1. The AMOUNT is never taken from the client. It is computed from admin
  *     settings and frozen onto the order. A request body saying "amount: 1" is
- *     ignored — there is no amount field to send.
+ *     ignored - there is no amount field to send.
  *  2. The status only moves to Paid when Razorpay's HMAC signature verifies.
  *     No signature, no state change; and an admin cannot set it by hand either
  *     (grant.service refuses that transition explicitly).
  *  3. Capture is idempotent. Razorpay can call back twice, and a user can
- *     replay the same handler response — neither may produce two payments or
+ *     replay the same handler response - neither may produce two payments or
  *     double-advance the application.
  */
 
@@ -70,12 +70,12 @@ async function createEvaluationOrder(userId, applicationDbId) {
   });
   if (settled) throw new ApiError(409, 'The evaluation fee for this application is already paid.');
 
-  // The price is computed here, from settings — never accepted from the client.
+  // The price is computed here, from settings - never accepted from the client.
   const fee = await computeEvaluationFee();
   if (fee.totalAmount <= 0) throw new ApiError(500, 'Evaluation fee is not configured.');
 
   // Reuse an unpaid order rather than littering Razorpay with abandoned ones.
-  // BUT — if the admin changed the fee since the order was created, expire the
+  // BUT - if the admin changed the fee since the order was created, expire the
   // stale order so the student isn't charged a different amount than what the UI
   // is displaying.
   const existing = await EvaluationPayment.findOne({
@@ -95,7 +95,7 @@ async function createEvaluationOrder(userId, applicationDbId) {
         applicationRef: application.applicationId,
       };
     }
-    // Fee changed — expire the old order so a fresh one is created below.
+    // Fee changed - expire the old order so a fresh one is created below.
     existing.status = 'expired';
     await existing.save();
     logger.info('Expired stale evaluation order (fee changed)', {
@@ -119,7 +119,7 @@ async function createEvaluationOrder(userId, applicationDbId) {
   });
 
   // Snapshot the price. If an admin changes the fee while this checkout is open,
-  // the student still settles at the price they were quoted — and we can prove
+  // the student still settles at the price they were quoted - and we can prove
   // what that price was.
   const payment = await EvaluationPayment.create({
     applicationId: application._id,
@@ -206,7 +206,7 @@ async function verifyEvaluationPayment(userId, { orderId, paymentId, signature }
   );
 
   if (!settled) {
-    // Someone else settled it in between — treat as success, not an error.
+    // Someone else settled it in between - treat as success, not an error.
     const current = await EvaluationPayment.findById(payment._id);
     return { alreadyPaid: true, payment: current };
   }

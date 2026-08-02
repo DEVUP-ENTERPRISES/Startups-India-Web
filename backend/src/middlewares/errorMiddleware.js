@@ -27,7 +27,7 @@ function errorMiddleware(err, req, res, next) {
   };
 
   if (statusCode >= 500) {
-    // A real server fault — log it loud, with the stack, so it's actionable.
+    // A real server fault - log it loud, with the stack, so it's actionable.
     logger.error('Request failed', err, context);
   } else {
     // A 4xx is the CLIENT's condition, not a server error: an expired token on

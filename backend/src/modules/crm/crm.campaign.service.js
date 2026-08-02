@@ -13,7 +13,7 @@ const {
 /**
  * Campaign engine + a Mongo-backed drain worker.
  *
- * Sending is NOT done in the request that starts a campaign — 100 emails (or a
+ * Sending is NOT done in the request that starts a campaign - 100 emails (or a
  * resumed campaign after a restart) can't run inside one HTTP call. Instead we
  * write one queued CampaignRecipient per contact and a background worker drains
  * them, so the whole thing survives restarts and respects a hard daily cap.
@@ -35,7 +35,7 @@ function trackingUrls(token) {
 
 // Rewrites every http(s) link to route through our click tracker, appends a 1px
 // open pixel, and adds a plain-text unsubscribe footer. Recipients' opens/clicks
-// then land on our API and update their status — the basis for follow-ups.
+// then land on our API and update their status - the basis for follow-ups.
 function withTracking(html, token, subject = 'From Startups India') {
   const t = trackingUrls(token);
 
@@ -214,7 +214,7 @@ async function processCampaign(campaign, budgetLeft) {
     try {
       const result = await sendEmail({ to: recipient.email, subject, html });
       if (result && result.skipped) {
-        // SMTP not configured — treat as failed rather than silently "sent".
+        // SMTP not configured - treat as failed rather than silently "sent".
         recipient.status = 'failed';
         recipient.error = 'Email transport not configured';
         await recipient.save();
@@ -261,7 +261,7 @@ async function tick() {
     const cap = campaigns[0].dailyCap || env.CRM_DAILY_CAP;
     let budget = cap - (await sentInLast24h());
     if (budget <= 0) {
-      // Cap reached for the day — do nothing this tick; it'll free up as the
+      // Cap reached for the day - do nothing this tick; it'll free up as the
       // rolling window advances.
       return;
     }

@@ -1,4 +1,4 @@
-# Business Logic — Startup India Incubation Platform
+# Business Logic - Startup India Incubation Platform
 
 ## Core Business Model
 Online incubation/education platform for Indian startups offering:
@@ -43,7 +43,7 @@ Frontend creates PaymentIntent
 ```
 
 ### Enrollment Idempotency
-`upsertEnrollment` uses MongoDB findOneAndUpdate with upsert — safe to call multiple times (webhook + direct verify both call it).
+`upsertEnrollment` uses MongoDB findOneAndUpdate with upsert - safe to call multiple times (webhook + direct verify both call it).
 
 ---
 
@@ -204,4 +204,4 @@ User can toggle: learning, assessments, community, payments, marketing.
 ---
 
 ## Maintenance Mode
-`MAINTENANCE_MODE` config flag in `apps/web/config/maintenance.js` — renders `MaintenancePage` instead of the homepage when set to `true`.
+`MAINTENANCE_MODE` config flag in `apps/web/config/maintenance.js` - renders `MaintenancePage` instead of the homepage when set to `true`.

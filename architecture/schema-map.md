@@ -1,4 +1,4 @@
-# Schema Map — MongoDB Data Models
+# Schema Map - MongoDB Data Models
 
 All models use Mongoose. Database: MongoDB.
 

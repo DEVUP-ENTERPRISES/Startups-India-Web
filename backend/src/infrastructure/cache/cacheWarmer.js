@@ -3,11 +3,11 @@ const { logger } = require('../observability/logger');
 
 /**
  * Pre-warm critical cache keys on server startup.
- * Failure here is non-fatal — the app will just serve cold on first request.
+ * Failure here is non-fatal - the app will just serve cold on first request.
  */
 async function warmCache() {
   if (!isRedisReady()) {
-    logger.info('cache:warm — skipped (Redis unavailable)');
+    logger.info('cache:warm - skipped (Redis unavailable)');
     return;
   }
 
@@ -35,7 +35,7 @@ async function warmCache() {
   }
 
   const elapsed = Date.now() - start;
-  logger.info('cache:warm — complete', {
+  logger.info('cache:warm - complete', {
     warmed: results.warmed,
     failed: results.failed,
     ms: elapsed,

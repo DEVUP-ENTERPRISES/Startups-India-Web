@@ -1,0 +1,2252 @@
+'use client';
+
+import { useState, useEffect, useCallback, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import Icon from '@/components/ui/Icon';
+import { useDashboard } from '@/contexts/DashboardProvider';
+
+/* ─────────────────────────────────────────────────────────
+   API HELPER  - authenticated calls to Express backend
+───────────────────────────────────────────────────────── */
+import { apiGet, apiPatch, apiDelete } from '@/lib/api';
+
+/* ─────────────────────────────────────────────────────────
+   TOAST SYSTEM
+───────────────────────────────────────────────────────── */
+function useToast() {
+  const [toasts, setToasts] = useState([]);
+  const show = useCallback((message, type = 'success') => {
+    const id = Date.now() + Math.random();
+    setToasts(prev => [...prev, { id, message, type }]);
+    setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 3800);
+  }, []);
+  const dismiss = useCallback(id => setToasts(prev => prev.filter(t => t.id !== id)), []);
+  return { toasts, show, dismiss };
+}
+
+function ToastContainer({ toasts, dismiss }) {
+  if (!toasts.length) return null;
+  return (
+    <div className="toast-container">
+      {toasts.map(t => (
+        <div key={t.id} className={`toast toast-${t.type}`} onClick={() => dismiss(t.id)}>
+          <span className="toast-icon">
+            {t.type === 'success' ? '✓' : t.type === 'error' ? '✕' : 'ℹ'}
+          </span>
+          <span className="toast-msg">{t.message}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────
+   SHARED UI ATOMS
+───────────────────────────────────────────────────────── */
+function Toggle({ enabled, onChange, disabled = false }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={enabled}
+      disabled={disabled}
+      onClick={() => !disabled && onChange(!enabled)}
+      className={`stg-toggle ${enabled ? 'on' : 'off'} ${disabled ? 'disabled' : ''}`}
+    >
+      <span className="stg-toggle-knob" />
+    </button>
+  );
+}
+
+function FieldGroup({ label, required, hint, children }) {
+  return (
+    <div className="stg-field">
+      {label && (
+        <label className="stg-label">
+          {label}
+          {required && <span className="stg-required"> *</span>}
+        </label>
+      )}
+      {children}
+      {hint && <p className="stg-hint">{hint}</p>}
+    </div>
+  );
+}
+
+function Card({ title, subtitle, children, danger = false }) {
+  return (
+    <div className={`stg-card ${danger ? 'stg-card-danger' : ''}`}>
+      {title && (
+        <div className="stg-card-head">
+          <h3 className="stg-card-title">{title}</h3>
+          {subtitle && <p className="stg-card-subtitle">{subtitle}</p>}
+        </div>
+      )}
+      {children}
+    </div>
+  );
+}
+
+function PasswordStrength({ password }) {
+  const checks = [
+    { label: '8+ characters', ok: password.length >= 8 },
+    { label: 'Uppercase letter', ok: /[A-Z]/.test(password) },
+    { label: 'Number', ok: /[0-9]/.test(password) },
+    { label: 'Special character', ok: /[^A-Za-z0-9]/.test(password) },
+  ];
+  const score = checks.filter(c => c.ok).length;
+  const labels = ['', 'Weak', 'Fair', 'Good', 'Strong'];
+  const colors = ['', '#ef4444', '#f59e0b', '#10b981', '#059669'];
+
+  if (!password) return null;
+  return (
+    <div className="stg-pw-strength">
+      <div className="stg-pw-bars">
+        {[1, 2, 3, 4].map(n => (
+          <div
+            key={n}
+            className="stg-pw-bar"
+            style={{ background: n <= score ? colors[score] : '#e2e8f0' }}
+          />
+        ))}
+      </div>
+      <span className="stg-pw-label" style={{ color: colors[score] }}>
+        {labels[score]}
+      </span>
+    </div>
+  );
+}
+
+function Spinner() {
+  return (
+    <div className="stg-loader">
+      <div className="stg-spinner" />
+    </div>
+  );
+}
+
+
+
+/* ─────────────────────────────────────────────────────────
+   PROFILE TAB
+───────────────────────────────────────────────────────── */
+const AVATAR_OPTIONS = [
+  'https://api.dicebear.com/7.x/avataaars/svg?seed=Alex&mouth=smile,twinkle',
+  'https://api.dicebear.com/7.x/avataaars/svg?seed=Jordan&mouth=smile,twinkle',
+  'https://api.dicebear.com/7.x/avataaars/svg?seed=Taylor&mouth=smile,twinkle',
+  'https://api.dicebear.com/7.x/avataaars/svg?seed=Morgan&mouth=smile,twinkle',
+  'https://api.dicebear.com/7.x/avataaars/svg?seed=Casey&mouth=smile,twinkle',
+  'https://api.dicebear.com/7.x/avataaars/svg?seed=Riley&mouth=smile,twinkle',
+  'https://api.dicebear.com/7.x/avataaars/svg?seed=Jamie&mouth=smile,twinkle',
+  'https://api.dicebear.com/7.x/avataaars/svg?seed=Avery&mouth=smile,twinkle',
+  'https://api.dicebear.com/7.x/avataaars/svg?seed=Quinn&mouth=smile,twinkle',
+  'https://api.dicebear.com/7.x/avataaars/svg?seed=Skyler&mouth=smile,twinkle',
+  'https://api.dicebear.com/7.x/avataaars/svg?seed=Dakota&mouth=smile,twinkle',
+  'https://api.dicebear.com/7.x/avataaars/svg?seed=Reese&mouth=smile,twinkle',
+];
+
+function ProfileTab({ toast }) {
+  const { refresh } = useDashboard();
+  const empty = {
+    fullName: '', headline: '', missionStatement: '', bio: '', avatarUrl: '',
+    city: '', state: '', phone: '',
+    socialLinks: [],
+    dynamicProfileData: {},
+  };
+  const [form, setForm] = useState(empty);
+  const [initial, setInitial] = useState(JSON.parse(JSON.stringify(empty)));
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [showAvatarModal, setShowAvatarModal] = useState(false);
+  const [role, setRole] = useState('');
+
+  useEffect(() => {
+    apiGet('/api/v1/settings/profile').then(res => {
+      if (!res.error) {
+        const d = res.data;
+        setRole(d.role || '');
+        let parsedLinks = [
+          { name: 'LinkedIn', url: '' },
+          { name: 'Twitter', url: '' }
+        ];
+        if (Array.isArray(d.socialLinks) && d.socialLinks.length > 0) {
+          parsedLinks = d.socialLinks;
+        } else if (d.socialLinks && typeof d.socialLinks === 'object' && !Array.isArray(d.socialLinks)) {
+          parsedLinks = [];
+          if (d.socialLinks.linkedin) parsedLinks.push({ name: 'LinkedIn', url: d.socialLinks.linkedin });
+          if (d.socialLinks.twitter) parsedLinks.push({ name: 'Twitter', url: d.socialLinks.twitter });
+          if (d.socialLinks.github) parsedLinks.push({ name: 'GitHub', url: d.socialLinks.github });
+          if (d.socialLinks.website) parsedLinks.push({ name: 'Website', url: d.socialLinks.website });
+          if (parsedLinks.length === 0) {
+            parsedLinks = [{ name: 'LinkedIn', url: '' }, { name: 'Twitter', url: '' }];
+          }
+        }
+
+        const formatted = {
+          fullName: d.fullName || '',
+          headline: d.headline || '',
+          missionStatement: d.missionStatement || '',
+          bio: d.bio || '',
+          avatarUrl: d.avatarUrl || '',
+          city: d.city || d.location || '',
+          state: d.state || '',
+          phone: d.phone || '',
+          socialLinks: parsedLinks,
+          dynamicProfileData: d.dynamicProfileData || {},
+        };
+        setForm(JSON.parse(JSON.stringify(formatted)));
+        setInitial(JSON.parse(JSON.stringify(formatted)));
+      }
+    }).finally(() => setLoading(false));
+  }, []);
+
+  const field = (key, val) => setForm(f => ({ ...f, [key]: val }));
+  
+  const updateSocialLink = (index, key, val) => {
+    setForm(f => {
+      const newLinks = [...f.socialLinks];
+      newLinks[index] = { ...newLinks[index], [key]: val };
+      
+      // Validation check for URL
+      if (key === 'url') {
+        const isValid = val.trim() === '' || val.startsWith('http://') || val.startsWith('https://');
+        newLinks[index].error = isValid ? '' : 'URL must start with http:// or https://';
+      }
+      
+      return { ...f, socialLinks: newLinks };
+    });
+  };
+
+  const addSocialLink = () => {
+    setForm(f => ({
+      ...f,
+      socialLinks: [...f.socialLinks, { name: '', url: '' }]
+    }));
+  };
+
+  const removeSocialLink = (index) => {
+    setForm(f => {
+      const newLinks = [...f.socialLinks];
+      newLinks.splice(index, 1);
+      return { ...f, socialLinks: newLinks };
+    });
+  };
+
+  const dirty = JSON.stringify(form) !== JSON.stringify(initial);
+
+  const handleSave = async () => {
+    // Validation check for social links
+    const invalidLinks = form.socialLinks.filter(link => 
+      link.url && !link.url.startsWith('http://') && !link.url.startsWith('https://')
+    );
+    
+    if (invalidLinks.length > 0) {
+      toast('Please fix the invalid social links (must start with http:// or https://)', 'error');
+      return;
+    }
+
+    // Phone number validation (exactly 10 digits)
+    const phoneDigits = form.phone.replace(/\D/g, '');
+    if (phoneDigits.length !== 10) {
+      toast('Phone number must be exactly 10 digits', 'error');
+      return;
+    }
+
+    setSaving(true);
+    // Use cleaned phone number and filter out empty social links
+    const finalForm = { 
+      ...form, 
+      phone: phoneDigits,
+      socialLinks: form.socialLinks.filter(link => link.name.trim() !== '' && link.url.trim() !== '')
+    };
+    
+    const { error } = await apiPatch('/api/v1/settings/profile', finalForm);
+    setSaving(false);
+    if (!error) {
+      setInitial(JSON.parse(JSON.stringify(finalForm)));
+      setForm(finalForm);
+      if (refresh) await refresh();
+      toast('Profile updated successfully', 'success');
+    } else {
+      toast(error.message || 'Failed to update profile', 'error');
+    }
+  };
+
+  const initials = form.fullName
+    ? form.fullName.charAt(0).toUpperCase()
+    : 'U';
+
+  if (loading) return <Spinner />;
+
+  return (
+    <div className="stg-tab-body">
+      <div className="stg-tab-header">
+        <h2 className="stg-tab-title">Profile &amp; Identity</h2>
+        <p className="stg-tab-subtitle">Manage your public profile and professional presence.</p>
+      </div>
+
+      {/* ── Avatar + Core info ── */}
+      <Card title="Profile Information">
+        <div className="stg-avatar-row">
+          <div className="stg-avatar-wrap">
+            {form.avatarUrl ? (
+              <img src={form.avatarUrl} alt="Avatar" className="stg-avatar" style={{ objectFit: 'cover' }} />
+            ) : (
+              <div className="stg-avatar">{initials}</div>
+            )}
+            <div className="stg-avatar-badge" onClick={() => setShowAvatarModal(true)} style={{ cursor: 'pointer' }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+              </svg>
+            </div>
+          </div>
+          <div className="stg-avatar-meta">
+            <p className="stg-avatar-name">{form.fullName || 'Your Name'}</p>
+            <p className="stg-avatar-tagline">{form.headline || 'Add a headline below'}</p>
+            <p className="stg-avatar-note">{form.city && form.state ? `${form.city}, ${form.state}` : form.city || form.state || 'Add your location below…'}</p>
+          </div>
+        </div>
+
+        <div className="stg-grid-2">
+          <FieldGroup label="Full Name" required>
+            <input
+              className="stg-input"
+              value={form.fullName}
+              onChange={e => field('fullName', e.target.value)}
+              placeholder="Jane Doe"
+            />
+          </FieldGroup>
+          <FieldGroup label="Headline">
+            <input
+              className="stg-input"
+              value={form.headline}
+              onChange={e => field('headline', e.target.value)}
+              placeholder="Founder @ Startup India"
+            />
+          </FieldGroup>
+        </div>
+
+        <FieldGroup label="Mission Statement">
+          <input
+            className="stg-input"
+            value={form.missionStatement}
+            onChange={e => field('missionStatement', e.target.value)}
+            placeholder="Your core professional objective…"
+          />
+        </FieldGroup>
+
+        <FieldGroup label="Bio" hint={`${form.bio.length} / 300 characters`}>
+          <textarea
+            className="stg-input stg-textarea"
+            rows={3}
+            maxLength={300}
+            value={form.bio}
+            onChange={e => field('bio', e.target.value)}
+            placeholder="Tell the founder community about yourself…"
+            style={{ borderColor: dirty ? '#7A1F2B' : '#e5e7eb' }}
+          />
+        </FieldGroup>
+
+
+      </Card>
+
+      {/* ── Avatar Modal ── */}
+      {showAvatarModal && (
+        <div className="stg-modal-overlay" onClick={() => setShowAvatarModal(false)}>
+          <div className="stg-modal-content" onClick={e => e.stopPropagation()}>
+            <div className="stg-modal-header">
+              <h3 style={{ margin: 0, fontSize: '1.25rem', color: '#0f172a' }}>Select Avatar</h3>
+              <button onClick={() => setShowAvatarModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8' }}>
+                <Icon name="x" size={20} />
+              </button>
+            </div>
+            <div className="stg-avatar-grid">
+              {AVATAR_OPTIONS.map((url, idx) => (
+                <div 
+                  key={idx} 
+                  className={`stg-avatar-option ${form.avatarUrl === url ? 'selected' : ''}`}
+                  onClick={() => { field('avatarUrl', url); setShowAvatarModal(false); }}
+                >
+                  <img src={url} alt={`Avatar ${idx}`} />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+  {/* ── Contact details ── */}
+      <Card title="Contact &amp; Details">
+        <div className="stg-grid-3">
+          <FieldGroup label="City">
+            <div className="stg-input-icon">
+              <Icon name="mapPin" size={15} />
+              <input
+                className="stg-input"
+                value={form.city}
+                onChange={e => field('city', e.target.value)}
+                placeholder="e.g. Mumbai"
+              />
+            </div>
+          </FieldGroup>
+          <FieldGroup label="State">
+            <div className="stg-input-icon">
+              <Icon name="mapPin" size={15} />
+              <input
+                className="stg-input"
+                value={form.state}
+                onChange={e => field('state', e.target.value)}
+                placeholder="e.g. Maharashtra"
+              />
+            </div>
+          </FieldGroup>
+          <FieldGroup label="Phone Number" hint="Must be exactly 10 digits">
+            <div className="stg-input-icon">
+              <Icon name="phone" size={15} />
+              <input
+                className="stg-input"
+                value={form.phone}
+                onChange={e => {
+                  const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                  field('phone', val);
+                }}
+                placeholder="9876543210"
+              />
+            </div>
+          </FieldGroup>
+        </div>
+      </Card>
+
+      <Card title="Social Links" subtitle="Strictly 2 links per row. URLs must be valid and start with http:// or https://">
+        <div className="stg-social-grid">
+          {form.socialLinks.map((link, idx) => (
+            <div key={idx} className="stg-social-card">
+              <div className="stg-social-card-header">
+                <div className="stg-social-icon-box">
+                  <Icon name={link.name.toLowerCase().includes('linkedin') ? 'linkedin' : link.name.toLowerCase().includes('twitter') ? 'twitter' : 'link'} size={14} />
+                </div>
+                <input
+                  className="stg-social-name-input"
+                  value={link.name}
+                  onChange={e => updateSocialLink(idx, 'name', e.target.value)}
+                  placeholder="Link Name (e.g. LinkedIn)"
+                />
+                <button 
+                  className="stg-social-card-remove"
+                  onClick={() => removeSocialLink(idx)}
+                >
+                  <Icon name="x" size={14} />
+                </button>
+              </div>
+              <div className="stg-social-url-wrap">
+                <input
+                  className={`stg-input stg-social-url-input ${link.error ? 'stg-input-error' : ''}`}
+                  type="url"
+                  value={link.url}
+                  onChange={e => updateSocialLink(idx, 'url', e.target.value)}
+                  placeholder="https://..."
+                />
+                {link.error && <p className="stg-social-error-text">{link.error}</p>}
+              </div>
+            </div>
+          ))}
+          <button 
+            className="stg-social-add-card" 
+            onClick={addSocialLink}
+          >
+            <div className="stg-social-add-icon">
+              <Icon name="plus" size={20} />
+            </div>
+            <span>Add New Link</span>
+          </button>
+        </div>
+      </Card>
+
+      {role === 'startup' && (
+        <Card title="Startup Profile Details" subtitle="Edit details related to your startup, visible on incubation applications.">
+          <div className="stg-grid-2">
+            <FieldGroup label="Startup Name" required>
+              <input
+                className="stg-input"
+                value={form.dynamicProfileData?.startupName || ''}
+                onChange={e => {
+                  const dp = { ...form.dynamicProfileData, startupName: e.target.value };
+                  setForm(f => ({ ...f, dynamicProfileData: dp }));
+                }}
+                placeholder="My Startup LLC"
+              />
+            </FieldGroup>
+            <FieldGroup label="Startup Stage" required>
+              <select
+                className="stg-input"
+                value={form.dynamicProfileData?.startupStage || ''}
+                onChange={e => {
+                  const dp = { ...form.dynamicProfileData, startupStage: e.target.value };
+                  setForm(f => ({ ...f, dynamicProfileData: dp }));
+                }}
+              >
+                <option value="">Select Stage</option>
+                <option value="Idea">Idea</option>
+                <option value="MVP">MVP</option>
+                <option value="Early Revenue">Early Revenue</option>
+                <option value="Growth">Growth</option>
+                <option value="Scaling">Scaling</option>
+              </select>
+            </FieldGroup>
+          </div>
+
+          <div className="stg-grid-2">
+            <FieldGroup label="Industry" required>
+              <input
+                className="stg-input"
+                value={form.dynamicProfileData?.industry || ''}
+                onChange={e => {
+                  const dp = { ...form.dynamicProfileData, industry: e.target.value };
+                  setForm(f => ({ ...f, dynamicProfileData: dp }));
+                }}
+                placeholder="e.g. EdTech, FinTech"
+              />
+            </FieldGroup>
+            <FieldGroup label="Team Size" required>
+              <select
+                className="stg-input"
+                value={form.dynamicProfileData?.teamSize || ''}
+                onChange={e => {
+                  const dp = { ...form.dynamicProfileData, teamSize: e.target.value };
+                  setForm(f => ({ ...f, dynamicProfileData: dp }));
+                }}
+              >
+                <option value="">Select Size</option>
+                <option value="1-5">1 - 5 members</option>
+                <option value="6-20">6 - 20 members</option>
+                <option value="21-50">21 - 50 members</option>
+                <option value="50+">50+ members</option>
+              </select>
+            </FieldGroup>
+          </div>
+
+          <div className="stg-grid-2">
+            <FieldGroup label="Year Founded" required>
+              <select
+                className="stg-input"
+                value={form.dynamicProfileData?.yearFounded || ''}
+                onChange={e => {
+                  const dp = { ...form.dynamicProfileData, yearFounded: e.target.value };
+                  setForm(f => ({ ...f, dynamicProfileData: dp }));
+                }}
+              >
+                <option value="">Select Year</option>
+                {['2026', '2025', '2024', '2023', '2022', '2021', '2020', 'Before 2020'].map(y => (
+                  <option key={y} value={y}>{y}</option>
+                ))}
+              </select>
+            </FieldGroup>
+            <FieldGroup label="Registered Company?" required>
+              <select
+                className="stg-input"
+                value={form.dynamicProfileData?.isRegistered || ''}
+                onChange={e => {
+                  const dp = { ...form.dynamicProfileData, isRegistered: e.target.value };
+                  setForm(f => ({ ...f, dynamicProfileData: dp }));
+                }}
+              >
+                <option value="">Select Option</option>
+                <option value="Yes">Yes (Pvt Ltd / LLP / OPC)</option>
+                <option value="No">No (Proprietorship / Unregistered)</option>
+              </select>
+            </FieldGroup>
+          </div>
+
+          <div className="stg-grid-2">
+            <FieldGroup label="Website">
+              <input
+                className="stg-input"
+                value={form.dynamicProfileData?.website || ''}
+                onChange={e => {
+                  const dp = { ...form.dynamicProfileData, website: e.target.value };
+                  setForm(f => ({ ...f, dynamicProfileData: dp }));
+                }}
+                placeholder="https://mycompany.com"
+              />
+            </FieldGroup>
+            <FieldGroup label="LinkedIn">
+              <input
+                className="stg-input"
+                value={form.dynamicProfileData?.linkedin || ''}
+                onChange={e => {
+                  const dp = { ...form.dynamicProfileData, linkedin: e.target.value };
+                  setForm(f => ({ ...f, dynamicProfileData: dp }));
+                }}
+                placeholder="https://linkedin.com/company/mycompany"
+              />
+            </FieldGroup>
+          </div>
+
+          <FieldGroup label="Problem Statement" required>
+            <textarea
+              className="stg-input stg-textarea"
+              rows={2}
+              value={form.dynamicProfileData?.problemStatement || ''}
+              onChange={e => {
+                const dp = { ...form.dynamicProfileData, problemStatement: e.target.value };
+                setForm(f => ({ ...f, dynamicProfileData: dp }));
+              }}
+              placeholder="What core problem does your startup solve?"
+            />
+          </FieldGroup>
+
+          <FieldGroup label="Elevator Pitch / Description" required>
+            <textarea
+              className="stg-input stg-textarea"
+              rows={3}
+              value={form.dynamicProfileData?.description || ''}
+              onChange={e => {
+                const dp = { ...form.dynamicProfileData, description: e.target.value };
+                setForm(f => ({ ...f, dynamicProfileData: dp }));
+              }}
+              placeholder="Describe your solution, target market, product & vision..."
+            />
+          </FieldGroup>
+        </Card>
+      )}
+
+      {role === 'founder' && (
+        <Card title="Founder Profile Details" subtitle="Edit details related to your professional background.">
+          <div className="stg-grid-2">
+            <FieldGroup label="Designation / Title" required>
+              <input
+                className="stg-input"
+                value={form.dynamicProfileData?.designation || ''}
+                onChange={e => {
+                  const dp = { ...form.dynamicProfileData, designation: e.target.value };
+                  setForm(f => ({ ...f, dynamicProfileData: dp }));
+                }}
+                placeholder="e.g. Founder & CEO"
+              />
+            </FieldGroup>
+            <FieldGroup label="Startup or College Name" required>
+              <input
+                className="stg-input"
+                value={form.dynamicProfileData?.startupName || ''}
+                onChange={e => {
+                  const dp = { ...form.dynamicProfileData, startupName: e.target.value };
+                  setForm(f => ({ ...f, dynamicProfileData: dp }));
+                }}
+                placeholder="Enter startup name"
+              />
+            </FieldGroup>
+          </div>
+
+          <div className="stg-grid-2">
+            <FieldGroup label="Startup Stage" required>
+              <select
+                className="stg-input"
+                value={form.dynamicProfileData?.startupStage || ''}
+                onChange={e => {
+                  const dp = { ...form.dynamicProfileData, startupStage: e.target.value };
+                  setForm(f => ({ ...f, dynamicProfileData: dp }));
+                }}
+              >
+                <option value="">Select Stage</option>
+                <option value="Idea">Idea / Conceptual stage</option>
+                <option value="MVP">MVP built</option>
+                <option value="Early Revenue">Early Revenue</option>
+                <option value="Growth">Growth</option>
+                <option value="Scaling">Scaling</option>
+              </select>
+            </FieldGroup>
+            <FieldGroup label="Industry" required>
+              <input
+                className="stg-input"
+                value={form.dynamicProfileData?.industry || ''}
+                onChange={e => {
+                  const dp = { ...form.dynamicProfileData, industry: e.target.value };
+                  setForm(f => ({ ...f, dynamicProfileData: dp }));
+                }}
+                placeholder="e.g. EdTech, FinTech"
+              />
+            </FieldGroup>
+          </div>
+
+          <div className="stg-grid-2">
+            <FieldGroup label="Years of Experience" required>
+              <input
+                className="stg-input"
+                value={form.dynamicProfileData?.yearsOfExperience || ''}
+                onChange={e => {
+                  const dp = { ...form.dynamicProfileData, yearsOfExperience: e.target.value };
+                  setForm(f => ({ ...f, dynamicProfileData: dp }));
+                }}
+                placeholder="e.g. 5"
+              />
+            </FieldGroup>
+            <FieldGroup label="Previous Startup?">
+              <select
+                className="stg-input"
+                value={form.dynamicProfileData?.previousStartup || ''}
+                onChange={e => {
+                  const dp = { ...form.dynamicProfileData, previousStartup: e.target.value };
+                  setForm(f => ({ ...f, dynamicProfileData: dp }));
+                }}
+              >
+                <option value="">Select Option</option>
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
+              </select>
+            </FieldGroup>
+          </div>
+
+          <div className="stg-grid-2">
+            <FieldGroup label="Domain Expertise" required>
+              <input
+                className="stg-input"
+                value={form.dynamicProfileData?.domainExpertise || ''}
+                onChange={e => {
+                  const dp = { ...form.dynamicProfileData, domainExpertise: e.target.value };
+                  setForm(f => ({ ...f, dynamicProfileData: dp }));
+                }}
+                placeholder="e.g. AI, Product Strategy"
+              />
+            </FieldGroup>
+            <FieldGroup label="Website">
+              <input
+                className="stg-input"
+                value={form.dynamicProfileData?.website || ''}
+                onChange={e => {
+                  const dp = { ...form.dynamicProfileData, website: e.target.value };
+                  setForm(f => ({ ...f, dynamicProfileData: dp }));
+                }}
+                placeholder="https://mywebsite.com"
+              />
+            </FieldGroup>
+          </div>
+
+          <div className="stg-grid-2">
+            <FieldGroup label="LinkedIn" required>
+              <input
+                className="stg-input"
+                value={form.dynamicProfileData?.linkedin || ''}
+                onChange={e => {
+                  const dp = { ...form.dynamicProfileData, linkedin: e.target.value };
+                  setForm(f => ({ ...f, dynamicProfileData: dp }));
+                }}
+                placeholder="https://linkedin.com/in/myprofile"
+              />
+            </FieldGroup>
+            <FieldGroup label="Are you registering as a Student?" required>
+              <select
+                className="stg-input"
+                value={form.dynamicProfileData?.isStudent || 'No'}
+                onChange={e => {
+                  const dp = { ...form.dynamicProfileData, isStudent: e.target.value };
+                  setForm(f => ({ ...f, dynamicProfileData: dp }));
+                }}
+              >
+                <option value="No">No, I am a professional founder</option>
+                <option value="Yes">Yes, I am a student / aspiring founder</option>
+              </select>
+            </FieldGroup>
+          </div>
+
+          <FieldGroup label="Short Bio" required>
+            <textarea
+              className="stg-input stg-textarea"
+              rows={3}
+              value={form.dynamicProfileData?.bio || ''}
+              onChange={e => {
+                const dp = { ...form.dynamicProfileData, bio: e.target.value };
+                setForm(f => ({ ...f, dynamicProfileData: dp }));
+              }}
+              placeholder="Share your background, achievements, and vision..."
+            />
+          </FieldGroup>
+        </Card>
+      )}
+
+      <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'flex-end' }}>
+        <button 
+          className="stg-btn stg-btn-primary" 
+          onClick={handleSave} 
+          disabled={saving || !dirty}
+          style={{ minWidth: '160px' }}
+        >
+          {saving ? 'Updating…' : 'Update Profile'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────
+   ACCOUNT TAB
+───────────────────────────────────────────────────────── */
+function AccountTab({ toast }) {
+  const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [pw, setPw] = useState({ current: '', next: '', confirm: '' });
+  const [pwSaving, setPwSaving] = useState(false);
+  const [showDeactivate, setShowDeactivate] = useState(false);
+  const [deactivating, setDeactivating] = useState(false);
+  const [showCurrent, setShowCurrent] = useState(false);
+  const [showNext, setShowNext] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+
+  useEffect(() => {
+    apiGet('/api/v1/settings/profile').then(res => {
+      if (!res.error) setEmail(res.data.email || '');
+    }).finally(() => setLoading(false));
+  }, []);
+
+  const handlePasswordSubmit = async e => {
+    e.preventDefault();
+    if (!pw.current || !pw.next) return toast('Please fill in all fields', 'error');
+    if (pw.next !== pw.confirm) return toast('New passwords do not match', 'error');
+    if (pw.next.length < 8) return toast('Password must be at least 8 characters', 'error');
+    setPwSaving(true);
+    const { error } = await apiPatch('/api/v1/settings/account/password', { 
+      currentPassword: pw.current, 
+      newPassword: pw.next 
+    });
+    setPwSaving(false);
+    if (!error) {
+      setPw({ current: '', next: '', confirm: '' });
+      toast('Password updated successfully', 'success');
+    } else {
+      toast(error.message || 'Failed to update password', 'error');
+    }
+  };
+
+  const handleDeactivate = async () => {
+    setDeactivating(true);
+    const { error } = await apiDelete('/api/v1/settings/account');
+    setDeactivating(false);
+    if (!error) {
+      localStorage.clear();
+      window.location.replace('/login');
+    } else {
+      toast(error.message || 'Failed to deactivate account', 'error');
+    }
+  };
+
+  if (loading) return <Spinner />;
+
+  return (
+    <div className="stg-tab-body">
+      <div className="stg-tab-header">
+        <h2 className="stg-tab-title">Account &amp; Security</h2>
+        <p className="stg-tab-subtitle">Manage your login credentials and account status.</p>
+      </div>
+
+      {/* ── Email ── */}
+      <Card title="Email Address" subtitle="Your verified login email. Contact support to change it.">
+        <div className="stg-email-row">
+          <div className="stg-email-icon">
+            <Icon name="mail" size={18} />
+          </div>
+          <div className="stg-email-text">
+            <span className="stg-email-value">{email || '-'}</span>
+            <span className="stg-verified-pill">✓ Verified</span>
+          </div>
+        </div>
+      </Card>
+
+      {/* ── Password ── */}
+      <Card title="Change Password" subtitle="Use a strong password you don't use elsewhere.">
+        <form onSubmit={handlePasswordSubmit}>
+          <div className="stg-grid-3">
+            <FieldGroup label="Current Password">
+              <div className="stg-input-icon stg-input-suffix">
+                <Icon name="lock" size={15} />
+                <input
+                  className="stg-input"
+                  type={showCurrent ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  value={pw.current}
+                  onChange={e => setPw(p => ({ ...p, current: e.target.value }))}
+                />
+                <button type="button" className="stg-eye-btn" onClick={() => setShowCurrent(v => !v)}>
+                  <Icon name={showCurrent ? 'eyeOff' : 'eye'} size={14} />
+                </button>
+              </div>
+            </FieldGroup>
+            <FieldGroup label="New Password">
+              <div className="stg-input-icon stg-input-suffix">
+                <Icon name="lock" size={15} />
+                <input
+                  className="stg-input"
+                  type={showNext ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  value={pw.next}
+                  onChange={e => setPw(p => ({ ...p, next: e.target.value }))}
+                />
+                <button type="button" className="stg-eye-btn" onClick={() => setShowNext(v => !v)}>
+                  <Icon name={showNext ? 'eyeOff' : 'eye'} size={14} />
+                </button>
+              </div>
+              <PasswordStrength password={pw.next} />
+            </FieldGroup>
+            <FieldGroup label="Confirm New Password">
+              <div className="stg-input-icon stg-input-suffix">
+                <Icon name="lock" size={15} />
+                <input
+                  className="stg-input"
+                  type={showConfirm ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  value={pw.confirm}
+                  onChange={e => setPw(p => ({ ...p, confirm: e.target.value }))}
+                />
+                <button type="button" className="stg-eye-btn" onClick={() => setShowConfirm(v => !v)}>
+                  <Icon name={showConfirm ? 'eyeOff' : 'eye'} size={14} />
+                </button>
+              </div>
+              {pw.confirm && pw.next !== pw.confirm && (
+                <p className="stg-field-error">Passwords do not match</p>
+              )}
+            </FieldGroup>
+          </div>
+          <div className="stg-pw-rules">
+            {[
+              { ok: pw.next.length >= 8, text: '8+ characters' },
+              { ok: /[A-Z]/.test(pw.next), text: 'One uppercase' },
+              { ok: /[0-9]/.test(pw.next), text: 'One number' },
+              { ok: /[^A-Za-z0-9]/.test(pw.next), text: 'One special character' },
+            ].map(({ ok, text }) => (
+              <span key={text} className={`stg-pw-rule ${ok ? 'ok' : ''}`}>
+                <span className="stg-pw-rule-dot" />
+                {text}
+              </span>
+            ))}
+          </div>
+          <button
+            type="submit"
+            className="stg-btn stg-btn-primary"
+            disabled={pwSaving}
+            style={{ marginTop: '1.5rem' }}
+          >
+            {pwSaving ? 'Updating…' : 'Update Password'}
+          </button>
+        </form>
+      </Card>
+
+      {/* ── Session ── */}
+      <Card title="Session" subtitle="Manage your current session.">
+        <div className="stg-session-row">
+          <div className="stg-session-text">
+            <p className="stg-session-desc">You are currently logged in as {email}. Sign out to end your session securely.</p>
+          </div>
+          <button
+            className="stg-btn stg-btn-danger-outline"
+            onClick={async () => {
+              const { signOut } = await import('@/lib/auth');
+              await signOut();
+              window.location.replace('/login');
+            }}
+            style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+          >
+            <Icon name="logout" size={18} />
+            Sign Out
+          </button>
+        </div>
+      </Card>
+
+      {/* ── Danger zone ── */}
+      <Card title="Danger Zone" danger>
+        <div className="stg-danger-inner">
+          <div className="stg-danger-text">
+            <h4 className="stg-danger-label">Deactivate Account</h4>
+            <p className="stg-danger-desc">
+              This will immediately revoke all access, pause any active subscriptions, and hide your
+              public profile. You can reactivate by contacting support.
+            </p>
+          </div>
+          {!showDeactivate ? (
+            <button className="stg-btn stg-btn-danger-outline" onClick={() => setShowDeactivate(true)}>
+              Deactivate Account
+            </button>
+          ) : (
+            <div className="stg-danger-confirm">
+              <p className="stg-danger-confirm-msg">Are you absolutely sure?</p>
+              <div className="stg-danger-confirm-btns">
+                <button className="stg-btn stg-btn-ghost" onClick={() => setShowDeactivate(false)}>
+                  Cancel
+                </button>
+                <button className="stg-btn stg-btn-danger" onClick={handleDeactivate} disabled={deactivating}>
+                  {deactivating ? 'Deactivating…' : 'Yes, deactivate'}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────
+   NOTIFICATIONS TAB
+───────────────────────────────────────────────────────── */
+const NOTIF_ITEMS = [
+  {
+    group: 'Learning',
+    items: [
+      { key: 'learning', label: 'Course updates & reminders', desc: 'When new lessons, materials, or deadlines are added', icon: 'book' },
+      { key: 'assessments', label: 'Assessment results', desc: 'Quiz scores, assignment feedback, and exam results', icon: 'award' },
+    ],
+  },
+  {
+    group: 'Community',
+    items: [
+      { key: 'community', label: 'Community mentions', desc: 'Replies, reactions, and tags in discussions', icon: 'users' },
+    ],
+  },
+  {
+    group: 'Payments & Marketing',
+    items: [
+      { key: 'payments', label: 'Payment receipts', desc: 'Order confirmations, invoices, and billing alerts', icon: 'creditCard' },
+      { key: 'marketing', label: 'New programs & offers', desc: 'New courses, events, and promotional announcements', icon: 'box' },
+    ],
+  },
+];
+
+function NotificationsTab({ toast }) {
+  const [prefs, setPrefs] = useState({
+    learning: true, assessments: true, community: true, payments: true, marketing: false,
+  });
+  const [initial, setInitial] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    apiGet('/api/v1/settings/notifications').then(res => {
+      if (!res.error && res.data) {
+        const p = res.data;
+        setPrefs(p);
+        setInitial(p);
+      }
+    }).finally(() => setLoading(false));
+  }, []);
+
+  const dirty = initial && JSON.stringify(prefs) !== JSON.stringify(initial);
+
+  const handleSave = async () => {
+    setSaving(true);
+    const { error } = await apiPatch('/api/v1/settings/notifications/preferences', prefs);
+    setSaving(false);
+    if (!error) {
+      setInitial({ ...prefs });
+      toast('Notification preferences saved', 'success');
+    } else {
+      toast(error.message || 'Failed to save preferences', 'error');
+    }
+  };
+
+  const allOn = Object.values(prefs).every(Boolean);
+  const toggleAll = () => {
+    const next = !allOn;
+    const updated = Object.fromEntries(Object.keys(prefs).map(k => [k, next]));
+    setPrefs(updated);
+  };
+
+  if (loading) return <Spinner />;
+
+  return (
+    <div className="stg-tab-body">
+      <div className="stg-tab-header">
+        <h2 className="stg-tab-title">Notification Preferences</h2>
+        <p className="stg-tab-subtitle">Control which email updates you receive from the platform.</p>
+      </div>
+
+      <Card>
+        <div className="stg-notif-global-row">
+          <div>
+            <span className="stg-notif-global-label">Email Notifications</span>
+            <span className="stg-notif-global-sub">All platform email alerts</span>
+          </div>
+          <button className="stg-toggle-all-btn" onClick={toggleAll}>
+            {allOn ? 'Disable all' : 'Enable all'}
+          </button>
+        </div>
+
+        {NOTIF_ITEMS.map(group => (
+          <div key={group.group} className="stg-notif-group">
+            <div className="stg-notif-group-label">{group.group}</div>
+            {group.items.map(item => (
+              <div key={item.key} className="stg-notif-row">
+                <div className="stg-notif-icon-wrap">
+                  <Icon name={item.icon} size={17} />
+                </div>
+                <div className="stg-notif-text">
+                  <span className="stg-notif-label">{item.label}</span>
+                  <span className="stg-notif-desc">{item.desc}</span>
+                </div>
+                <Toggle
+                  enabled={!!prefs[item.key]}
+                  onChange={v => setPrefs(p => ({ ...p, [item.key]: v }))}
+                />
+              </div>
+            ))}
+          </div>
+        ))}
+      </Card>
+
+        <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'flex-end' }}>
+          <button 
+            className="stg-btn stg-btn-primary" 
+            onClick={handleSave} 
+            disabled={saving || !dirty}
+            style={{ minWidth: '160px' }}
+          >
+            {saving ? 'Saving…' : 'Save Preferences'}
+          </button>
+        </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────
+   PRIVACY TAB
+───────────────────────────────────────────────────────── */
+function PrivacyTab({ toast }) {
+  const [settings, setSettings] = useState({
+    profileVisibility: 'public',
+    activityVisibility: 'public',
+    showBio: true,
+    showStats: true,
+    showGoals: true,
+  });
+  const [initial, setInitial] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    apiGet('/api/v1/settings/privacy').then(res => {
+      if (!res.error && res.data) {
+        setSettings(res.data);
+        setInitial(res.data);
+      }
+    }).finally(() => setLoading(false));
+  }, []);
+
+  const dirty = initial && JSON.stringify(settings) !== JSON.stringify(initial);
+
+  const handleSave = async () => {
+    setSaving(true);
+    const { error } = await apiPatch('/api/v1/settings/privacy', settings);
+    setSaving(false);
+    if (!error) {
+      setInitial({ ...settings });
+      toast('Privacy settings saved', 'success');
+    } else {
+      toast(error.message || 'Failed to save privacy settings', 'error');
+    }
+  };
+
+  const VISIBILITY_OPTIONS = [
+    { value: 'public', label: 'Public', desc: 'Visible to everyone on the platform' },
+    { value: 'users', label: 'Members only', desc: 'Visible to registered members only' },
+    { value: 'private', label: 'Private', desc: 'Only visible to you' },
+  ];
+
+  if (loading) return <Spinner />;
+
+  return (
+    <div className="stg-tab-body">
+      <div className="stg-tab-header">
+        <h2 className="stg-tab-title">Privacy &amp; Visibility</h2>
+        <p className="stg-tab-subtitle">Control who can see your profile and learning activity.</p>
+      </div>
+
+      <div className="stg-privacy-grid">
+        <Card title="Profile Visibility" subtitle="Who can see your public profile page">
+          <div className="stg-radio-group">
+            {VISIBILITY_OPTIONS.map(({ value, label, desc }) => (
+              <button
+                key={value}
+                type="button"
+                className={`stg-radio-card ${settings.profileVisibility === value ? 'active' : ''}`}
+                onClick={() => setSettings(s => ({ ...s, profileVisibility: value }))}
+              >
+                <div className="stg-radio-dot" />
+                <div className="stg-radio-text">
+                  <span className="stg-radio-label">{label}</span>
+                  <span className="stg-radio-desc">{desc}</span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </Card>
+
+        <Card title="Activity Visibility" subtitle="Who can see your learning activity and progress">
+          <div className="stg-radio-group">
+            {VISIBILITY_OPTIONS.map(({ value, label, desc }) => (
+              <button
+                key={value}
+                type="button"
+                className={`stg-radio-card ${settings.activityVisibility === value ? 'active' : ''}`}
+                onClick={() => setSettings(s => ({ ...s, activityVisibility: value }))}
+              >
+                <div className="stg-radio-dot" />
+                <div className="stg-radio-text">
+                  <span className="stg-radio-label">{label}</span>
+                  <span className="stg-radio-desc">{desc}</span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </Card>
+
+        <div className="stg-privacy-grid-wide">
+          <Card title="Profile Content Visibility" subtitle="Choose which sections appear on your public profile">
+            {[
+              { key: 'showBio', label: 'Bio', desc: 'Show your bio section on your profile' },
+              { key: 'showStats', label: 'Learning Stats', desc: 'Show your course progress and achievements' },
+              { key: 'showGoals', label: 'Goals', desc: 'Show your learning goals to others' },
+            ].map(({ key, label, desc }) => (
+              <div key={key} className="stg-notif-row">
+                <div className="stg-notif-text">
+                  <span className="stg-notif-label">{label}</span>
+                  <span className="stg-notif-desc">{desc}</span>
+                </div>
+                <Toggle
+                  enabled={!!settings[key]}
+                  onChange={v => setSettings(s => ({ ...s, [key]: v }))}
+                />
+              </div>
+            ))}
+          </Card>
+        </div>
+      </div>
+
+        <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'flex-end' }}>
+          <button 
+            className="stg-btn stg-btn-primary" 
+            onClick={handleSave} 
+            disabled={saving || !dirty}
+            style={{ minWidth: '160px' }}
+          >
+            {saving ? 'Saving…' : 'Save Settings'}
+          </button>
+        </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────
+   MAIN SETTINGS PAGE
+───────────────────────────────────────────────────────── */
+const TABS = [
+  { id: 'profile', label: 'Profile', icon: 'user', desc: 'Name, bio & links' },
+  { id: 'account', label: 'Account', icon: 'lock', desc: 'Email & password' },
+  { id: 'notifications', label: 'Notifications', icon: 'bell', desc: 'Email preferences' },
+  { id: 'privacy', label: 'Privacy', icon: 'shield', desc: 'Visibility controls' },
+];
+
+function SettingsContent() {
+  const router = useRouter();
+  const params = useSearchParams();
+  const activeTab = params.get('tab') || 'profile';
+  const { toasts, show: toast, dismiss } = useToast();
+
+  const tabProps = { toast };
+
+  return (
+    <div className="stg-page">
+      <ToastContainer toasts={toasts} dismiss={dismiss} />
+
+      {/* Page header */}
+      <div className="stg-page-header">
+        <div className="stg-page-title-block">
+          <h1 className="stg-page-title">Settings</h1>
+          <p className="stg-page-sub">Manage your account, security, and preferences.</p>
+        </div>
+      </div>
+
+      <div className="stg-layout-modern">
+        {/* ── Top Tabs Navigation ── */}
+        <nav className="stg-top-nav">
+          <div className="stg-top-nav-inner">
+            {TABS.map(tab => (
+              <button
+                key={tab.id}
+                className={`stg-top-tab-item ${activeTab === tab.id ? 'active' : ''}`}
+                onClick={() => router.push(`/dashboard/settings?tab=${tab.id}`, { scroll: false })}
+              >
+                <Icon name={tab.icon} size={19} />
+                <span>{tab.label}</span>
+              </button>
+            ))}
+          </div>
+        </nav>
+
+        {/* ── Content area ── */}
+        <main className="stg-main-content">
+          {activeTab === 'profile' && <ProfileTab {...tabProps} />}
+          {activeTab === 'account' && <AccountTab {...tabProps} />}
+          {activeTab === 'notifications' && <NotificationsTab {...tabProps} />}
+          {activeTab === 'privacy' && <PrivacyTab {...tabProps} />}
+        </main>
+      </div>
+
+      {/* ─── All styles scoped via .stg- prefix ─── */}
+      <style jsx global>{`
+        /* ── Layout ── */
+        .stg-page {
+          min-height: 100vh;
+          background: #ffffff;
+          padding: 0.5rem 3rem 6rem;
+          font-family: 'Poppins', sans-serif;
+          max-width: 1400px;
+          margin: 0 auto;
+        }
+        .stg-page-header {
+          margin-bottom: 2.5rem;
+        }
+        .stg-page-title {
+          font-size: 2.25rem;
+          font-weight: 800;
+          color: #7A1F2B;
+          margin: 0 0 4px;
+          letter-spacing: -0.04em;
+        }
+        .stg-page-sub {
+          color: #94a3b8;
+          font-size: 0.95rem;
+          font-weight: 500;
+          margin: 0;
+        }
+
+        .stg-layout-modern {
+          display: flex;
+          flex-direction: column;
+          gap: 2rem;
+        }
+
+        /* ── Top Navigation ── */
+        .stg-top-nav {
+          background: #fff;
+          border-radius: 20px;
+          border: 1.5px solid #f0e8e9;
+          padding: 8px;
+          position: sticky;
+          top: 80px;
+          z-index: 100;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+          margin-bottom: 1.5rem;
+        }
+        .stg-top-nav-inner {
+          display: flex;
+          gap: 8px;
+        }
+
+        .stg-top-tab-item {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 12px 24px;
+          border-radius: 14px;
+          border: none;
+          background: transparent;
+          cursor: pointer;
+          color: #64748b;
+          font-weight: 700;
+          font-size: 0.95rem;
+          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+          white-space: nowrap;
+          min-height: 48px;
+        }
+        .stg-top-tab-item:hover {
+          background: #f1f5f9;
+          color: #7A1F2B;
+        }
+        .stg-top-tab-item.active {
+          background: #7A1F2B;
+          color: #fff;
+          box-shadow: 0 4px 12px rgba(122,31,43,0.2);
+        }
+
+        /* ── Content area ── */
+        .stg-main-content {
+          min-width: 0;
+        }
+        .stg-tab-body {
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
+        }
+        .stg-tab-header { margin-bottom: 0.25rem; }
+        .stg-tab-title {
+          font-size: 1.5rem;
+          font-weight: 800;
+          color: #0f172a;
+          margin: 0 0 4px;
+          letter-spacing: -0.03em;
+        }
+        .stg-tab-subtitle {
+          color: #94a3b8;
+          font-size: 0.875rem;
+          font-weight: 500;
+          margin: 0;
+        }
+
+        /* ── Card ── */
+        .stg-card {
+          background: #fff;
+          border-radius: 20px;
+          border: 1.5px solid #f3f4f6;
+          padding: 1.25rem;
+          box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+        }
+        .stg-card-danger {
+          border-color: rgba(239, 68, 68, 0.2);
+          background: rgba(254, 242, 242, 0.4);
+        }
+        .stg-card-head {
+          margin-bottom: 1rem;
+          padding-bottom: 1rem;
+          border-bottom: 1.5px solid #f8fafc;
+        }
+        .stg-card-title {
+          font-size: 1rem;
+          font-weight: 800;
+          color: #0f172a;
+          margin: 0 0 4px;
+        }
+        .stg-card-subtitle {
+          font-size: 0.8rem;
+          color: #94a3b8;
+          font-weight: 500;
+          margin: 0;
+        }
+
+        /* ── Avatar ── */
+        .stg-avatar-row {
+          display: flex;
+          align-items: center;
+          gap: 1.5rem;
+          padding: 1rem;
+          background: #f8fafc;
+          border-radius: 16px;
+          margin-bottom: 1.25rem;
+          border: 1.5px solid #f0e8e9;
+        }
+        .stg-avatar-wrap { position: relative; flex-shrink: 0; }
+        .stg-avatar {
+          width: 80px;
+          height: 80px;
+          border-radius: 24px;
+          background: linear-gradient(135deg, #7A1F2B, #9b3040);
+          color: #fff;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 1.75rem;
+          font-weight: 800;
+          box-shadow: 0 8px 24px rgba(122,31,43,0.25);
+        }
+        .stg-avatar-badge {
+          position: absolute;
+          bottom: -5px;
+          right: -5px;
+          width: 28px;
+          height: 28px;
+          border-radius: 9px;
+          background: #fff;
+          border: 1.5px solid #f0e8e9;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+          color: #64748b;
+        }
+        .stg-avatar-meta { flex: 1; min-width: 0; }
+        .stg-avatar-name {
+          font-size: 1.1rem;
+          font-weight: 800;
+          color: #0f172a;
+          margin: 0 0 2px;
+        }
+        .stg-avatar-tagline {
+          font-size: 0.875rem;
+          color: #64748b;
+          font-weight: 500;
+          margin: 0 0 6px;
+        }
+        .stg-avatar-note {
+          font-size: 0.7rem;
+          color: #94a3b8;
+          margin: 0;
+        }
+
+        /* ── Fields & Inputs ── */
+        .stg-field {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+          margin-bottom: 1rem;
+        }
+        .stg-field:last-child { margin-bottom: 0; }
+        .stg-label {
+          font-size: 0.7rem;
+          font-weight: 800;
+          color: #94a3b8;
+          text-transform: uppercase;
+          letter-spacing: 0.06em;
+        }
+        .stg-required { color: #ef4444; }
+        .stg-hint {
+          font-size: 0.72rem;
+          color: #94a3b8;
+          font-weight: 500;
+          margin: 0;
+        }
+        .stg-input {
+          width: 100%;
+          height: 48px;
+          padding: 0 16px;
+          border-radius: 12px;
+          border: 1.5px solid #f1f5f9;
+          background: #fafafa;
+          font-size: 0.9rem;
+          font-weight: 600;
+          color: #0f172a;
+          font-family: 'Poppins', sans-serif;
+          transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+          outline: none;
+        }
+        .stg-input:focus {
+          border-color: #7A1F2B;
+          background: #fff;
+          box-shadow: 0 0 0 4px rgba(122,31,43,0.07);
+        }
+        .stg-input:disabled {
+          background: #f8fafc;
+          color: #94a3b8;
+          cursor: not-allowed;
+        }
+        .stg-textarea {
+          height: auto;
+          padding: 12px 16px;
+          resize: none;
+          line-height: 1.6;
+        }
+        select.stg-input { cursor: pointer; }
+        .stg-input-icon {
+          position: relative;
+        }
+        .stg-input-icon :global(svg) {
+          position: absolute;
+          left: 14px;
+          top: 50%;
+          transform: translateY(-50%);
+          color: #94a3b8;
+          pointer-events: none;
+          z-index: 1;
+        }
+        .stg-input-icon .stg-input {
+          padding-left: 42px;
+        }
+        .stg-input-suffix .stg-input {
+          padding-right: 44px;
+        }
+        .stg-eye-btn {
+          position: absolute;
+          right: 12px;
+          top: 50%;
+          transform: translateY(-50%);
+          background: none;
+          border: none;
+          cursor: pointer;
+          color: #94a3b8;
+          padding: 4px;
+          display: flex;
+          align-items: center;
+          z-index: 1;
+          transition: color 0.15s;
+        }
+        .stg-eye-btn:hover { color: #0f172a; }
+        .stg-eye-btn :global(svg) {
+          position: static !important;
+          transform: none !important;
+          pointer-events: auto !important;
+          color: inherit !important;
+        }
+        .stg-field-error {
+          font-size: 0.72rem;
+          color: #ef4444;
+          font-weight: 600;
+          margin: 0;
+        }
+
+        /* ── Grids ── */
+        .stg-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .stg-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+        .stg-links-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+        /* ── Password strength ── */
+        /* ── Social Links Grid (Strictly 2 per row) ── */
+        .stg-social-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 16px;
+          width: 100%;
+        }
+        .stg-social-card {
+          background: #fafafa;
+          border: 1.5px solid #f1f5f9;
+          border-radius: 16px;
+          padding: 16px;
+          transition: all 0.2s;
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+        .stg-social-card:hover {
+          border-color: #cbd5e1;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+        }
+        .stg-social-card-header {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+        .stg-social-icon-box {
+          width: 32px;
+          height: 32px;
+          background: #fff;
+          border: 1px solid #e2e8f0;
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #64748b;
+        }
+        .stg-social-name-input {
+          flex: 1;
+          background: transparent;
+          border: none;
+          font-size: 0.85rem;
+          font-weight: 700;
+          color: #0f172a;
+          outline: none;
+          padding: 4px 0;
+        }
+        .stg-social-name-input::placeholder { color: #94a3b8; font-weight: 500; }
+        .stg-social-card-remove {
+          background: none;
+          border: none;
+          color: #94a3b8;
+          cursor: pointer;
+          padding: 4px;
+          border-radius: 6px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s;
+        }
+        .stg-social-card-remove:hover {
+          background: #fee2e2;
+          color: #ef4444;
+        }
+        .stg-social-url-wrap {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+        .stg-social-url-input {
+          height: 40px !important;
+          font-size: 0.8rem !important;
+          background: #fff !important;
+        }
+        .stg-input-error {
+          border-color: #ef4444 !important;
+          background: #fff5f5 !important;
+        }
+        .stg-social-error-text {
+          font-size: 0.65rem;
+          color: #ef4444;
+          font-weight: 600;
+          margin: 0;
+        }
+        .stg-social-add-card {
+          border: 2px dashed #e2e8f0;
+          background: #fff;
+          border-radius: 16px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          cursor: pointer;
+          transition: all 0.2s;
+          padding: 24px;
+          color: #64748b;
+        }
+        .stg-social-add-card:hover {
+          border-color: #7A1F2B;
+          color: #7A1F2B;
+          background: #fdf2f2;
+        }
+        .stg-social-add-icon {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          background: #f1f5f9;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s;
+        }
+        .stg-social-add-card:hover .stg-social-add-icon {
+          background: #7A1F2B;
+          color: #fff;
+        }
+        .stg-social-add-card span {
+          font-size: 0.85rem;
+          font-weight: 700;
+        }
+
+        .stg-pw-strength {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin-top: 8px;
+        }
+        .stg-pw-bars { display: flex; gap: 4px; flex: 1; }
+        .stg-pw-bar { flex: 1; height: 4px; border-radius: 2px; transition: background 0.3s; }
+        .stg-pw-label { font-size: 0.7rem; font-weight: 700; min-width: 46px; text-align: right; }
+        .stg-pw-rules {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 10px;
+          margin-top: 14px;
+        }
+        .stg-pw-rule {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 0.72rem;
+          font-weight: 600;
+          color: #94a3b8;
+          transition: color 0.2s;
+        }
+        .stg-pw-rule.ok { color: #10b981; }
+        .stg-pw-rule-dot {
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: currentColor;
+          flex-shrink: 0;
+        }
+
+        /* ── Toggle ── */
+        .stg-toggle {
+          width: 46px;
+          height: 26px;
+          border-radius: 13px;
+          background: #e2e8f0;
+          border: none;
+          cursor: pointer;
+          position: relative;
+          padding: 0 3px;
+          display: flex;
+          align-items: center;
+          transition: background 0.25s ease;
+          flex-shrink: 0;
+        }
+        .stg-toggle.on { background: #7A1F2B; }
+        .stg-toggle.disabled { opacity: 0.4; cursor: not-allowed; }
+        .stg-toggle-knob {
+          width: 20px;
+          height: 20px;
+          border-radius: 50%;
+          background: #fff;
+          box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+          position: absolute;
+          left: 3px;
+          transition: left 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .stg-toggle.on .stg-toggle-knob { left: calc(100% - 23px); }
+
+        /* ── Email row ── */
+        .stg-email-row {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          padding: 16px 20px;
+          background: #f8fafc;
+          border-radius: 14px;
+          border: 1.5px solid #f1f5f9;
+        }
+        .stg-email-icon {
+          width: 44px;
+          height: 44px;
+          border-radius: 12px;
+          background: #f0e8e9;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #7A1F2B;
+          flex-shrink: 0;
+        }
+        .stg-email-text {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          flex-wrap: wrap;
+        }
+        .stg-email-value {
+          font-size: 0.95rem;
+          font-weight: 700;
+          color: #0f172a;
+        }
+        .stg-verified-pill {
+          background: #ecfdf5;
+          color: #059669;
+          font-size: 0.7rem;
+          font-weight: 800;
+          padding: 4px 12px;
+          border-radius: 8px;
+        }
+
+        /* ── Danger zone ── */
+        .stg-danger-inner {
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          gap: 2rem;
+          flex-wrap: wrap;
+        }
+        .stg-danger-text { flex: 1; }
+        .stg-danger-label {
+          font-size: 1rem;
+          font-weight: 800;
+          color: #ef4444;
+          margin: 0 0 6px;
+        }
+        .stg-danger-desc {
+          font-size: 0.875rem;
+          color: #64748b;
+          line-height: 1.6;
+          margin: 0;
+          max-width: 480px;
+        }
+        .stg-danger-confirm {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          align-items: flex-end;
+        }
+        .stg-danger-confirm-msg {
+          font-size: 0.8rem;
+          font-weight: 700;
+          color: #ef4444;
+          margin: 0;
+        }
+        .stg-danger-confirm-btns {
+          display: flex;
+          gap: 10px;
+        }
+
+        /* ── Notifications ── */
+        .stg-notif-global-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding-bottom: 1.25rem;
+          margin-bottom: 0.5rem;
+          border-bottom: 1.5px solid #f8fafc;
+        }
+        .stg-notif-global-label {
+          font-size: 0.95rem;
+          font-weight: 800;
+          color: #0f172a;
+          display: block;
+        }
+        .stg-notif-global-sub {
+          font-size: 0.75rem;
+          color: #94a3b8;
+          font-weight: 500;
+          display: block;
+          margin-top: 2px;
+        }
+        .stg-toggle-all-btn {
+          background: none;
+          border: 1.5px solid #e2e8f0;
+          border-radius: 8px;
+          padding: 6px 14px;
+          font-size: 0.75rem;
+          font-weight: 700;
+          color: #64748b;
+          cursor: pointer;
+          transition: all 0.15s;
+          min-height: 36px;
+        }
+        .stg-toggle-all-btn:hover { border-color: #7A1F2B; color: #7A1F2B; }
+        .stg-notif-group { margin-bottom: 1.5rem; }
+        .stg-notif-group:last-child { margin-bottom: 0; }
+        .stg-notif-group-label {
+          font-size: 0.65rem;
+          font-weight: 800;
+          color: #94a3b8;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          padding: 14px 0 8px;
+        }
+        .stg-notif-row {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          padding: 14px 16px;
+          border-radius: 12px;
+          transition: background 0.15s;
+          min-height: 44px;
+        }
+        .stg-notif-row:hover { background: #f8fafc; }
+        .stg-notif-icon-wrap {
+          width: 36px;
+          height: 36px;
+          border-radius: 10px;
+          background: #f1f5f9;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #64748b;
+          flex-shrink: 0;
+        }
+        .stg-notif-text { flex: 1; min-width: 0; }
+        .stg-notif-label {
+          font-size: 0.875rem;
+          font-weight: 700;
+          color: #0f172a;
+          display: block;
+          margin-bottom: 2px;
+        }
+        .stg-notif-desc {
+          font-size: 0.75rem;
+          color: #94a3b8;
+          font-weight: 500;
+          display: block;
+        }
+
+        /* ── Privacy ── */
+        .stg-privacy-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 1.5rem;
+        }
+        .stg-privacy-grid-wide {
+          grid-column: 1 / -1;
+        }
+        .stg-radio-group { display: flex; flex-direction: column; gap: 10px; }
+        .stg-radio-card {
+          width: 100%;
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          padding: 14px 16px;
+          border-radius: 14px;
+          border: 1.5px solid #f1f5f9;
+          background: #fafafa;
+          cursor: pointer;
+          text-align: left;
+          transition: all 0.15s;
+          min-height: 44px;
+        }
+        .stg-radio-card:hover { border-color: #cbd5e1; background: #f8fafc; }
+        .stg-radio-card.active { border-color: #7A1F2B; background: #f8fafc; }
+        .stg-radio-dot {
+          width: 20px;
+          height: 20px;
+          border-radius: 50%;
+          border: 2px solid #e2e8f0;
+          position: relative;
+          flex-shrink: 0;
+          transition: border-color 0.15s;
+        }
+        .stg-radio-card.active .stg-radio-dot {
+          border-color: #7A1F2B;
+        }
+        .stg-radio-card.active .stg-radio-dot::after {
+          content: '';
+          position: absolute;
+          inset: 4px;
+          background: #7A1F2B;
+          border-radius: 50%;
+        }
+        .stg-radio-text { min-width: 0; }
+        .stg-radio-label {
+          display: block;
+          font-size: 0.875rem;
+          font-weight: 700;
+          color: #0f172a;
+          margin-bottom: 2px;
+        }
+        .stg-radio-card.active .stg-radio-label { color: #7A1F2B; }
+        .stg-radio-desc {
+          display: block;
+          font-size: 0.75rem;
+          color: #94a3b8;
+          font-weight: 500;
+        }
+
+        /* ── Session Row ── */
+        .stg-session-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 20px;
+          padding: 12px 0;
+        }
+        .stg-session-text {
+          flex: 1;
+        }
+        .stg-session-desc {
+          font-size: 0.875rem;
+          color: #64748b;
+          margin: 0;
+          line-height: 1.5;
+        }
+
+        /* ── Buttons ── */
+        .stg-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 10px 22px;
+          border-radius: 12px;
+          font-size: 0.875rem;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.15s ease;
+          font-family: 'Poppins', sans-serif;
+          border: none;
+          min-height: 44px;
+          white-space: nowrap;
+        }
+        .stg-btn:disabled { opacity: 0.55; cursor: not-allowed; pointer-events: none; }
+        .stg-btn-primary {
+          background: #7A1F2B;
+          color: #fff;
+          box-shadow: 0 2px 8px rgba(122,31,43,0.2);
+        }
+        .stg-btn-primary:hover { background: #9b3040; transform: translateY(-1px); box-shadow: 0 4px 14px rgba(122,31,43,0.3); }
+        .stg-btn-ghost {
+          background: transparent;
+          color: #64748b;
+          border: 1.5px solid #e2e8f0;
+        }
+        .stg-btn-ghost:hover { border-color: #7A1F2B; color: #7A1F2B; }
+        .stg-btn-danger-outline {
+          background: transparent;
+          color: #ef4444;
+          border: 1.5px solid rgba(239,68,68,0.3);
+        }
+        .stg-btn-danger-outline:hover { background: #fef2f2; border-color: #ef4444; }
+        .stg-btn-danger {
+          background: #ef4444;
+          color: #fff;
+        }
+        .stg-btn-danger:hover { background: #dc2626; }
+        .stg-btn-spinner {
+          width: 14px;
+          height: 14px;
+          border: 2px solid rgba(255,255,255,0.4);
+          border-top-color: #fff;
+          border-radius: 50%;
+          animation: stg-spin 0.8s linear infinite;
+          display: inline-block;
+        }
+
+        /* ── Modal & Avatars ── */
+        .stg-modal-overlay {
+          position: fixed;
+          top: 0; left: 0;
+          width: 100vw;
+          height: 100vh;
+          background: transparent;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 99999;
+        }
+        .stg-modal-content {
+          background: #fff;
+          border-radius: 20px;
+          padding: 24px;
+          width: 90%;
+          max-width: 480px;
+          box-shadow: 0 20px 60px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05);
+          animation: stg-slide-up 0.2s ease-out;
+          margin: auto;
+        }
+        .stg-modal-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 24px;
+        }
+        .stg-avatar-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+          gap: 16px;
+        }
+        .stg-avatar-option {
+          width: 70px;
+          height: 70px;
+          border-radius: 16px;
+          background: #f8fafc;
+          border: 2px solid transparent;
+          cursor: pointer;
+          transition: 0.2s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          overflow: hidden;
+        }
+        .stg-avatar-option img {
+          width: 80%;
+          height: 80%;
+          object-fit: cover;
+        }
+        .stg-avatar-option:hover { transform: scale(1.05); background: #f1f5f9; }
+        .stg-avatar-option.selected {
+          border-color: #7A1F2B;
+          background: #fdf2f2;
+        }
+
+
+
+        /* ── Toast ── */
+        .toast-container {
+          position: fixed;
+          bottom: 32px;
+          left: 50%;
+          transform: translateX(-50%);
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          z-index: 9999;
+          pointer-events: none;
+        }
+        .toast {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 14px 22px;
+          border-radius: 16px;
+          font-size: 0.875rem;
+          font-weight: 700;
+          min-width: 280px;
+          max-width: 440px;
+          box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+          cursor: pointer;
+          pointer-events: all;
+          animation: stg-toast-in 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .toast-success { background: #0f172a; color: #fff; }
+        .toast-error { background: #7f1d1d; color: #fff; }
+        .toast-info { background: #1e3a5f; color: #fff; }
+        .toast-icon {
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 0.75rem;
+          font-weight: 900;
+          background: rgba(255,255,255,0.15);
+          flex-shrink: 0;
+        }
+        .toast-msg { flex: 1; }
+
+        /* ── Loader ── */
+        .stg-loader {
+          height: 280px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .stg-spinner {
+          width: 36px;
+          height: 36px;
+          border: 3px solid #f0e8e9;
+          border-top-color: #7A1F2B;
+          border-radius: 50%;
+          animation: stg-spin 0.9s linear infinite;
+        }
+
+        /* ── Keyframes ── */
+        @keyframes stg-spin { to { transform: rotate(360deg); } }
+        @keyframes stg-slide-up {
+          from { opacity: 0; transform: translateY(12px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes stg-toast-in {
+          from { opacity: 0; transform: translateY(16px) scale(0.95); }
+          to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 1060px) {
+          .stg-page { padding: 1.5rem 1.5rem 6rem; }
+          .stg-top-tab-item { padding: 10px 16px; font-size: 0.875rem; }
+          .stg-top-nav { top: 70px; }
+        }
+
+        @media (max-width: 768px) {
+          .stg-page { padding: 1rem 1rem 6rem; }
+          .stg-page-header { margin-bottom: 1.5rem; }
+          .stg-page-title { font-size: 1.5rem; }
+          .stg-grid-2, .stg-grid-3, .stg-links-grid, .stg-social-grid { grid-template-columns: 1fr; gap: 1rem; }
+          .stg-card { padding: 1.25rem; border-radius: 16px; }
+          .stg-avatar-row { flex-direction: column; text-align: center; gap: 1rem; padding: 1.5rem 1rem; }
+          .stg-avatar-meta { width: 100%; }
+          .stg-privacy-grid { grid-template-columns: 1fr; }
+          .stg-danger-inner { flex-direction: column; gap: 1rem; }
+          .stg-top-nav { top: 60px; border-radius: 14px; margin-bottom: 1rem; }
+          .stg-top-tab-item { padding: 10px 14px; border-radius: 10px; display: flex; align-items: center; gap: 8px; }
+          .stg-top-tab-item span { display: block; font-size: 0.8rem; }
+        }
+
+        @media (max-width: 480px) {
+          .stg-page { padding: 0.75rem 0.5rem 5rem; }
+          .stg-page-title { font-size: 1.4rem; }
+          .stg-card { padding: 1rem; }
+          .stg-tab-title { font-size: 1.1rem; }
+          .stg-tab-subtitle { font-size: 0.75rem; }
+          .stg-email-row { flex-direction: column; align-items: flex-start; gap: 12px; }
+          .stg-email-text { flex-direction: column; align-items: flex-start; gap: 6px; }
+          .stg-verified-pill { align-self: flex-start; }
+          .toast-container { left: 16px; right: 16px; transform: none; width: auto; }
+          .toast { min-width: 0; width: 100%; padding: 12px 16px; }
+          .stg-modal-content { padding: 20px; width: 95%; }
+          .stg-avatar-grid { grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 12px; }
+          .stg-avatar-option { width: 60px; height: 60px; }
+          .stg-top-nav-inner { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+          .stg-top-nav-inner::-webkit-scrollbar { display: none; }
+          .stg-top-tab-item { flex-direction: row; gap: 6px; padding: 8px 12px; font-size: 0.75rem; min-width: max-content; }
+          .stg-top-tab-item span { display: block; font-size: 0.75rem; text-align: left; }
+          .stg-savebar { bottom: 12px; padding: 10px 16px; width: calc(100% - 32px); justify-content: space-between; gap: 12px; border-radius: 12px; }
+          .stg-savebar-text { font-size: 0.75rem; }
+          .stg-social-card { padding: 12px; gap: 8px; }
+          .stg-social-add-card { padding: 16px; }
+        }
+      `}</style>
+    </div>
+  );
+}
+
+export default function SettingsPage() {
+  return (
+    <Suspense fallback={
+      <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ width: 36, height: 36, border: '3px solid #f0e8e9', borderTopColor: '#7A1F2B', borderRadius: '50%', animation: 'spin 0.9s linear infinite' }} />
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    }>
+      <SettingsContent />
+    </Suspense>
+  );
+}

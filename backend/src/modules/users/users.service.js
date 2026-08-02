@@ -5,7 +5,7 @@ async function updateCurrentUser(userId, input) {
   const user = await User.findById(userId);
   if (!user) throw new ApiError(404, 'User not found');
 
-  // Explicit field mapping — no mass assignment
+  // Explicit field mapping - no mass assignment
   if (typeof input.full_name === 'string') user.fullName = input.full_name.trim().slice(0, 120);
   if (typeof input.headline === 'string') user.headline = input.headline.trim().slice(0, 200);
   if (typeof input.bio === 'string') user.bio = input.bio.trim().slice(0, 2000);

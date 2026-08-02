@@ -129,7 +129,7 @@ app.use(
 // Redis-backed rate limiter (100 req/min per IP, graceful fallback to in-memory above)
 app.use(redisRateLimit({ windowSeconds: 60, max: 500, prefix: 'rl:global' }));
 
-// Internal-only health check — public response is minimal; full details require internal token
+// Internal-only health check - public response is minimal; full details require internal token
 app.get('/health', (req, res) => {
   const mongoState = mongoose.connection.readyState;
   const ok = mongoState === 1;
@@ -199,7 +199,7 @@ const otpLimiter = rateLimit({
 app.use('/api/v1/auth/2fa', otpLimiter);
 app.use('/api/v1/auth/phone', otpLimiter);
 
-// Stricter rate limit for admin panel — 120 req/min per IP
+// Stricter rate limit for admin panel - 120 req/min per IP
 app.use(
   '/api/v1/admin',
   rateLimit({

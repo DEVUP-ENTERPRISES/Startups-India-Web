@@ -9,7 +9,7 @@ const { ALL_STATUSES, STATUS } = require('./grant.status');
  * own collections linked by applicationId. Embedding the timeline would make every
  * list query drag an ever-growing array along with it.
  *
- * Notifications and audit logs are NOT redefined here — the platform already has
+ * Notifications and audit logs are NOT redefined here - the platform already has
  * Notification and AuditLog/Activity, and forking them would leave the bell icon
  * reading one collection while grants wrote to another.
  */
@@ -37,7 +37,7 @@ const grantApplicationSchema = new mongoose.Schema(
     startup: {
       name: { type: String, required: true, trim: true, maxlength: 160 },
       // Free strings, validated at the service boundary against the admin-editable
-      // grant.stages / grant.categories lists — an enum here would mean a code
+      // grant.stages / grant.categories lists - an enum here would mean a code
       // change every time the admin adds a category.
       stage: { type: String, required: true, trim: true },
       category: { type: String, required: true, trim: true },
@@ -106,7 +106,7 @@ const applicationTimelineSchema = new mongoose.Schema(
 applicationTimelineSchema.index({ applicationId: 1, createdAt: -1 });
 
 // ─── DOCUMENTS ────────────────────────────────────────────────────────
-// Only S3 keys/URLs live here — the platform never stores file bytes in Mongo.
+// Only S3 keys/URLs live here - the platform never stores file bytes in Mongo.
 const applicationDocumentSchema = new mongoose.Schema(
   {
     applicationId: {
@@ -154,7 +154,7 @@ const ideaEvaluationSchema = new mongoose.Schema(
     // >= passThreshold at scoring time. Frozen so a later threshold change can't
     // retroactively flip a decision the applicant was already told.
     passed: { type: Boolean, default: null },
-    // Shown to the applicant — praise if passed, improvement suggestions if not.
+    // Shown to the applicant - praise if passed, improvement suggestions if not.
     feedback: { type: String, default: '', maxlength: 5000 },
 
     // Legacy multi-criteria fields, kept for older records; no longer written.
@@ -171,7 +171,7 @@ const ideaEvaluationSchema = new mongoose.Schema(
 // ─── EVALUATION PAYMENT ───────────────────────────────────────────────
 // The fee actually charged is frozen here at order time. If an admin changes the
 // fee mid-flight, an in-progress checkout must still settle at the price the
-// student was shown — and we must be able to prove what that price was.
+// student was shown - and we must be able to prove what that price was.
 const evaluationPaymentSchema = new mongoose.Schema(
   {
     applicationId: {

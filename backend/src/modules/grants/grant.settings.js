@@ -6,7 +6,7 @@ const { cacheGet, cacheSet, cacheDel } = require('../../infrastructure/cache/red
  * Single source of truth for every tunable in the Startup Grant workflow.
  *
  * Nothing in the grant business logic may read a literal fee, deadline, file
- * limit or label — it all comes through here. The values below are DEFAULTS used
+ * limit or label - it all comes through here. The values below are DEFAULTS used
  * only when an admin has never set the key; the moment a row exists in Settings,
  * it wins. That is what makes "change the fee from ₹999 to ₹499 without a code
  * change" actually true rather than aspirational.
@@ -28,7 +28,7 @@ const SCHEMA = {
   'grant.revisions.enabled': { type: 'boolean', default: false },
 
   // ─── Money. Fee is in MINOR units (paise) to avoid float drift. ─────
-  // Idea Evaluation fee — ₹1499 (149900 paise). Admin-editable.
+  // Idea Evaluation fee - ₹1499 (149900 paise). Admin-editable.
   'grant.evaluation.fee': { type: 'integer', default: 149900, min: 0 },
   'grant.evaluation.currency': { type: 'string', default: 'INR' },
   // Percent, e.g. 18 = 18% GST. Applied on top of the fee.
@@ -73,7 +73,7 @@ const SCHEMA = {
   },
 
   // ─── Copy / labels (admin-editable, no redeploy) ────────────────────
-  // User-facing wording says "Funding", not "Grant" — the internal keys stay
+  // User-facing wording says "Funding", not "Grant" - the internal keys stay
   // `grant.*` so no data or route has to move.
   'grant.ui.sidebarLabel': { type: 'string', default: 'Apply for Startup Funding' },
   'grant.ui.title': { type: 'string', default: 'Startup Funding Application' },
@@ -157,7 +157,7 @@ function coerce(key, raw) {
 
 /**
  * Every grant setting, defaults merged with admin overrides.
- * Cached briefly — this is read on nearly every grant request, and the settings
+ * Cached briefly - this is read on nearly every grant request, and the settings
  * change perhaps twice a year.
  */
 async function getGrantSettings() {
@@ -207,7 +207,7 @@ async function updateGrantSettings(patch, adminUserId) {
 }
 
 /**
- * Fee breakdown, computed from settings — never from a literal.
+ * Fee breakdown, computed from settings - never from a literal.
  * All amounts in minor units (paise) so there is no floating-point money.
  */
 async function computeEvaluationFee() {

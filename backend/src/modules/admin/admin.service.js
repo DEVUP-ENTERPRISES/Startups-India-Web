@@ -799,7 +799,7 @@ async function notifyEventRegistrants(eventId, { title, message, type = 'info', 
         const tpl = getEventNotificationEmailTemplate(event.title, message, reg.fullName);
         return sendEmail({
           to: reg.email,
-          subject: `📢 ${event.title} — ${title}`,
+          subject: `📢 ${event.title} - ${title}`,
           html: tpl.html,
           text: tpl.text,
         }).catch(err => {
@@ -921,7 +921,7 @@ async function getMonitoringData() {
     // Testimonials
     Testimonial.countDocuments({ status: 'pending' }),
     Testimonial.countDocuments({ status: 'approved' }),
-    // Growth — users per month (last 6 months)
+    // Growth - users per month (last 6 months)
     User.aggregate([
       { $match: { createdAt: { $gte: new Date(now - 180 * 24 * 60 * 60 * 1000) } } },
       {
@@ -932,7 +932,7 @@ async function getMonitoringData() {
       },
       { $sort: { _id: 1 } },
     ]),
-    // Growth — enrollments per month (last 6 months)
+    // Growth - enrollments per month (last 6 months)
     Enrollment.aggregate([
       { $match: { createdAt: { $gte: new Date(now - 180 * 24 * 60 * 60 * 1000) } } },
       {
@@ -943,7 +943,7 @@ async function getMonitoringData() {
       },
       { $sort: { _id: 1 } },
     ]),
-    // Growth — revenue per month (last 6 months)
+    // Growth - revenue per month (last 6 months)
     Payment.aggregate([
       {
         $match: {

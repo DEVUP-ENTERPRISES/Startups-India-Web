@@ -6,7 +6,7 @@ const mongoose = require('mongoose');
  * Design notes:
  * - Imported leads are external contacts (no platform account), so they live in
  *   their own LeadContact collection, NOT the User collection. Push notifications
- *   therefore do not apply to them — they have no device/FCM token — email is the
+ *   therefore do not apply to them - they have no device/FCM token - email is the
  *   channel.
  * - Per-recipient rows (CampaignRecipient) are what make sending resumable and
  *   follow-ups possible: the worker drains "queued" rows, and after the fact you
@@ -44,7 +44,7 @@ const leadContactSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
-// One email appears at most once per list — re-importing the same file dedupes.
+// One email appears at most once per list - re-importing the same file dedupes.
 leadContactSchema.index({ listId: 1, email: 1 }, { unique: true });
 
 // ─── EMAIL TEMPLATE (merge-tag body) ────────────────────────────────────

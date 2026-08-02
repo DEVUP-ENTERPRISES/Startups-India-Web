@@ -395,7 +395,7 @@ module.exports = {
   createRazorpayOrder,
   verifyRazorpayPayment,
   // Exported so the grant module can verify its own orders without duplicating
-  // the HMAC — signature checking is the one thing that must not be re-implemented.
+  // the HMAC - signature checking is the one thing that must not be re-implemented.
   verifyRazorpaySignature,
   processRazorpayWebhook,
   listPurchasesForUser,
