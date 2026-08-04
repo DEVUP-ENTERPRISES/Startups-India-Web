@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import MarketAccessHero from '../../components/MarketAccessHero';
+import MarketAccessHero from '../../components/marketing/MarketAccessHero';
 import '../../styles/market-access.css';
 import '../../styles/network-hero.css';
 

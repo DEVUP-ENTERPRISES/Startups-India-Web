@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import ProtectedRoute from '../../components/ProtectedRoute';
-import CertificateCard from '../../components/CertificateCard';
+import ProtectedRoute from '../../components/layout/ProtectedRoute';
+import CertificateCard from '../../components/dashboard/CertificateCard';
 import { getCurrentUser } from '@/lib/auth';
 import '../../styles/certificate.css';
 
