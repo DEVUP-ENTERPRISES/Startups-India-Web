@@ -25,7 +25,8 @@ preflight() {
     command -v docker compose >/dev/null 2>&1 || { echo "✗ Docker Compose not found"; exit 1; }
   else
     command -v node >/dev/null 2>&1 || { echo "✗ Node.js not installed"; exit 1; }
-    command -v pm2 >/dev/null 2>&1 || { echo "✗ PM2 not installed. Run: npm install -g pm2"; exit 1; }
+    command -v pnpm >/dev/null 2>&1 || { echo "✗ pnpm not installed. Run: corepack enable && corepack prepare pnpm@9.12.2 --activate"; exit 1; }
+    command -v pm2 >/dev/null 2>&1 || { echo "✗ PM2 not installed. Run: pnpm add -g pm2"; exit 1; }
   fi
 
   echo "✓ Pre-flight checks passed"
@@ -41,7 +42,7 @@ deploy_pm2() {
   echo ""
   echo "▸ Step 2/4: Install dependencies"
   cd "$BACKEND_DIR"
-  npm ci --production
+  pnpm install --prod --frozen-lockfile
 
   echo ""
   echo "▸ Step 3/4: Zero-downtime reload"
@@ -110,7 +111,7 @@ rollback() {
     docker compose up -d --build backend
   else
     cd "$BACKEND_DIR"
-    npm ci --production
+    pnpm install --prod --frozen-lockfile
     pm2 reload ecosystem.config.js --env production
   fi
 

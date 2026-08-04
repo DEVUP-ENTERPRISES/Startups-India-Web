@@ -9,11 +9,14 @@ FROM node:20-alpine AS deps
 
 WORKDIR /app
 
-# Copy package files only (better layer caching)
-COPY package.json package-lock.json* ./
+# Enable pnpm via corepack (bundled with Node)
+RUN corepack enable && corepack prepare pnpm@9.12.2 --activate
 
-# Install production dependencies only
-RUN npm ci --omit=dev && npm cache clean --force
+# Copy package files only (better layer caching)
+COPY package.json pnpm-lock.yaml ./
+
+# Install production dependencies only, from the frozen lockfile
+RUN pnpm install --prod --frozen-lockfile && pnpm store prune
 
 # ─── Stage 2: Production image ──────────────────────────────────
 FROM node:20-alpine AS runner
@@ -24,8 +27,9 @@ RUN addgroup --system --gid 1001 nodejs && \
 
 WORKDIR /app
 
-# Install PM2 globally
-RUN npm install -g pm2 && npm cache clean --force
+# Enable pnpm and install PM2 globally
+RUN corepack enable && corepack prepare pnpm@9.12.2 --activate && \
+    pnpm add -g pm2
 
 # Copy node_modules from deps stage
 COPY --from=deps /app/node_modules ./node_modules

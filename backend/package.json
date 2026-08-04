@@ -2,6 +2,7 @@
   "name": "incubation-platform-backend",
   "version": "1.0.0",
   "private": true,
+  "packageManager": "pnpm@9.12.2",
   "main": "src/server.js",
   "scripts": {
     "dev": "node --watch src/server.js",
