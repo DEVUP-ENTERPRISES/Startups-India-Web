@@ -3,8 +3,11 @@
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { useState } from 'react';
+import { usePathname } from 'next/navigation';
 
 export default function Footer() {
+  const pathname = usePathname();
+  const isEventsPage = pathname === '/events' || pathname?.startsWith('/events');
   const [email, setEmail] = useState('');
   const [newsletterSuccess, setNewsletterSuccess] = useState(false);
 

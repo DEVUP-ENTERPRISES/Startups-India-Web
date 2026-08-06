@@ -142,40 +142,50 @@
 /* Newsletter Form */
 .newsletter-form {
   display: flex;
+  align-items: center;
   gap: 12px;
-  max-width: 600px;
+  max-width: 640px;
   margin: 0 auto 20px auto;
+  position: relative;
+  z-index: 1;
 }
 
 .newsletter-input {
   flex: 1;
-  padding: 18px 24px;
+  height: 56px;
+  padding: 0 28px;
   background: rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(10px);
-  border: 1.5px solid rgba(220, 20, 60, 0.2);
+  border: 1.5px solid rgba(220, 20, 60, 0.25);
   border-radius: 12px;
   color: #ffffff;
   font-size: 15px;
   font-weight: 500;
+  line-height: normal;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
   transition: all 0.3s ease;
 }
 
 .newsletter-input::placeholder {
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.45);
 }
 
 .newsletter-input:focus {
   outline: none;
-  border-color: rgba(220, 20, 60, 0.4);
-  background: rgba(0, 0, 0, 0.5);
-  box-shadow: 0 0 0 4px rgba(220, 20, 60, 0.12);
+  border-color: rgba(220, 20, 60, 0.5);
+  background: rgba(0, 0, 0, 0.6);
+  box-shadow: 0 0 0 4px rgba(220, 20, 60, 0.15);
 }
 
 .newsletter-button {
-  display: flex;
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 10px;
-  padding: 18px 32px;
+  height: 56px;
+  padding: 0 36px;
   background: #ffffff;
   color: #0a0a0a;
   border: none;
@@ -183,9 +193,10 @@
   font-size: 15px;
   font-weight: 800;
   cursor: pointer;
+  white-space: nowrap;
+  box-sizing: border-box;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 12px 32px rgba(255, 255, 255, 0.15);
-  white-space: nowrap;
   position: relative;
   overflow: hidden;
 }
@@ -485,9 +496,20 @@
 
   .newsletter-form {
     flex-direction: column;
+    width: 100%;
+    gap: 12px;
+  }
+
+  .newsletter-input {
+    width: 100%;
+    height: 52px;
+    padding: 0 20px;
   }
 
   .newsletter-button {
+    width: 100%;
+    height: 52px;
+    padding: 0 24px;
     justify-content: center;
   }
 
@@ -532,12 +554,16 @@
   }
 
   .newsletter-input {
-    padding: 14px 18px;
+    width: 100%;
+    height: 50px;
+    padding: 0 18px;
     font-size: 14px;
   }
 
   .newsletter-button {
-    padding: 14px 24px;
+    width: 100%;
+    height: 50px;
+    padding: 0 20px;
     font-size: 14px;
   }
 
