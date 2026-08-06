@@ -17,22 +17,22 @@ export default function Footer() {
 
   const footerLinks = {
     explore: [
-      { name: 'Startup Stories', href: '#' },
-      { name: 'Funding News', href: '#' },
-      { name: 'Events', href: '#' },
-      { name: 'Founders Directory', href: '#' },
+      { name: 'Startup Stories', href: '/knowledge-hub' },
+      { name: 'Funding News', href: '/knowledge-hub' },
+      { name: 'Events', href: '/events' },
+      { name: 'Founders Directory', href: '/community' },
     ],
     community: [
-      { name: 'Women Entrepreneurs', href: '#' },
-      { name: 'Learning Hub', href: '#' },
-      { name: 'Startup Jobs', href: '#' },
-      { name: 'Mentorship', href: '#' },
+      { name: 'Women Entrepreneurs', href: '/community' },
+      { name: 'Learning Hub', href: '/programs' },
+      { name: 'Startup Jobs', href: '/community' },
+      { name: 'Mentorship', href: '/mentors' },
     ],
     resources: [
-      { name: 'Startup Guide', href: '#' },
-      { name: 'Legal Templates', href: '#' },
-      { name: 'Funding Database', href: '#' },
-      { name: 'Market Research', href: '#' },
+      { name: 'Startup Guide', href: '/source' },
+      { name: 'Legal Templates', href: '/source' },
+      { name: 'Funding Database', href: '/source' },
+      { name: 'Market Research', href: '/source' },
     ],
     company: [
       { name: 'About Us', href: '/about' },
