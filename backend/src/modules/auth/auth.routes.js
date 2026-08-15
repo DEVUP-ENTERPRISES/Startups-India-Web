@@ -34,7 +34,11 @@ const forgotPasswordEmailLimit = redisRateLimit({
 
 const authCookieOptions = {
   httpOnly: true,
-  sameSite: 'strict',
+  // 'lax' allows cross-origin requests in development (localhost:3000 → localhost:5000).
+  // 'strict' would block them entirely since ports differ, causing 401s on all
+  // authenticated endpoints. In production both app and API share the same domain
+  // so strict would work, but lax is safe and correct for both environments.
+  sameSite: 'lax',
   secure: env.NODE_ENV === 'production',
   path: '/',
 };
@@ -70,6 +74,7 @@ router.post(
           full_name: result.user.fullName,
           role: result.user.role,
           provider: result.user.provider,
+          onboarding_completed: Boolean(result.user.onboardingCompleted),
         },
         session: { access_token: result.accessToken, refresh_token: result.refreshToken },
       },
@@ -85,7 +90,7 @@ router.post(
       password: z.string().min(8),
       fullName: z.string().min(1).max(120),
       phone: z.string().optional(),
-      role: z.string().default('user'),
+      role: z.string().default('startup'),
       isVerified: z.boolean().optional(),
       dynamicProfileData: z.record(z.any()).optional(),
     })
@@ -206,6 +211,7 @@ router.post(
           full_name: result.user.fullName,
           role: result.user.role,
           provider: result.user.provider,
+          onboarding_completed: Boolean(result.user.onboardingCompleted),
           user_metadata: {
             full_name: result.user.fullName,
             email_notifications: result.user.metadata?.emailNotifications,
@@ -245,6 +251,7 @@ router.post(
           avatar_url: result.user.avatarUrl,
           role: result.user.role,
           provider: result.user.provider,
+          onboarding_completed: Boolean(result.user.onboardingCompleted),
         },
         session: { access_token: result.accessToken, refresh_token: result.refreshToken },
       },
@@ -518,6 +525,11 @@ router.get(
   authRequired,
   asyncHandler(async (req, res) => {
     const user = await User.findById(req.user.userId).lean();
+
+    // Fetch the profile doc to get dynamicProfileData (onboarding fields)
+    const { Profile } = require('../profiles/profile.model');
+    const profile = await Profile.findOne({ userId: req.user.userId }).lean();
+
     res.json({
       success: true,
       data: {
@@ -526,13 +538,17 @@ router.get(
           email: user.email,
           role: user.role,
           full_name: user.fullName,
+          fullName: user.fullName,
+          phone: user.phone || null,
           avatarUrl: user.avatarUrl,
           provider: user.provider,
-          // Drives the security settings panel and the dashboard backfill prompt.
-          // Masked, never the raw number.
           phone_masked: user.phoneE164 ? maskPhone(user.phoneE164) : null,
           phone_verified: Boolean(user.phoneVerifiedAt),
           two_factor_enabled: Boolean(user.twoFactorEnabled),
+          onboarding_completed: Boolean(user.onboardingCompleted),
+          // Full profile data from the Profile collection - used on the
+          // Registration stage page and anywhere the dashboard needs onboarding fields
+          dynamicProfileData: profile?.dynamicProfileData || {},
           user_metadata: {
             full_name: user.fullName,
             email_notifications: user.metadata?.emailNotifications,
@@ -566,6 +582,176 @@ router.get(
     }
 
     res.json({ success: true, data: { emailExists, phoneExists } });
+  })
+);
+
+// ─── ONBOARDING COMPLETION ──────────────────────────────────────────
+// Called at the end of the /onboarding flow. Saves role, phone, profile data
+// and marks the account as onboarding-complete so the client can redirect
+// to the dashboard on next load instead of bouncing back to /onboarding.
+router.patch(
+  '/complete-onboarding',
+  authRequired,
+  validateBody(
+    z.object({
+      role: z.string().min(1),
+      phone: z.string().optional(),
+      isPhoneVerified: z.boolean().optional(),
+      dynamicProfileData: z.record(z.any()).optional(),
+    })
+  ),
+  asyncHandler(async (req, res) => {
+    const { role, phone, isPhoneVerified, dynamicProfileData = {} } = req.body;
+    const userId = req.user.userId;
+
+    const requiresApproval = ['mentor', 'investor'].includes((role || '').toLowerCase());
+    const userStatus = requiresApproval ? 'pending' : 'approved';
+    const isApproved = !requiresApproval;
+
+    // Phone is already written and verified by /phone/send-otp → /phone/verify
+    // during the onboarding flow. We must NOT write phoneE164 here again - it
+    // would hit the partial unique index if another account was previously
+    // verified with the same number (even a deleted/ghost account).
+    // The only phone-related thing we do here is set isPhoneVerified on the User
+    // doc as a convenience flag, which the index does not cover.
+
+    await User.updateOne(
+      { _id: userId },
+      {
+        $set: {
+          role,
+          ...(isPhoneVerified ? { isPhoneVerified: true } : {}),
+          status: userStatus,
+          isApproved,
+          onboardingCompleted: true,
+        },
+      }
+    );
+
+    // Upsert role-specific profile + application records (reuse signupV2 logic)
+    const { upsertUserProfile } = require('../profiles/profiles.service');
+    const userDoc = await User.findById(userId).lean();
+    const profile = await upsertUserProfile(userId, role, dynamicProfileData, userStatus);
+
+    if (role === 'mentor') {
+      const { MentorApplication } = require('../../models/MentorApplication');
+      const mentorExpertise = Array.isArray(dynamicProfileData.expertise)
+        ? dynamicProfileData.expertise
+        : (dynamicProfileData.domainExpertise ? [dynamicProfileData.domainExpertise] : []);
+      if (dynamicProfileData.expertiseOther) mentorExpertise.push(dynamicProfileData.expertiseOther);
+      await MentorApplication.findOneAndUpdate(
+        { email: userDoc.email },
+        {
+          $set: {
+            fullName: userDoc.fullName,
+            email: userDoc.email,
+            phone: phone || '',
+            currentRole: dynamicProfileData.designation || 'Mentor',
+            company: dynamicProfileData.currentCompany || 'Independent',
+            experience: String(dynamicProfileData.yearsOfExperience || ''),
+            linkedin: dynamicProfileData.linkedin || null,
+            expertise: mentorExpertise,
+            bio: dynamicProfileData.bio || '',
+            availability: dynamicProfileData.weeklyAvailability && dynamicProfileData.availabilityMode
+              ? `${dynamicProfileData.weeklyAvailability} (${dynamicProfileData.availabilityMode})`
+              : (dynamicProfileData.weeklyAvailability || ''),
+            industry: dynamicProfileData.industry || '',
+            status: userStatus,
+          },
+        },
+        { upsert: true }
+      ).catch(() => {});
+    }
+
+    if (role === 'investor') {
+      const { InvestorApplication } = require('../../models/InvestorApplication');
+      const focusList = Array.isArray(dynamicProfileData.preferredIndustries)
+        ? dynamicProfileData.preferredIndustries
+        : (dynamicProfileData.preferredIndustries ? [dynamicProfileData.preferredIndustries] : []);
+      const stageList = Array.isArray(dynamicProfileData.investmentStage)
+        ? dynamicProfileData.investmentStage
+        : (dynamicProfileData.investmentStage ? [dynamicProfileData.investmentStage] : []);
+      await InvestorApplication.findOneAndUpdate(
+        { email: userDoc.email },
+        {
+          $set: {
+            fullName: userDoc.fullName,
+            email: userDoc.email,
+            phone: phone || '',
+            investorType: dynamicProfileData.investorType || 'Angel Investor',
+            organizationName: dynamicProfileData.organizationName || null,
+            investmentFocus: focusList,
+            preferredStages: stageList,
+            ticketSize: dynamicProfileData.ticketSize || null,
+            linkedin: dynamicProfileData.linkedin || null,
+            geography: dynamicProfileData.geography || '',
+            status: userStatus,
+          },
+        },
+        { upsert: true }
+      ).catch(() => {});
+    }
+
+    if (role === 'startup') {
+      const { StartupApplication } = require('../../models/StartupApplication');
+      await StartupApplication.findOneAndUpdate(
+        { email: userDoc.email },
+        {
+          $set: {
+            fullName: userDoc.fullName,
+            email: userDoc.email,
+            phone: phone || '',
+            startupName: dynamicProfileData.startupName || '',
+            startupStage: dynamicProfileData.startupStage || '',
+            industry: dynamicProfileData.industry || '',
+            yearFounded: dynamicProfileData.yearFounded || '',
+            teamSize: dynamicProfileData.teamSize || '',
+            city: dynamicProfileData.city || '',
+            isRegistered: dynamicProfileData.isRegistered || '',
+            problemStatement: dynamicProfileData.problemStatement || '',
+            description: dynamicProfileData.description || '',
+            status: 'approved',
+          },
+        },
+        { upsert: true }
+      ).catch(() => {});
+    }
+
+    // 'startup' role - no approval needed, stores profile as FounderApplication
+    if (role === 'startup') {
+      const { FounderApplication } = require('../../models/FounderApplication');
+      await FounderApplication.findOneAndUpdate(
+        { email: userDoc.email },
+        {
+          $set: {
+            fullName: userDoc.fullName,
+            email: userDoc.email,
+            phone: phone || '',
+            isStudent: dynamicProfileData.isStudent || 'No',
+            designation: dynamicProfileData.designation || '',
+            startupName: dynamicProfileData.startupName || '',
+            startupStage: dynamicProfileData.startupStage || '',
+            industry: dynamicProfileData.industry || '',
+            yearsOfExperience: dynamicProfileData.yearsOfExperience || '',
+            domainExpertise: dynamicProfileData.domainExpertise || '',
+            city: dynamicProfileData.city || '',
+            bio: dynamicProfileData.bio || '',
+            linkedin: dynamicProfileData.linkedin || '',
+            status: 'approved',
+          },
+        },
+        { upsert: true }
+      ).catch(() => {});
+    }
+
+    res.json({
+      success: true,
+      data: {
+        requires_approval: requiresApproval,
+        role,
+        profile,
+      },
+    });
   })
 );
 

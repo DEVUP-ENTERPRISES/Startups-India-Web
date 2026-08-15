@@ -25,17 +25,9 @@ export default function BookSessionModal({ mentor, onClose }) {
   // Check auth on mount
   useEffect(() => {
     async function checkAuth() {
-      const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
-      if (!token) {
-        // Redirect to login with return URL
-        router.push(`/login?returnUrl=${encodeURIComponent('/mentors')}`);
-        onClose();
-        return;
-      }
+      // Cookie is sent automatically - just call /me directly
       try {
-        const res = await fetch(`${API_BASE}/api/v1/auth/me`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await fetch(`${API_BASE}/api/v1/auth/me`, { credentials: 'include' });
         const json = await res.json();
         if (res.ok && json.data?.user) {
           setIsLoggedIn(true);

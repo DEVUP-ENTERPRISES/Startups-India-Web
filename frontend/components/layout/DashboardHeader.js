@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { Flame } from 'lucide-react';
 import Icon from '@/components/ui/Icon';
 import Link from 'next/link';
 import { useDashboard } from '@/contexts/DashboardProvider';
@@ -237,7 +238,9 @@ export default function DashboardHeader({ onOpenMobileMenu }) {
           title="Daily Learning Streak"
           style={{ marginRight: 8 }}
         >
-          <span className="streak-emoji" style={{ display: 'flex', alignItems: 'center', marginRight: '4px' }}><Icon name="fire" size={16} color="#ef4444" fill="#ef4444" /></span>
+          <span className="streak-emoji" style={{ display: 'flex', alignItems: 'center', marginRight: '4px' }}>
+            <Flame size={16} color="#ef4444" fill="#ef4444" />
+          </span>
           <span className="streak-text" style={{ fontSize: '11px', fontWeight: 800 }}>{streakCount || 1} Day Streak</span>
         </div>
 
@@ -362,7 +365,7 @@ export default function DashboardHeader({ onOpenMobileMenu }) {
             </div>
             <div className="user-info hide-mobile">
               <span className="user-name" style={{ fontWeight: 700 }}>{activeName}</span>
-              <span className="user-role" style={{ color: user?.role === 'mentor' ? '#10b981' : user?.role === 'investor' ? '#3b82f6' : user?.role === 'admin' ? '#6366f1' : '#E63946', fontWeight: 800, textTransform: 'uppercase', fontSize: '9px', letterSpacing: '0.05em' }}>{user?.role === 'mentor' ? 'Mentor' : user?.role === 'investor' ? 'Investor' : user?.role === 'admin' ? 'Admin' : 'Founder'}</span>
+              <span className="user-role" style={{ color: user?.role === 'mentor' ? '#10b981' : user?.role === 'investor' ? '#3b82f6' : user?.role === 'admin' ? '#6366f1' : '#E63946', fontWeight: 800, textTransform: 'uppercase', fontSize: '9px', letterSpacing: '0.05em' }}>{user?.role === 'mentor' ? 'Mentor' : user?.role === 'investor' ? 'Investor' : user?.role === 'admin' ? 'Admin' : 'Startup / Founder'}</span>
             </div>
           </div>
 

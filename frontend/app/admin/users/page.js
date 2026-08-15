@@ -154,12 +154,10 @@ export default function AdminUsersPage() {
                               ? 'badge-yellow'
                               : u.role === 'startup'
                                 ? 'badge-green'
-                                : u.role === 'founder'
-                                  ? 'badge-blue'
-                                  : 'badge-gray'
+                                : 'badge-gray'
                       }`}
                     >
-                      {u.role || 'user'}
+                      {u.role || 'startup'}
                     </span>
                   </td>
                   <td>

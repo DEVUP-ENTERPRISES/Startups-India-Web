@@ -57,6 +57,16 @@ export async function getDocumentUrl(documentId) {
  * @param {Function} onProgress called with 0..100
  */
 export async function uploadDocument({ applicationId, kind, file, onProgress = () => {} }) {
+  // Keep an invalid client state from ever becoming a request such as
+  // `/applications/undefined/documents/upload-url`. The dropzone also has a
+  // UX guard, but this boundary protects every current and future caller.
+  if (!applicationId) {
+    return {
+      data: null,
+      error: { message: 'Your application is still being prepared. Please wait a moment and try again.' },
+    };
+  }
+
   // 1. Ask our API for a presigned URL. This is where type/size are enforced.
   const { data: presign, error: presignError } = await apiFetch(
     `/api/v1/grants/applications/${applicationId}/documents/upload-url`,
@@ -106,9 +116,21 @@ export async function uploadDocument({ applicationId, kind, file, onProgress = (
   });
 }
 
+/** Get available (not blocked, not booked) slots for a date (student-facing). */
+export async function getAvailableSlots(date) {
+  return apiFetch(`/api/v1/grants/slots?date=${date}`);
+}
+
+/** Book a slot for an application. */
+export async function bookSlot({ applicationId, date, time }) {
+  return apiFetch('/api/v1/grants/slots/book', {
+    method: 'POST',
+    body: JSON.stringify({ applicationId, date, time }),
+  });
+}
+
 /** Formats a paise integer as ₹ - money is never a float in this codebase. */
-export function formatMoney(minorUnits, currency = 'INR') {
-  const major = (minorUnits || 0) / 100;
+export function formatMoney(minorUnits, currency = 'INR') {  const major = (minorUnits || 0) / 100;
   return new Intl.NumberFormat('en-IN', {
     style: 'currency',
     currency,

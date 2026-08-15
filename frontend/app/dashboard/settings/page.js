@@ -611,7 +611,7 @@ function ProfileTab({ toast }) {
         </Card>
       )}
 
-      {role === 'founder' && (
+      {role === 'startup' && (
         <Card title="Founder Profile Details" subtitle="Edit details related to your professional background.">
           <div className="stg-grid-2">
             <FieldGroup label="Designation / Title" required>

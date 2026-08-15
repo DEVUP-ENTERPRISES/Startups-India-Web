@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
-  Search, Rocket, Settings as SettingsIcon, ClipboardCheck, ChevronLeft, ChevronRight,
+  Search, Rocket, Settings as SettingsIcon, ClipboardCheck, ChevronLeft, ChevronRight, CalendarClock,
 } from 'lucide-react';
 import { getGrantStats, listGrantApplications, getStatusMachine, adminUrl } from '@/lib/grantsAdmin';
 import StatusBadge from '@/components/grants/StatusBadge';
@@ -107,6 +107,9 @@ export default function AdminGrantsPage() {
         </div>
 
         <div style={{ display: 'flex', gap: '10px' }}>
+          <Link href={adminUrl('/grants/slots')} style={{ ...input, display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: 600, color: '#374151', textDecoration: 'none' }}>
+            <CalendarClock size={15} /> Slot Management
+          </Link>
           <Link href={adminUrl('/grants/evaluations')} style={{ ...input, display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: 600, color: '#374151', textDecoration: 'none' }}>
             <ClipboardCheck size={15} /> Evaluations
           </Link>

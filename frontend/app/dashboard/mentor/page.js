@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { getCurrentUser } from '@/lib/auth';
+import { getCurrentUser, clearLoggedInFlag } from '@/lib/auth';
 import { apiGet, apiPatch, apiPost, apiDelete } from '@/lib/api';
 import Link from 'next/link';
 
@@ -285,7 +285,7 @@ function MentorDashboardContent() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('access_token');
+    clearLoggedInFlag();
     sessionStorage.removeItem('auth_user');
     window.location.href = '/login';
   };

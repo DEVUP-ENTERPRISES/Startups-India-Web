@@ -43,7 +43,9 @@ export default function DashboardSidebar({
   onClose = () => {},
 }) {
   const pathname = usePathname();
-  const [openSectionId, setOpenSectionId] = useState(null);
+  const [openSectionId, setOpenSectionId] = useState(
+    user?.role === 'startup' ? 'grants' : null
+  );
 
   // 'Sessions' and 'Availability' are intentionally absent: there is no session
   // model or endpoint behind them, and availability is a single field edited on
@@ -71,18 +73,28 @@ export default function DashboardSidebar({
   // Comes straight from the backend (currentPhase) - no phase logic is duplicated
   // here. Students only; mentors/investors don't have a grant journey.
   const [grantPhase, setGrantPhase] = useState(0);
+  const [grantUnlockedUpTo, setGrantUnlockedUpTo] = useState(0);
+  const [grantPhaseComplete, setGrantPhaseComplete] = useState(false);
+
   useEffect(() => {
     if (user?.role === 'mentor' || user?.role === 'investor') return;
     let cancelled = false;
     listMyApplications()
       .then(({ data }) => {
         if (cancelled || !Array.isArray(data) || data.length === 0) return;
-        setGrantPhase(Math.max(...data.map(a => a.currentPhase ?? 0)));
+        const best = data.reduce((a, b) => (a.currentPhase ?? 0) >= (b.currentPhase ?? 0) ? a : b);
+        setGrantPhase(best.currentPhase ?? 0);
+        // unlockedUpTo comes from the score-based reveal logic on the backend
+        setGrantUnlockedUpTo(best.unlockedUpTo ?? best.currentPhase ?? 0);
+        // Track whether the current phase is complete (e.g. evaluation_completed = phase 1 done)
+        const completedStatuses = [
+          'evaluation_completed', 'pre_incubation', 'incubation',
+          'funding_process_started', 'grant_approved', 'completed',
+        ];
+        setGrantPhaseComplete(completedStatuses.includes(best.status));
       })
-      .catch(() => {}); // no application yet → everything past phase 1 stays locked
-    return () => {
-      cancelled = true;
-    };
+      .catch(() => {});
+    return () => { cancelled = true; };
   }, [user?.role]);
 
   const studentNavigation = [
@@ -93,22 +105,61 @@ export default function DashboardSidebar({
       icon: 'dashboard',
       items: [],
     },
-    // Sits directly under Dashboard: it's the primary journey, not a footnote.
     {
       id: 'grants',
-      // Label is admin-configurable (grant.ui.sidebarLabel). grantLabel falls back
-      // to the default until the config request resolves, so the item never
-      // flashes as blank.
       label: grantLabel,
       isDropdown: true,
       icon: 'award',
       items: [
-        { id: 'grant-apply', label: 'Apply for Funding', path: '/dashboard/grants', icon: 'explore' },
         {
-          id: 'grant-applications',
-          label: 'My Applications',
-          path: '/dashboard/grants/applications',
+          id: 'stage-1',
+          label: 'Stage 1 - Registration',
+          path: '/dashboard/journey/registration',
+          icon: 'completed',
+          phaseNum: 1,
+          state: 'done', // always done after onboarding
+        },
+        {
+          id: 'stage-2',
+          label: 'Stage 2 - Idea Validation',
+          path: '/dashboard/journey/idea-validation',
+          icon: 'explore',
+          phaseNum: 2,
+          // done = evaluation completed (phase 1 complete) or user is beyond phase 1
+          state: (grantPhase >= 2 || (grantPhase === 1 && grantPhaseComplete)) ? 'done' : 'unlocked',
+        },
+        {
+          id: 'stage-3',
+          label: 'Stage 3 - Pre-Incubation',
+          path: '/dashboard/journey/pre-incubation',
           icon: 'courses',
+          phaseNum: 3,
+          state: grantPhase >= 2 ? 'open' : grantUnlockedUpTo >= 2 ? 'unlocked' : 'locked',
+        },
+        {
+          id: 'stage-4',
+          label: 'Stage 4 - Incubation',
+          path: '/dashboard/journey/incubation',
+          icon: 'courses',
+          phaseNum: 4,
+          state: grantPhase >= 3 ? 'open' : grantUnlockedUpTo >= 3 ? 'unlocked' : 'locked',
+        },
+        {
+          id: 'stage-5',
+          label: 'Stage 5 - Accelerator',
+          path: '/dashboard/journey/accelerator',
+          icon: 'stats',
+          phaseNum: 5,
+          state: grantPhase >= 4 ? 'open' : grantUnlockedUpTo >= 4 ? 'unlocked' : 'locked',
+        },
+        {
+          id: 'stage-6',
+          label: 'Stage 6 - Grants',
+          path: '/dashboard/journey/grants',
+          icon: 'award',
+          phaseNum: 6,
+          state: grantPhase >= 5 ? 'open' : 'locked',
+          highlight: true,
         },
       ],
     },
@@ -299,13 +350,10 @@ export default function DashboardSidebar({
 
     if (activeSection) {
       setOpenSectionId(activeSection.id);
-      return;
     }
-
-    if (pathname === '/dashboard') {
-      setOpenSectionId(null);
-    }
-  }, [pathname, navigation]);
+    // Intentionally NOT resetting to null on /dashboard - we let the user
+    // open/close the dropdown freely. The initial state handles the default.
+  }, [pathname]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const renderIcon = (icon, size = 18, isOpen = false) => {
     const icons = {
@@ -756,6 +804,37 @@ export default function DashboardSidebar({
                     );
 
                     if (isLockedRow) {
+                      // Stage journey items (have phaseNum) show a locked page - allow navigation
+                      // Other locked items (courses, analytics etc) stay non-navigable
+                      if (item.path && item.phaseNum != null) {
+                        return (
+                          <Link
+                            key={item.id}
+                            href={item.path}
+                            className={`nav-item ${isActive(item.path) ? 'active' : ''}`}
+                            onClick={() => { setOpenSectionId(section.id); onClose(); }}
+                            style={{
+                              opacity: gold ? 0.95 : 0.6,
+                              ...(gold ? {
+                                background: 'linear-gradient(90deg,rgba(251,191,36,0.16),rgba(251,191,36,0.02))',
+                                border: '1px solid rgba(251,191,36,0.4)',
+                                borderRadius: '12px',
+                              } : {}),
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                              {bullet || (item.icon && renderIcon(item.icon, 16))}
+                              <span className="nav-item-label" style={gold ? { color: '#fbbf24', fontWeight: 700 } : undefined}>
+                                {item.label}
+                              </span>
+                            </div>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={gold ? '#fbbf24' : 'currentColor'} strokeWidth="2" style={{ marginLeft: 'auto', opacity: gold ? 1 : 0.7 }}>
+                              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                            </svg>
+                          </Link>
+                        );
+                      }
                       return (
                         <div
                           key={item.id}
@@ -785,7 +864,7 @@ export default function DashboardSidebar({
                       );
                     }
 
-                    const justUnlocked = st === 'unlocked';
+                    const justUnlocked = st === 'unlocked' || st === 'open';
                     return (
                       <Link
                         key={item.id}
@@ -796,24 +875,14 @@ export default function DashboardSidebar({
                           setOpenSectionId(section.id);
                           onClose();
                         }}
-                        style={justUnlocked ? {
-                          background: 'linear-gradient(90deg,rgba(230,57,70,0.3),rgba(230,57,70,0.05))',
-                          border: '1px solid rgba(255,107,107,0.5)',
-                          borderRadius: '12px',
-                          boxShadow: '0 4px 16px rgba(230,57,70,0.28)',
-                        } : undefined}
                       >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                           {bullet || (item.icon && renderIcon(item.icon, 16))}
-                          <span className="nav-item-label" style={justUnlocked ? { fontWeight: 700 } : undefined}>
+                          <span className="nav-item-label">
                             {item.label}
                           </span>
                         </div>
-                        {justUnlocked ? (
-                          <span style={{ marginLeft: 'auto', fontSize: '9px', fontWeight: 800, letterSpacing: '0.5px', textTransform: 'uppercase', color: '#fff', background: '#e63946', borderRadius: '100px', padding: '2px 7px' }}>
-                            Open
-                          </span>
-                        ) : item.badge}
+                        {item.badge}
                       </Link>
                     );
                   })}

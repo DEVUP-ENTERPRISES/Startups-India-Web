@@ -12,7 +12,7 @@ const userSchema = new mongoose.Schema(
       facebook: { type: String },
     },
     authProviders: { type: [String], default: ['email'] },
-    role: { type: String, enum: ['admin', 'user', 'student', 'startup', 'founder', 'mentor', 'investor', 'service_provider', 'other'], default: 'user' },
+    role: { type: String, enum: ['admin', 'startup', 'mentor', 'investor', 'service_provider', 'other', null], default: null },
     headline: { type: String, trim: true, maxlength: 200 },
     missionStatement: { type: String, trim: true, maxlength: 500 },
     bio: { type: String, trim: true, maxlength: 2000 },
@@ -56,6 +56,11 @@ const userSchema = new mongoose.Schema(
     // bcrypt hashes of single-use recovery codes. Without these, a lost or
     // swapped SIM means a permanently locked account and a support ticket.
     twoFactorBackupCodes: { type: [String], default: [], select: false },
+
+    // ─── ONBOARDING ───────────────────────────────────────────────────
+    // Set to true once the user completes the /onboarding flow after signup.
+    // Used to redirect new accounts to onboarding instead of the dashboard.
+    onboardingCompleted: { type: Boolean, default: false },
 
     // ─── PASSWORD RESET ────────────────────────────────────────────────
     // Only the SHA-256 hash of the reset token is stored. A DB leak therefore

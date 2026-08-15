@@ -14,8 +14,7 @@ import { ArrowRight, UserPlus } from 'lucide-react';
  * application.
  */
 const ROLES = [
-  { value: '/signup?role=startup', label: 'Startup' },
-  { value: '/signup?role=founder', label: 'Founder / Student' },
+  { value: '/signup', label: 'Startup / Founder' },
   { value: '/signup?role=mentor', label: 'Mentor' },
   { value: '/signup?role=investor', label: 'Investor' },
 ];
