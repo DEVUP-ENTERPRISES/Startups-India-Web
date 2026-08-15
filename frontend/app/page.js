@@ -1,4 +1,4 @@
-// Server component — never add 'use client' here.
+// Server component - never add 'use client' here.
 // JSON-LD is rendered server-side so it's identical on server and client,
 // eliminating the dangerouslySetInnerHTML hydration mismatch.
 

@@ -191,17 +191,6 @@ export default function PrivacyPolicy() {
               {['Comments you post on articles and community threads','Articles, posts, and images you upload','Articles you like or bookmark','Communities you join and your activity within them','Content reports you submit'].map(t=><BulletItem key={t}>{t}</BulletItem>)}
             </ul>
 
-            <h3 style={S.h3}>2.3 Device & Notification Data</h3>
-            <ul style={S.list}>
-              <BulletItem><strong>Firebase Cloud Messaging (FCM) token</strong> - a unique device identifier used exclusively to deliver push notifications. Disable anytime in device Settings.</BulletItem>
-              <BulletItem>Device type and OS version (for compatibility and analytics).</BulletItem>
-            </ul>
-
-            <h3 style={S.h3}>2.4 Diagnostics & Crash Data</h3>
-            <ul style={S.list}>
-              <BulletItem><strong>Firebase Crashlytics</strong> collects crash reports including stack trace, device model, OS version, and app version. Reports do <em>not</em> include your name, email, or message content.</BulletItem>
-              <BulletItem><strong>Firebase App Check</strong> verifies traffic comes from our genuine app. It does not collect personal data.</BulletItem>
-            </ul>
             <div style={S.calloutInfo}>
               <strong>We do not collect</strong> precise GPS location, contacts, camera/microphone access (unless you upload a profile photo), financial payment info, or any government ID.
             </div>

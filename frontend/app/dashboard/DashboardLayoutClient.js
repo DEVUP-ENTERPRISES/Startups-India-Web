@@ -6,7 +6,7 @@ import dynamic from 'next/dynamic';
 import DashboardSidebar from '@/components/layout/DashboardSidebar';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import { DashboardProvider } from '@/contexts/DashboardProvider';
-import { getCurrentUser } from '@/lib/auth';
+import { getCurrentUser, clearLoggedInFlag } from '@/lib/auth';
 
 // FCM push toasts. ssr:false because it touches the browser's notification API;
 // this moved here from layout.js when the client logic was split out.
@@ -58,8 +58,7 @@ export default function DashboardLayoutClient({ children }) {
         if (error || !data?.user) {
           if (typeof window !== 'undefined') {
             sessionStorage.removeItem('auth_user');
-            localStorage.removeItem('access_token');
-            localStorage.removeItem('refresh_token');
+            clearLoggedInFlag();
           }
           setUser(null);
           router.replace('/login');
@@ -70,12 +69,10 @@ export default function DashboardLayoutClient({ children }) {
           sessionStorage.setItem('auth_user', JSON.stringify(data.user));
         }
       } catch (err) {
-        // Network or unexpected error - redirect to login so the user is never stuck
         console.error('[Auth] checkAuth failed:', err);
         if (typeof window !== 'undefined') {
           sessionStorage.removeItem('auth_user');
-          localStorage.removeItem('access_token');
-          localStorage.removeItem('refresh_token');
+          clearLoggedInFlag();
         }
         setUser(null);
         router.replace('/login');

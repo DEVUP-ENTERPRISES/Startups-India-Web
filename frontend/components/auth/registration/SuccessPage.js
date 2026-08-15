@@ -8,8 +8,8 @@ export default function SuccessPage({ role, requiresApproval, returnUrl }) {
   const router = useRouter();
   const [countdown, setCountdown] = useState(8);
 
-  // All roles except Founder/Startup/Student require higher authority review & admin approval before login
-  const isPending = requiresApproval || !['student', 'founder', 'startup'].includes((role || '').toLowerCase());
+  // mentor and investor require admin approval before login; startup logs in directly
+  const isPending = requiresApproval || !['startup'].includes((role || '').toLowerCase());
 
   const getRoleDashboard = (r) => {
     switch ((r || '').toLowerCase()) {

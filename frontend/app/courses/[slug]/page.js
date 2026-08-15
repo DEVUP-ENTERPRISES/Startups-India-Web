@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { apiGet, apiPost } from '@/lib/api';
+import { apiGet, apiPost, isLoggedIn } from '@/lib/api';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
 
 /* ═══════════════════════════════════════════════
@@ -238,8 +238,7 @@ export default function CourseDetailPage() {
           const modRes = await apiGet(`/api/v1/courses/${c._id}/modules`);
           setModules(modRes.data || []);
           
-          const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
-          if (token) {
+          if (isLoggedIn()) {
             const enrollRes = await apiGet('/api/v1/enrollments');
             if (enrollRes.data) {
               setEnrolled(enrollRes.data.some(e => (e.courseId?._id || e.courseId) === c._id));
@@ -259,8 +258,7 @@ export default function CourseDetailPage() {
     setEnrolling(true);
     setError('');
 
-    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
-    if (!token) {
+    if (!isLoggedIn()) {
       router.push(`/auth/login?redirect=${encodeURIComponent(window.location.pathname)}`);
       return;
     }

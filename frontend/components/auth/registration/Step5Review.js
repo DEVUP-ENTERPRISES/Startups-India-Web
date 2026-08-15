@@ -17,13 +17,12 @@ export default function Step5Review({
 }) {
   const getRoleTitle = (r) => {
     switch (r) {
-      case 'student': return 'Student';
-      case 'startup': return 'Startup';
-      case 'founder': return 'Founder / Student';
+      case 'startup':
+      case 'founder': return 'Startup / Founder';
       case 'mentor': return 'Mentor';
       case 'investor': return 'Investor';
       case 'service_provider': return 'Service Provider';
-      default: return 'User';
+      default: return 'Startup / Founder';
     }
   };
 

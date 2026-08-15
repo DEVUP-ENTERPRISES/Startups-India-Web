@@ -21,6 +21,7 @@ import {
   X,
   Plus
 } from 'lucide-react';
+import { LocationSelector, CollegeSelector, IndustryDropdown } from './LocationSelector';
 
 const LinkedinIcon = ({ size = 18, className = "" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -332,13 +333,12 @@ const SectionHeader = ({ title }) => (
 export default function Step4DynamicProfile({ role, profileData = {}, onChange }) {
   const getRoleTitle = (r) => {
     switch (r) {
-      case 'student': return 'Student';
-      case 'startup': return 'Startup';
-      case 'founder': return 'Founder / Student';
+      case 'startup':
+      case 'founder': return 'Startup / Founder';
       case 'mentor': return 'Mentor';
       case 'investor': return 'Investor';
       case 'service_provider': return 'Service Provider';
-      default: return 'User';
+      default: return 'Startup / Founder';
     }
   };
 
@@ -399,20 +399,26 @@ export default function Step4DynamicProfile({ role, profileData = {}, onChange }
 
             <SectionHeader title="Educational Details" />
             <div className="reg-v2-form-row">
-              <div className="reg-v2-field-group">
-                <label className="reg-v2-label">College / University *</label>
-                <div className="reg-v2-input-wrapper">
-                  <Building className="reg-v2-input-icon" size={18} />
-                  <input
-                    type="text"
-                    className="reg-v2-input"
-                    placeholder="Enter your college or university name"
-                    value={profileData.collegeName || ''}
-                    onChange={(e) => onChange('collegeName', e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
+              <LocationSelector
+                stateId={profileData.stateId || ''}
+                stateName={profileData.state || ''}
+                cityId={profileData.cityId || ''}
+                cityName={profileData.city || ''}
+                onStateChange={(id, name) => { onChange('stateId', id); onChange('state', name); }}
+                onCityChange={(id, name) => { onChange('cityId', id); onChange('city', name); onChange('collegeId', ''); onChange('collegeName', ''); }}
+                required
+              />
+            </div>
+
+            <div className="reg-v2-form-row">
+              <CollegeSelector
+                cityId={profileData.cityId || ''}
+                stateId={profileData.stateId || ''}
+                value={profileData.collegeId || ''}
+                valueName={profileData.collegeName || ''}
+                onChange={(id, name) => { onChange('collegeId', id); onChange('collegeName', name); }}
+                required
+              />
 
               <div className="reg-v2-field-group">
                 <label className="reg-v2-label">Course / Degree *</label>
@@ -479,21 +485,6 @@ export default function Step4DynamicProfile({ role, profileData = {}, onChange }
                     <option key={y} value={y}>{y}</option>
                   ))}
                 </select>
-              </div>
-
-              <div className="reg-v2-field-group">
-                <label className="reg-v2-label">College City *</label>
-                <div className="reg-v2-input-wrapper">
-                  <MapPin className="reg-v2-input-icon" size={18} />
-                  <input
-                    type="text"
-                    className="reg-v2-input"
-                    placeholder="Enter city"
-                    value={profileData.city || ''}
-                    onChange={(e) => onChange('city', e.target.value)}
-                    required
-                  />
-                </div>
               </div>
 
               <div className="reg-v2-field-group">
@@ -650,20 +641,11 @@ export default function Step4DynamicProfile({ role, profileData = {}, onChange }
 
               <SectionHeader title="Business Details" />
               <div className="reg-v2-form-row">
-                <div className="reg-v2-field-group">
-                  <label className="reg-v2-label">Industry *</label>
-                  <div className="reg-v2-input-wrapper">
-                    <Briefcase className="reg-v2-input-icon" size={18} />
-                    <input
-                      type="text"
-                      className="reg-v2-input"
-                      placeholder="e.g. EdTech, FinTech, AI, SaaS"
-                      value={profileData.industry || ''}
-                      onChange={(e) => onChange('industry', e.target.value)}
-                      required
-                    />
-                  </div>
-                </div>
+                <IndustryDropdown
+                  value={profileData.industry || ''}
+                  onChange={(val) => onChange('industry', val)}
+                  required
+                />
 
                 <div className="reg-v2-field-group">
                   <label className="reg-v2-label">Year Founded *</label>
@@ -809,13 +791,12 @@ export default function Step4DynamicProfile({ role, profileData = {}, onChange }
          ========================================== */
       case 'founder':
         {
-          const bioWords = countWords(profileData.bio || '');
+          const descWords = countWords(profileData.bio || '');
           const isStudent = profileData.isStudent === 'Yes';
 
           return (
             <>
-              <SectionHeader title="Founder / Student Information" />
-              
+              {/* ── Step 0: Role selector ─────────────────────────── */}
               <div className="reg-v2-form-row" style={{ gridColumn: 'span 3' }}>
                 <div className="reg-v2-field-group" style={{ width: '100%' }}>
                   <label className="reg-v2-label">Are you registering as a Student? *</label>
@@ -840,6 +821,9 @@ export default function Step4DynamicProfile({ role, profileData = {}, onChange }
                 </div>
               </div>
 
+              {/* ── Section 1: About You ──────────────────────────── */}
+              <SectionHeader title="About You" />
+
               <div className="reg-v2-form-row">
                 <ImageUploadDropzone
                   label="Profile Photo (Optional)"
@@ -848,13 +832,15 @@ export default function Step4DynamicProfile({ role, profileData = {}, onChange }
                 />
 
                 <div className="reg-v2-field-group">
-                  <label className="reg-v2-label">{isStudent ? 'Designation / Current Course *' : 'Designation / Title *'}</label>
+                  <label className="reg-v2-label">
+                    {isStudent ? 'Current Course / Degree *' : 'Designation / Title *'}
+                  </label>
                   <div className="reg-v2-input-wrapper">
                     <Briefcase className="reg-v2-input-icon" size={18} />
                     <input
                       type="text"
                       className="reg-v2-input"
-                      placeholder={isStudent ? "e.g. Student, B.Tech CSE" : "e.g. Founder & CEO, Co-Founder & CTO"}
+                      placeholder={isStudent ? 'e.g. B.Tech CSE, MBA' : 'e.g. Founder & CEO, Co-Founder & CTO'}
                       value={profileData.designation || ''}
                       onChange={(e) => onChange('designation', e.target.value)}
                       required
@@ -863,96 +849,67 @@ export default function Step4DynamicProfile({ role, profileData = {}, onChange }
                 </div>
               </div>
 
-              <div className="reg-v2-form-row">
-                <div className="reg-v2-field-group">
-                  <label className="reg-v2-label">{isStudent ? 'Startup or College/University Name *' : 'Startup Name *'}</label>
-                  <div className="reg-v2-input-wrapper">
-                    <Building className="reg-v2-input-icon" size={18} />
+              {/* Professional-only: experience row */}
+              {!isStudent && (
+                <div className="reg-v2-form-row">
+                  <div className="reg-v2-field-group">
+                    <label className="reg-v2-label">Years of Experience *</label>
                     <input
                       type="text"
-                      className="reg-v2-input"
-                      placeholder={isStudent ? "Enter college name or startup if you have one" : "Enter startup name"}
-                      value={profileData.startupName || ''}
-                      onChange={(e) => onChange('startupName', e.target.value)}
+                      inputMode="numeric"
+                      className="reg-v2-input no-icon"
+                      placeholder="e.g. 5"
+                      value={profileData.yearsOfExperience || ''}
+                      onChange={(e) => handleDigitsOnly('yearsOfExperience', e.target.value, 2)}
+                      required
+                    />
+                  </div>
+
+                  <div className="reg-v2-field-group">
+                    <label className="reg-v2-label">Previous Startup?</label>
+                    <select
+                      className="reg-v2-select no-icon"
+                      value={profileData.previousStartup || ''}
+                      onChange={(e) => onChange('previousStartup', e.target.value)}
+                    >
+                      <option value="">Select option</option>
+                      <option value="Yes">Yes</option>
+                      <option value="No">No</option>
+                    </select>
+                  </div>
+
+                  <div className="reg-v2-field-group">
+                    <label className="reg-v2-label">Previous Company (Optional)</label>
+                    <input
+                      type="text"
+                      className="reg-v2-input no-icon"
+                      placeholder="e.g. TCS, Google, Flipkart"
+                      value={profileData.previousCompany || ''}
+                      onChange={(e) => onChange('previousCompany', e.target.value)}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Student-only: year of study */}
+              {isStudent && (
+                <div className="reg-v2-form-row">
+                  <div className="reg-v2-field-group">
+                    <label className="reg-v2-label">Year of Study *</label>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      className="reg-v2-input no-icon"
+                      placeholder="e.g. 3 (for 3rd year)"
+                      value={profileData.yearsOfExperience || ''}
+                      onChange={(e) => handleDigitsOnly('yearsOfExperience', e.target.value, 2)}
                       required
                     />
                   </div>
                 </div>
+              )}
 
-                <div className="reg-v2-field-group">
-                  <label className="reg-v2-label">{isStudent ? 'Startup Stage (Optional for Students) *' : 'Startup Stage *'}</label>
-                  <select
-                    className="reg-v2-select no-icon"
-                    value={profileData.startupStage || ''}
-                    onChange={(e) => onChange('startupStage', e.target.value)}
-                    required
-                  >
-                    <option value="">Select startup stage</option>
-                    <option value="Idea">Idea / Conceptual stage</option>
-                    <option value="MVP">MVP built</option>
-                    <option value="Early Revenue">Early Revenue</option>
-                    <option value="Growth">Growth</option>
-                    <option value="Scaling">Scaling</option>
-                  </select>
-                </div>
-
-                <div className="reg-v2-field-group">
-                  <label className="reg-v2-label">Industry *</label>
-                  <div className="reg-v2-input-wrapper">
-                    <Briefcase className="reg-v2-input-icon" size={18} />
-                    <input
-                      type="text"
-                      className="reg-v2-input"
-                      placeholder="e.g. FinTech, AI, SaaS, Education"
-                      value={profileData.industry || ''}
-                      onChange={(e) => onChange('industry', e.target.value)}
-                      required
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <SectionHeader title={isStudent ? 'Study Details' : 'Experience'} />
-              <div className="reg-v2-form-row">
-                <div className="reg-v2-field-group">
-                  <label className="reg-v2-label">{isStudent ? 'Year of Study (e.g. 3 for 3rd year) *' : 'Years of Experience *'}</label>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    className="reg-v2-input no-icon"
-                    placeholder={isStudent ? "e.g. 3" : "e.g. 5"}
-                    value={profileData.yearsOfExperience || ''}
-                    onChange={(e) => handleDigitsOnly('yearsOfExperience', e.target.value, 2)}
-                    required
-                  />
-                </div>
-
-                <div className="reg-v2-field-group">
-                  <label className="reg-v2-label">Previous Startup?</label>
-                  <select
-                    className="reg-v2-select no-icon"
-                    value={profileData.previousStartup || ''}
-                    onChange={(e) => onChange('previousStartup', e.target.value)}
-                  >
-                    <option value="">Select option</option>
-                    <option value="Yes">Yes</option>
-                    <option value="No">No</option>
-                  </select>
-                </div>
-
-                <div className="reg-v2-field-group">
-                  <label className="reg-v2-label">Previous Company (Optional)</label>
-                  <input
-                    type="text"
-                    className="reg-v2-input no-icon"
-                    placeholder="e.g. TCS, Google, Flipkart"
-                    value={profileData.previousCompany || ''}
-                    onChange={(e) => onChange('previousCompany', e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <SectionHeader title="About Founder" />
+              {/* Expertise + location for everyone */}
               <div className="reg-v2-form-row">
                 <div className="reg-v2-field-group">
                   <label className="reg-v2-label">Expertise / Domain *</label>
@@ -965,38 +922,110 @@ export default function Step4DynamicProfile({ role, profileData = {}, onChange }
                     required
                   />
                 </div>
+              </div>
 
+              {/* State → City → College */}
+              <LocationSelector
+                stateId={profileData.stateId || ''}
+                stateName={profileData.state || ''}
+                cityId={profileData.cityId || ''}
+                cityName={profileData.city || ''}
+                onStateChange={(id, name) => {
+                  onChange('stateId', id); onChange('state', name);
+                  onChange('cityId', ''); onChange('city', '');
+                  onChange('collegeId', ''); onChange('collegeName', '');
+                }}
+                onCityChange={(id, name) => {
+                  onChange('cityId', id); onChange('city', name);
+                  onChange('collegeId', ''); onChange('collegeName', '');
+                }}
+                required
+              />
+
+              {profileData.cityId && (
+                <CollegeSelector
+                  cityId={profileData.cityId || ''}
+                  stateId={profileData.stateId || ''}
+                  value={profileData.collegeId || ''}
+                  valueName={profileData.collegeName || ''}
+                  onChange={(id, name) => { onChange('collegeId', id); onChange('collegeName', name); }}
+                />
+              )}
+
+              {/* ── Section 2: About Your Startup / Idea ─────────── */}
+              <SectionHeader title={isStudent ? 'About Your Idea' : 'About Your Startup'} />
+
+              {/* Startup name - required for professionals, optional for students */}
+              <div className="reg-v2-form-row">
                 <div className="reg-v2-field-group">
-                  <label className="reg-v2-label">Current Location *</label>
+                  <label className="reg-v2-label">
+                    {isStudent ? 'Startup Name *' : 'Startup Name *'}
+                  </label>
                   <div className="reg-v2-input-wrapper">
-                    <MapPin className="reg-v2-input-icon" size={18} />
+                    <Building className="reg-v2-input-icon" size={18} />
                     <input
                       type="text"
                       className="reg-v2-input"
-                      placeholder="Enter city"
-                      value={profileData.city || ''}
-                      onChange={(e) => onChange('city', e.target.value)}
-                      required
+                      placeholder={isStudent ? 'Enter startup name if you have one' : 'Enter your startup name'}
+                      value={profileData.startupName || ''}
+                      onChange={(e) => onChange('startupName', e.target.value)}
+                      required={!isStudent}
                     />
                   </div>
+                </div>
+
+                <IndustryDropdown
+                  value={profileData.industry || ''}
+                  onChange={(val) => onChange('industry', val)}
+                  required
+                />
+              </div>
+
+              <div className="reg-v2-form-row">
+                <div className="reg-v2-field-group">
+                  <label className="reg-v2-label">
+                    {isStudent ? 'Startup Stage (Optional)' : 'Startup Stage *'}
+                  </label>
+                  <select
+                    className="reg-v2-select no-icon"
+                    value={profileData.startupStage || ''}
+                    onChange={(e) => onChange('startupStage', e.target.value)}
+                    required={!isStudent}
+                  >
+                    <option value="">Select startup stage</option>
+                    <option value="Idea">Idea / Conceptual stage</option>
+                    <option value="MVP">MVP built</option>
+                    <option value="Early Revenue">Early Revenue</option>
+                    <option value="Growth">Growth</option>
+                    <option value="Scaling">Scaling</option>
+                  </select>
                 </div>
               </div>
 
               <div className="reg-v2-field-group">
-                <label className="reg-v2-label">Short Bio (Min 20 Words) *</label>
+                <label className="reg-v2-label">
+                  {isStudent ? 'Idea / Startup Description (Min 20 Words) *' : 'Startup Description (Min 20 Words) *'}
+                </label>
                 <textarea
                   className="reg-v2-textarea no-icon"
                   rows={3}
-                  placeholder="Share your background, achievements, and vision for your startup..."
+                  placeholder={
+                    isStudent
+                      ? 'Describe your idea, the problem you want to solve, and your vision…'
+                      : 'Describe your startup, the problem it solves, target market, and vision…'
+                  }
                   value={profileData.bio || ''}
                   onChange={(e) => onChange('bio', e.target.value)}
                   required
                 />
-                <p style={{ fontSize: '11px', color: bioWords >= 20 ? '#059669' : '#ef4444', marginTop: '4px' }}>
-                  {bioWords >= 20 ? `✓ Word count requirement met (${bioWords} words)` : `✕ Minimum 20 words required (${bioWords}/20 words)`}
+                <p style={{ fontSize: '11px', color: descWords >= 20 ? '#059669' : '#ef4444', marginTop: '4px' }}>
+                  {descWords >= 20
+                    ? `✓ Word count requirement met (${descWords} words)`
+                    : `✕ Minimum 20 words required (${descWords}/20 words)`}
                 </p>
               </div>
 
+              {/* ── Section 3: Looking For ────────────────────────── */}
               <SectionHeader title="Looking For" />
               <div className="reg-v2-field-group">
                 <label className="reg-v2-label">Select Options (Multi-select) *</label>
@@ -1008,6 +1037,7 @@ export default function Step4DynamicProfile({ role, profileData = {}, onChange }
                 />
               </div>
 
+              {/* ── Section 4: Social & Links ─────────────────────── */}
               <SectionHeader title="Social & Links" />
               <div className="reg-v2-form-row">
                 <div className="reg-v2-field-group">
@@ -1092,17 +1122,12 @@ export default function Step4DynamicProfile({ role, profileData = {}, onChange }
                   </div>
                 </div>
 
-                <div className="reg-v2-field-group">
-                  <label className="reg-v2-label">Industry *</label>
-                  <input
-                    type="text"
-                    className="reg-v2-input no-icon"
-                    placeholder="e.g. SaaS, FinTech, AI, DeepTech"
-                    value={profileData.industry || ''}
-                    onChange={(e) => onChange('industry', e.target.value)}
-                    required
-                  />
-                </div>
+                <IndustryDropdown
+                  value={profileData.industry || ''}
+                  onChange={(val) => onChange('industry', val)}
+                  label="Industry / Domain"
+                  required
+                />
               </div>
 
               <SectionHeader title="Experience" />

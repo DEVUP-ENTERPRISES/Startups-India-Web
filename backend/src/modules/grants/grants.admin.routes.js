@@ -3,6 +3,7 @@ const { z } = require('zod');
 const { asyncHandler } = require('../../utils/asyncHandler');
 const { validateBody } = require('../../middlewares/validateBody');
 const { authRequired, requireRole } = require('../../middlewares/authMiddleware');
+const { ApiError } = require('../../utils/apiError');
 const grantService = require('./grant.service');
 const documentsService = require('./grant.documents.service');
 const evaluationService = require('./grant.evaluation.service');
@@ -157,6 +158,105 @@ router.get(
 );
 
 // ─── IDEA EVALUATION ────────────────────────────────────────────────────
+// Admin scores an application directly from the detail page (no separate
+// evaluation meeting required for shortlisting).
+router.post(
+  '/applications/:id/score',
+  validateBody(
+    z.object({
+      score: z.coerce.number().min(0).max(100),
+      feedback: z.string().max(5000).optional().default(''),
+    })
+  ),
+  asyncHandler(async (req, res) => {
+    const { score, feedback } = req.body;
+    const { GrantApplication, IdeaEvaluation } = require('./grant.models');
+    const { ApiError: AE } = require('../../utils/apiError');
+    const { sendToUser } = require('../push/push.service');
+    const { notifyUser } = require('./grant.notify');
+    const { addTimelineEntry } = require('./grant.service');
+
+    const application = await GrantApplication.findById(req.params.id);
+    if (!application) throw new AE(404, 'Application not found');
+
+    const n = Number(score);
+
+    // Determine which stages to unlock based on score.
+    let nextStatus;
+    if (n >= 1) {
+      nextStatus = 'pre_incubation';
+    } else {
+      nextStatus = 'rejected';
+    }
+
+    // Notification copy — score is NOT revealed here; it's a surprise shown
+    // on the Idea Validation page 2 hours before the session (or immediately
+    // after admin scores, per scoreRevealed logic in grant.phases.js).
+    const notifTitle = n >= 1 ? '🎉 Idea Validation Complete!' : 'Application Update';
+    const notifMessage = n >= 1
+      ? 'Your idea has been evaluated by our expert panel. View your report on the Idea Validation page.'
+      : (feedback || 'Thank you for applying. Unfortunately your idea did not clear evaluation this time.');
+    const env = require('../../config/env');
+    const ctaUrl = `${env.FRONTEND_URL}/dashboard/journey/idea-validation`;
+
+    // Save score to IdeaEvaluation
+    await IdeaEvaluation.findOneAndUpdate(
+      { applicationId: application._id },
+      {
+        $set: {
+          score: n,
+          passed: n >= 1,
+          feedback: feedback || '',
+          reviewerId: req.user.userId,
+          submittedAt: new Date(),
+        },
+      },
+      { upsert: true, new: true }
+    );
+
+    // Advance the application status
+    application.status = nextStatus;
+    application.lastActionBy = req.user.userId;
+    application.lastActionAt = new Date();
+    await application.save();
+
+    await addTimelineEntry({
+      applicationId: application._id,
+      event: 'scored',
+      message: `Score: ${n}/100. ${nextStatus === 'rejected' ? 'Not selected.' : 'Stages unlocked based on score.'}`,
+      actorId: req.user.userId,
+      actorRole: 'admin',
+      visibleToStudent: false,
+      metadata: { score: n, nextStatus },
+    });
+
+    // In-app notification — no score in the message
+    await notifyUser({
+      userId: application.userId,
+      title: notifTitle,
+      message: notifMessage,
+      type: n >= 1 ? 'success' : 'info',
+      data: {
+        applicationId: String(application._id),
+        ctaUrl,
+        ctaText: 'View Your Report',
+      },
+    });
+
+    // FCM push notification — no score in the body
+    await sendToUser(application.userId, {
+      title: notifTitle,
+      body: notifMessage,
+      data: {
+        type: 'idea_scored',
+        applicationId: String(application._id),
+        clickUrl: ctaUrl,
+      },
+    }).catch(() => {});
+
+    res.json({ success: true, data: { score: n, nextStatus } });
+  })
+);
 router.get(
   '/evaluations',
   asyncHandler(async (req, res) => {
@@ -228,7 +328,98 @@ router.get(
   })
 );
 
+// ─── SLOT MANAGEMENT (admin) ────────────────────────────────────────────
+const slotService = require('./grant.slot.service');
+
+// Get all booked slots - must be defined BEFORE GET /slots to prevent Express
+// from matching "/slots/bookings" against the "/slots" handler (which requires
+// a date query param and returns 400 for anything without it).
+router.get(
+  '/slots/bookings',
+  asyncHandler(async (req, res) => {
+    const data = await slotService.getAllBookings({
+      page: req.query.page,
+      limit: req.query.limit,
+    });
+    res.json({ success: true, data });
+  })
+);
+
+// Get full slot grid for a date (admin sees blocked + booked)
+router.get(
+  '/slots',
+  asyncHandler(async (req, res) => {
+    const { date } = req.query;
+    if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      throw new ApiError(400, 'date query param is required (YYYY-MM-DD)');
+    }
+    const data = await slotService.getAdminSlots(date);
+    res.json({ success: true, data });
+  })
+);
+
+// Admin blocks/unblocks slots for a date
+router.patch(
+  '/slots',
+  validateBody(
+    z.object({
+      date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+      times: z.array(z.string().regex(/^\d{2}:\d{2}$/)).min(1),
+      blocked: z.boolean(),
+    })
+  ),
+  asyncHandler(async (req, res) => {
+    const data = await slotService.setAdminBlocked(req.body);
+    res.json({ success: true, data });
+  })
+);
+
+// ─── DELETE / RESET ─────────────────────────────────────────────────────
+// Deletes the application + all related docs, payments, evaluations, slots.
+// This resets the user so they can re-do Stage 2.
+router.delete(
+  '/applications/:id',
+  asyncHandler(async (req, res) => {
+    const { GrantApplication, ApplicationDocument, ApplicationTimeline,
+            IdeaEvaluation, EvaluationPayment, ReviewComment } = require('./grant.models');
+    const { SlotDay } = require('./grant.slot.model');
+    const { ApiError: AE } = require('../../utils/apiError');
+
+    const application = await GrantApplication.findById(req.params.id);
+    if (!application) throw new AE(404, 'Application not found');
+
+    const appId = application._id;
+
+    // Delete all related records in parallel
+    await Promise.all([
+      ApplicationDocument.deleteMany({ applicationId: appId }),
+      ApplicationTimeline.deleteMany({ applicationId: appId }),
+      IdeaEvaluation.deleteMany({ applicationId: appId }),
+      EvaluationPayment.deleteMany({ applicationId: appId }),
+      ReviewComment.deleteMany({ applicationId: appId }),
+      // Remove any booked slots for this application
+      SlotDay.updateMany(
+        { 'slots.applicationId': appId },
+        {
+          $set: {
+            'slots.$[slot].bookedBy': null,
+            'slots.$[slot].applicationId': null,
+            'slots.$[slot].bookedAt': null,
+            'slots.$[slot].mode': null,
+          },
+        },
+        { arrayFilters: [{ 'slot.applicationId': appId }] }
+      ),
+    ]);
+
+    await GrantApplication.deleteOne({ _id: appId });
+
+    res.json({ success: true, message: 'Application deleted and user reset to Stage 2 start.' });
+  })
+);
+
 // ─── SETTINGS ───────────────────────────────────────────────────────────
+
 router.get(
   '/settings',
   asyncHandler(async (req, res) => {

@@ -26,7 +26,7 @@ const grantApplicationSchema = new mongoose.Schema(
     founder: {
       fullName: { type: String, required: true, trim: true, maxlength: 120 },
       email: { type: String, required: true, trim: true, lowercase: true },
-      phone: { type: String, required: true, trim: true },
+      phone: { type: String, required: false, trim: true, default: '' },
       collegeName: { type: String, trim: true, maxlength: 200 },
       university: { type: String, trim: true, maxlength: 200 },
       city: { type: String, trim: true, maxlength: 100 },

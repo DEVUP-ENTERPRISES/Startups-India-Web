@@ -5,14 +5,13 @@ const ADMIN_SLUG = process.env.NEXT_PUBLIC_ADMIN_SLUG || 'ctrl-x9k2m3-panel';
 export function middleware(request) {
   const { pathname } = request.nextUrl;
 
-  // Block any direct access to /admin or /admin/* - return hard 404
-  // This prevents scanners and bots from discovering the admin panel location.
+  // ── Admin panel obfuscation ──────────────────────────────────────────
+  // Block direct /admin access - hard 404 so scanners get nothing.
   if (pathname === '/admin' || pathname.startsWith('/admin/')) {
     return new NextResponse(null, { status: 404 });
   }
 
-  // Rewrite /{ADMIN_SLUG} or /{ADMIN_SLUG}/* → /admin or /admin/*
-  // The browser URL stays as the slug; Next.js renders the /admin/* page tree.
+  // Rewrite /{ADMIN_SLUG}/* → /admin/* (browser URL stays as slug).
   if (pathname === `/${ADMIN_SLUG}` || pathname.startsWith(`/${ADMIN_SLUG}/`)) {
     const rewrittenPath = pathname.replace(`/${ADMIN_SLUG}`, '/admin');
     const url = request.nextUrl.clone();
@@ -20,11 +19,15 @@ export function middleware(request) {
     return NextResponse.rewrite(url);
   }
 
+  // Note: /onboarding auth guard is handled client-side in the page component
+  // via localStorage token check. The backend accessToken cookie is set on
+  // localhost:5000 (different origin in dev) so it is not readable here in
+  // the Next.js middleware running on localhost:3000.
+
   return NextResponse.next();
 }
 
 export const config = {
-  // Run on all pages except Next.js internals, static files, and API routes
   matcher: [
     '/((?!_next/static|_next/image|favicon\\.ico|api/).*)',
   ],
