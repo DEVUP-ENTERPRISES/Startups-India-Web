@@ -16,7 +16,7 @@ function authRequired(req, res, next) {
     const payload = verifyAccessToken(token, env);
     req.user = {
       userId: payload.sub,
-      role: payload.role || 'user',
+      role: payload.role ?? null,   // preserve null - don't default to 'user' before onboarding
       email: payload.email,
     };
     return next();
@@ -39,7 +39,7 @@ function optionalAuth(req, res, next) {
     const payload = verifyAccessToken(token, env);
     req.user = {
       userId: payload.sub,
-      role: payload.role || 'user',
+      role: payload.role ?? null,   // preserve null - don't default to 'user' before onboarding
       email: payload.email,
     };
     return next();

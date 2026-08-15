@@ -26,8 +26,7 @@ import {
   Zap,
   CheckCircle2
 } from 'lucide-react';
-import { signIn, initGoogleSignIn } from '@/lib/auth';
-import JoinAsSelect from '@/components/auth/JoinAsSelect';
+import { signIn, initGoogleSignIn, getPostAuthRedirect, isLoggedIn } from '@/lib/auth';
 import TwoFactorStep from '@/components/auth/TwoFactorStep';
 import '@/styles/auth-redesign.css';
 
@@ -58,21 +57,12 @@ function LoginContent() {
   };
 
   const getRedirectByRole = useCallback((userData) => {
-    const role = userData?.user?.role || userData?.role;
-    // The admin panel is served at /{ADMIN_SLUG}/*; middleware hard-404s any
-    // literal /admin path, so redirecting there would bounce every admin login.
-    if (role === 'admin') return `/${ADMIN_SLUG}/dashboard`;
-    if (role === 'mentor') return '/dashboard/mentor';
-    if (role === 'investor') return '/dashboard/investor';
-    return returnUrl;
+    return getPostAuthRedirect(userData, returnUrl);
   }, [returnUrl]);
 
   // Redirect if already logged in
   useEffect(() => {
-    const token = localStorage.getItem('access_token');
-    if (token) {
-      router.replace(returnUrl);
-    }
+    if (isLoggedIn()) router.replace(returnUrl);
   }, [router, returnUrl]);
 
   // Render Google Sign-In button
@@ -321,14 +311,6 @@ function LoginContent() {
                   <p className="auth-subtitle">
                     Sign in to continue your entrepreneurial journey and access your personalized dashboard.
                   </p>
-                </div>
-
-                {/* Sits above the sign-in form on purpose: new mentors/investors
-                    were missing it entirely when it lived at the bottom of the
-                    page. Add a role in JoinAsSelect and it appears here and on
-                    signup automatically. */}
-                <div style={{ marginBottom: '22px' }}>
-                  <JoinAsSelect />
                 </div>
 
                 {error && (

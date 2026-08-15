@@ -72,7 +72,8 @@ const TRANSITIONS = {
   // Only a verified payment moves this on - see grant.service.
   [STATUS.EVALUATION_PENDING]: [STATUS.EVALUATION_PAID, STATUS.REJECTED],
   [STATUS.EVALUATION_PAID]: [STATUS.EVALUATION_SCHEDULED, STATUS.REJECTED],
-  [STATUS.EVALUATION_SCHEDULED]: [STATUS.EVALUATION_COMPLETED, STATUS.REJECTED],
+  // EVALUATION_PAID is also the target when a student cancels a scheduled slot to reschedule.
+  [STATUS.EVALUATION_SCHEDULED]: [STATUS.EVALUATION_COMPLETED, STATUS.EVALUATION_PAID, STATUS.REJECTED],
   // Passing the evaluation opens Pre-Incubation. From there it's a linear climb:
   // Pre-Incubation → Incubation → Funding → Grant Approved → Completed. Each step
   // is an admin action that unlocks the next phase for the applicant.

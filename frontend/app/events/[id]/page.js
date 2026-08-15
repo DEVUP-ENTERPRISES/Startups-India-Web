@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter, useParams } from 'next/navigation';
-import { apiGet, apiPost, apiDelete } from '@/lib/api';
+import { apiGet, apiPost, apiDelete, isLoggedIn } from '@/lib/api';
 import '../../../styles/event-details.css';
 
 const DEFAULT_EVENT_IMAGE = 'https://images.unsplash.com/photo-1557683316-973673baf926?w=800&q=80';
@@ -187,7 +187,7 @@ export default function EventDetailsPage() {
 
   const handleRegister = async () => {
     try {
-      if (!localStorage.getItem('access_token')) {
+      if (!isLoggedIn()) {
         router.push(`/login?returnUrl=/events/${params.id}`);
         return;
       }

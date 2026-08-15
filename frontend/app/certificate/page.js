@@ -23,11 +23,9 @@ function CertificateContent() {
         }
         setUser(data.user);
 
-        // Fetch certificates from backend API
         const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
-        const token = localStorage.getItem('access_token');
+        // Cookie sent automatically via credentials: 'include' - no Bearer needed
         const res = await fetch(`${API_BASE}/api/v1/certificates/my`, {
-          headers: { Authorization: `Bearer ${token}` },
           credentials: 'include',
         });
 

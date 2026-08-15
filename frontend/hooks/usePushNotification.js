@@ -9,14 +9,11 @@ const FCM_COOLDOWN_MS  = 24 * 60 * 60 * 1000;
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || '';
 
 async function sendTokenToBackend(token) {
-  const accessToken = typeof localStorage !== 'undefined' ? localStorage.getItem('access_token') : null;
+  // Cookie is sent automatically via credentials: 'include' - no Bearer needed
   try {
     const res = await fetch(`${API_BASE}/api/v1/push/subscribe`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-      },
+      headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
       body: JSON.stringify({ token }),
     });

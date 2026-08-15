@@ -17,6 +17,7 @@ const { mediaRouter } = require('../modules/media/media.routes');
 const { eventsRouter } = require('../modules/events/events.routes');
 const articleRouter = require('../modules/public/article.routes');
 const { publicRouter } = require('../modules/public/public.routes');
+const { locationRouter } = require('../modules/location/location.routes');
 const { grantsRouter } = require('../modules/grants/grants.routes');
 const { grantsAdminRouter } = require('../modules/grants/grants.admin.routes');
 const { asyncHandler } = require('../utils/asyncHandler');
@@ -61,6 +62,7 @@ function registerRoutes(app) {
   app.use('/api/v1/events', eventsRouter);
   app.use('/api/v1/articles', articleRouter);
   app.use('/api/v1/public', publicRouter);
+  app.use('/api/v1/location', locationRouter);
 
   // Mentors routes
   const mentorsRouter = require('../modules/mentors/mentors.routes');

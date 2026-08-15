@@ -4,6 +4,7 @@ const { STATUS } = require('./grant.status');
 const { getGrantSettings } = require('./grant.settings');
 const { addTimelineEntry, changeStatus } = require('./grant.service');
 const { notifyUser } = require('./grant.notify');
+const { sendToUser } = require('../push/push.service');
 
 /**
  * Idea Evaluation: scheduling the meeting and recording the reviewer's verdict.
@@ -216,17 +217,45 @@ async function submitResult({ applicationDbId, score, feedback, reviewerId }) {
   });
 
   if (passed) {
+    const env = require('../../config/env');
+    const ideaValidationUrl = `${env.FRONTEND_URL}/dashboard/journey/idea-validation`;
+
     await notifyUser({
       userId: application.userId,
-      title: '🎉 You cleared the Idea Evaluation!',
+      title: '🎉 Idea Evaluation Complete!',
       message:
-        'Congratulations - your idea passed evaluation by our panel. '
-        + 'You are now eligible for the next phases (Pre-Incubation, Incubation and Funding). '
-        + 'We will be in touch with the next steps.'
-        + (feedback ? `\n\nPanel note: ${feedback}` : ''),
+        'Your idea has been evaluated by our expert panel. '
+        + 'View your full evaluation report on the Idea Validation page.',
       type: 'success',
-      data: { applicationId: String(application._id), applicationRef: application.applicationId },
+      data: {
+        applicationId: String(application._id),
+        applicationRef: application.applicationId,
+        ctaUrl: ideaValidationUrl,
+        ctaText: 'View Your Report',
+      },
     });
+
+    // FCM push notification - fires even if the tab is closed
+    await sendToUser(application.userId, {
+      title: '🎉 Idea Evaluation Complete!',
+      body: 'Your evaluation report is ready. Tap to view it on the Idea Validation page.',
+      data: {
+        type: 'idea_validated',
+        applicationId: String(application._id),
+        clickUrl: ideaValidationUrl,
+      },
+    }).catch(() => {}); // Non-blocking - don't fail the whole request if FCM is down
+  } else {
+    // FCM for failed evaluation
+    await sendToUser(application.userId, {
+      title: 'Evaluation Result Available',
+      body: 'Your idea evaluation result is in. Check your dashboard for feedback and next steps.',
+      data: {
+        type: 'idea_evaluated',
+        applicationId: String(application._id),
+        clickUrl: `/dashboard/journey/idea-validation`,
+      },
+    }).catch(() => {});
   }
 
   return evaluation;

@@ -70,7 +70,7 @@ class SettingsService {
       if (!profile) {
         profile = new Profile({
           userId,
-          role: updated.role || 'user',
+          role: updated.role || 'startup',
           dynamicProfileData: {},
         });
       }
