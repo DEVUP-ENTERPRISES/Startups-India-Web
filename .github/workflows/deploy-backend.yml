@@ -58,16 +58,25 @@ jobs:
             cd ~/learning-startups-india/backend
             echo "▸ Installing backend deps (pnpm, prod, frozen)…"
             pnpm install --prod --frozen-lockfile
-            echo "▸ Zero-downtime reload…"
-            pm2 reload all --update-env
+            # Reload from the ecosystem file with the production env (do NOT use
+            # --update-env: it replaces the app's env with this SSH shell's empty
+            # env and the app crashes). Fall back to start if nothing is running.
+            echo "▸ Reload (ecosystem, production env)…"
+            pm2 reload ecosystem.config.js --env production || pm2 start ecosystem.config.js --env production
             pm2 save
-            echo "▸ Health check…"
-            sleep 3
-            if curl -sf http://localhost:5000/health >/dev/null; then
+            # Health check with retries — cluster workers need a few seconds to
+            # come back after a reload.
+            echo "▸ Health check (up to ~30s)…"
+            ok=false
+            for i in $(seq 1 15); do
+              if curl -sf http://localhost:5000/health >/dev/null; then ok=true; break; fi
+              sleep 2
+            done
+            if [ "$ok" = true ]; then
               echo "✓ Backend deployed and healthy"
             else
               echo "✗ Health check failed after deploy"
-              pm2 logs --nostream --lines 30 || true
+              pm2 logs --nostream --lines 40 || true
               exit 1
             fi
           REMOTE
