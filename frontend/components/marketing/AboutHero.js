@@ -38,10 +38,6 @@ export default function AboutHero() {
       router.push('/login');
     }
   };
-    } else {
-      router.push('/login');
-    }
-  };
 
   useEffect(() => {
     setIsLoaded(true);
