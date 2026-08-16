@@ -2,51 +2,59 @@ name: Deploy Backend (EC2)
 
 # Auto-deploys the backend to EC2 on every push to main — but ONLY when
 # something under backend/ (or this workflow) changed. Frontend pushes are
-# ignored here (Vercel handles the frontend).
+# ignored (Vercel handles the frontend).
+#
+# How auth works (private repo, no key on the server):
+#   - The runner checks out the repo using GitHub's built-in token (auto).
+#   - It ships ONLY the backend/ folder to EC2 over rsync, using the EC2 SSH key.
+#   - EC2 never authenticates to GitHub — so no deploy key needed there.
 on:
   push:
     branches: [main]
     paths:
       - 'backend/**'
       - '.github/workflows/deploy-backend.yml'
-  workflow_dispatch: {} # lets you trigger a manual deploy from the Actions tab
+  workflow_dispatch: {} # manual "Run workflow" button in the Actions tab
 
-# Never run two deploys at the same time.
 concurrency:
   group: deploy-backend
   cancel-in-progress: false
 
 jobs:
   deploy:
-    name: Pull + reload backend on EC2
+    name: Ship backend to EC2 + reload
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: SSH → pull, install, reload
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          command_timeout: 8m
-          script: |
+      - name: Checkout repo (auto-authed for private repo)
+        uses: actions/checkout@v4
+
+      - name: Load EC2 SSH key
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/ec2_key
+          chmod 600 ~/.ssh/ec2_key
+          ssh-keyscan -H "${{ secrets.EC2_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Sync backend/ to EC2 (preserves .env & node_modules)
+        run: |
+          rsync -az --delete \
+            --exclude='.env' --exclude='.env.*' --exclude='node_modules' --exclude='logs' \
+            -e "ssh -i ~/.ssh/ec2_key -o StrictHostKeyChecking=accept-new" \
+            backend/ "${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:~/learning-startups-india/backend/"
+
+      - name: Install deps + zero-downtime reload
+        run: |
+          ssh -i ~/.ssh/ec2_key -o StrictHostKeyChecking=accept-new \
+            "${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}" 'bash -s' <<'REMOTE'
             set -eo pipefail
-            # Make sure pnpm & pm2 are on PATH for this non-interactive shell.
             export PATH="$PATH:/usr/bin:/usr/local/bin:$HOME/.local/share/pnpm:$HOME/.npm-global/bin"
-
-            echo "▸ Pulling latest main…"
-            cd ~/learning-startups-india
-            git fetch origin main
-            git reset --hard origin/main
-
+            cd ~/learning-startups-india/backend
             echo "▸ Installing backend deps (pnpm, prod, frozen)…"
-            cd backend
             pnpm install --prod --frozen-lockfile
-
             echo "▸ Zero-downtime reload…"
             pm2 reload all --update-env
             pm2 save
-
             echo "▸ Health check…"
             sleep 3
             if curl -sf http://localhost:5000/health >/dev/null; then
@@ -56,3 +64,4 @@ jobs:
               pm2 logs --nostream --lines 30 || true
               exit 1
             fi
+          REMOTE
