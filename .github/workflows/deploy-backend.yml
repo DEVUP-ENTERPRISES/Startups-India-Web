@@ -1,0 +1,58 @@
+name: Deploy Backend (EC2)
+
+# Auto-deploys the backend to EC2 on every push to main — but ONLY when
+# something under backend/ (or this workflow) changed. Frontend pushes are
+# ignored here (Vercel handles the frontend).
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/deploy-backend.yml'
+  workflow_dispatch: {} # lets you trigger a manual deploy from the Actions tab
+
+# Never run two deploys at the same time.
+concurrency:
+  group: deploy-backend
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Pull + reload backend on EC2
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: SSH → pull, install, reload
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          command_timeout: 8m
+          script: |
+            set -eo pipefail
+            # Make sure pnpm & pm2 are on PATH for this non-interactive shell.
+            export PATH="$PATH:/usr/bin:/usr/local/bin:$HOME/.local/share/pnpm:$HOME/.npm-global/bin"
+
+            echo "▸ Pulling latest main…"
+            cd ~/learning-startups-india
+            git fetch origin main
+            git reset --hard origin/main
+
+            echo "▸ Installing backend deps (pnpm, prod, frozen)…"
+            cd backend
+            pnpm install --prod --frozen-lockfile
+
+            echo "▸ Zero-downtime reload…"
+            pm2 reload all --update-env
+            pm2 save
+
+            echo "▸ Health check…"
+            sleep 3
+            if curl -sf http://localhost:5000/health >/dev/null; then
+              echo "✓ Backend deployed and healthy"
+            else
+              echo "✗ Health check failed after deploy"
+              pm2 logs --nostream --lines 30 || true
+              exit 1
+            fi
