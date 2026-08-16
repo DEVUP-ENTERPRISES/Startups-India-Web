@@ -1,3 +1,4 @@
+// CI/CD: backend auto-deploys to EC2 on push to main (.github/workflows/deploy-backend.yml).
 const dns = require('dns');
 
 // Force reliable DNS (Google + Cloudflare) to resolve MongoDB Atlas and Redis
