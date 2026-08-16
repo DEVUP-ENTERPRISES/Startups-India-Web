@@ -25,9 +25,15 @@ jobs:
     name: Ship backend to EC2 + reload
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # Private repo: explicitly grant the built-in token read access so checkout
+    # can clone it (orgs often default this to "no permissions", → 403).
+    permissions:
+      contents: read
     steps:
       - name: Checkout repo (auto-authed for private repo)
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Load EC2 SSH key
         run: |
