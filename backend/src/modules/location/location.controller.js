@@ -2,7 +2,7 @@ const { State } = require('../../models/State');
 const { City } = require('../../models/City');
 const { College } = require('../../models/College');
 const { Industry } = require('../../models/Industry');
-const { ApiError } = require('../../utils/ApiError');
+const { ApiError } = require('../../utils/apiError');
 
 /** GET /api/v1/location/states */
 async function getStates(req, res) {
