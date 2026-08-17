@@ -49,34 +49,67 @@ jobs:
             -e "ssh -i ~/.ssh/ec2_key -o StrictHostKeyChecking=accept-new" \
             backend/ "${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:~/learning-startups-india/backend/"
 
-      - name: Install deps + zero-downtime reload
+      - name: Install deps + zero-downtime reload (with auto-rollback)
         run: |
           ssh -i ~/.ssh/ec2_key -o StrictHostKeyChecking=accept-new \
             "${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}" 'bash -s' <<'REMOTE'
             set -eo pipefail
             export PATH="$PATH:/usr/bin:/usr/local/bin:$HOME/.local/share/pnpm:$HOME/.npm-global/bin"
             cd ~/learning-startups-india/backend
+
+            # ── PRE-DEPLOY BACKUP ─────────────────────────────────────
+            # Snapshot the current working src/ so we can auto-rollback
+            BACKUP_DIR="$HOME/.deploy-backups/$(date +%Y%m%d_%H%M%S)"
+            mkdir -p "$BACKUP_DIR"
+            cp -r src/ "$BACKUP_DIR/src/"
+            cp package.json pnpm-lock.yaml ecosystem.config.js "$BACKUP_DIR/" 2>/dev/null || true
+            echo "▸ Backup saved to $BACKUP_DIR"
+
+            # Keep only the last 5 backups to save disk space
+            ls -dt $HOME/.deploy-backups/*/ 2>/dev/null | tail -n +6 | xargs rm -rf 2>/dev/null || true
+
+            # ── INSTALL & RELOAD ──────────────────────────────────────
             echo "▸ Installing backend deps (pnpm, prod, frozen)…"
             pnpm install --prod --frozen-lockfile
-            # Reload from the ecosystem file with the production env (do NOT use
-            # --update-env: it replaces the app's env with this SSH shell's empty
-            # env and the app crashes). Fall back to start if nothing is running.
+
             echo "▸ Reload (ecosystem, production env)…"
-            pm2 reload ecosystem.config.js --env production || pm2 start ecosystem.config.js --env production
+            PM2_INSTANCES=1 pm2 reload ecosystem.config.js --env production \
+              || PM2_INSTANCES=1 pm2 start ecosystem.config.js --env production
             pm2 save
-            # Health check with retries — cluster workers need a few seconds to
-            # come back after a reload.
-            echo "▸ Health check (up to ~30s)…"
+
+            # ── HEALTH CHECK WITH RETRIES ─────────────────────────────
+            echo "▸ Health check (up to ~45s)…"
             ok=false
             for i in $(seq 1 15); do
               if curl -sf http://localhost:5000/health >/dev/null; then ok=true; break; fi
-              sleep 2
+              sleep 3
             done
+
             if [ "$ok" = true ]; then
               echo "✓ Backend deployed and healthy"
             else
-              echo "✗ Health check failed after deploy"
-              pm2 logs --nostream --lines 40 || true
+              # ── AUTO-ROLLBACK ─────────────────────────────────────
+              echo "✗ Health check FAILED — rolling back to previous version…"
+              pm2 logs --nostream --lines 50 || true
+
+              # Restore the backup
+              cp -r "$BACKUP_DIR/src/" src/
+              cp "$BACKUP_DIR/package.json" "$BACKUP_DIR/pnpm-lock.yaml" . 2>/dev/null || true
+              pnpm install --prod --frozen-lockfile 2>/dev/null || true
+
+              # Restart with the old code
+              pm2 delete all 2>/dev/null || true
+              PM2_INSTANCES=1 pm2 start ecosystem.config.js --env production
+              pm2 save
+
+              # Verify rollback worked
+              sleep 10
+              if curl -sf http://localhost:5000/health >/dev/null; then
+                echo "⚠ ROLLBACK SUCCESSFUL — server restored to previous version"
+              else
+                echo "💥 ROLLBACK ALSO FAILED — manual intervention needed!"
+              fi
               exit 1
             fi
           REMOTE
+
