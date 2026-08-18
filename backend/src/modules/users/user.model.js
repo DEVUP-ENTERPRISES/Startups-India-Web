@@ -12,7 +12,11 @@ const userSchema = new mongoose.Schema(
       facebook: { type: String },
     },
     authProviders: { type: [String], default: ['email'] },
-    role: { type: String, enum: ['admin', 'startup', 'mentor', 'investor', 'service_provider', 'other', null], default: null },
+    role: {
+      type: String,
+      enum: ['admin', 'startup', 'mentor', 'investor', 'service_provider', 'other', 'user', null],
+      default: null,
+    },
     headline: { type: String, trim: true, maxlength: 200 },
     missionStatement: { type: String, trim: true, maxlength: 500 },
     bio: { type: String, trim: true, maxlength: 2000 },
@@ -25,14 +29,14 @@ const userSchema = new mongoose.Schema(
       assessments: { type: Boolean, default: true },
       community: { type: Boolean, default: true },
       payments: { type: Boolean, default: true },
-      marketing: { type: Boolean, default: true }
+      marketing: { type: Boolean, default: true },
     },
     privacySettings: {
       profileVisibility: { type: String, enum: ['public', 'private', 'users'], default: 'public' },
       activityVisibility: { type: String, enum: ['public', 'private', 'users'], default: 'public' },
       showBio: { type: Boolean, default: true },
       showStats: { type: Boolean, default: true },
-      showGoals: { type: Boolean, default: true }
+      showGoals: { type: Boolean, default: true },
     },
     isActive: { type: Boolean, default: true },
     status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'approved' },
