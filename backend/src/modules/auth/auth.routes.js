@@ -744,12 +744,32 @@ router.patch(
       ).catch(() => {});
     }
 
+    // Re-fetch user to ensure we have the latest values written above
+    const updatedUser = await User.findById(userId).lean();
+
+    // Generate fresh tokens so the client's JWT reflects the new role immediately
+    const tokens = await authService.generateAndStoreTokens(updatedUser);
+
+    // Set auth cookies (match other auth endpoints)
+    res.cookie('accessToken', tokens.accessToken, { ...authCookieOptions, maxAge: 2 * 60 * 60 * 1000 });
+    res.cookie('refreshToken', tokens.refreshToken, {
+      ...authCookieOptions,
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+    });
+
     res.json({
       success: true,
       data: {
         requires_approval: requiresApproval,
         role,
         profile,
+        user: {
+          id: updatedUser._id,
+          email: updatedUser.email,
+          role: updatedUser.role,
+          onboarding_completed: Boolean(updatedUser.onboardingCompleted),
+        },
+        session: { access_token: tokens.accessToken, refresh_token: tokens.refreshToken },
       },
     });
   })

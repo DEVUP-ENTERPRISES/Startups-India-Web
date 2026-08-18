@@ -53,7 +53,10 @@ function requireRole(...roles) {
     if (!req.user) {
       return next(new ApiError(401, 'Authentication required'));
     }
-    if (!roles.includes(req.user.role)) {
+    // Compare roles case-insensitively to avoid mismatches caused by casing
+    const allowed = roles.map(r => String(r).toLowerCase());
+    const userRole = String(req.user.role ?? '').toLowerCase();
+    if (!allowed.includes(userRole)) {
       return next(new ApiError(403, 'Insufficient permissions'));
     }
     return next();

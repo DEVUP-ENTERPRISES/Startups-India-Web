@@ -11,7 +11,7 @@ import DynamicProfile from '@/components/auth/registration/Step4DynamicProfile';
 import OnboardingReview from '@/components/auth/registration/OnboardingReview';
 import { ArrowRight, ArrowLeft, ShieldAlert } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getPostAuthRedirect, isLoggedIn } from '@/lib/auth';
+import { getPostAuthRedirect, isLoggedIn, setMemToken, setLoggedInFlag } from '@/lib/auth';
 
 // Map onboarding step numbers to sidebar visual step numbers so the illustrations stay meaningful.
 const SIDEBAR_STEP_MAP = { 1: 1, 2: 3, 3: 4, 4: 5 };
@@ -220,12 +220,21 @@ function OnboardingContent() {
       setRequiresApproval(data.data?.requires_approval);
       setIsDone(true);
 
+      // If server returned fresh session tokens, update client session storage
+      if (data.data?.session?.access_token) {
+        try {
+          setMemToken(data.data.session.access_token);
+          if (data.data?.user?.id) setLoggedInFlag(data.data.user.id);
+          if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('user:login'));
+        } catch (e) {
+          // Non-fatal - continue with redirect even if client-side update fails
+        }
+      }
+
       if (!data.data?.requires_approval) {
-        // Use the role-specific dashboard - getPostAuthRedirect reads the role
-        // that was just saved. We pass onboarding_completed=true explicitly so
-        // the helper skips the /onboarding check (we just finished it).
-        const fakeUser = { role: selectedRole, onboarding_completed: true };
-        setTimeout(() => router.push(getPostAuthRedirect({ user: fakeUser })), 2200);
+        // Prefer authoritative user object returned by server; fall back to fake user
+        const userForRedirect = data.data?.user || { role: selectedRole, onboarding_completed: true };
+        setTimeout(() => router.push(getPostAuthRedirect({ user: userForRedirect })), 2200);
       } else {
         setTimeout(() => router.push('/'), 7000);
       }
@@ -471,7 +480,7 @@ function OnboardingContent() {
               {/* ── Step 3: Profile ── */}
               {currentStep === 3 && (
                 <DynamicProfile
-                  role="founder"
+                  role={selectedRole || 'startup'}
                   profileData={profileData}
                   onChange={(field, val) => { setProfileData((p) => ({ ...p, [field]: val })); setError(''); }}
                 />
