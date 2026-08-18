@@ -11,7 +11,8 @@ import DynamicProfile from '@/components/auth/registration/Step4DynamicProfile';
 import OnboardingReview from '@/components/auth/registration/OnboardingReview';
 import { ArrowRight, ArrowLeft, ShieldAlert } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getPostAuthRedirect, isLoggedIn, setMemToken, setLoggedInFlag } from '@/lib/auth';
+import { getPostAuthRedirect, isLoggedIn } from '@/lib/auth';
+import { setMemToken, setLoggedInFlag } from '@/lib/api';
 
 // Map onboarding step numbers to sidebar visual step numbers so the illustrations stay meaningful.
 const SIDEBAR_STEP_MAP = { 1: 1, 2: 3, 3: 4, 4: 5 };
