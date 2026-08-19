@@ -33,9 +33,7 @@ const razorpay =
 
 // Only a Selected / Evaluation-Pending application may pay. Anything else means
 // someone is trying to buy their way past a stage they haven't reached.
-// Self-submitted applications start at SUBMITTED and are immediately moved to
-// EVALUATION_PENDING so the user can pay without waiting for admin selection.
-const PAYABLE_STATUSES = [STATUS.SELECTED, STATUS.EVALUATION_PENDING, STATUS.SUBMITTED, STATUS.UNDER_REVIEW, STATUS.SHORTLISTED];
+const PAYABLE_STATUSES = [STATUS.SELECTED, STATUS.EVALUATION_PENDING];
 
 function generateInvoiceNumber(applicationRef) {
   const year = new Date().getFullYear();

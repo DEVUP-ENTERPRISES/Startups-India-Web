@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Menu, X, ChevronRight, Home, Info, LayoutGrid, Calendar, Users, Coins, Rocket, ChevronDown, BookOpen, TrendingUp, Zap, GraduationCap, ArrowRight, Globe } from 'lucide-react';
-import { getCurrentUser, isLoggedIn } from '@/lib/auth';
+import { getCurrentUser } from '@/lib/auth';
 
 const SEARCH_DATA = [
   { title: 'Pre-Incubation Program', desc: '8-week intensive startup validation program', href: '/programs/pre-incubation', category: 'Programs', color: '#e63946' },
@@ -329,7 +329,8 @@ export default function Header() {
   const handleDropdownItemClick = (e, dropdownItem) => {
     if (dropdownItem.href === '/mentors#become-mentor') {
       e.preventDefault();
-      if (isLoggedIn()) {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+      if (token) {
         router.push('/mentors#become-mentor');
       } else {
         router.push(`/login?returnUrl=${encodeURIComponent('/mentors#become-mentor')}`);

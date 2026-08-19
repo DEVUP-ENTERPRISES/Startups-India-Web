@@ -7,7 +7,7 @@ import { useDashboard } from '@/contexts/DashboardProvider';
 import SecurePhonePrompt from '@/components/auth/SecurePhonePrompt';
 import { listMyApplications } from '@/lib/grants';
 import '@/styles/startup-dashboard.css';
-import { Check, Lock, X, Sparkles, GraduationCap, Building2, Landmark, ArrowRight, Rocket, DollarSign } from 'lucide-react';
+import { Check, Lock, X, Sparkles, GraduationCap, Building2, Landmark, ArrowRight, Rocket, Users, DollarSign, Calendar } from 'lucide-react';
 
 /* ──── SVG Icon Components ──── */
 const Icons = {
@@ -751,19 +751,6 @@ function StartupDashboardView({ user }) {
   const router = useRouter();
   const [app, setApp] = useState(null);
   const [loadingApp, setLoadingApp] = useState(true);
-  const [showCongrats, setShowCongrats] = useState(false);
-  const [animateUnlock, setAnimateUnlock] = useState(false);
-
-  useEffect(() => {
-    // Show congratulations banner only on first dashboard visit after onboarding
-    const key = `congrats_seen_${user?._id || user?.id}`;
-    if (!sessionStorage.getItem(key)) {
-      setShowCongrats(true);
-      sessionStorage.setItem(key, '1');
-      // Trigger stage 2 unlock animation after 1.5s
-      setTimeout(() => setAnimateUnlock(true), 1500);
-    }
-  }, [user]);
 
   useEffect(() => {
     (async () => {
@@ -782,255 +769,177 @@ function StartupDashboardView({ user }) {
 
   const appStatus = app?.status || 'not_applied';
 
-  // Use server-computed phases if available, else derive locally
-  const phases = app?.phases || (() => {
-    const STATUS_POSITION = {
-      'not_applied':              [0, true],  // onboarding done = Stage 1 complete
-      'draft':                    [0, true],
-      'submitted':                [0, true],
-      'under_review':             [0, true],
-      'shortlisted':              [0, true],
-      'changes_requested':        [0, true],
-      'selected':                 [1, false],
-      'idea_evaluation_pending':  [1, false],
-      'idea_evaluation_paid':     [1, false],
-      'evaluation_scheduled':     [1, false],
-      'evaluation_completed':     [1, true],
-      'pre_incubation':           [2, false],
-      'incubation':               [3, false],
-      'funding_process_started':  [4, false],
-      'grant_approved':           [5, false],
-      'completed':                [5, true],
-    };
-
-    const PHASE_DEFS = [
-      { key: 'registration',   title: 'Registration',        subtitle: 'Complete your profile and register your startup' },
-      { key: 'idea_validation', title: 'Idea Validation',     subtitle: 'Submit pitch deck, revenue model & pay ₹1,499 for expert evaluation' },
-      { key: 'pre_incubation', title: 'Pre-Incubation',       subtitle: 'Structured mentorship to refine your business & deck' },
-      { key: 'incubation',     title: 'Incubation',           subtitle: 'Physical space, labs, and pilot support' },
-      { key: 'accelerator',    title: 'Accelerator Program',  subtitle: 'Scale fast with mentors, investors & market access' },
-      { key: 'grants',         title: 'Grants',               subtitle: 'Unlock government grants and seed funding up to ₹20L' },
-    ];
-
-    const [pos, complete] = STATUS_POSITION[appStatus] || [0, true];
-    const rejected = appStatus === 'rejected';
-    const scoreRevealed = app?.scoreRevealed || false;
-    const score = app?.score ?? null;
-    let unlockedUpTo = pos;
-    if (scoreRevealed && score !== null) {
-      if (score >= 75) unlockedUpTo = Math.max(pos, 4);
-      else if (score >= 50) unlockedUpTo = Math.max(pos, 3);
-      else unlockedUpTo = Math.max(pos, 2);
-    }
-
-    return PHASE_DEFS.map((p, i) => {
-      let state;
-      if (rejected) {
-        state = i <= 1 ? (i < 1 ? 'done' : 'rejected') : 'locked';
-      } else if (i < pos) {
-        state = 'done';
-      } else if (i === pos) {
-        if (complete) {
-          state = 'done';
-        } else {
-          state = 'current';
-        }
-      } else if (complete && i === pos + 1) {
-        // Phase immediately after a completed one is always current
-        state = 'current';
-      } else if (scoreRevealed && i <= unlockedUpTo) {
-        state = 'unlocked';
-      } else {
-        state = 'locked';
-      }
-      return { ...p, state };
-    });
-  })();
-
-  // displayPhases: when app is null (no application yet), phases IIFE already
-  // computes correctly from 'not_applied' status (Stage 1 done, Stage 2 current).
-  // No override needed - use phases directly.
-  const displayPhases = phases;
-
-  const getPhaseIcon = (key) => {
-    const iconProps = { size: 20 };
-    switch (key) {
-      case 'registration':   return <Rocket {...iconProps} />;
-      case 'idea_validation': return <Sparkles {...iconProps} />;
-      case 'pre_incubation': return <GraduationCap {...iconProps} />;
-      case 'incubation':     return <Building2 {...iconProps} />;
-      case 'accelerator':    return <Rocket {...iconProps} />;
-      case 'grants':         return <Landmark {...iconProps} />;
-      default:               return <Rocket {...iconProps} />;
-    }
+  const STATUS_POSITION = {
+    'draft': [0, false],
+    'submitted': [0, false],
+    'under_review': [0, false],
+    'shortlisted': [0, false],
+    'changes_requested': [0, false],
+    'selected': [1, false],
+    'idea_evaluation_pending': [1, false],
+    'idea_evaluation_paid': [1, false],
+    'evaluation_scheduled': [1, false],
+    'evaluation_completed': [1, true],
+    'pre_incubation': [2, false],
+    'incubation': [3, false],
+    'funding_process_started': [4, false],
+    'grant_approved': [4, true],
+    'completed': [4, true],
   };
 
-  const handlePhaseClick = (phase, i) => {
-    if (phase.state === 'locked') return;
-    if (i === 0) {
-      router.push('/dashboard/journey/registration');
-      return;
+  const PHASES = [
+    { key: 'registration', title: 'Registration', subtitle: 'Submit your startup idea for seeding.' },
+    { key: 'idea_evaluation', title: 'Idea Evaluation', subtitle: 'VC evaluation & scheduled pitch session.' },
+    { key: 'pre_incubation', title: 'Pre-Incubation', subtitle: 'Mentorship to refine business & deck.' },
+    { key: 'incubation', title: 'Incubation', subtitle: 'Physical space, labs, and pilot support.' },
+    { key: 'funding', title: 'Funding', subtitle: 'Receive up to ₹20L in seed funding.' },
+  ];
+
+  const pos = STATUS_POSITION[appStatus]?.[0] ?? 0;
+  const complete = STATUS_POSITION[appStatus]?.[1] ?? false;
+  const rejected = appStatus === 'rejected';
+
+  const phases = PHASES.map((p, i) => {
+    let state;
+    if (rejected) {
+      state = i === 0 ? 'done' : 'locked';
+    } else if (i < pos) {
+      state = 'done';
+    } else if (i === pos) {
+      state = complete ? 'done' : 'current';
+    } else {
+      state = 'locked';
     }
-    const stagePaths = [
-      '/dashboard/journey/registration',
-      '/dashboard/journey/idea-validation',
-      '/dashboard/journey/pre-incubation',
-      '/dashboard/journey/incubation',
-      '/dashboard/journey/accelerator',
-      '/dashboard/journey/grants',
-    ];
-    router.push(stagePaths[i] || '/dashboard/journey/idea-validation');
-  };
+    return { ...p, state };
+  });
 
   const getActionDetails = () => {
     switch (appStatus) {
       case 'not_applied':
         return {
-          title: 'Proceed to Stage 2 - Idea Validation',
-          desc: 'Upload your pitch deck and revenue model, then pay ₹1,499 for an expert evaluation and 1:1 mentorship session.',
-          btnText: 'Start Idea Validation',
+          title: 'Apply for DPIIT Startup Seed Fund (SISFS)',
+          desc: 'Get up to ₹20 Lakhs in non-dilutive seed grants to build, validate, and scale your venture.',
+          btnText: 'Start Application',
           action: () => router.push('/dashboard/grants'),
-          accent: true,
         };
       case 'draft':
         return {
-          title: 'Complete Your Idea Validation Submission',
-          desc: 'You have an active draft. Finish uploading your documents and submit to proceed.',
-          btnText: 'Continue Submission',
+          title: 'Complete your SISFS Application Draft',
+          desc: 'You have an active draft. Submit your startup details to advance to the review phase.',
+          btnText: 'Continue Application',
           action: () => router.push('/dashboard/grants'),
         };
-      case 'submitted': case 'under_review': case 'shortlisted': case 'changes_requested':
+      case 'submitted':
+      case 'under_review':
+      case 'shortlisted':
+      case 'changes_requested':
         return {
-          title: 'Application Under Review',
-          desc: 'Our expert panel is evaluating your startup. You will be notified once a decision is made.',
-          btnText: 'Track Status',
+          title: 'Application is Under Review',
+          desc: 'Our review board is evaluating your pitch deck. You will be notified of selection status.',
+          btnText: 'Track Timeline & Notes',
           action: () => router.push(`/dashboard/grants/applications/${app._id}`),
         };
-      case 'selected': case 'idea_evaluation_pending':
+      case 'selected':
+      case 'idea_evaluation_pending':
         return {
-          title: 'Selected - Pay Evaluation Fee',
-          desc: 'Pay ₹1,499 to confirm your slot for a 1:1 offline mentorship and evaluation session.',
-          btnText: 'Pay & Book Slot',
-          action: () => router.push(`/dashboard/grants/applications/${app._id}`),
-          accent: true,
-        };
-      case 'idea_evaluation_paid': case 'evaluation_scheduled':
-        return {
-          title: 'Evaluation Session Booked',
-          desc: `Your 1:1 session is confirmed. Your score will be revealed 2 hours before the session${app?.scoreRevealed ? ' - check your results now!' : '.'}`,
-          btnText: app?.scoreRevealed ? 'View Score & Unlocked Stages' : 'View Meeting Details',
+          title: 'Selected for VC Pitch Evaluation',
+          desc: 'Pay the evaluation review fee to book your slot and pitch to leading investors.',
+          btnText: 'Proceed to Payment',
           action: () => router.push(`/dashboard/grants/applications/${app._id}`),
         };
-      case 'evaluation_completed': case 'pre_incubation': case 'incubation':
-      case 'funding_process_started': case 'grant_approved': case 'completed':
+      case 'idea_evaluation_paid':
+      case 'evaluation_scheduled':
         return {
-          title: 'Incubation Journey Active 🎉',
-          desc: 'You have cleared evaluation! Your next stages are unlocked based on your score.',
-          btnText: 'View Journey Details',
+          title: 'VC Pitch Session Booked',
+          desc: 'Your pitch meeting is active. Make sure to prepare your deck and slides.',
+          btnText: 'View Meeting Details',
+          action: () => router.push(`/dashboard/grants/applications/${app._id}`),
+        };
+      case 'evaluation_completed':
+      case 'pre_incubation':
+      case 'incubation':
+      case 'funding_process_started':
+      case 'grant_approved':
+      case 'completed':
+        return {
+          title: 'Incubation Journey Active',
+          desc: 'You have cleared evaluation! Access mentorship resources, events, and tracks.',
+          btnText: 'View Incubation Details',
           action: () => router.push(`/dashboard/grants/applications/${app._id}`),
         };
       case 'rejected':
         return {
-          title: 'Application Not Selected',
-          desc: 'Your application was not selected this round. View feedback and consider reapplying.',
+          title: 'Application Disapproved',
+          desc: 'Your application was not selected for seed funding this round. Contact support for options.',
           btnText: 'View Feedback',
           action: () => router.push(`/dashboard/grants/applications/${app._id}`),
         };
       default:
         return {
-          title: 'Proceed to Stage 2 - Idea Validation',
-          desc: 'Upload your pitch deck and revenue model, pay ₹1,499, and book your 1:1 expert session.',
-          btnText: 'Start Idea Validation',
-          action: () => router.push('/dashboard/grants'),
-          accent: true,
+          title: 'Track your Funding Application',
+          desc: 'Manage your active government seed funding and incubator lifecycle stages.',
+          btnText: 'View Application',
+          action: () => router.push('/dashboard/grants/applications'),
         };
     }
   };
 
   const cta = getActionDetails();
 
+  const getPhaseIcon = (key) => {
+    switch (key) {
+      case 'registration': return <Rocket size={20} />;
+      case 'idea_evaluation': return <Sparkles size={20} />;
+      case 'pre_incubation': return <GraduationCap size={20} />;
+      case 'incubation': return <Building2 size={20} />;
+      case 'funding': return <Landmark size={20} />;
+      default: return <Rocket size={20} />;
+    }
+  };
+
   return (
     <div className="startup-db-container">
-
-      {/* Congratulations Banner - shown once after onboarding */}
-      {showCongrats && (
-        <div className="startup-congrats-banner">
-          <div className="startup-congrats-inner">
-            <span className="startup-congrats-emoji">🎉</span>
-            <div>
-              <h2 className="startup-congrats-title">
-                Congratulations, {user?.fullName?.split(' ')[0] || 'Founder'}!
-              </h2>
-              <p className="startup-congrats-desc">
-                By registering your startup on StartupsIndia, you have completed <strong>Stage 1 - Registration</strong>.
-                Your journey toward incubation and government grants has officially begun.
-              </p>
-            </div>
-            <button
-              className="startup-congrats-close"
-              onClick={() => setShowCongrats(false)}
-            >
-              <X size={16} />
-            </button>
-          </div>
-          {animateUnlock && (
-            <div className="startup-congrats-unlock">
-              <Sparkles size={14} />
-              Stage 2 - Idea Validation is now unlocked. Complete it to move forward!
-            </div>
-          )}
+      {/* Top Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <h1 style={{ fontSize: '28px', fontWeight: 800, color: '#0f172a', margin: 0 }}>
+            Welcome, {user?.fullName || 'Founder'}! 👋
+          </h1>
+          <p style={{ margin: '4px 0 0', fontSize: '15px', color: '#64748b' }}>
+            Grow and track your business acceleration from your central workspace.
+          </p>
         </div>
-      )}
-
-      {/* Header */}
-      <div>
-        <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#0f172a', margin: 0 }}>
-          Welcome back, {user?.fullName?.split(' ')[0] || 'Founder'}! 👋
-        </h1>
-        <p style={{ margin: '4px 0 0', fontSize: '14px', color: '#64748b' }}>
-          Track your startup journey from registration to grants.
-        </p>
       </div>
 
-      {/* 6-Stage Journey Card */}
+      {/* Stepper Card */}
       <div className="startup-stepper-card">
-        <div className="startup-stepper-header">
-          <div>
-            <h2 className="startup-stepper-title">StartupsIndia Journey</h2>
-            <p className="startup-stepper-desc">
-              Complete all 6 stages to unlock incubation, accelerator programs, and government grants up to ₹20L.
-            </p>
-          </div>
-        </div>
+        <h2 className="startup-stepper-title">DPIIT Startup Seed Fund (SISFS) Journey</h2>
+        <p className="startup-stepper-desc">
+          Complete the phases to advance your startup. Clear VC screening, join incubation programs, and unlock seed funding.
+        </p>
 
-        {/* Row 1: Stages 1–3 */}
-        <div className="startup-stages-row">
-          {displayPhases.slice(0, 3).map((p, i) => (
-            <StageCard
-              key={p.key}
-              phase={p}
-              index={i}
-              animateUnlock={animateUnlock && i === 1}
-              onClick={() => handlePhaseClick(p, i)}
-            />
-          ))}
-        </div>
-
-        {/* Row 2: Stages 4–6 */}
-        <div className="startup-stages-row" style={{ marginTop: '16px' }}>
-          {displayPhases.slice(3).map((p, i) => (
-            <StageCard
-              key={p.key}
-              phase={p}
-              index={i + 3}
-              onClick={() => handlePhaseClick(p, i + 3)}
-            />
+        <div className="startup-stepper-grid">
+          {phases.map((p, i) => (
+            <div key={p.key} className={`startup-phase-node ${p.state}`}>
+              <div className="startup-phase-header">
+                <span className="startup-phase-num">
+                  {p.state === 'done' ? <Check size={14} strokeWidth={3} /> : i + 1}
+                </span>
+                {getPhaseIcon(p.key)}
+              </div>
+              <span className="startup-phase-label">Phase {i + 1}</span>
+              <h3 className="startup-phase-title">{p.title}</h3>
+              <p className="startup-phase-desc">{p.subtitle}</p>
+              <div className={`startup-phase-badge`}>
+                {p.state === 'done' ? 'Cleared' : p.state === 'current' ? 'Active' : 'Locked'}
+              </div>
+            </div>
           ))}
         </div>
       </div>
 
-      {/* CTA Card */}
-      <div className={`startup-action-box ${cta.accent ? 'accent' : ''}`}>
+      {/* Action CTA Card */}
+      <div className="startup-action-box">
         <div className="startup-action-content">
           <h3 className="startup-action-title">{cta.title}</h3>
           <p className="startup-action-desc">{cta.desc}</p>
@@ -1040,100 +949,40 @@ function StartupDashboardView({ user }) {
         </button>
       </div>
 
-      {/* Metrics */}
+      {/* Key Metrics Grid */}
       <div className="startup-metrics-grid">
         <div className="startup-metric-card">
           <div className="startup-metric-icon" style={{ background: '#eff6ff', color: '#3b82f6' }}>
-            <Building2 size={22} />
+            <Building2 size={24} />
           </div>
           <div>
-            <p className="startup-metric-val">{user?.dynamicProfileData?.startupStage || 'Idea'}</p>
+            <p className="startup-metric-val">{user?.dynamicProfileData?.stage || 'Ideation'}</p>
             <p className="startup-metric-lbl">Startup Stage</p>
           </div>
         </div>
+
         <div className="startup-metric-card">
           <div className="startup-metric-icon" style={{ background: '#f0fdf4', color: '#22c55e' }}>
-            <Sparkles size={22} />
+            <Users size={24} />
           </div>
           <div>
-            <p className="startup-metric-val">{user?.dynamicProfileData?.industry || '-'}</p>
-            <p className="startup-metric-lbl">Industry</p>
+            <p className="startup-metric-val">{user?.dynamicProfileData?.teamSize || '1-5'} Members</p>
+            <p className="startup-metric-lbl">Active Team</p>
           </div>
         </div>
+
         <div className="startup-metric-card">
           <div className="startup-metric-icon" style={{ background: '#fdf2f8', color: '#ec4899' }}>
-            <DollarSign size={22} />
+            <DollarSign size={24} />
           </div>
           <div>
             <p className="startup-metric-val">
-              {appStatus === 'not_applied' ? 'Not Applied'
-                : appStatus === 'draft' ? 'Draft'
-                : appStatus === 'rejected' ? 'Rejected'
-                : 'In Progress'}
+              {appStatus === 'not_applied' ? 'Not Applied' : appStatus === 'draft' ? 'Draft' : appStatus === 'rejected' ? 'Rejected' : 'In Progress'}
             </p>
-            <p className="startup-metric-lbl">Funding Status</p>
+            <p className="startup-metric-lbl">Seed Funding status</p>
           </div>
         </div>
       </div>
-    </div>
-  );
-}
-
-/* Individual Stage Card */
-function StageCard({ phase, index, animateUnlock, onClick }) {
-  const isClickable = phase.state !== 'locked';
-  const badgeText = {
-    done: 'Completed',
-    current: 'Active',
-    unlocked: 'Unlocked',
-    locked: 'Locked',
-    rejected: 'Not Selected',
-  }[phase.state] || 'Locked';
-
-  const PHASE_ICONS = {
-    registration: <Rocket size={18} />,
-    idea_validation: <Sparkles size={18} />,
-    pre_incubation: <GraduationCap size={18} />,
-    incubation: <Building2 size={18} />,
-    accelerator: <Rocket size={18} />,
-    grants: <Landmark size={18} />,
-  };
-
-  return (
-    <div
-      className={`startup-stage-card ${phase.state} ${animateUnlock ? 'unlock-anim' : ''} ${isClickable ? 'clickable' : ''}`}
-      onClick={isClickable ? onClick : undefined}
-      title={!isClickable ? 'Complete previous stages to unlock' : ''}
-    >
-      {/* Top row: number + icon */}
-      <div className="startup-stage-top">
-        <span className="startup-stage-num">
-          {phase.state === 'done'
-            ? <Check size={12} strokeWidth={3} />
-            : phase.state === 'locked' || phase.state === 'rejected'
-              ? <Lock size={11} />
-              : index + 1}
-        </span>
-        <span className="startup-stage-icon">{PHASE_ICONS[phase.key]}</span>
-      </div>
-
-      {/* Label */}
-      <span className="startup-stage-label">Stage {index + 1}</span>
-      <h4 className="startup-stage-title">{phase.title}</h4>
-      <p className="startup-stage-subtitle">{phase.subtitle}</p>
-
-      {/* Badge */}
-      <div className={`startup-stage-badge ${phase.state}`}>
-        {phase.state === 'unlocked' && <Sparkles size={10} />}
-        {badgeText}
-      </div>
-
-      {/* Active indicator arrow */}
-      {phase.state === 'current' && (
-        <div className="startup-stage-arrow">
-          <ArrowRight size={14} />
-        </div>
-      )}
     </div>
   );
 }
@@ -2357,7 +2206,7 @@ export default function DashboardPage() {
                   textTransform: 'uppercase',
                 }}
               >
-                {user?.role === 'mentor' ? 'Mentor' : user?.role === 'investor' ? 'Investor' : user?.role === 'admin' ? 'Admin' : 'Startup / Founder'} • {phase} Phase
+                {user?.role || 'Founder'} • {phase} Phase
               </p>
             </div>
           </div>

@@ -7,25 +7,19 @@ import { uploadDocument, deleteDocument } from '@/lib/grants';
 /**
  * Drag-and-drop uploader for one document kind.
  *
- * Two modes:
- *  - Static:  pass `applicationId` directly (already-known draft/app id).
- *  - Lazy:    pass `onBeforeUpload` - an async fn that creates the draft on
- *             demand and returns the application id (or null on failure). The
- *             draft is only created the first time the user actually picks a
- *             file, so nothing is sent to the backend on page load.
- *
- * `accept` and `maxSizeMb` come from the admin's grant settings. The client-side
- * checks here are pure UX (fail fast, no wasted round-trip); the server
- * re-validates type, size and ownership, so nothing here is security-critical.
+ * `accept` and `maxSizeMb` are passed down from the admin's grant settings - this
+ * component invents no limits of its own. The client-side checks below are pure
+ * UX (fail fast, don't waste a round-trip); the server re-validates type, size
+ * and ownership, and re-HEADs the object, so nothing here is load-bearing for
+ * security.
  */
 export default function FileDropzone({
   applicationId,
-  onBeforeUpload,       // async () => string | null  - lazy draft creation
   kind,
   label,
   hint,
   accept = [],
-  maxSizeMb = 10,
+  maxSizeMb = 25,
   maxFiles = 1,
   existing = [],
   onChange,
@@ -41,13 +35,7 @@ export default function FileDropzone({
   const locked = disabled || atCapacity || busy;
 
   const prettyTypes = accept
-    .map(t =>
-      t.split('/').pop()
-       .replace('vnd.openxmlformats-officedocument.presentationml.presentation', 'pptx')
-       .replace('vnd.openxmlformats-officedocument.wordprocessingml.document', 'docx')
-       .replace('vnd.ms-powerpoint', 'ppt')
-       .replace('msword', 'doc')
-    )
+    .map(t => t.split('/').pop().replace('vnd.openxmlformats-officedocument.presentationml.presentation', 'pptx'))
     .join(', ');
 
   const handleFiles = async fileList => {
@@ -55,7 +43,6 @@ export default function FileDropzone({
     const file = fileList?.[0];
     if (!file) return;
 
-    // Client-side type + size checks - fail fast before touching the network.
     if (accept.length && !accept.includes(file.type)) {
       setError(`That file type isn't accepted here. Allowed: ${prettyTypes}.`);
       return;
@@ -68,22 +55,8 @@ export default function FileDropzone({
     setBusy(true);
     setProgress(0);
 
-    // Resolve the application id. If the page passed a static id use it; if it
-    // passed a lazy creator, call it now (creates draft on first upload only).
-    let appId = applicationId;
-    if (!appId && typeof onBeforeUpload === 'function') {
-      appId = await onBeforeUpload();
-    }
-
-    if (!appId) {
-      setBusy(false);
-      setProgress(null);
-      setError('Could not prepare your application. Please try again.');
-      return;
-    }
-
     const { data, error: err } = await uploadDocument({
-      applicationId: appId,
+      applicationId,
       kind,
       file,
       onProgress: setProgress,
@@ -185,7 +158,10 @@ export default function FileDropzone({
       {/* Dropzone */}
       {!atCapacity && !disabled && (
         <div
-          onDragOver={e => { e.preventDefault(); setDragging(true); }}
+          onDragOver={e => {
+            e.preventDefault();
+            setDragging(true);
+          }}
           onDragLeave={() => setDragging(false)}
           onDrop={e => {
             e.preventDefault();
@@ -219,9 +195,16 @@ export default function FileDropzone({
           {busy ? (
             <div>
               <p style={{ margin: '0 0 10px', fontSize: '13.5px', fontWeight: 600, color: '#374151' }}>
-                {progress === 0 ? 'Preparing…' : `Uploading… ${progress ?? 0}%`}
+                Uploading… {progress ?? 0}%
               </p>
-              <div style={{ height: '6px', background: '#f0f0f0', borderRadius: '100px', overflow: 'hidden' }}>
+              <div
+                style={{
+                  height: '6px',
+                  background: '#f0f0f0',
+                  borderRadius: '100px',
+                  overflow: 'hidden',
+                }}
+              >
                 <div
                   style={{
                     width: `${progress ?? 0}%`,

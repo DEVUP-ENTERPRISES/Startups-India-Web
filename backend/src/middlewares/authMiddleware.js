@@ -7,7 +7,8 @@ function authRequired(req, res, next) {
     const authHeader = req.headers.authorization;
     const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
     const cookieToken = req.cookies?.accessToken;
-    const token = bearerToken || cookieToken;
+    const queryToken = req.query.token;
+    const token = bearerToken || cookieToken || queryToken;
 
     if (!token) {
       throw new ApiError(401, 'Authentication required');
@@ -16,7 +17,7 @@ function authRequired(req, res, next) {
     const payload = verifyAccessToken(token, env);
     req.user = {
       userId: payload.sub,
-      role: payload.role ?? null,   // preserve null - don't default to 'user' before onboarding
+      role: payload.role || 'user',
       email: payload.email,
     };
     return next();
@@ -30,7 +31,8 @@ function optionalAuth(req, res, next) {
     const authHeader = req.headers.authorization;
     const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
     const cookieToken = req.cookies?.accessToken;
-    const token = bearerToken || cookieToken;
+    const queryToken = req.query.token;
+    const token = bearerToken || cookieToken || queryToken;
 
     if (!token) {
       return next();
@@ -39,7 +41,7 @@ function optionalAuth(req, res, next) {
     const payload = verifyAccessToken(token, env);
     req.user = {
       userId: payload.sub,
-      role: payload.role ?? null,   // preserve null - don't default to 'user' before onboarding
+      role: payload.role || 'user',
       email: payload.email,
     };
     return next();

@@ -413,7 +413,7 @@ export default function ProfilePage() {
                     <h1 className="text-4xl font-bold tracking-tight text-slate-950 sm:text-5xl">{displayName}</h1>
                     <p className="mt-2 text-lg text-slate-600">{workspace.headline}</p>
                     <div className="mt-4 flex flex-wrap gap-2">
-                      <Badge tone="slate">{user.role || 'startup'}</Badge>
+                      <Badge tone="slate">{user.role || 'user'}</Badge>
                       <Badge tone="blue">{workspace.energy}</Badge>
                       <Badge tone="green">{workspace.availability}</Badge>
                     </div>

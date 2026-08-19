@@ -79,14 +79,6 @@ export async function getAdminDocumentUrl(documentId) {
   return apiFetch(`${BASE}/documents/${documentId}/url`);
 }
 
-// ─── Scoring ───────────────────────────────────────────────────────────
-export async function submitScore(applicationId, { score, feedback = '' }) {
-  return apiFetch(`${BASE}/applications/${applicationId}/score`, {
-    method: 'POST',
-    body: JSON.stringify({ score, feedback }),
-  });
-}
-
 // ─── Evaluations ───────────────────────────────────────────────────────
 export async function listEvaluations(params = {}) {
   const qs = new URLSearchParams(
@@ -111,25 +103,6 @@ export async function submitEvaluationResult(applicationId, payload) {
     method: 'POST',
     body: JSON.stringify(payload),
   });
-}
-
-// ─── Slot Management ───────────────────────────────────────────────────
-export async function getAdminSlots(date) {
-  return apiFetch(`${BASE}/slots?date=${date}`);
-}
-
-export async function setSlotBlocked({ date, times, blocked }) {
-  return apiFetch(`${BASE}/slots`, {
-    method: 'PATCH',
-    body: JSON.stringify({ date, times, blocked }),
-  });
-}
-
-export async function getSlotBookings({ page, limit } = {}) {
-  const qs = new URLSearchParams(
-    Object.entries({ page, limit }).filter(([, v]) => v !== undefined && v !== null)
-  ).toString();
-  return apiFetch(`${BASE}/slots/bookings${qs ? `?${qs}` : ''}`);
 }
 
 // ─── Settings ──────────────────────────────────────────────────────────

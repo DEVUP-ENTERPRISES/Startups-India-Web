@@ -307,7 +307,7 @@ async function deleteMentor(applicationId) {
   // Revoke mentor access without destroying the account.
   const user = await User.findOne({ email });
   if (user && user.role === 'mentor') {
-    user.role = null;  // role is cleared on rejection - re-onboarding required
+    user.role = 'user';
     await user.save();
   }
 

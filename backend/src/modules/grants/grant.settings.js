@@ -52,7 +52,7 @@ const SCHEMA = {
   'grant.applications.maxPerUser': { type: 'integer', default: 1, min: 1 },
 
   // ─── Uploads ────────────────────────────────────────────────────────
-  'grant.upload.maxSizeMb': { type: 'integer', default: 10, min: 1, max: 200 },
+  'grant.upload.maxSizeMb': { type: 'integer', default: 25, min: 1, max: 200 },
   'grant.upload.pitchDeckTypes': {
     type: 'stringArray',
     default: ['application/pdf', 'application/vnd.ms-powerpoint',

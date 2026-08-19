@@ -1,379 +1,518 @@
 'use client';
 
-import { useState, useEffect, useRef, Suspense } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
-import { motion } from 'framer-motion';
-import { User, Mail, Lock, Eye, EyeOff, ArrowRight, ShieldCheck, CheckCircle2, ShieldAlert } from 'lucide-react';
-import { initGoogleSignIn, getPostAuthRedirect, isLoggedIn, setLoggedInFlag } from '@/lib/auth';
-import { setMemToken } from '@/lib/api';
-import '@/styles/auth-redesign.css';
+import '@/styles/registration-v2.css';
+import ProgressStepper from '@/components/auth/registration/ProgressStepper';
+import StepSidebarVisual from '@/components/auth/registration/StepSidebarVisual';
+import Step1RoleSelection from '@/components/auth/registration/Step1RoleSelection';
+import Step2BasicInformation from '@/components/auth/registration/Step2BasicInformation';
+import Step3OTPVerification from '@/components/auth/registration/Step3OTPVerification';
+import Step4DynamicProfile from '@/components/auth/registration/Step4DynamicProfile';
+import Step5Review from '@/components/auth/registration/Step5Review';
+import SuccessPage from '@/components/auth/registration/SuccessPage';
+import { ArrowRight, ArrowLeft, ShieldAlert, Home } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 function SignupContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const returnUrl = searchParams.get('returnUrl') || '/onboarding';
+  const returnUrl = searchParams.get('returnUrl') || '/dashboard';
 
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const paramRole = searchParams.get('role');
+  const validRoles = ['startup', 'founder', 'mentor', 'investor'];
+  const initialRole = paramRole && validRoles.includes(paramRole) ? paramRole : '';
+
+  // Stepper State
+  const [currentStep, setCurrentStep] = useState(1);
+  const [direction, setDirection] = useState(1); // 1 = forward, -1 = backward
+  const [selectedRole, setSelectedRole] = useState(initialRole);
+  
+  // Step 2 Form State
+  const [basicInfo, setBasicInfo] = useState({
+    fullName: '',
+    email: '',
+    countryCode: '+91',
+    phone: '',
+    password: '',
+    confirmPassword: '',
+  });
   const [isEmailTaken, setIsEmailTaken] = useState(false);
-  const [isCheckingEmail, setIsCheckingEmail] = useState(false);
+  const [isPhoneTaken, setIsPhoneTaken] = useState(false);
+
+  // Step 3 Dual OTP Verification State
+  const [isEmailVerified, setIsEmailVerified] = useState(false);
+  const [isPhoneVerified, setIsPhoneVerified] = useState(false);
+  const [otpError, setOtpError] = useState('');
+  const [phoneSessionId, setPhoneSessionId] = useState('');
+
+  const sendPhoneOtp = async (phoneNumber) => {
+    try {
+      setOtpError('');
+      const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
+      const res = await fetch(`${apiBase}/api/v1/auth/phone/send-otp-public`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: phoneNumber }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setPhoneSessionId(data.data.sessionId);
+        console.log('2factor OTP sent, session:', data.data.sessionId);
+      } else {
+        setOtpError(data.message || 'Failed to send SMS verification code.');
+      }
+    } catch (err) {
+      console.error('Error sending phone OTP:', err);
+      setOtpError('Failed to send SMS verification code.');
+    }
+  };
+
+  // Step 4 Dynamic Profile Data
+  const [profileData, setProfileData] = useState({});
+
+  // Step 5 Agreements & Global Errors
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [privacyAccepted, setPrivacyAccepted] = useState(false);
+  const [requiresApproval, setRequiresApproval] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
 
-  const googleBtnRef = useRef(null);
-
-  // Redirect if already logged in - run once on mount only
+  // Redirect if already logged in
   useEffect(() => {
-    if (isLoggedIn()) router.replace('/dashboard');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Render Google Sign-In button
-  useEffect(() => {
-    if (googleBtnRef.current) {
-      initGoogleSignIn(googleBtnRef.current, ({ data, error: err }) => {
-        if (err) { setError(err.message); return; }
-        if (data) {
-          setSuccess(true);
-          // New accounts have onboarding_completed=false → /onboarding.
-          // Returning Google users who already onboarded → role-specific dashboard.
-          router.push(getPostAuthRedirect(data));
-        }
-      });
+    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+    if (token) {
+      router.replace(returnUrl);
     }
-  }, [router]);
+  }, [router, returnUrl]);
 
-  // Real-time email uniqueness check
-  useEffect(() => {
-    const isValid = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email);
-    if (!isValid) { setIsEmailTaken(false); return; }
-    const timer = setTimeout(async () => {
-      setIsCheckingEmail(true);
+  const steps = [
+    { id: 1, label: 'Choose Role' },
+    { id: 2, label: 'Basic Information' },
+    { id: 3, label: 'Verify OTP' },
+    { id: 4, label: 'Profile Setup' },
+    { id: 5, label: 'Complete' },
+  ];
+
+  // Form field change handlers
+  const handleBasicInfoChange = (field, value) => {
+    setBasicInfo((prev) => ({ ...prev, [field]: value }));
+    if (field === 'email') setIsEmailTaken(false);
+    if (field === 'phone') setIsPhoneTaken(false);
+    if (error) setError('');
+  };
+
+  const handleProfileDataChange = (field, value) => {
+    setProfileData((prev) => ({ ...prev, [field]: value }));
+    if (error) setError('');
+  };
+
+  // Step Validation logic
+  const canProceedFromStep = (step) => {
+    switch (step) {
+      case 1:
+        return !!selectedRole;
+      case 2:
+        return (
+          !!basicInfo.fullName &&
+          !!basicInfo.email &&
+          !isEmailTaken &&
+          /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(basicInfo.email) &&
+          (basicInfo.phone || '').length === 10 &&
+          !isPhoneTaken &&
+          (basicInfo.password || '').length >= 8 &&
+          basicInfo.password === basicInfo.confirmPassword
+        );
+      case 3:
+        return isEmailVerified || isPhoneVerified;
+      case 4:
+        {
+          const countWords = (str) => {
+            if (!str || !str.trim()) return 0;
+            return str.trim().split(/\s+/).filter(Boolean).length;
+          };
+
+          if (selectedRole === 'startup') {
+            return (
+              !!profileData.startupName &&
+              !!profileData.startupStage &&
+              !!profileData.industry &&
+              !!profileData.yearFounded &&
+              !!profileData.teamSize &&
+              !!profileData.city &&
+              !!profileData.isRegistered &&
+              !!profileData.problemStatement &&
+              countWords(profileData.description) >= 20
+            );
+          }
+          if (selectedRole === 'founder') {
+            const isStudent = profileData.isStudent === 'Yes';
+            return (
+              !!profileData.designation &&
+              !!profileData.startupName &&
+              (isStudent || !!profileData.startupStage) &&
+              !!profileData.industry &&
+              !!profileData.yearsOfExperience &&
+              !!profileData.domainExpertise &&
+              !!profileData.city &&
+              !!profileData.linkedin &&
+              countWords(profileData.bio) >= 20
+            );
+          }
+          if (selectedRole === 'mentor') {
+            return (
+              !!profileData.currentCompany &&
+              !!profileData.designation &&
+              !!profileData.industry &&
+              !!profileData.yearsOfExperience &&
+              !!profileData.weeklyAvailability &&
+              !!profileData.availabilityMode &&
+              !!profileData.linkedin &&
+              countWords(profileData.bio) >= 20
+            );
+          }
+          if (selectedRole === 'investor') {
+            return (
+              !!profileData.organizationName &&
+              !!profileData.investorType &&
+              !!profileData.investmentStage &&
+              !!profileData.preferredIndustries &&
+              !!profileData.ticketSize &&
+              !!profileData.geography &&
+              !!profileData.linkedin
+            );
+          }
+          return true;
+        }
+      case 5:
+        return termsAccepted && privacyAccepted;
+      default:
+        return false;
+    }
+  };
+
+  // Navigation actions with directional animations
+  const handleNext = async () => {
+    setError('');
+
+    if (currentStep === 1) {
+      if (!selectedRole) {
+        setError('Please select a role to continue.');
+        return;
+      }
+      setDirection(1);
+      setCurrentStep(2);
+    } else if (currentStep === 2) {
+      if (!basicInfo.fullName) {
+        setError('Please enter your full name.');
+        return;
+      }
+      if (!basicInfo.email || !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(basicInfo.email)) {
+        setError('Please enter a valid email address.');
+        return;
+      }
+      if ((basicInfo.phone || '').length !== 10) {
+        setError('Please enter a valid 10-digit mobile number.');
+        return;
+      }
+      if ((basicInfo.password || '').length < 8) {
+        setError('Password must be at least 8 characters long.');
+        return;
+      }
+      if (basicInfo.password !== basicInfo.confirmPassword) {
+        setError('Passwords do not match.');
+        return;
+      }
+
+      const fullPhone = `${basicInfo.countryCode}${basicInfo.phone}`;
+      sendPhoneOtp(fullPhone);
+      setDirection(1);
+      setCurrentStep(3);
+    } else if (currentStep === 3) {
+      if (!isPhoneVerified) {
+        setError('Please verify your Mobile Number before proceeding.');
+        return;
+      }
+      setDirection(1);
+      setCurrentStep(4);
+    } else if (currentStep === 4) {
+      setDirection(1);
+      setCurrentStep(5);
+    } else if (currentStep === 5) {
+      await handleSubmitRegistration();
+    }
+  };
+
+  const handleBack = () => {
+    if (currentStep > 1) {
+      setError('');
+      setDirection(-1);
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
+  // Dual Target OTP Verification handler
+  const handleVerifyTarget = async (targetType, code) => {
+    setOtpError('');
+    if (targetType === 'email') {
+      if (code === '123456' || code.length === 6) {
+        setIsEmailVerified(true);
+      } else {
+        setOtpError('Invalid verification code');
+      }
+    } else {
+      if (!phoneSessionId) {
+        setOtpError('No active verification session. Please resend code.');
+        return;
+      }
       try {
         const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
-        const res = await fetch(`${apiBase}/api/v1/auth/check-exists?email=${encodeURIComponent(email)}`);
-        const json = await res.json();
-        setIsEmailTaken(json.success && json.data?.emailExists);
-      } catch {
-        setIsEmailTaken(false);
-      } finally {
-        setIsCheckingEmail(false);
+        const res = await fetch(`${apiBase}/api/v1/auth/phone/verify-otp-public`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sessionId: phoneSessionId, code }),
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          setIsPhoneVerified(true);
+        } else {
+          setOtpError(data.message || 'OTP mismatch or expired. Please try again.');
+        }
+      } catch (err) {
+        setOtpError('Failed to connect to verification server.');
       }
-    }, 400);
-    return () => clearTimeout(timer);
-  }, [email]);
+    }
+  };
 
-  const isEmailValid = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email);
-  const passwordLengthOk = password.length >= 8;
-  const passwordsMatch = password && confirmPassword && password === confirmPassword;
+  // Final Submit Handler
+  const handleSubmitRegistration = async () => {
+    if (!termsAccepted || !privacyAccepted) {
+      setError('Please accept the Terms & Conditions and Privacy Policy.');
+      return;
+    }
 
-  const canSubmit =
-    fullName.trim().length >= 2 &&
-    isEmailValid &&
-    !isEmailTaken &&
-    passwordLengthOk &&
-    passwordsMatch;
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!canSubmit) return;
-    setError('');
     setIsLoading(true);
+    setError('');
+
+    const payload = {
+      fullName: basicInfo.fullName,
+      email: basicInfo.email,
+      phone: `${basicInfo.countryCode} ${basicInfo.phone}`,
+      password: basicInfo.password,
+      role: selectedRole,
+      isVerified: isPhoneVerified,
+      isEmailVerified: false,
+      isPhoneVerified,
+      dynamicProfileData: profileData,
+    };
 
     try {
       const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
-      const res = await fetch(`${apiBase}/api/v1/auth/signup`, {
+      const response = await fetch(`${apiBase}/api/v1/auth/register-v2`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fullName: fullName.trim(), email, password }),
+        body: JSON.stringify(payload),
       });
-      const data = await res.json();
 
-      if (!res.ok || !data.success) {
-        throw new Error(data.message || 'Registration failed. Please try again.');
-      }
+      const resData = await response.json();
 
-      if (data.data?.user?.id) {
-        setLoggedInFlag(data.data.user.id);
-        if (data.data?.session?.access_token) {
-          setMemToken(data.data.session.access_token);
+      if (!response.ok || !resData.success) {
+        throw new Error(resData.message || 'Registration failed. Please check your details.');
+      } else {
+        const noApproval = ['founder', 'startup'].includes(selectedRole);
+        if (noApproval && resData.data?.session?.access_token) {
+          localStorage.setItem('access_token', resData.data.session.access_token);
+          window.dispatchEvent(new CustomEvent('user:login'));
         }
-        window.dispatchEvent(new CustomEvent('user:login'));
+        setRequiresApproval(!noApproval);
       }
 
-      setSuccess(true);
-      router.push('/onboarding');
+      setDirection(1);
+      setCurrentStep(6);
     } catch (err) {
-      setError(err.message || 'An error occurred. Please try again.');
+      const msg = err.message || 'An error occurred during registration. Please try again.';
+      setError(msg);
     } finally {
       setIsLoading(false);
     }
   };
 
+  const slideVariants = {
+    enter: (dir) => ({
+      x: dir > 0 ? 30 : -30,
+      opacity: 0,
+    }),
+    center: {
+      x: 0,
+      opacity: 1,
+    },
+    exit: (dir) => ({
+      x: dir < 0 ? 30 : -30,
+      opacity: 0,
+    }),
+  };
+
   return (
-    <div className="auth-layout">
-      {/* Left Panel */}
-      <div className="dashboard-panel left-panel">
-        <div className="bg-pattern"></div>
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="visual-logo"
-        >
-          <Link href="/">
-            <Image
-              src="/assets/images/Startupsina logo wight.png"
-              alt="Startup India"
-              width={180}
-              height={50}
-              priority
-              style={{ width: 'auto', height: 'auto' }}
-            />
-          </Link>
-        </motion.div>
+    <div className="reg-v2-container">
+      {/* Left Dynamic 3D Illustration Visual Sidebar */}
+      <StepSidebarVisual currentStep={currentStep} />
 
-        <div className="visual-content">
-          <motion.h1
-            initial={{ opacity: 0, x: -30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="visual-title"
-          >
-            Join the Startup India Ecosystem
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0, x: -30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            className="visual-subtext"
-          >
-            Create your account in seconds. Tell us who you are after - your journey starts here.
-          </motion.p>
+      {/* Right Main Stepper & Form Container */}
+      <main className="reg-v2-main">
+        {/* 5-Step Stepper */}
+        {currentStep <= 5 && (
+          <ProgressStepper
+            currentStep={currentStep}
+            steps={steps}
+            onStepClick={(s) => {
+              if (s < currentStep) {
+                setDirection(-1);
+                setCurrentStep(s);
+              }
+            }}
+          />
+        )}
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.5 }}
-            style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginTop: '24px' }}
-          >
-            {[
-              { icon: '🚀', title: 'Startups & Founders', desc: 'Apply for seed funding, incubation & mentorship' },
-              { icon: '🎓', title: 'Mentors', desc: 'Guide early-stage ventures with your expertise' },
-              { icon: '💰', title: 'Investors', desc: 'Discover and back high-growth startups' },
-            ].map((item, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.4, delay: 0.6 + i * 0.1 }}
-                style={{
-                  display: 'flex', alignItems: 'flex-start', gap: '12px',
-                  background: 'rgba(255,255,255,0.06)', borderRadius: '12px',
-                  padding: '12px 16px', border: '1px solid rgba(255,255,255,0.1)'
-                }}
-              >
-                <span style={{ fontSize: '20px' }}>{item.icon}</span>
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: '13px', color: '#fff' }}>{item.title}</div>
-                  <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', marginTop: '2px' }}>{item.desc}</div>
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 1 }}
-            className="bottom-info-badge"
-          >
-            <div className="badge-icon-red"><ShieldCheck size={24} /></div>
-            <div className="badge-content">
-              <h4>Secure & Trusted</h4>
-              <p>Your data is protected with enterprise-grade security.</p>
-            </div>
-          </motion.div>
-        </div>
-      </div>
-
-      {/* Right Panel */}
-      <div className="auth-panel right-panel">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5 }}
-          className="auth-card"
-        >
-          {success ? (
+        {/* Dynamic Step View with Framer Motion Slide Transitions */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative' }}>
+          <AnimatePresence custom={direction} mode="wait">
             <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              style={{ textAlign: 'center', padding: '40px 0' }}
+              key={currentStep}
+              custom={direction}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ duration: 0.25, ease: 'easeInOut' }}
+              style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
             >
-              <CheckCircle2 size={72} color="#10b981" style={{ margin: '0 auto 20px' }} />
-              <h2 className="auth-title">Account <span>Created!</span></h2>
-              <p className="auth-subtitle">Taking you to set up your profile...</p>
-            </motion.div>
-          ) : (
-            <>
-              <div className="auth-header">
-                <div className="startup-badge">Startup India Incubation</div>
-                <h2 className="auth-title">Create your <span>Account</span></h2>
-                <p className="auth-subtitle">
-                  Just the basics to get started. You&apos;ll set up your role and profile next.
-                </p>
-              </div>
-
-              {error && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  style={{
-                    padding: '12px 16px', background: '#fef2f2', border: '1px solid #fee2e2',
-                    borderRadius: '12px', color: '#ef4444', fontSize: '13px', fontWeight: 500,
-                    marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px'
+              {currentStep === 1 && (
+                <Step1RoleSelection
+                  selectedRole={selectedRole}
+                  onSelectRole={(r) => {
+                    setSelectedRole(r);
+                    if (error) setError('');
                   }}
-                >
-                  <ShieldAlert size={16} /> {error}
-                </motion.div>
+                />
               )}
 
-              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                {/* Full Name */}
-                <div className="form-group">
-                  <label className="form-label">Full Name</label>
-                  <div className="input-wrapper">
-                    <User className="input-icon-left" size={18} />
-                    <input
-                      type="text"
-                      className="auth-input"
-                      placeholder="Your full name"
-                      value={fullName}
-                      onChange={(e) => { setFullName(e.target.value); setError(''); }}
-                      required
-                    />
-                  </div>
-                </div>
+              {currentStep === 2 && (
+                <Step2BasicInformation
+                  formData={basicInfo}
+                  onChange={handleBasicInfoChange}
+                  error={error}
+                  isEmailTaken={isEmailTaken}
+                  setIsEmailTaken={setIsEmailTaken}
+                  isPhoneTaken={isPhoneTaken}
+                  setIsPhoneTaken={setIsPhoneTaken}
+                />
+              )}
 
-                {/* Email */}
-                <div className="form-group">
-                  <label className="form-label">Email Address</label>
-                  <div className="input-wrapper">
-                    <Mail className="input-icon-left" size={18} />
-                    <input
-                      type="email"
-                      className={`auth-input ${isEmailTaken ? 'error' : isEmailValid && !isCheckingEmail ? 'success' : ''}`}
-                      placeholder="you@example.com"
-                      value={email}
-                      onChange={(e) => { setEmail(e.target.value); setError(''); setIsEmailTaken(false); }}
-                      required
-                    />
-                  </div>
-                  {email && (
-                    <p style={{
-                      fontSize: '12px', marginTop: '4px',
-                      color: isEmailTaken ? '#dc2626' : isEmailValid ? '#059669' : '#94a3b8',
-                      fontWeight: 500
-                    }}>
-                      {isCheckingEmail ? 'Checking...' :
-                        isEmailTaken ? '✕ This email is already registered' :
-                        isEmailValid ? '✓ Valid email address' :
-                        '✕ Enter a valid email'}
-                    </p>
-                  )}
-                </div>
+              {currentStep === 3 && (
+                <Step3OTPVerification
+                  email={basicInfo.email}
+                  phone={`${basicInfo.countryCode} ${basicInfo.phone}`}
+                  isEmailVerified={isEmailVerified}
+                  isPhoneVerified={isPhoneVerified}
+                  onVerifyTarget={handleVerifyTarget}
+                  onResendPhoneOtp={() => sendPhoneOtp(`${basicInfo.countryCode}${basicInfo.phone}`)}
+                  error={otpError || error}
+                />
+              )}
 
-                {/* Password */}
-                <div className="form-group">
-                  <label className="form-label">Password</label>
-                  <div className="input-wrapper">
-                    <Lock className="input-icon-left" size={18} />
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      className="auth-input"
-                      placeholder="Min 8 characters"
-                      value={password}
-                      onChange={(e) => { setPassword(e.target.value); setError(''); }}
-                      required
-                    />
-                    <button type="button" className="password-toggle-btn" onClick={() => setShowPassword(!showPassword)}>
-                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                    </button>
-                  </div>
-                  {password && (
-                    <p style={{ fontSize: '12px', marginTop: '4px', color: passwordLengthOk ? '#059669' : '#94a3b8', fontWeight: 500 }}>
-                      {passwordLengthOk ? '✓ Good password' : `✕ At least 8 characters (${password.length}/8)`}
-                    </p>
-                  )}
-                </div>
+              {currentStep === 4 && (
+                <Step4DynamicProfile
+                  role={selectedRole}
+                  profileData={profileData}
+                  onChange={handleProfileDataChange}
+                />
+              )}
 
-                {/* Confirm Password */}
-                <div className="form-group">
-                  <label className="form-label">Confirm Password</label>
-                  <div className="input-wrapper">
-                    <Lock className="input-icon-left" size={18} />
-                    <input
-                      type={showConfirmPassword ? 'text' : 'password'}
-                      className="auth-input"
-                      placeholder="Repeat your password"
-                      value={confirmPassword}
-                      onChange={(e) => { setConfirmPassword(e.target.value); setError(''); }}
-                      required
-                    />
-                    <button type="button" className="password-toggle-btn" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
-                      {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                    </button>
-                  </div>
-                  {confirmPassword && (
-                    <p style={{ fontSize: '12px', marginTop: '4px', color: passwordsMatch ? '#059669' : '#ef4444', fontWeight: 500 }}>
-                      {passwordsMatch ? '✓ Passwords match' : '✕ Passwords do not match'}
-                    </p>
-                  )}
-                </div>
+              {currentStep === 5 && (
+                <Step5Review
+                  role={selectedRole}
+                  basicInfo={basicInfo}
+                  isVerified={isPhoneVerified}
+                  isEmailVerified={false}
+                  isPhoneVerified={isPhoneVerified}
+                  profileData={profileData}
+                  onGoToStep={(s) => {
+                    setDirection(-1);
+                    setCurrentStep(s);
+                  }}
+                  termsAccepted={termsAccepted}
+                  setTermsAccepted={setTermsAccepted}
+                  privacyAccepted={privacyAccepted}
+                  setPrivacyAccepted={setPrivacyAccepted}
+                  error={error}
+                />
+              )}
 
-                <button
-                  type="submit"
-                  className="btn-primary"
-                  disabled={isLoading || !canSubmit}
-                  style={{ marginTop: '4px' }}
-                >
-                  {isLoading ? 'Creating Account...' : 'Create Account'}
-                  {!isLoading && <ArrowRight size={18} />}
+              {currentStep === 6 && (
+                <SuccessPage
+                  role={selectedRole}
+                  requiresApproval={requiresApproval}
+                  returnUrl={returnUrl}
+                />
+              )}
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        {/* Global Error Banner above Footer Buttons */}
+        {error && currentStep <= 5 && (
+          <div 
+            style={{ 
+              padding: '12px 16px', background: '#fef2f2', border: '1.5px solid #fca5a5', 
+              borderRadius: '12px', color: '#ef4444', fontSize: '13px', fontWeight: 600,
+              marginTop: '16px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px',
+              boxShadow: '0 2px 8px rgba(239, 68, 68, 0.08)'
+            }}
+          >
+            <ShieldAlert size={18} />
+            <span style={{ flex: 1 }}>{error}</span>
+          </div>
+        )}
+
+        {/* Footer Navigation Actions */}
+        {currentStep <= 5 && (
+          <div className="reg-v2-footer-actions" style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              {currentStep > 1 && (
+                <button className="reg-v2-btn-back" onClick={handleBack} disabled={isLoading}>
+                  <ArrowLeft size={15} /> Back
                 </button>
-              </form>
+              )}
+            </div>
 
-              {/* Divider */}
-              <div className="divider-container" style={{ margin: '20px 0' }}>
-                <div className="divider-line"></div>
-                <span className="divider-text">OR CONTINUE WITH</span>
-                <div className="divider-line"></div>
-              </div>
+            <button
+              className="reg-v2-btn-continue"
+              onClick={handleNext}
+              disabled={isLoading || !canProceedFromStep(currentStep)}
+            >
+              {isLoading
+                ? 'Submitting Registration...'
+                : currentStep === 3
+                ? (isEmailVerified || isPhoneVerified ? 'Continue' : 'Verify Target')
+                : currentStep === 5
+                ? 'Submit & Complete Registration'
+                : 'Continue'}
+              {!isLoading && <ArrowRight size={15} />}
+            </button>
+          </div>
+        )}
 
-              {/* Google Sign-In Button */}
-              <div ref={googleBtnRef} className="google-container"></div>
-
-              <p style={{ textAlign: 'center', fontSize: '12px', color: '#64748b', marginTop: '20px' }}>
-                By creating an account, you agree to our{' '}
-                <Link href="/terms" style={{ color: '#dc2626', fontWeight: 600 }}>Terms</Link>
-                {' & '}
-                <Link href="/privacy" style={{ color: '#dc2626', fontWeight: 600 }}>Privacy Policy</Link>
-              </p>
-
-              <div className="signup-footer" style={{ marginTop: '12px' }}>
-                <p>Already have an account? <Link href="/login" className="signup-action">Sign in</Link></p>
-              </div>
-            </>
-          )}
-        </motion.div>
-      </div>
+        {/* Sign in link at bottom */}
+        {currentStep <= 5 && (
+          <p style={{ textAlign: 'center', fontSize: '12px', color: '#64748b', marginTop: '12px', marginBottom: 0 }}>
+            Already have an account?{' '}
+            <Link href="/login" style={{ color: '#dc2626', fontWeight: 600 }}>
+              Sign in
+            </Link>
+          </p>
+        )}
+      </main>
     </div>
   );
 }

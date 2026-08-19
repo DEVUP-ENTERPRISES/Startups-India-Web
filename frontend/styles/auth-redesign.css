@@ -435,7 +435,7 @@
 }
 
 .form-group {
-  margin-bottom: 0;
+  margin-bottom: 20px;
 }
 
 .form-label {
@@ -486,11 +486,6 @@
 .auth-input.success {
   border-color: #22c55e;
   background: rgba(34, 197, 94, 0.05);
-}
-
-.auth-input.error {
-  border-color: #ef4444;
-  background: rgba(239, 68, 68, 0.04);
 }
 
 .password-toggle-btn {

@@ -49,27 +49,17 @@ function buildS3FileUrl(key) {
   return `https://${env.AWS_S3_BUCKET}.s3.${env.AWS_REGION}.amazonaws.com/${key}`;
 }
 
-async function generateUploadUrl({ key, contentType, contentLength, expiresIn = 300 }) {
+async function generateUploadUrl({ key, contentType, expiresIn = 300 }) {
   if (!key) {
     throw new Error('key is required for upload URL generation');
   }
 
   const client = ensureS3Client();
-
-  const putParams = {
+  const command = new PutObjectCommand({
     Bucket: env.AWS_S3_BUCKET,
     Key: key,
     ContentType: contentType || 'application/octet-stream',
-  };
-
-  // Including ContentLength in the signed command locks the presigned URL to the
-  // exact file size. S3 will reject any PUT whose body length differs, which
-  // prevents a client from uploading a larger file after the size check passes.
-  if (Number.isFinite(contentLength) && contentLength > 0) {
-    putParams.ContentLength = contentLength;
-  }
-
-  const command = new PutObjectCommand(putParams);
+  });
 
   const uploadUrl = await getSignedUrl(client, command, { expiresIn });
 

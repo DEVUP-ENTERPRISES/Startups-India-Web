@@ -207,11 +207,11 @@ export function organizationSchema() {
       ],
     },
     sameAs: [
-      'https://x.com/startupsindia',
+      'https://twitter.com/startupsindia',
       'https://linkedin.com/company/startupsindia',
-      'https://www.instagram.com/startupsindia.in',
+      'https://instagram.com/startupsindia',
       'https://facebook.com/startupsindia',
-      'https://youtube.com/@startupsindiaofficial',
+      'https://youtube.com/@startupsindia',
       'https://www.crunchbase.com/organization/startupsindia',
     ],
     contactPoint: [

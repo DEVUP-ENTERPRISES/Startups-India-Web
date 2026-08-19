@@ -176,7 +176,7 @@ export default function TermsOfService() {
                 <ul>
                   <li><strong>Email:</strong> startupsindiaofficial@gmail.com</li>
                   <li><strong>Phone:</strong> +91 9599033080</li>
-                  <li><strong>Address:</strong> 3rd Floor, Vaishnavi Cymbol, Financial District, Hyderabad, Telangana 500032</li>
+                  <li><strong>Address:</strong> 3rd Floor, United Arcade, Pillar No. 143, Shop.No.8, Attapur, Hyderabad, Telangana 500048</li>
                 </ul>
               </div>
             </section>

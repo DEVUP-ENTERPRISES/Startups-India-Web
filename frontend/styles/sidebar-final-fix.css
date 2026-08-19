@@ -18,7 +18,7 @@
   left: 0 !important;
   width: 280px !important;
   z-index: 1000 !important;
-  overflow: hidden !important;
+  overflow: visible !important;
   margin: 0 !important;
   padding: 0 !important;
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;

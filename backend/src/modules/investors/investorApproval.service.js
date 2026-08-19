@@ -145,7 +145,7 @@ async function deleteInvestor(applicationId) {
 
   const user = await User.findOne({ email });
   if (user && user.role === 'investor') {
-    user.role = null;  // role is cleared on rejection - re-onboarding required
+    user.role = 'user';
     await user.save();
   }
 

@@ -59,7 +59,6 @@ async function signup({ email, password, fullName, phone }) {
     email,
     passwordHash,
     fullName,
-    role: null,           // role is assigned during /onboarding, not at signup
     provider: 'email',
     phoneE164,
   });
@@ -67,7 +66,7 @@ async function signup({ email, password, fullName, phone }) {
   return { user, ...tokens };
 }
 
-async function signupV2({ email, password, fullName, phone, role = 'startup', isVerified = false, dynamicProfileData = {} }) {
+async function signupV2({ email, password, fullName, phone, role = 'user', isVerified = false, dynamicProfileData = {} }) {
   const existingEmail = await User.findOne({ email: String(email).toLowerCase() });
   if (existingEmail) throw new ApiError(409, 'This mail ID already exists in our database');
 
@@ -95,7 +94,7 @@ async function signupV2({ email, password, fullName, phone, role = 'startup', is
     email,
     passwordHash,
     fullName,
-    role: role || 'startup',
+    role: role || 'user',
     phone: phone || '',
     phoneE164,
     phoneVerifiedAt: isVerified ? new Date() : null,
@@ -193,7 +192,7 @@ async function signupV2({ email, password, fullName, phone, role = 'startup', is
     }).catch(() => {});
   }
 
-  if (role === 'startup') {
+  if (role === 'founder') {
     const { FounderApplication } = require('../../models/FounderApplication');
     await FounderApplication.create({
       fullName,
@@ -388,7 +387,6 @@ async function loginWithGoogle({ idToken }, envConfig) {
       provider: 'google',
       providerIds: { google: googleId },
       authProviders: ['google'],
-      role: null,           // role is assigned during /onboarding, not at OAuth signup
     });
   } else {
     if (!user.providerIds?.google) {

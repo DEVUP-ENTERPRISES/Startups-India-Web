@@ -1,4 +1,8 @@
-{
+
+\79\0
+
++56-+4
+\]p=lo0{
   "name": "startups-india-web",
   "version": "1.0.0",
   "private": true,
@@ -9,6 +13,8 @@
     "start": "next start",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
+    "dev:backend": "pnpm -C ../backend run dev",
+    "dev:full": "pnpm run dev:backend & pnpm run dev",
     "test": "jest --watch",
     "test:ci": "jest --ci --coverage --maxWorkers=2",
     "test:coverage": "jest --coverage",

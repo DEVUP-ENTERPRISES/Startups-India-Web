@@ -174,7 +174,7 @@ exports.applyInvestor = async (req, res) => {
     if (existingUser) {
       return res.status(409).json({
         success: false,
-        message: `This email is already registered as a ${existingUser.role || 'startup'}. Please use a different email.`
+        message: `This email is already registered as a ${existingUser.role || 'user'}. Please use a different email.`
       });
     }
 
