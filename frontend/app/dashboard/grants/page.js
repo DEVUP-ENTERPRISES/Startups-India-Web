@@ -364,66 +364,15 @@ export default function GrantApplicationPage() {
           <>
             <SectionTitle icon={<CheckCircle2 size={18} />} title="Review & submit" />
 
-            {/* Founder card */}
-            <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: '16px', padding: '20px', marginBottom: '16px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', paddingBottom: '12px', borderBottom: '1px solid #f3f4f6' }}>
-                <User size={15} color="#ef4444" />
-                <h4 style={{ margin: 0, fontSize: '13px', fontWeight: 800, color: '#111827', textTransform: 'uppercase', letterSpacing: '0.6px' }}>Founder</h4>
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '14px' }}>
-                {[
-                  ['Full Name', founder.fullName],
-                  ['Email', founder.email],
-                  ['Mobile', founder.phone],
-                  ['College', founder.collegeName],
-                  ['City', founder.city],
-                ].filter(([, v]) => v).map(([k, v]) => (
-                  <div key={k}>
-                    <p style={{ margin: '0 0 3px', fontSize: '11px', fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{k}</p>
-                    <p style={{ margin: 0, fontSize: '14px', fontWeight: 600, color: '#111827', wordBreak: 'break-word' }}>{v}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <Summary title="Founder" rows={[
+              ['Name', founder.fullName], ['Email', founder.email], ['Mobile', founder.phone],
+              ['College', founder.collegeName], ['City', founder.city],
+            ]} />
 
-            {/* Startup card */}
-            <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: '16px', padding: '20px', marginBottom: '16px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', paddingBottom: '12px', borderBottom: '1px solid #f3f4f6' }}>
-                <Building2 size={15} color="#ef4444" />
-                <h4 style={{ margin: 0, fontSize: '13px', fontWeight: 800, color: '#111827', textTransform: 'uppercase', letterSpacing: '0.6px' }}>Startup</h4>
-              </div>
-
-              {/* Name + badges row */}
-              <div style={{ marginBottom: '16px' }}>
-                <p style={{ margin: '0 0 3px', fontSize: '11px', fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Name</p>
-                <p style={{ margin: '0 0 10px', fontSize: '16px', fontWeight: 800, color: '#111827' }}>{startup.name}</p>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                  {startup.stage && (
-                    <span style={{ padding: '4px 12px', borderRadius: '100px', background: '#fef2f2', color: '#ef4444', fontSize: '12px', fontWeight: 700, border: '1px solid #fee2e2' }}>
-                      {startup.stage}
-                    </span>
-                  )}
-                  {startup.category && (
-                    <span style={{ padding: '4px 12px', borderRadius: '100px', background: '#eff6ff', color: '#1d4ed8', fontSize: '12px', fontWeight: 700, border: '1px solid #bfdbfe' }}>
-                      {startup.category}
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* Problem + Solution */}
-              <div style={{ display: 'grid', gap: '14px' }}>
-                {[
-                  ['Problem Statement', startup.problemStatement],
-                  ['Solution', startup.solution],
-                ].filter(([, v]) => v).map(([k, v]) => (
-                  <div key={k} style={{ padding: '14px', background: '#fafafa', borderRadius: '12px', border: '1px solid #f0f0f0' }}>
-                    <p style={{ margin: '0 0 6px', fontSize: '11px', fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{k}</p>
-                    <p style={{ margin: 0, fontSize: '13.5px', color: '#374151', lineHeight: 1.7 }}>{v}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <Summary title="Startup" rows={[
+              ['Name', startup.name], ['Stage', startup.stage], ['Category', startup.category],
+              ['Problem', startup.problemStatement], ['Solution', startup.solution],
+            ]} />
 
             <label
               style={{
@@ -433,7 +382,7 @@ export default function GrantApplicationPage() {
               }}
             >
               <input type="checkbox" checked={terms} onChange={e => setTerms(e.target.checked)}
-                style={{ marginTop: '2px', width: '16px', height: '16px', accentColor: '#ef4444', flexShrink: 0 }} />
+                style={{ marginTop: '2px', width: '16px', height: '16px', accentColor: '#ef4444' }} />
               <span style={{ fontSize: '13.5px', color: '#374151', lineHeight: 1.6 }}>
                 {config.termsText}
               </span>
@@ -527,6 +476,25 @@ function Two({ children }) {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: '14px' }}>
       {children}
+    </div>
+  );
+}
+
+function Summary({ title, rows }) {
+  const filled = rows.filter(([, v]) => v !== '' && v !== undefined && v !== null);
+  return (
+    <div style={{ marginBottom: '22px' }}>
+      <h4 style={{ fontSize: '13px', fontWeight: 800, color: '#111827', margin: '0 0 10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+        {title}
+      </h4>
+      <div style={{ display: 'grid', gap: '8px' }}>
+        {filled.map(([k, v]) => (
+          <div key={k} style={{ display: 'flex', gap: '12px', fontSize: '13.5px', lineHeight: 1.6 }}>
+            <span style={{ minWidth: '130px', color: '#9ca3af', flexShrink: 0 }}>{k}</span>
+            <span style={{ color: '#374151', wordBreak: 'break-word' }}>{v}</span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

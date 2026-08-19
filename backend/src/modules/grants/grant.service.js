@@ -108,49 +108,17 @@ async function assertCanSubmit(userId, { excludeApplicationId = null } = {}) {
   }
 }
 
-// Stage/category come from admin-editable lists. An exact match is required
-// for category, but we also accept a fuzzy match (same logic as the frontend's
-// resolveCategory) so that values like "Artificial Intelligence / ML" from a
-// user's profile map cleanly to "AI/ML" without a server error.
-function resolveToKnownValue(raw, list) {
-  if (!raw || !list?.length) return null;
-  // 1. Exact
-  if (list.includes(raw)) return raw;
-  // 2. Case-insensitive exact
-  const lower = raw.toLowerCase();
-  const exact = list.find(v => v.toLowerCase() === lower);
-  if (exact) return exact;
-  // 3. Substring
-  const substr = list.find(
-    v => lower.includes(v.toLowerCase()) || v.toLowerCase().includes(lower)
-  );
-  if (substr) return substr;
-  // 4. Token overlap
-  const tokens = lower.replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(Boolean);
-  const tokenMatch = list.find(v => {
-    const vTokens = v.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(Boolean);
-    return tokens.some(t => vTokens.some(vt => t.startsWith(vt) || vt.startsWith(t)));
-  });
-  return tokenMatch || null;
-}
-
+// Stage/category come from admin-editable lists, so they're validated here rather
+// than pinned in a schema enum.
 async function assertValidTaxonomy(startup) {
   const s = await getGrantSettings();
 
-  const resolvedStage = resolveToKnownValue(startup.stage, s['grant.stages']);
-  if (!resolvedStage) {
+  if (!s['grant.stages'].includes(startup.stage)) {
     throw new ApiError(400, `Invalid startup stage: ${startup.stage}`);
   }
-
-  const resolvedCategory = resolveToKnownValue(startup.category, s['grant.categories']);
-  if (!resolvedCategory) {
+  if (!s['grant.categories'].includes(startup.category)) {
     throw new ApiError(400, `Invalid startup category: ${startup.category}`);
   }
-
-  // Normalise the values in-place so downstream code (DB, admin view) always
-  // sees a canonical value from the settings list, never a raw profile string.
-  startup.stage = resolvedStage;
-  startup.category = resolvedCategory;
 }
 
 // ─── STUDENT: CREATE / UPDATE DRAFT ─────────────────────────────────────
@@ -263,9 +231,8 @@ async function listMyApplications(userId) {
   const evalByApp = new Map(evaluations.map(e => [String(e.applicationId), e]));
 
   return applications.map(app => {
-    const { currentPhase, passedEvaluation, score, scoreRevealed, unlockedUpTo, phases } =
-      computePhases(app, evalByApp.get(String(app._id)) || null);
-    return { ...app, currentPhase, passedEvaluation, score, scoreRevealed, unlockedUpTo, phases };
+    const { currentPhase, passedEvaluation, phases } = computePhases(app, evalByApp.get(String(app._id)) || null);
+    return { ...app, currentPhase, passedEvaluation, phases };
   });
 }
 
@@ -286,8 +253,8 @@ async function getMyApplication(userId, applicationDbId) {
     IdeaEvaluation.findOne({ applicationId: application._id }).lean(),
   ]);
 
-  const { phases, currentPhase, passedEvaluation, score, scoreRevealed, unlockedUpTo } =
-    computePhases(application, evaluation);
+  // The 5-phase journey the premium tracker renders from.
+  const { phases, currentPhase, passedEvaluation } = computePhases(application, evaluation);
 
   return {
     ...application,
@@ -296,9 +263,6 @@ async function getMyApplication(userId, applicationDbId) {
     phases,
     currentPhase,
     passedEvaluation,
-    score,
-    scoreRevealed,
-    unlockedUpTo,
     timeline,
     documents,
   };

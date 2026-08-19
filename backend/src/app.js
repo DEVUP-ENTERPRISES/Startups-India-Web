@@ -191,7 +191,7 @@ app.use('/api/v1/auth/refresh', authLimiter);
 // service; this is the coarse per-IP net in front of them.
 const otpLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: env.NODE_ENV === 'production' ? 10 : 100, // relaxed in dev for testing
+  max: 10,
   standardHeaders: true,
   legacyHeaders: false,
   message: { success: false, message: 'Too many code requests, please try again later' },

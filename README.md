@@ -1,4 +1,4 @@
-# Startup India Incubation Platform Website
+# Startup India Incubation Platform
 
 A premium, industry-grade code-based incubation platform built with Next.js, Supabase, and pure CSS. This platform enables users to enroll in courses, watch structured video lessons, complete assignments, take quizzes, and earn certificates.
 

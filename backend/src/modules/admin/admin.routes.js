@@ -136,6 +136,13 @@ adminRouter.post('/ecosystem', asyncHandler(ctrl.createEcosystemEntry));
 adminRouter.patch('/ecosystem/:id', asyncHandler(ctrl.updateEcosystemEntry));
 adminRouter.delete('/ecosystem/:id', asyncHandler(ctrl.deleteEcosystemEntry));
 
+// Community Channels Admin
+const communityCtrl = require('../community/community.controller');
+adminRouter.get('/community/channels', asyncHandler(communityCtrl.listChannels));
+adminRouter.post('/community/channels', asyncHandler(communityCtrl.createChannel));
+adminRouter.patch('/community/channels/:id', asyncHandler(communityCtrl.updateChannel));
+adminRouter.delete('/community/channels/:id', asyncHandler(communityCtrl.deleteChannel));
+
 // ─── OBSERVABILITY & COMMAND CENTER ───────────────────────────────────
 // Security events
 adminRouter.get('/observability/security/events', asyncHandler(obs.getSecurityEvents));

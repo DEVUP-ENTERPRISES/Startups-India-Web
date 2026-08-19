@@ -3,7 +3,6 @@ const { z } = require('zod');
 const { asyncHandler } = require('../../utils/asyncHandler');
 const { validateBody } = require('../../middlewares/validateBody');
 const { authRequired } = require('../../middlewares/authMiddleware');
-const { ApiError } = require('../../utils/apiError');
 const grantService = require('./grant.service');
 const documentsService = require('./grant.documents.service');
 const paymentService = require('./grant.payment.service');
@@ -29,7 +28,7 @@ router.use(authRequired);
 const founderSchema = z.object({
   fullName: z.string().min(1).max(120),
   email: z.string().email(),
-  phone: z.string().max(20).optional().default(''),
+  phone: z.string().min(6).max(20),
   collegeName: z.string().max(200).optional().default(''),
   university: z.string().max(200).optional().default(''),
   city: z.string().max(100).optional().default(''),
@@ -255,53 +254,6 @@ router.delete(
   '/documents/:documentId',
   asyncHandler(async (req, res) => {
     const data = await documentsService.deleteDocument(req.user.userId, req.params.documentId);
-    res.json({ success: true, data });
-  })
-);
-
-// ─── SLOT BOOKING (student) ─────────────────────────────────────────────
-const slotService = require('./grant.slot.service');
-
-// Available slots for a given date (not blocked, not booked)
-router.get(
-  '/slots',
-  asyncHandler(async (req, res) => {
-    const { date } = req.query;
-    if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-      throw new ApiError(400, 'date query param is required (YYYY-MM-DD)');
-    }
-    const data = await slotService.getAvailableSlots(date);
-    res.json({ success: true, data });
-  })
-);
-
-// Book a slot for an application
-router.post(
-  '/slots/book',
-  validateBody(z.object({
-    applicationId: objectId,
-    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be YYYY-MM-DD'),
-    time: z.string().regex(/^\d{2}:\d{2}$/, 'Time must be HH:MM'),
-    mode: z.enum(['online', 'offline']),
-  })),
-  asyncHandler(async (req, res) => {
-    const data = await slotService.bookSlot({
-      userId: req.user.userId,
-      ...req.body,
-    });
-    res.json({ success: true, data });
-  })
-);
-
-// Cancel existing slot booking (used by reschedule flow — cancel then rebook)
-router.delete(
-  '/slots/cancel',
-  validateBody(z.object({ applicationId: objectId })),
-  asyncHandler(async (req, res) => {
-    const data = await slotService.cancelSlot({
-      userId: req.user.userId,
-      applicationId: req.body.applicationId,
-    });
     res.json({ success: true, data });
   })
 );

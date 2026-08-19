@@ -1,4 +1,3 @@
-// CI/CD: backend auto-deploys to EC2 on push to main (.github/workflows/deploy-backend.yml).
 const dns = require('dns');
 
 // Force reliable DNS (Google + Cloudflare) to resolve MongoDB Atlas and Redis
@@ -32,55 +31,9 @@ async function bootstrap() {
   await connectDatabase(env.MONGODB_URI);
   await connectRedis();
   await seedAdmin();
+  await require('./modules/community/community.service').listChannels('admin').catch(() => {});
   await warmCache();
   await reconcileOrphanedPayments();
-
-  // Slot reminder: every 5 minutes, check for booked slots that are ~2hrs away
-  // and send an FCM push to the user that their evaluation report is ready.
-  const { SlotDay } = require('./modules/grants/grant.slot.model');
-  const { sendToUser } = require('./modules/push/push.service');
-  const { IdeaEvaluation } = require('./modules/grants/grant.models');
-  const notifiedSlots = new Set(); // in-process dedup (survives across poll cycles)
-
-  setInterval(async () => {
-    try {
-      const now = new Date();
-      const twoHoursLater = new Date(now.getTime() + 2 * 60 * 60 * 1000);
-      const windowStart = new Date(now.getTime() + 1.9 * 60 * 60 * 1000); // 5-min window
-
-      // Find SlotDay docs that have a booked slot whose scheduled time is in [now+1h55m, now+2h]
-      // We use the IdeaEvaluation collection's meeting.scheduledAt since that's canonical
-      const upcoming = await IdeaEvaluation.find({
-        'meeting.scheduledAt': { $gte: windowStart, $lte: twoHoursLater },
-        'score': { $ne: null }, // admin has scored
-        'submittedAt': { $ne: null },
-      }).populate({ path: 'applicationId', select: 'userId applicationId' }).lean();
-
-      for (const ev of upcoming) {
-        const key = String(ev._id);
-        if (notifiedSlots.has(key)) continue;
-
-        const userId = ev.applicationId?.userId;
-        if (!userId) continue;
-
-        notifiedSlots.add(key);
-
-        await sendToUser(userId, {
-          title: '📋 Your Evaluation Report is Ready!',
-          body: `Your 1:1 session is in 2 hours. Your evaluation report is now available. Check your dashboard!`,
-          data: {
-            type: 'report_ready',
-            applicationId: String(ev.applicationId?._id || ''),
-            clickUrl: '/dashboard/journey/idea-validation',
-          },
-        }).catch(() => {});
-
-        logger.info('2hr slot reminder FCM sent', { userId: String(userId), evalId: key });
-      }
-    } catch (err) {
-      logger.warn('Slot reminder poll error', { message: err.message });
-    }
-  }, 5 * 60 * 1000); // every 5 minutes
 
   // CRM: seed the ready-to-send templates (idempotent) and start the drain
   // worker (resumes any campaign left 'sending' by a restart; enforces the cap).

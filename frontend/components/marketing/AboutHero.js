@@ -1,9 +1,10 @@
+'use client';
+
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import '@/lib/i18n';
 import { useTranslation } from 'react-i18next';
-import { isLoggedIn } from '@/lib/api';
 import '../../styles/about-hero.css';
 
 export default function AboutHero() {
@@ -32,7 +33,8 @@ export default function AboutHero() {
 
   const handleStartJourney = (e) => {
     e.preventDefault();
-    if (isLoggedIn()) {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+    if (token) {
       router.push('/programs');
     } else {
       router.push('/login');

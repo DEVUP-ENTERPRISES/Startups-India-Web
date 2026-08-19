@@ -1,134 +1,65 @@
 const { STATUS } = require('./grant.status');
 
 /**
- * The 6-phase Startups India journey, derived from an application's status +
+ * The 5-phase Startups India journey, derived from an application's status +
  * evaluation. This is the single source of truth the journey tracker, the
  * sidebar and the pre-apply showcase all render from - the frontend never
  * hardcodes phase logic.
  *
- * Stage unlock rules (applied 2 hrs before the booked evaluation slot):
- *   score < 50  → unlock Stage 3 (Pre-Incubation) only
- *   50 ≤ score < 75 → unlock Stages 3 + 4 (Pre-Incubation + Incubation)
- *   score ≥ 75  → unlock Stages 3 + 4 + 5 (Accelerator Program added)
- *   (Stage 6 - Grants is unlocked by admin after Accelerator)
+ * Phases 3–5 are real and admin-driven: an admin advances an applicant into
+ * Pre-Incubation, then Incubation, then Funding, and each move unlocks that
+ * phase here. `comingSoon` is kept only so the generic pre-apply showcase can
+ * label the later phases for someone who hasn't started the journey yet.
  */
 const PHASES = [
-  {
-    key: 'registration',
-    title: 'Registration',
-    subtitle: 'Complete your profile and register your startup',
-    icon: 'rocket',
-  },
-  {
-    key: 'idea_validation',
-    title: 'Idea Validation',
-    subtitle: 'Submit pitch deck, revenue model & pay ₹1,499 for expert evaluation',
-    icon: 'lightbulb',
-  },
-  {
-    key: 'pre_incubation',
-    title: 'Pre-Incubation',
-    subtitle: 'Structured mentorship to refine your business & deck',
-    icon: 'graduation',
-    comingSoon: true,
-  },
-  {
-    key: 'incubation',
-    title: 'Incubation',
-    subtitle: 'Physical space, labs, and pilot support for your startup',
-    icon: 'building',
-    comingSoon: true,
-  },
-  {
-    key: 'accelerator',
-    title: 'Accelerator Program',
-    subtitle: 'Scale fast with mentors, investors & market access',
-    icon: 'accelerator',
-    comingSoon: true,
-  },
-  {
-    key: 'grants',
-    title: 'Grants',
-    subtitle: 'Unlock government grants and seed funding up to ₹20L',
-    icon: 'landmark',
-    comingSoon: true,
-  },
+  { key: 'registration', title: 'Registration', subtitle: 'Free - submit your startup idea' },
+  { key: 'idea_evaluation', title: 'Idea Evaluation', subtitle: 'Reviewed & scored by top VCs and mentors' },
+  { key: 'pre_incubation', title: 'Pre-Incubation', subtitle: 'Structured mentorship to get investor-ready', comingSoon: true },
+  { key: 'incubation', title: 'Incubation', subtitle: 'Hands-on support to build and scale', comingSoon: true },
+  { key: 'funding', title: 'Funding', subtitle: 'Backed by top VCs and angel investors', comingSoon: true },
 ];
 
 /**
  * Each status → [phase index the applicant occupies, whether that phase is done].
  * `done: true` means they've finished that phase and are awaiting the admin to
- * start the next one.
+ * start the next one - so the next phase renders locked, not current. That is
+ * what makes "passing the evaluation doesn't auto-open Pre-Incubation; an admin
+ * action does" true.
  */
 const STATUS_POSITION = {
-  // Stage 1 done once onboarding complete. All pre-payment statuses = S1 done, S2 active.
-  [STATUS.DRAFT]: [0, true],
-  [STATUS.SUBMITTED]: [0, true],
-  [STATUS.UNDER_REVIEW]: [0, true],
-  [STATUS.SHORTLISTED]: [0, true],
-  [STATUS.CHANGES_REQUESTED]: [0, true],
-  [STATUS.SELECTED]: [0, true],
-  [STATUS.EVALUATION_PENDING]: [0, true],
-  // Payment done → Stage 2 is now "active/in progress" (pos=1, complete=false)
+  [STATUS.DRAFT]: [0, false],
+  [STATUS.SUBMITTED]: [0, false],
+  [STATUS.UNDER_REVIEW]: [0, false],
+  [STATUS.SHORTLISTED]: [0, false],
+  [STATUS.CHANGES_REQUESTED]: [0, false],
+  [STATUS.SELECTED]: [1, false],
+  [STATUS.EVALUATION_PENDING]: [1, false],
   [STATUS.EVALUATION_PAID]: [1, false],
   [STATUS.EVALUATION_SCHEDULED]: [1, false],
-  // Admin scored → Stage 2 complete, score-based stages unlock
-  [STATUS.EVALUATION_COMPLETED]: [1, true],
+  [STATUS.EVALUATION_COMPLETED]: [1, true], // cleared Phase 2; awaiting Pre-Incubation
   [STATUS.PRE_INCUBATION]: [2, false],
   [STATUS.INCUBATION]: [3, false],
-  [STATUS.FUNDING_STARTED]: [4, false],    // Accelerator Program
-  [STATUS.GRANT_APPROVED]: [5, false],
-  [STATUS.COMPLETED]: [5, true],
+  [STATUS.FUNDING_STARTED]: [4, false],
+  [STATUS.GRANT_APPROVED]: [4, true],
+  [STATUS.COMPLETED]: [4, true],
 };
 
 /**
- * Compute which phases are unlocked based on evaluation score and slot time.
- * Score is revealed + stages unlocked 2 hours before the booked slot.
- *
- * @param {object} application
- * @param {object|null} evaluation
- * @returns {{ currentPhase, passedEvaluation, score, scoreRevealed, phases[] }}
+ * @returns {{ currentPhase: number, passedEvaluation: boolean|null, phases: object[] }}
+ * Each phase: { key, title, subtitle, comingSoon, state }
+ * state ∈ 'done' | 'current' | 'locked' | 'rejected'
  */
 function computePhases(application, evaluation = null) {
   const status = application.status;
+  const passed = evaluation?.submittedAt ? evaluation.passed === true : null;
   const rejected = status === STATUS.REJECTED;
 
+  // Where the applicant sits in the journey.
   const [pos, complete] = STATUS_POSITION[status] || [0, false];
 
-  // Score reveal logic:
-  // - If admin has already submitted a score (evaluation.submittedAt is set),
-  //   reveal immediately (admin scored = approved = stages unlocked now)
-  // - Otherwise, only reveal 2hrs before the booked slot
-  const adminScored = Boolean(evaluation?.submittedAt);
-  const slotTime = evaluation?.meeting?.scheduledAt
-    ? new Date(evaluation.meeting.scheduledAt).getTime()
-    : null;
-  const now = Date.now();
-  const twoHoursMs = 2 * 60 * 60 * 1000;
-  const scoreRevealed = adminScored || (slotTime ? (now >= slotTime - twoHoursMs) : false);
-
-  const score = scoreRevealed ? (evaluation?.score ?? null) : null;
-  const passed = evaluation?.submittedAt ? evaluation.passed === true : null;
-
-  // Determine how many stages are unlocked based on score thresholds:
-  // < 50  → Pre-Incubation only (stage index 2)
-  // 50-74 → Pre-Incubation + Incubation (stage index 3)
-  // ≥ 75  → Pre-Incubation + Incubation + Accelerator (stage index 4)
-  let unlockedUpTo = pos;
-  if (scoreRevealed && score !== null) {
-    if (score >= 75) {
-      unlockedUpTo = Math.max(pos, 4); // Accelerator Program
-    } else if (score >= 50) {
-      unlockedUpTo = Math.max(pos, 3); // Incubation
-    } else if (score >= 1) {
-      unlockedUpTo = Math.max(pos, 2); // Pre-Incubation only
-    }
-    // score === 0 → rejected, no unlock
-  }
-
-  const rejectedPhase = rejected
-    ? evaluation?.submittedAt ? 1 : 0
-    : -1;
+  // A rejection doesn't record which phase it happened in; infer from the
+  // evaluation (scored → they'd at least reached Phase 2) as a fair fallback.
+  const rejectedPhase = rejected ? (evaluation?.submittedAt ? 1 : 0) : -1;
 
   const phases = PHASES.map((p, i) => {
     let state;
@@ -139,32 +70,15 @@ function computePhases(application, evaluation = null) {
     } else if (i < pos) {
       state = 'done';
     } else if (i === pos) {
-      if (complete) {
-        // This phase is done - the NEXT phase becomes current
-        state = 'done';
-      } else {
-        state = 'current';
-      }
-    } else if (complete && i === pos + 1) {
-      // The phase immediately after a completed one is always current
-      // (Stage 2 is always current once Stage 1 is done, regardless of score)
-      state = 'current';
-    } else if (scoreRevealed && i <= unlockedUpTo) {
-      state = 'unlocked';
+      // Finished this phase and awaiting the next → 'done' (next stays locked).
+      state = complete ? 'done' : 'current';
     } else {
       state = 'locked';
     }
     return { ...p, state };
   });
 
-  return {
-    currentPhase: pos,
-    passedEvaluation: passed,
-    score,
-    scoreRevealed,
-    unlockedUpTo,
-    phases,
-  };
+  return { currentPhase: pos, passedEvaluation: passed, phases };
 }
 
 module.exports = { PHASES, STATUS_POSITION, computePhases };

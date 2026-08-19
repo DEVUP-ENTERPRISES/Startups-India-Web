@@ -1,52 +1,62 @@
 'use client';
 
-import { apiFetch, setLoggedInFlag, clearLoggedInFlag, isLoggedIn, setMemToken, clearMemToken } from './api';
+import { apiFetch } from './api';
 
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
-const ADMIN_SLUG = process.env.NEXT_PUBLIC_ADMIN_SLUG || 'ctrl-x9k2m3-panel';
 
 let googleSignInInitialized = false;
-let googleSignInCallback = null;
 
-// ── Session flag helpers (re-exported for convenience) ───────────────────────
-export { isLoggedIn, setLoggedInFlag, clearLoggedInFlag };
-
-// ── storeSession ─────────────────────────────────────────────────────────────
-// Cookie is set by the backend automatically (httpOnly).
-// We just record the presence flag so UI checks work without reading the cookie.
-function storeSession(result) {
-  if (result.data?.user?.id) {
-    setLoggedInFlag(result.data.user.id);
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('user:login'));
-    }
-  }
-  // Store token in-memory (+ sessionStorage) for Bearer auth on cross-origin calls
-  if (result.data?.session?.access_token) {
-    setMemToken(result.data.session.access_token);
-  }
-  return result;
-}
-
-// ── Auth functions ────────────────────────────────────────────────────────────
+// --- Auth Functions ---
 
 export async function signIn(email, password) {
   const result = await apiFetch('/api/v1/auth/login', {
     method: 'POST',
     body: JSON.stringify({ email, password }),
   });
-  return storeSession(result);
+  if (result.data?.session?.access_token) {
+    localStorage.setItem('access_token', result.data.session.access_token);
+    if (result.data.session.refresh_token) {
+      localStorage.setItem('refresh_token', result.data.session.refresh_token);
+    }
+    window.dispatchEvent(new CustomEvent('user:login'));
+  }
+  return result;
 }
 
+// Takes an object. The signup page has always CALLED it that way, but the old
+// signature was positional - so `email` received the whole object and the API got
+// {"email":{...}}, which zod rejected. Signup was broken; this is the fix.
 export async function signUp({ email, password, fullName, phone }) {
   const result = await apiFetch('/api/v1/auth/signup', {
     method: 'POST',
     body: JSON.stringify({ email, password, fullName, ...(phone ? { phone } : {}) }),
   });
-  return storeSession(result);
+  if (result.data?.session?.access_token) {
+    localStorage.setItem('access_token', result.data.session.access_token);
+    if (result.data.session.refresh_token) {
+      localStorage.setItem('refresh_token', result.data.session.refresh_token);
+    }
+    window.dispatchEvent(new CustomEvent('user:login'));
+  }
+  return result;
 }
 
-// ── Two-factor (SMS OTP) ─────────────────────────────────────────────────────
+// --- Two-factor (SMS OTP) ---
+//
+// signIn() returns data.two_factor_required === true (and NO session) when the
+// account has 2FA on. The caller must then collect the SMS code and call
+// verifyTwoFactor() with the pending token to get an actual session.
+
+function storeSession(result) {
+  if (result.data?.session?.access_token) {
+    localStorage.setItem('access_token', result.data.session.access_token);
+    if (result.data.session.refresh_token) {
+      localStorage.setItem('refresh_token', result.data.session.refresh_token);
+    }
+  }
+  return result;
+}
 
 export async function verifyTwoFactor(pendingToken, code) {
   return storeSession(
@@ -64,6 +74,7 @@ export async function resendTwoFactorCode(pendingToken) {
   });
 }
 
+// Lost phone: sign in with a one-time recovery code instead of an SMS.
 export async function verifyBackupCode(pendingToken, backupCode) {
   return storeSession(
     await apiFetch('/api/v1/auth/2fa/recovery', {
@@ -73,7 +84,7 @@ export async function verifyBackupCode(pendingToken, backupCode) {
   );
 }
 
-// ── Phone verification + 2FA management ─────────────────────────────────────
+// --- Phone verification + 2FA management (authenticated) ---
 
 export async function sendPhoneOtp(phone) {
   return apiFetch('/api/v1/auth/phone/send-otp', {
@@ -89,6 +100,7 @@ export async function verifyPhoneOtp(code) {
   });
 }
 
+// Returns backup_codes - the only time they are ever visible. Show them once.
 export async function enableTwoFactor() {
   return apiFetch('/api/v1/auth/2fa/enable', { method: 'POST' });
 }
@@ -107,8 +119,9 @@ export async function regenerateBackupCodes(password) {
   });
 }
 
-// ── Password reset ────────────────────────────────────────────────────────────
-
+// Requests a reset link. Resolves successfully whether or not the address is
+// registered - the API deliberately gives no signal either way, so the UI must
+// not branch on it.
 export async function requestPasswordReset(email) {
   return apiFetch('/api/v1/auth/forgot-password', {
     method: 'POST',
@@ -116,6 +129,8 @@ export async function requestPasswordReset(email) {
   });
 }
 
+// Consumes a reset token. Does NOT sign the user in - they re-authenticate with
+// the new password, which confirms the change actually landed.
 export async function resetPassword(token, password) {
   return apiFetch('/api/v1/auth/reset-password', {
     method: 'POST',
@@ -123,25 +138,8 @@ export async function resetPassword(token, password) {
   });
 }
 
-// ── Post-auth redirect logic ──────────────────────────────────────────────────
-// Rules:
-//   onboarding_completed = false  → /onboarding
-//   role = admin                  → /{ADMIN_SLUG}/dashboard
-//   role = mentor                 → /dashboard/mentor
-//   role = investor               → /dashboard/investor
-//   everything else               → fallback (/dashboard)
-
-export function getPostAuthRedirect(userData, fallback = '/dashboard') {
-  const user = userData?.user || userData;
-  if (!user?.onboarding_completed) return '/onboarding';
-  if (user?.role === 'admin') return `/${ADMIN_SLUG}/dashboard`;
-  if (user?.role === 'mentor') return '/dashboard/mentor';
-  if (user?.role === 'investor') return '/dashboard/investor';
-  return fallback;
-}
-
-// ── Google Sign-In ────────────────────────────────────────────────────────────
-
+// Renders Google's official sign-in button into a DOM element.
+// Call this once after mount with a container ref and a callback for the result.
 export function initGoogleSignIn(containerElement, onResult) {
   if (!GOOGLE_CLIENT_ID) {
     onResult({ data: null, error: { message: 'Google Client ID is not configured.' } });
@@ -151,9 +149,8 @@ export function initGoogleSignIn(containerElement, onResult) {
 
   loadGoogleScript()
     .then(() => {
-      if (!googleSignInInitialized || googleSignInCallback !== onResult) {
+      if (!googleSignInInitialized) {
         googleSignInInitialized = true;
-        googleSignInCallback = onResult;
         window.google.accounts.id.initialize({
           client_id: GOOGLE_CLIENT_ID,
           callback: async response => {
@@ -161,15 +158,11 @@ export function initGoogleSignIn(containerElement, onResult) {
               method: 'POST',
               body: JSON.stringify({ idToken: response.credential }),
             });
-            // Cookie is set by backend; just record the flag
-            if (result.data?.user?.id) {
-              setLoggedInFlag(result.data.user.id);
-              if (result.data?.session?.access_token) {
-                setMemToken(result.data.session.access_token);
-              }
+            if (result.data?.session?.access_token) {
+              localStorage.setItem('access_token', result.data.session.access_token);
               window.dispatchEvent(new CustomEvent('user:login'));
             }
-            googleSignInCallback(result);
+            onResult(result);
           },
           ux_mode: 'popup',
         });
@@ -188,8 +181,6 @@ export function initGoogleSignIn(containerElement, onResult) {
     });
 }
 
-// ── Sign out ──────────────────────────────────────────────────────────────────
-
 export async function signOut() {
   try {
     await apiFetch('/api/v1/auth/logout', { method: 'POST' });
@@ -197,13 +188,12 @@ export async function signOut() {
     // Continue with client-side cleanup regardless
   }
   if (typeof window !== 'undefined') {
-    clearLoggedInFlag();
-    clearMemToken();
-    localStorage.removeItem('fcm_device_token');
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+    localStorage.removeItem('fcm_device_token');   // force re-registration on next login
     localStorage.removeItem('fcm_permission_asked_at');
     sessionStorage.clear();
-    // Best-effort cookie clear for non-httpOnly cookies (httpOnly ones are
-    // cleared server-side by the logout endpoint via res.clearCookie)
+    // Also clear any potential auth cookies just in case
     document.cookie.split(';').forEach(c => {
       document.cookie = c
         .replace(/^ +/, '')
@@ -213,11 +203,9 @@ export async function signOut() {
   return { error: null };
 }
 
-// ── Current user ──────────────────────────────────────────────────────────────
-// Cookie is sent automatically - just check if the flag says we're logged in.
-
 export async function getCurrentUser() {
-  if (!isLoggedIn()) return { data: null, error: { message: 'Not authenticated' } };
+  const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+  if (!token) return { data: null, error: { message: 'Not authenticated' } };
   return apiFetch('/api/v1/auth/me');
 }
 
@@ -225,8 +213,7 @@ export async function resendVerificationEmail() {
   return { data: null, error: { message: 'Email verification is not available yet.' } };
 }
 
-// ── Internal: load Google Identity Services script ────────────────────────────
-
+// --- Internal: load Google Identity Services script ---
 function loadGoogleScript() {
   return new Promise((resolve, reject) => {
     if (typeof window !== 'undefined' && window.google?.accounts?.id) {

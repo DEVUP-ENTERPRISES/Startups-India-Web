@@ -112,7 +112,6 @@ async function requestUploadUrl(userId, { applicationDbId, kind, fileName, fileT
   const presigned = await generateUploadUrl({
     key,
     contentType: fileType,
-    contentLength: fileSize,
     expiresIn: 300,
   });
 

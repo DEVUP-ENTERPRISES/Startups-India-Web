@@ -30,6 +30,7 @@ const navSections = [
       { id: 'payments', label: 'Payments', href: `${ADMIN_BASE}/payments`, icon: 'credit-card' },
       { id: 'certificates', label: 'Certificates', href: `${ADMIN_BASE}/certificates`, icon: 'award' },
       { id: 'grants', label: 'Startup Grants', href: `${ADMIN_BASE}/grants`, icon: 'rocket' },
+      { id: 'community', label: 'Community Channels', href: `${ADMIN_BASE}/community`, icon: 'users' },
     ],
   },
   {
@@ -59,7 +60,6 @@ const navSections = [
   {
     title: 'Operations',
     items: [
-      { id: 'campaigns', label: 'QR Campaigns', href: `${ADMIN_BASE}/campaigns`, icon: 'qr' },
       { id: 'leads', label: 'Leads / CRM', href: `${ADMIN_BASE}/leads`, icon: 'target' },
       { id: 'crm', label: 'Email Campaigns', href: `${ADMIN_BASE}/crm`, icon: 'bell' },
       { id: 'notifications', label: 'Notifications', href: `${ADMIN_BASE}/notifications`, icon: 'bell' },
@@ -290,14 +290,6 @@ function NavIcon({ name, size = 18 }) {
     ),
     'chevron-down': (
       <svg {...props}><polyline points="6 9 12 15 18 9" /></svg>
-    ),
-    qr: (
-      <svg {...props}>
-        <rect x="3" y="3" width="7" height="7" rx="1" />
-        <rect x="14" y="3" width="7" height="7" rx="1" />
-        <rect x="3" y="14" width="7" height="7" rx="1" />
-        <path d="M14 14h2v2h-2zM18 14h3v2h-3zM14 18h3v3h-3zM18 18h3v3h-3z" />
-      </svg>
     ),
   };
   return icons[name] || null;
