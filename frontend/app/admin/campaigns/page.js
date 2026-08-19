@@ -37,9 +37,22 @@ const SITE_ROUTES = [
   { label: 'Settings', path: '/settings' },
 ];
 
-function qrImageUrl(shortCode, size = 200) {
-  const target = `${API_URL}/r/${shortCode}`;
-  return `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(target)}&size=${size}x${size}&format=png&margin=10`;
+/**
+ * Build the final destination URL with UTM params — this is what gets
+ * encoded directly into the QR so scanners (Google Lens etc.) show the
+ * clean site URL, not the API backend.
+ */
+function buildFinalUrl(route, campaignName) {
+  const base = `${FRONTEND_URL}${route || '/'}`;
+  const slug = (campaignName || '').toLowerCase().replace(/\s+/g, '_');
+  const u = new URL(base);
+  u.searchParams.set('utm_medium', 'qr');
+  if (slug) u.searchParams.set('utm_campaign', slug);
+  return u.toString();
+}
+
+function qrImageUrl(finalUrl, size = 200) {
+  return `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(finalUrl)}&size=${size}x${size}&format=png&margin=10`;
 }
 
 const emptyForm = { name: '', route: '/', description: '', status: 'active' };
@@ -93,7 +106,8 @@ export default function CampaignsPage() {
         await load();
         // After saving, immediately show the QR for the new campaign
         const { data: fresh } = await apiGet(`/api/v1/admin/campaigns/${data._id}/links`);
-        if (fresh?.[0]) setQrCampaign({ ...data, ...form, link: fresh[0] });
+        const finalUrl = buildFinalUrl(form.route, form.name);
+        if (fresh?.[0]) setQrCampaign({ ...data, ...form, link: fresh[0], finalUrl });
       }
     }
     setSaving(false);
@@ -108,14 +122,15 @@ export default function CampaignsPage() {
   };
 
   const showQR = async (c) => {
-    // Fetch the link for this campaign to get the short code
+    // Fetch the link to get shortCode (still used for scan tracking on click)
     const { data } = await apiGet(`/api/v1/admin/campaigns/${c._id}/links`);
-    setQrCampaign({ ...c, link: data?.[0] || null });
+    const finalUrl = buildFinalUrl(c.route, c.name);
+    setQrCampaign({ ...c, link: data?.[0] || null, finalUrl });
   };
 
   const downloadQR = (campaign) => {
-    if (!campaign?.link?.shortCode) return;
-    const url = qrImageUrl(campaign.link.shortCode, 600);
+    if (!campaign?.finalUrl) return;
+    const url = qrImageUrl(campaign.finalUrl, 600);
     const a = document.createElement('a');
     a.href = url;
     a.download = `qr-${campaign.name.replace(/\s+/g, '-').toLowerCase()}.png`;
@@ -123,8 +138,8 @@ export default function CampaignsPage() {
     a.click();
   };
 
-  const copyLink = (shortCode) => {
-    navigator.clipboard.writeText(`${API_URL}/r/${shortCode}`);
+  const copyLink = (finalUrl) => {
+    navigator.clipboard.writeText(finalUrl);
   };
 
   return (
@@ -170,7 +185,10 @@ export default function CampaignsPage() {
                   <td style={{ fontSize: 12, color: '#94a3b8' }}>{new Date(c.createdAt).toLocaleDateString()}</td>
                   <td>
                     <div style={{ display: 'flex', gap: 6 }}>
-                      <button className="btn btn-primary btn-sm" onClick={() => showQR(c)}>View QR</button>
+                      <button className="btn btn-primary btn-sm" onClick={() => {
+                        const finalUrl = buildFinalUrl(c.route, c.name);
+                        setQrCampaign({ ...c, link: { shortCode: null }, finalUrl });
+                      }}>View QR</button>
                       <button className="btn btn-secondary btn-sm" onClick={() => openEdit(c)}>Edit</button>
                       <button className="btn btn-danger btn-sm" onClick={() => remove(c._id)}>Del</button>
                     </div>
@@ -267,11 +285,11 @@ export default function CampaignsPage() {
                 → {FRONTEND_URL}{qrCampaign.route || '/'}
               </div>
 
-              {qrCampaign.link ? (
+              {qrCampaign.finalUrl ? (
                 <>
                   <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
                     <img
-                      src={qrImageUrl(qrCampaign.link.shortCode, 240)}
+                      src={qrImageUrl(qrCampaign.finalUrl, 240)}
                       alt="QR Code"
                       width={240}
                       height={240}
@@ -279,13 +297,13 @@ export default function CampaignsPage() {
                     />
                   </div>
 
-                  {/* Short URL */}
+                  {/* Final URL — what the QR encodes */}
                   <div style={{ background: '#f8fafc', borderRadius: 8, padding: '10px 14px', marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-                    <span style={{ fontFamily: 'monospace', fontSize: 12, color: '#4f46e5', wordBreak: 'break-all' }}>
-                      {API_URL}/r/{qrCampaign.link.shortCode}
+                    <span style={{ fontFamily: 'monospace', fontSize: 11, color: '#4f46e5', wordBreak: 'break-all' }}>
+                      {qrCampaign.finalUrl}
                     </span>
                     <button
-                      onClick={() => copyLink(qrCampaign.link.shortCode)}
+                      onClick={() => copyLink(qrCampaign.finalUrl)}
                       style={{ flexShrink: 0, fontSize: 11, color: '#6366f1', background: 'none', border: '1px solid #c7d2fe', borderRadius: 5, padding: '3px 8px', cursor: 'pointer' }}
                     >
                       Copy
