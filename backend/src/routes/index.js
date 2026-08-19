@@ -20,7 +20,7 @@ const { publicRouter } = require('../modules/public/public.routes');
 const { locationRouter } = require('../modules/location/location.routes');
 const { grantsRouter } = require('../modules/grants/grants.routes');
 const { grantsAdminRouter } = require('../modules/grants/grants.admin.routes');
-const { campaignsAdminRouter, redirectRouter } = require('../modules/campaigns/campaigns.routes');
+const { campaignsAdminRouter, redirectRouter, scanRouter } = require('../modules/campaigns/campaigns.routes');
 const { asyncHandler } = require('../utils/asyncHandler');
 const { authRequired } = require('../middlewares/authMiddleware');
 const { getActivities } = require('../utils/activityLogger');
@@ -58,6 +58,9 @@ function registerRoutes(app) {
 
   // Public QR redirect endpoint — /r/:code — no auth required
   app.use('/r', redirectRouter);
+
+  // Public QR scan ping — called by Next.js middleware on utm_medium=qr landing
+  app.use('/api/v1/campaigns/scan', scanRouter);
 
   // Harden: explicitly 404 any attempt to reach the old /admin path
   app.use('/api/v1/admin', (req, res) => res.status(404).json({ success: false, message: 'Not found' }));
