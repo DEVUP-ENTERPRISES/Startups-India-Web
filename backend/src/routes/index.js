@@ -56,7 +56,7 @@ function registerRoutes(app) {
   // Admin routes mounted under the secret slug - /api/v1/admin returns 404
   app.use(`/api/v1/${env.ADMIN_SLUG}`, adminRouter);
 
-  // Public QR redirect endpoint — /r/:code — no auth required
+  // Public QR redirect endpoint - /r/:code - no auth required
   app.use('/r', redirectRouter);
 
   // Harden: explicitly 404 any attempt to reach the old /admin path

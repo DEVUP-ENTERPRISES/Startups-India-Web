@@ -11,7 +11,10 @@ const eventRegistrationSchema = new mongoose.Schema(
     roleProfession: { type: String },
     city: { type: String },
     paymentStatus: { type: String, enum: ['Pending', 'Completed', 'Failed', 'Refunded', 'Free'], default: 'Free' },
-    ticketType: { type: String, default: 'General' },
+    ticketType: { type: String, default: 'General' },       // legacy label
+    ticketTypeName: { type: String, default: 'General' },   // matches ticketTypes[].name
+    ticketPrice: { type: Number, default: 0 },              // paise actually charged (after coupon/early-bird)
+    couponUsed: { type: String, default: '' },              // coupon code applied, if any
     attendanceStatus: { type: String, enum: ['Registered', 'Attended', 'Missed', 'Cancelled'], default: 'Registered' },
     checkInStatus: { type: Boolean, default: false },
   },
