@@ -22,7 +22,7 @@ const PHASES = [
   {
     key: 'idea_validation',
     title: 'Idea Validation',
-    subtitle: 'Submit pitch deck, revenue model & pay ₹1,499 for expert evaluation',
+    subtitle: 'Submit your pitch deck & revenue model for expert evaluation',
     icon: 'lightbulb',
   },
   {

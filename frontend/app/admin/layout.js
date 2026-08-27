@@ -4,6 +4,8 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import '../../styles/admin-panel.css';
+import { clearLoggedInFlag } from '@/lib/api';
+import { signOut } from '@/lib/auth';
 
 const PushToast = dynamic(() => import('@/components/ui/PushToast'), { ssr: false });
 
@@ -37,6 +39,7 @@ const navSections = [
     items: [
       { id: 'articles', label: 'Sources / Articles', href: `${ADMIN_BASE}/articles`, icon: 'edit' },
       { id: 'events', label: 'Events', href: `${ADMIN_BASE}/events`, icon: 'calendar' },
+      { id: 'event-partners', label: 'Partners Library', href: `${ADMIN_BASE}/event-partners`, icon: 'handshake' },
       { id: 'testimonials', label: 'Testimonials', href: `${ADMIN_BASE}/testimonials`, icon: 'star' },
       {
         id: 'ecosystem',
@@ -59,6 +62,7 @@ const navSections = [
   {
     title: 'Operations',
     items: [
+      { id: 'campaigns', label: 'QR Campaigns', href: `${ADMIN_BASE}/campaigns`, icon: 'qr' },
       { id: 'leads', label: 'Leads / CRM', href: `${ADMIN_BASE}/leads`, icon: 'target' },
       { id: 'crm', label: 'Email Campaigns', href: `${ADMIN_BASE}/crm`, icon: 'bell' },
       { id: 'notifications', label: 'Notifications', href: `${ADMIN_BASE}/notifications`, icon: 'bell' },
@@ -290,6 +294,14 @@ function NavIcon({ name, size = 18 }) {
     'chevron-down': (
       <svg {...props}><polyline points="6 9 12 15 18 9" /></svg>
     ),
+    qr: (
+      <svg {...props}>
+        <rect x="3" y="3" width="7" height="7" rx="1" />
+        <rect x="14" y="3" width="7" height="7" rx="1" />
+        <rect x="3" y="14" width="7" height="7" rx="1" />
+        <path d="M14 14h2v2h-2zM18 14h3v2h-3zM14 18h3v3h-3zM18 18h3v3h-3z" />
+      </svg>
+    ),
   };
   return icons[name] || null;
 }
@@ -300,6 +312,7 @@ function clearAdminSession() {
   localStorage.removeItem('admin_session');
   localStorage.removeItem('admin_session_expiry');
   localStorage.removeItem('refresh_token');
+  clearLoggedInFlag();
 }
 
 export default function AdminLayout({ children }) {
@@ -432,12 +445,10 @@ export default function AdminLayout({ children }) {
 
   if (!isAdmin) return null;
 
-  const handleLogout = () => {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('admin_session');
-    localStorage.removeItem('admin_session_expiry');
-    localStorage.removeItem('refresh_token');
-    router.push(`${ADMIN_BASE}/login`);
+  const handleLogout = async () => {
+    await signOut();
+    clearAdminSession();
+    router.replace('/');
   };
 
   // pathname from usePathname() is the rewritten /admin/* path (what Next.js sees internally).

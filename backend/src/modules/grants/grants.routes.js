@@ -16,6 +16,7 @@ const router = express.Router();
 // Which settings key holds the price for each paid phase. Keeps the config route
 // from hardcoding fee amounts - the numbers live in grant.settings.js only.
 const PHASE_FEE_KEYS = {
+  // Phase key is 'idea_validation' in the 6-stage journey (grant.phases.js).
   idea_evaluation: 'grant.evaluation.fee',
   pre_incubation: 'grant.preIncubation.fee',
   incubation: 'grant.incubation.fee',
@@ -293,7 +294,7 @@ router.post(
   })
 );
 
-// Cancel existing slot booking (used by reschedule flow — cancel then rebook)
+// Cancel existing slot booking (used by reschedule flow - cancel then rebook)
 router.delete(
   '/slots/cancel',
   validateBody(z.object({ applicationId: objectId })),

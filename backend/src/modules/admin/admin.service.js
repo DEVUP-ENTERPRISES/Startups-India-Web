@@ -6,7 +6,7 @@ const { Payment } = require('../payments/payment.model');
 const { Certificate } = require('../certificates/certificate.model');
 const { Article } = require('../../models/Article');
 const { ArticleView, ArticleLike, ArticleBookmark } = require('../../models/ArticleAnalytics');
-const { Event } = require('../../models/Event');
+const { Event, generateSlug } = require('../../models/Event');
 const { EventRegistration } = require('../../models/EventRegistration');
 const { Lead } = require('../../models/Lead');
 const { Testimonial } = require('../../models/Testimonial');
@@ -18,7 +18,10 @@ const { ApiError } = require('../../utils/apiError');
 const mediaService = require('../media/media.service');
 const { Media } = require('../media/media.model');
 const { cacheDel, cacheFlushPattern } = require('../../infrastructure/cache/redis');
+const { invalidateEventCache } = require('../events/events.service');
 const { extractS3Key } = require('../../utils/s3');
+const { EvaluationPayment, GrantApplication } = require('../grants/grant.models');
+const { EventPartner } = require('../../models/EventPartner');
 const { escapeRegex, sanitizeSort } = require('../../utils/sanitizer');
 const { sendEmail } = require('../../utils/emailService');
 const { logger } = require('../../infrastructure/observability/logger');
@@ -381,18 +384,65 @@ async function deleteCourse(id) {
 
 // ─── PAYMENTS ───────────────────────────────────────────────────
 async function listPayments({ page = 1, limit = 20, status, sort = '-createdAt' }) {
-  const query = {};
-  if (status) query.status = status;
+  // ── Map the UI status filter to each collection's vocabulary ─────────
+  // EvaluationPayment uses 'paid' where Payment uses 'succeeded'.
+  const paymentStatusFilter = status ? { status } : {};
+  const grantStatusFilter = status
+    ? { status: status === 'succeeded' ? 'paid' : status }
+    : { status: { $in: ['created', 'paid', 'failed', 'expired'] } };
 
-  const total = await Payment.countDocuments(query);
-  const payments = await Payment.find(query)
-    .populate('userId', 'fullName email')
-    .populate('courseId', 'title')
-    .sort(sort)
-    .skip((page - 1) * limit)
-    .limit(limit);
+  const pageNum = Number(page);
+  const limitNum = Number(limit);
 
-  return { payments, total, page, pages: Math.ceil(total / limit) };
+  // ── Query both collections in parallel ───────────────────────────────
+  const [regularPayments, evalPayments] = await Promise.all([
+    Payment.find(paymentStatusFilter)
+      .populate('userId', 'fullName email')
+      .populate('courseId', 'title')
+      .lean(),
+    EvaluationPayment.find(grantStatusFilter)
+      .populate('userId', 'fullName email')
+      .populate('applicationId', 'applicationId startup')
+      .lean(),
+  ]);
+
+  // ── Normalize EvaluationPayment rows to the same shape as Payment ────
+  const normalizedGrant = evalPayments.map(ep => ({
+    _id: ep._id,
+    userId: ep.userId,
+    courseId: null,
+    // Surface the grant application reference so the UI can display it
+    grantApplication: ep.applicationId
+      ? {
+          ref: ep.applicationId.applicationId,
+          startup: ep.applicationId.startup?.name || null,
+        }
+      : null,
+    provider: ep.provider,
+    orderId: ep.orderId,
+    paymentId: ep.paymentId,
+    // Flat amount for display - use totalAmount (already in paise)
+    amount: ep.totalAmount,
+    currency: ep.currency,
+    // Normalise status: 'paid' → 'succeeded' for consistent UI colouring
+    status: ep.status === 'paid' ? 'succeeded' : ep.status,
+    // Keep raw grant status for the badge label
+    grantStatus: ep.status,
+    type: 'grant_evaluation',
+    invoiceNumber: ep.invoiceNumber,
+    paidAt: ep.paidAt,
+    createdAt: ep.createdAt,
+    updatedAt: ep.updatedAt,
+  }));
+
+  // ── Merge, sort by createdAt desc, paginate ───────────────────────────
+  const merged = [...regularPayments.map(p => ({ ...p, type: 'payment' })), ...normalizedGrant]
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+  const total = merged.length;
+  const paginated = merged.slice((pageNum - 1) * limitNum, pageNum * limitNum);
+
+  return { payments: paginated, total, page: pageNum, pages: Math.ceil(total / limitNum) };
 }
 
 async function refundPayment(id) {
@@ -592,24 +642,47 @@ async function listEvents({ page = 1, limit = 20, status, sort = '-date' }) {
 }
 
 async function createEvent(data) {
-  const event = await Event.create(data);
+  // Auto-generate slug from title if none supplied, then ensure uniqueness
+  let slug = data.slug ? data.slug : generateSlug(data.title || '');
+  if (slug) {
+    // Append a short timestamp suffix if the slug already exists
+    const existing = await Event.findOne({ slug }).lean();
+    if (existing) {
+      slug = `${slug}-${Date.now().toString(36)}`;
+    }
+  }
+
+  const event = await Event.create({ ...data, slug: slug || undefined });
   cacheFlushPattern('events:*').catch(() => {});
   return event;
 }
 
 async function updateEvent(id, updates) {
+  // If admin changed the title and hasn't supplied a custom slug,
+  // regenerate the slug from the new title
+  if (updates.title && !updates.slug) {
+    const current = await Event.findById(id).select('slug title').lean();
+    if (current && generateSlug(current.title) === (current.slug || '')) {
+      // Slug was auto-generated - keep it in sync with the new title
+      updates.slug = generateSlug(updates.title);
+    }
+  }
+  // Normalise any manually supplied slug
+  if (updates.slug) {
+    updates.slug = generateSlug(updates.slug);
+  }
+
   const event = await Event.findByIdAndUpdate(id, updates, { new: true });
   if (!event) throw new ApiError(404, 'Event not found');
-  cacheDel(`event:${id}`).catch(() => {});
-  cacheFlushPattern('events:*').catch(() => {});
+  // Flush all cache variants (old slug, new slug, id pointers, lists)
+  await invalidateEventCache(String(event._id), event.slug || null).catch(() => {});
   return event;
 }
 
 async function deleteEvent(id) {
   const event = await Event.findByIdAndDelete(id);
   if (!event) throw new ApiError(404, 'Event not found');
-  cacheDel(`event:${id}`).catch(() => {});
-  cacheFlushPattern('events:*').catch(() => {});
+  await invalidateEventCache(String(event._id), event.slug || null).catch(() => {});
   return { deleted: true };
 }
 
@@ -617,14 +690,17 @@ async function duplicateEvent(id, userId) {
   const event = await Event.findById(id).lean();
   if (!event) throw new ApiError(404, 'Event not found');
 
-  const { _id, createdAt, updatedAt, ...eventData } = event;
+  const { _id, createdAt, updatedAt, slug: origSlug, ...eventData } = event;
   eventData.title = `${eventData.title} (Copy)`;
+  // Give the duplicate a fresh unique slug
+  eventData.slug = `${origSlug || generateSlug(eventData.title)}-copy-${Date.now().toString(36)}`;
   eventData.status = 'upcoming';
   eventData.registrations = [];
   eventData.attendees = 0;
   eventData.createdBy = userId;
 
   const newEvent = await Event.create(eventData);
+  cacheFlushPattern('events:*').catch(() => {});
   return newEvent;
 }
 
@@ -1418,6 +1494,36 @@ async function getPublicEcosystem() {
   return grouped;
 }
 
+// ─── EVENT PARTNERS LIBRARY ─────────────────────────────────────
+async function listEventPartners({ type } = {}) {
+  const query = { isActive: true };
+  if (type) query.type = type;
+  return EventPartner.find(query).sort({ name: 1 }).lean();
+}
+
+async function createEventPartner(data) {
+  return EventPartner.create({
+    name: data.name,
+    logo: data.logo || '',
+    website: data.website || '',
+    description: data.description || '',
+    type: data.type || 'supporting',
+    isActive: data.isActive !== false,
+  });
+}
+
+async function updateEventPartner(id, data) {
+  const partner = await EventPartner.findByIdAndUpdate(id, { $set: data }, { new: true });
+  if (!partner) throw new ApiError(404, 'Partner not found');
+  return partner;
+}
+
+async function deleteEventPartner(id) {
+  const partner = await EventPartner.findByIdAndDelete(id);
+  if (!partner) throw new ApiError(404, 'Partner not found');
+  return { deleted: true };
+}
+
 module.exports = {
   getDashboardAnalytics,
   getMonitoringData,
@@ -1495,4 +1601,8 @@ module.exports = {
   updateMentorApplication,
   listMentorRequests,
   updateMentorRequest,
+  listEventPartners,
+  createEventPartner,
+  updateEventPartner,
+  deleteEventPartner,
 };

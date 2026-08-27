@@ -19,6 +19,7 @@ export default function AdminEventsPage() {
   
   const initialFormState = {
     title: '',
+    slug: '',
     subtitle: '',
     description: '',
     mode: 'Online',
@@ -53,6 +54,9 @@ export default function AdminEventsPage() {
     earlyBirdPrice: 0,
     couponCode: '',
     priceLabel: 'Free',
+    registrationType: 'login',
+    ticketTypes: [],
+    coupons: [],
     
     // Capacity
     maxAttendees: 0,
@@ -70,9 +74,22 @@ export default function AdminEventsPage() {
     outcomes: [],
     timeline: [],
     speakers: [],
+    // Partner refs (array of _id strings)
+    organizedBy: [],
+    supportingPartners: [],
+    academicPartners: [],
+    sponsors: [],
   };
 
   const [form, setForm] = useState(initialFormState);
+  // Partner library - loaded once when the modal opens
+  const [partnerLibrary, setPartnerLibrary] = useState([]);
+  const [quickPartner, setQuickPartner] = useState(null); // null = hidden, {} = open
+
+  const loadPartnerLibrary = useCallback(async () => {
+    const { data } = await apiGet('/api/v1/admin/event-partners');
+    if (data) setPartnerLibrary(Array.isArray(data) ? data : []);
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -95,6 +112,7 @@ export default function AdminEventsPage() {
     setEditEvent(null);
     setForm(initialFormState);
     setShowModal(true);
+    loadPartnerLibrary();
   };
 
   const formatDateForInput = (dateString) => {
@@ -102,10 +120,27 @@ export default function AdminEventsPage() {
     return new Date(dateString).toISOString().slice(0, 16);
   };
 
+  // Convert rupees → paise before sending to the backend
+  function toPaise(rupees) {
+    return Math.round(Number(rupees || 0) * 100);
+  }
+
+  // Mirrors the backend generateSlug - converts title to a URL-safe slug
+  function slugify(text) {
+    return (text || '')
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\s-]/g, '')
+      .replace(/[\s_]+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '');
+  }
+
   const openEdit = ev => {
     setEditEvent(ev);
     setForm({
       title: ev.title || '',
+      slug: ev.slug || '',
       subtitle: ev.subtitle || '',
       description: ev.description || '',
       mode: ev.mode || 'Online',
@@ -115,7 +150,7 @@ export default function AdminEventsPage() {
       registrationEndDate: formatDateForInput(ev.registrationEndDate),
       eventStartDate: formatDateForInput(ev.eventStartDate || ev.date),
       eventEndDate: formatDateForInput(ev.eventEndDate || ev.endDate),
-      date: formatDateForInput(ev.date), // backup
+      date: formatDateForInput(ev.date),
       time: ev.time || '',
       duration: ev.duration || '',
       venueName: ev.venueName || '',
@@ -127,12 +162,39 @@ export default function AdminEventsPage() {
       coverImage: ev.coverImage || '',
       images: ev.images || [],
       isPaid: ev.isPaid || false,
-      price: ev.price || 0,
-      originalPrice: ev.originalPrice || 0,
-      discountedPrice: ev.discountedPrice || 0,
-      earlyBirdPrice: ev.earlyBirdPrice || 0,
+      // DB stores paise - show rupees in the form
+      price: ev.price ? ev.price / 100 : 0,
+      originalPrice: ev.originalPrice ? ev.originalPrice / 100 : 0,
+      discountedPrice: ev.discountedPrice ? ev.discountedPrice / 100 : 0,
+      earlyBirdPrice: ev.earlyBirdPrice ? ev.earlyBirdPrice / 100 : 0,
       couponCode: ev.couponCode || '',
       priceLabel: ev.priceLabel || 'Free',
+      registrationType: ev.registrationType || 'login',
+      // Ticket types - paise → rupees for all price fields
+      ticketTypes: (ev.ticketTypes || []).map(t => ({
+        name: t.name || '',
+        description: t.description || '',
+        price: t.price ? t.price / 100 : 0,
+        originalPrice: t.originalPrice ? t.originalPrice / 100 : 0,
+        earlyBirdPrice: t.earlyBirdPrice ? t.earlyBirdPrice / 100 : 0,
+        earlyBirdDeadline: t.earlyBirdDeadline ? new Date(t.earlyBirdDeadline).toISOString().slice(0, 16) : '',
+        quota: t.quota || 0,
+        sold: t.sold || 0,
+        isActive: t.isActive !== false,
+        sortOrder: t.sortOrder || 0,
+      })),
+      // Coupons - discountValue for percent stays as-is; flat is in paise → rupees
+      coupons: (ev.coupons || []).map(c => ({
+        code: c.code || '',
+        discountType: c.discountType || 'percent',
+        discountValue: c.discountType === 'flat' ? (c.discountValue ? c.discountValue / 100 : 0) : (c.discountValue || 0),
+        maxUses: c.maxUses || 0,
+        usedCount: c.usedCount || 0,
+        validFrom: c.validFrom ? new Date(c.validFrom).toISOString().slice(0, 16) : '',
+        validUntil: c.validUntil ? new Date(c.validUntil).toISOString().slice(0, 16) : '',
+        applicableTickets: c.applicableTickets || [],
+        isActive: c.isActive !== false,
+      })),
       maxAttendees: ev.maxAttendees || 0,
       waitlistEnabled: ev.waitlistEnabled || false,
       autoCloseRegistration: ev.autoCloseRegistration || false,
@@ -147,16 +209,63 @@ export default function AdminEventsPage() {
       outcomes: ev.outcomes || [],
       timeline: ev.timeline || [],
       speakers: ev.speakers || ev.artists || [],
+      // Partners - stored as ObjectIds; openEdit gets the populated objects,
+      // so extract _id for the multi-select state
+      organizedBy: (ev.organizedBy || []).map(p => (typeof p === 'object' ? p._id : p)),
+      supportingPartners: (ev.supportingPartners || []).map(p => (typeof p === 'object' ? p._id : p)),
+      academicPartners: (ev.academicPartners || []).map(p => (typeof p === 'object' ? p._id : p)),
+      sponsors: (ev.sponsors || []).map(p => (typeof p === 'object' ? p._id : p)),
     });
     setShowModal(true);
+    loadPartnerLibrary();
   };
 
   const handleSave = async () => {
     if (!form.title) return;
     
     const payload = { ...form };
+    // Convert rupees → paise before saving (legacy flat fields)
+    payload.price = toPaise(form.price);
+    payload.originalPrice = toPaise(form.originalPrice);
+    payload.discountedPrice = toPaise(form.discountedPrice);
+    payload.earlyBirdPrice = toPaise(form.earlyBirdPrice);
+
+    // Convert ticket types: rupees → paise for all monetary fields
+    payload.ticketTypes = (form.ticketTypes || []).map((t, i) => ({
+      ...t,
+      price: toPaise(t.price),
+      originalPrice: toPaise(t.originalPrice),
+      earlyBirdPrice: toPaise(t.earlyBirdPrice),
+      earlyBirdDeadline: t.earlyBirdDeadline ? new Date(t.earlyBirdDeadline).toISOString() : null,
+      sortOrder: i,
+    }));
+
+    // Convert coupons: flat discountValue rupees → paise; percent stays as-is
+    payload.coupons = (form.coupons || []).map(c => ({
+      ...c,
+      code: (c.code || '').toUpperCase().trim(),
+      discountValue: c.discountType === 'flat' ? toPaise(c.discountValue) : Number(c.discountValue || 0),
+      validFrom: c.validFrom ? new Date(c.validFrom).toISOString() : null,
+      validUntil: c.validUntil ? new Date(c.validUntil).toISOString() : null,
+    }));
+
+    // Auto-derive legacy price field from lowest active ticket so legacy
+    // display code (events list page) still works.
+    if (payload.ticketTypes.length > 0) {
+      const activePrices = payload.ticketTypes
+        .filter(t => t.isActive !== false && t.price > 0)
+        .map(t => t.price);
+      if (activePrices.length > 0) {
+        payload.price = Math.min(...activePrices);
+        payload.isPaid = true;
+      }
+    }
+
     // Make sure date field is set for backward compatibility
     payload.date = payload.eventStartDate || payload.date || new Date().toISOString();
+    // Strip empty lines from bullet-point fields before saving
+    payload.highlights = (form.highlights || []).filter(Boolean);
+    payload.outcomes = (form.outcomes || []).filter(Boolean);
     
     if (editEvent) {
       await apiPatch(`/api/v1/admin/events/${editEvent._id}`, payload);
@@ -324,7 +433,7 @@ export default function AdminEventsPage() {
                     {!ev.isPaid || ev.price === 0 ? (
                       <span style={{ color: '#10b981', fontWeight: 600 }}>Free</span>
                     ) : (
-                      <span>₹{ev.price}</span>
+                      <span>₹{(ev.price / 100).toLocaleString('en-IN')}</span>
                     )}
                   </td>
                   <td>
@@ -421,8 +530,29 @@ export default function AdminEventsPage() {
                 <label>Event Title *</label>
                 <input
                   value={form.title}
-                  onChange={e => setForm({ ...form, title: e.target.value })}
+                  onChange={e => {
+                    const title = e.target.value;
+                    // Auto-fill slug from title only when slug hasn't been manually edited
+                    const autoSlug = !form.slug || form.slug === slugify(form.title);
+                    setForm({ ...form, title, slug: autoSlug ? slugify(title) : form.slug });
+                  }}
                   placeholder="Event title"
+                />
+              </div>
+
+              {/* Slug - auto-filled, manually editable */}
+              <div className="admin-form-group">
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  URL Slug
+                  <span style={{ fontSize: 11, fontWeight: 400, color: '#94a3b8' }}>
+                    /events/<strong style={{ color: '#374151' }}>{form.slug || 'slug-will-appear-here'}</strong>
+                  </span>
+                </label>
+                <input
+                  value={form.slug}
+                  onChange={e => setForm({ ...form, slug: slugify(e.target.value) })}
+                  placeholder="auto-generated-from-title"
+                  style={{ fontFamily: 'monospace', fontSize: 13 }}
                 />
               </div>
               <div className="admin-form-group">
@@ -468,6 +598,21 @@ export default function AdminEventsPage() {
                     <option value="Online">Online</option>
                     <option value="Offline">Offline</option>
                   </select>
+                </div>
+              </div>
+
+              <div style={{ marginTop: 16, marginBottom: 18, padding: '14px 16px', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 10 }}>
+                <div style={{ fontSize: 13, fontWeight: 800, color: '#1e3a8a', marginBottom: 5 }}>How should people register?</div>
+                <div style={{ fontSize: 11, color: '#475569', marginBottom: 10 }}>Choose whether attendees sign in or provide their contact details directly.</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 18 }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer', fontSize: 13, color: '#1e293b' }}>
+                    <input type="radio" name="registrationType" checked={form.registrationType === 'login'} onChange={() => setForm({ ...form, registrationType: 'login' })} />
+                    Login required
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer', fontSize: 13, color: '#1e293b' }}>
+                    <input type="radio" name="registrationType" checked={form.registrationType === 'guest'} onChange={() => setForm({ ...form, registrationType: 'guest' })} />
+                    Name, email & mobile
+                  </label>
                 </div>
               </div>
 
@@ -548,7 +693,7 @@ export default function AdminEventsPage() {
               <h3 style={{ borderBottom: '1px solid #eee', paddingBottom: 8, marginBottom: 16, marginTop: 24 }}>Pricing & Capacity</h3>
               <div style={{ display: 'flex', gap: 20, marginBottom: 16 }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
-                  <input type="radio" checked={!form.isPaid} onChange={() => setForm({...form, isPaid: false, price: 0})} />
+                  <input type="radio" checked={!form.isPaid} onChange={() => setForm({...form, isPaid: false, ticketTypes: []})} />
                   Free Event
                 </label>
                 <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
@@ -558,23 +703,262 @@ export default function AdminEventsPage() {
               </div>
 
               {form.isPaid && (
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, background: '#f0fdf4', padding: 12, borderRadius: 8, marginBottom: 16 }}>
-                  <div className="admin-form-group" style={{ marginBottom: 0 }}>
-                    <label>Original Price (₹)</label>
-                    <input type="number" value={form.originalPrice} onChange={e => setForm({ ...form, originalPrice: Number(e.target.value) })} min="0" />
-                  </div>
-                  <div className="admin-form-group" style={{ marginBottom: 0 }}>
-                    <label>Discounted / Selling Price (₹)</label>
-                    <input type="number" value={form.price} onChange={e => setForm({ ...form, price: Number(e.target.value) })} min="0" />
-                  </div>
-                  <div className="admin-form-group" style={{ marginBottom: 0 }}>
-                    <label>Early Bird Price (₹)</label>
-                    <input type="number" value={form.earlyBirdPrice} onChange={e => setForm({ ...form, earlyBirdPrice: Number(e.target.value) })} min="0" />
-                  </div>
-                  <div className="admin-form-group" style={{ marginBottom: 0, gridColumn: 'span 3' }}>
-                    <label>Coupon Code (Optional)</label>
-                    <input type="text" value={form.couponCode} onChange={e => setForm({ ...form, couponCode: e.target.value })} placeholder="e.g. STARTUP50" />
-                  </div>
+                <div style={{ marginBottom: 16 }}>
+                  {/* ── Ticket type rows ── */}
+                  {(form.ticketTypes || []).map((ticket, idx) => (
+                    <div key={idx} style={{ border: '1px solid #e2e8f0', borderRadius: 10, padding: 14, marginBottom: 12, background: ticket.isActive ? '#f8fafc' : '#fafafa', opacity: ticket.isActive ? 1 : 0.6 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                        <span style={{ fontWeight: 700, fontSize: 13, color: '#1e293b' }}>Ticket #{idx + 1}{ticket.name ? ` - ${ticket.name}` : ''}</span>
+                        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                          <label style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, cursor: 'pointer' }}>
+                            <input type="checkbox" checked={ticket.isActive !== false} onChange={e => {
+                              const t = [...form.ticketTypes]; t[idx] = { ...t[idx], isActive: e.target.checked }; setForm({ ...form, ticketTypes: t });
+                            }} />
+                            Active
+                          </label>
+                          <button type="button" onClick={() => {
+                            const t = form.ticketTypes.filter((_, i) => i !== idx);
+                            setForm({ ...form, ticketTypes: t });
+                          }} style={{ background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: 6, padding: '3px 10px', fontSize: 12, cursor: 'pointer', fontWeight: 700 }}>
+                            Remove
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Row 1: name + description */}
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 10, marginBottom: 10 }}>
+                        <div className="admin-form-group" style={{ marginBottom: 0 }}>
+                          <label>Name *</label>
+                          <input value={ticket.name} onChange={e => {
+                            const t = [...form.ticketTypes]; t[idx] = { ...t[idx], name: e.target.value }; setForm({ ...form, ticketTypes: t });
+                          }} placeholder="e.g. Student, Professional" />
+                        </div>
+                        <div className="admin-form-group" style={{ marginBottom: 0 }}>
+                          <label>Description <span style={{ fontWeight: 400, color: '#94a3b8', fontSize: 11 }}>- each line = bullet</span></label>
+                          <textarea
+                            rows={3}
+                            value={ticket.description || ''}
+                            onChange={e => {
+                              const t = [...form.ticketTypes]; t[idx] = { ...t[idx], description: e.target.value }; setForm({ ...form, ticketTypes: t });
+                            }}
+                            placeholder={'Perk 1\nPerk 2\nPerk 3'}
+                            style={{ fontFamily: 'inherit', lineHeight: 1.6, fontSize: 12, resize: 'vertical' }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Row 2: price + original price + quota */}
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 10 }}>
+                        <div className="admin-form-group" style={{ marginBottom: 0 }}>
+                          <label>Price (₹) *</label>
+                          <input type="number" min="0" value={ticket.price} onChange={e => {
+                            const t = [...form.ticketTypes]; t[idx] = { ...t[idx], price: Number(e.target.value) }; setForm({ ...form, ticketTypes: t });
+                          }} />
+                        </div>
+                        <div className="admin-form-group" style={{ marginBottom: 0 }}>
+                          <label>Original Price (₹)</label>
+                          <input type="number" min="0" value={ticket.originalPrice || 0} onChange={e => {
+                            const t = [...form.ticketTypes]; t[idx] = { ...t[idx], originalPrice: Number(e.target.value) }; setForm({ ...form, ticketTypes: t });
+                          }} placeholder="Crossed-out was-price" />
+                        </div>
+                        <div className="admin-form-group" style={{ marginBottom: 0 }}>
+                          <label>Quota (0 = unlimited)</label>
+                          <input type="number" min="0" value={ticket.quota || 0} onChange={e => {
+                            const t = [...form.ticketTypes]; t[idx] = { ...t[idx], quota: Number(e.target.value) }; setForm({ ...form, ticketTypes: t });
+                          }} />
+                        </div>
+                      </div>
+
+                      {/* Row 3: early bird price + deadline */}
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+                        <div className="admin-form-group" style={{ marginBottom: 0 }}>
+                          <label>Early Bird Price (₹) - 0 to disable</label>
+                          <input type="number" min="0" value={ticket.earlyBirdPrice || 0} onChange={e => {
+                            const t = [...form.ticketTypes]; t[idx] = { ...t[idx], earlyBirdPrice: Number(e.target.value) }; setForm({ ...form, ticketTypes: t });
+                          }} />
+                        </div>
+                        <div className="admin-form-group" style={{ marginBottom: 0 }}>
+                          <label>Early Bird Deadline</label>
+                          <input type="datetime-local" value={ticket.earlyBirdDeadline || ''} onChange={e => {
+                            const t = [...form.ticketTypes]; t[idx] = { ...t[idx], earlyBirdDeadline: e.target.value }; setForm({ ...form, ticketTypes: t });
+                          }} />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+
+                  <button
+                    type="button"
+                    onClick={() => setForm({
+                      ...form,
+                      ticketTypes: [...(form.ticketTypes || []), {
+                        name: '', description: '', price: 0, originalPrice: 0,
+                        earlyBirdPrice: 0, earlyBirdDeadline: '', quota: 0,
+                        isActive: true, sortOrder: 0,
+                      }]
+                    })}
+                    style={{ width: '100%', padding: '10px', border: '2px dashed #cbd5e1', borderRadius: 10, background: '#f8fafc', color: '#475569', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}
+                  >
+                    + Add Ticket Type
+                  </button>
+
+                  {/* Legacy fallback price - shown only when no ticket types exist */}
+                  {(form.ticketTypes || []).length === 0 && (
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, background: '#f0fdf4', padding: 12, borderRadius: 8, marginTop: 12 }}>
+                      <div className="admin-form-group" style={{ marginBottom: 0 }}>
+                        <label>Original Price (₹)</label>
+                        <input type="number" value={form.originalPrice} onChange={e => setForm({ ...form, originalPrice: Number(e.target.value) })} min="0" />
+                      </div>
+                      <div className="admin-form-group" style={{ marginBottom: 0 }}>
+                        <label>Selling Price (₹)</label>
+                        <input type="number" value={form.price} onChange={e => setForm({ ...form, price: Number(e.target.value) })} min="0" />
+                      </div>
+                      <div className="admin-form-group" style={{ marginBottom: 0 }}>
+                        <label>Early Bird Price (₹)</label>
+                        <input type="number" value={form.earlyBirdPrice} onChange={e => setForm({ ...form, earlyBirdPrice: Number(e.target.value) })} min="0" />
+                      </div>
+                      <div className="admin-form-group" style={{ marginBottom: 0, gridColumn: 'span 3' }}>
+                        <label>Coupon Code (Optional)</label>
+                        <input type="text" value={form.couponCode} onChange={e => setForm({ ...form, couponCode: e.target.value })} placeholder="e.g. STARTUP50" />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ── Event Coupons ─────────────────────────────────────── */}
+              {form.isPaid && (
+                <div style={{ marginTop: 8 }}>
+                  <h3 style={{ borderBottom: '1px solid #eee', paddingBottom: 8, marginBottom: 4 }}>Coupons</h3>
+                  <p style={{ fontSize: 12, color: '#64748b', marginBottom: 12 }}>
+                    Each coupon can apply to one or more ticket types. Leave "Applicable Tickets" empty to apply to all.
+                  </p>
+
+                  {(form.coupons || []).map((coupon, cidx) => {
+                    const ticketNames = (form.ticketTypes || []).map(t => t.name).filter(Boolean);
+                    return (
+                      <div key={cidx} style={{ border: '1px solid #e2e8f0', borderRadius: 10, padding: 14, marginBottom: 12, background: coupon.isActive ? '#fafafa' : '#f8fafc', opacity: coupon.isActive ? 1 : 0.55 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                          <span style={{ fontWeight: 700, fontSize: 13, color: '#1e293b', fontFamily: 'monospace' }}>
+                            {coupon.code || `Coupon #${cidx + 1}`}
+                          </span>
+                          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, cursor: 'pointer' }}>
+                              <input type="checkbox" checked={coupon.isActive !== false} onChange={e => {
+                                const c = [...form.coupons]; c[cidx] = { ...c[cidx], isActive: e.target.checked }; setForm({ ...form, coupons: c });
+                              }} />
+                              Active
+                            </label>
+                            <button type="button" onClick={() => {
+                              const c = form.coupons.filter((_, i) => i !== cidx);
+                              setForm({ ...form, coupons: c });
+                            }} style={{ background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: 6, padding: '3px 10px', fontSize: 12, cursor: 'pointer', fontWeight: 700 }}>
+                              Remove
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Row 1: code + discount type + discount value */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: 10, marginBottom: 10 }}>
+                          <div className="admin-form-group" style={{ marginBottom: 0 }}>
+                            <label>Coupon Code *</label>
+                            <input
+                              value={coupon.code}
+                              onChange={e => { const c = [...form.coupons]; c[cidx] = { ...c[cidx], code: e.target.value.toUpperCase().replace(/\s/g, '') }; setForm({ ...form, coupons: c }); }}
+                              placeholder="e.g. EARLY20"
+                              style={{ textTransform: 'uppercase', fontFamily: 'monospace', fontWeight: 700 }}
+                            />
+                          </div>
+                          <div className="admin-form-group" style={{ marginBottom: 0 }}>
+                            <label>Discount Type</label>
+                            <select value={coupon.discountType} onChange={e => { const c = [...form.coupons]; c[cidx] = { ...c[cidx], discountType: e.target.value }; setForm({ ...form, coupons: c }); }}>
+                              <option value="percent">Percent (%)</option>
+                              <option value="flat">Flat (₹)</option>
+                            </select>
+                          </div>
+                          <div className="admin-form-group" style={{ marginBottom: 0 }}>
+                            <label>{coupon.discountType === 'percent' ? 'Discount (%)' : 'Discount (₹)'}</label>
+                            <input
+                              type="number" min="0"
+                              max={coupon.discountType === 'percent' ? 100 : undefined}
+                              value={coupon.discountValue || 0}
+                              onChange={e => { const c = [...form.coupons]; c[cidx] = { ...c[cidx], discountValue: Number(e.target.value) }; setForm({ ...form, coupons: c }); }}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Row 2: max uses + valid from + valid until */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 10 }}>
+                          <div className="admin-form-group" style={{ marginBottom: 0 }}>
+                            <label>Max Uses (0 = unlimited)</label>
+                            <input type="number" min="0" value={coupon.maxUses || 0} onChange={e => { const c = [...form.coupons]; c[cidx] = { ...c[cidx], maxUses: Number(e.target.value) }; setForm({ ...form, coupons: c }); }} />
+                            {coupon.usedCount > 0 && <span style={{ fontSize: 11, color: '#64748b' }}>Used {coupon.usedCount} time{coupon.usedCount !== 1 ? 's' : ''}</span>}
+                          </div>
+                          <div className="admin-form-group" style={{ marginBottom: 0 }}>
+                            <label>Valid From</label>
+                            <input type="datetime-local" value={coupon.validFrom || ''} onChange={e => { const c = [...form.coupons]; c[cidx] = { ...c[cidx], validFrom: e.target.value }; setForm({ ...form, coupons: c }); }} />
+                          </div>
+                          <div className="admin-form-group" style={{ marginBottom: 0 }}>
+                            <label>Valid Until</label>
+                            <input type="datetime-local" value={coupon.validUntil || ''} onChange={e => { const c = [...form.coupons]; c[cidx] = { ...c[cidx], validUntil: e.target.value }; setForm({ ...form, coupons: c }); }} />
+                          </div>
+                        </div>
+
+                        {/* Row 3: applicable tickets - dynamic checkboxes from ticketTypes */}
+                        <div className="admin-form-group" style={{ marginBottom: 0 }}>
+                          <label>Applicable Tickets {ticketNames.length === 0 && <span style={{ fontSize: 11, color: '#94a3b8' }}>(add ticket types above first)</span>}</label>
+                          {ticketNames.length > 0 ? (
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 6 }}>
+                              {ticketNames.map(name => {
+                                const checked = (coupon.applicableTickets || []).includes(name);
+                                return (
+                                  <label key={name} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '5px 12px', borderRadius: 20, border: `1.5px solid ${checked ? '#7A1F2B' : '#e2e8f0'}`, background: checked ? '#fef2f2' : '#f8fafc', cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>
+                                    <input
+                                      type="checkbox"
+                                      checked={checked}
+                                      onChange={e => {
+                                        const c = [...form.coupons];
+                                        const current = c[cidx].applicableTickets || [];
+                                        c[cidx] = {
+                                          ...c[cidx],
+                                          applicableTickets: e.target.checked
+                                            ? [...current, name]
+                                            : current.filter(t => t !== name),
+                                        };
+                                        setForm({ ...form, coupons: c });
+                                      }}
+                                      style={{ accentColor: '#7A1F2B' }}
+                                    />
+                                    {name}
+                                  </label>
+                                );
+                              })}
+                              <span style={{ fontSize: 11, color: '#94a3b8', alignSelf: 'center' }}>
+                                {(coupon.applicableTickets || []).length === 0 ? '(applies to all tickets)' : ''}
+                              </span>
+                            </div>
+                          ) : (
+                            <p style={{ fontSize: 12, color: '#94a3b8', margin: '4px 0 0' }}>No ticket types defined yet - this coupon will apply to all.</p>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  <button
+                    type="button"
+                    onClick={() => setForm({
+                      ...form,
+                      coupons: [...(form.coupons || []), {
+                        code: '', discountType: 'percent', discountValue: 0,
+                        maxUses: 0, usedCount: 0, validFrom: '', validUntil: '',
+                        applicableTickets: [], isActive: true,
+                      }],
+                    })}
+                    style={{ width: '100%', padding: '10px', border: '2px dashed #cbd5e1', borderRadius: 10, background: '#f8fafc', color: '#475569', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}
+                  >
+                    + Add Coupon
+                  </button>
                 </div>
               )}
 
@@ -622,22 +1006,24 @@ export default function AdminEventsPage() {
               </div>
 
               <div className="admin-form-group">
-                <label>Highlights (One per line)</label>
+                <label>Highlights <span style={{ fontWeight: 400, color: '#94a3b8', fontSize: 11 }}>- each line becomes a bullet point</span></label>
                 <textarea
                   value={form.highlights?.join('\n') || ''}
-                  onChange={e => setForm({ ...form, highlights: e.target.value.split('\n').filter(Boolean) })}
-                  placeholder="Key highlights..."
-                  rows={3}
+                  onChange={e => setForm({ ...form, highlights: e.target.value.split('\n') })}
+                  placeholder={'Key highlight 1\nKey highlight 2\nKey highlight 3'}
+                  rows={5}
+                  style={{ fontFamily: 'inherit', lineHeight: 1.6 }}
                 />
               </div>
 
               <div className="admin-form-group">
-                <label>Outcomes (One per line)</label>
+                <label>Outcomes <span style={{ fontWeight: 400, color: '#94a3b8', fontSize: 11 }}>- each line becomes a bullet point</span></label>
                 <textarea
                   value={form.outcomes?.join('\n') || ''}
-                  onChange={e => setForm({ ...form, outcomes: e.target.value.split('\n').filter(Boolean) })}
-                  placeholder="Learning outcomes..."
-                  rows={3}
+                  onChange={e => setForm({ ...form, outcomes: e.target.value.split('\n') })}
+                  placeholder={'Outcome 1\nOutcome 2\nOutcome 3'}
+                  rows={5}
+                  style={{ fontFamily: 'inherit', lineHeight: 1.6 }}
                 />
               </div>
 
@@ -709,6 +1095,98 @@ export default function AdminEventsPage() {
                   <option value="cancelled">Cancelled</option>
                 </select>
               </div>
+
+              {/* ── Organizer & Partners ──────────────────────────────────── */}
+              <h3 style={{ borderBottom: '1px solid #eee', paddingBottom: 8, marginBottom: 16, marginTop: 24 }}>Organizer & Partners</h3>
+              <p style={{ fontSize: 12, color: '#64748b', marginBottom: 16 }}>
+                Select from the shared partners library. Each entry is stored once and reused across events.{' '}
+                <Link href={`/${process.env.NEXT_PUBLIC_ADMIN_SLUG || 'ctrl-x9k2m3-panel'}/event-partners`} target="_blank" style={{ color: '#7A1F2B', fontWeight: 700 }}>
+                  Manage library ↗
+                </Link>
+              </p>
+
+              {/* Helper: multi-select pills for a partner category */}
+              {[
+                { key: 'organizedBy',       label: 'Organized By',         color: '#eff6ff', border: '#bfdbfe', badge: '#1d4ed8' },
+                { key: 'supportingPartners', label: 'Supporting Partners',  color: '#f0fdf4', border: '#bbf7d0', badge: '#15803d' },
+                { key: 'academicPartners',   label: 'Academic Partners',    color: '#fdf4ff', border: '#e9d5ff', badge: '#7e22ce' },
+                { key: 'sponsors',           label: 'Sponsors',             color: '#fffbeb', border: '#fde68a', badge: '#b45309' },
+              ].map(({ key, label, color, border, badge }) => {
+                const selectedIds = form[key] || [];
+                const available = partnerLibrary.filter(p => !selectedIds.includes(p._id));
+                return (
+                  <div key={key} className="admin-form-group" style={{ background: color, border: `1px solid ${border}`, borderRadius: 10, padding: 14, marginBottom: 14 }}>
+                    <label style={{ fontWeight: 700, fontSize: 13 }}>{label}</label>
+
+                    {/* Selected pills */}
+                    {selectedIds.length > 0 && (
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
+                        {selectedIds.map(id => {
+                          const p = partnerLibrary.find(x => x._id === id);
+                          if (!p) return null;
+                          return (
+                            <span key={id} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#fff', border: `1px solid ${border}`, borderRadius: 20, padding: '4px 10px', fontSize: 12, fontWeight: 600 }}>
+                              {p.logo && <img src={p.logo} alt="" style={{ width: 16, height: 16, borderRadius: '50%', objectFit: 'contain' }} />}
+                              {p.name}
+                              <button type="button" onClick={() => setForm({ ...form, [key]: selectedIds.filter(x => x !== id) })}
+                                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontWeight: 900, fontSize: 14, lineHeight: 1, padding: 0 }}>×</button>
+                            </span>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* Dropdown to add */}
+                    <select
+                      value=""
+                      onChange={e => {
+                        if (e.target.value) setForm({ ...form, [key]: [...selectedIds, e.target.value] });
+                      }}
+                      style={{ width: '100%', padding: '7px 10px', borderRadius: 7, border: `1px solid ${border}`, fontSize: 13, background: '#fff' }}
+                    >
+                      <option value="">+ Select {label.toLowerCase()}…</option>
+                      {available.map(p => (
+                        <option key={p._id} value={p._id}>{p.name}</option>
+                      ))}
+                    </select>
+
+                    {/* Quick-add new partner to library inline */}
+                    {quickPartner?.for !== key ? (
+                      <button type="button" onClick={() => setQuickPartner({ for: key, name: '', logo: '', website: '', type: key === 'organizedBy' ? 'organizer' : key === 'sponsors' ? 'sponsor' : key === 'academicPartners' ? 'academic' : 'supporting' })}
+                        style={{ marginTop: 8, background: 'none', border: 'none', color: badge, cursor: 'pointer', fontSize: 12, fontWeight: 700, padding: 0 }}>
+                        + Add new to library
+                      </button>
+                    ) : (
+                      <div style={{ marginTop: 10, background: '#fff', border: `1px solid ${border}`, borderRadius: 8, padding: 12 }}>
+                        <div style={{ fontWeight: 700, fontSize: 12, marginBottom: 8, color: badge }}>New partner (saves to shared library)</div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '2fr 2fr 1fr', gap: 8, marginBottom: 8 }}>
+                          <input placeholder="Name *" value={quickPartner.name} onChange={e => setQuickPartner({ ...quickPartner, name: e.target.value })} style={{ padding: '6px 9px', borderRadius: 6, border: '1px solid #e2e8f0', fontSize: 12 }} />
+                          <input placeholder="Logo URL" value={quickPartner.logo} onChange={e => setQuickPartner({ ...quickPartner, logo: e.target.value })} style={{ padding: '6px 9px', borderRadius: 6, border: '1px solid #e2e8f0', fontSize: 12 }} />
+                          <input placeholder="Website" value={quickPartner.website} onChange={e => setQuickPartner({ ...quickPartner, website: e.target.value })} style={{ padding: '6px 9px', borderRadius: 6, border: '1px solid #e2e8f0', fontSize: 12 }} />
+                        </div>
+                        <div style={{ display: 'flex', gap: 8 }}>
+                          <button type="button"
+                            onClick={async () => {
+                              if (!quickPartner.name.trim()) return alert('Name is required');
+                              const { data, error } = await apiPost('/api/v1/admin/event-partners', quickPartner);
+                              if (error) return alert(error.message);
+                              await loadPartnerLibrary();
+                              setForm(f => ({ ...f, [key]: [...(f[key] || []), data._id] }));
+                              setQuickPartner(null);
+                            }}
+                            style={{ background: badge, color: '#fff', border: 'none', borderRadius: 6, padding: '6px 14px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
+                            Save & Add
+                          </button>
+                          <button type="button" onClick={() => setQuickPartner(null)}
+                            style={{ background: '#f1f5f9', color: '#475569', border: 'none', borderRadius: 6, padding: '6px 12px', fontSize: 12, cursor: 'pointer' }}>
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
 
             </div>
             <div className="admin-modal-footer">
