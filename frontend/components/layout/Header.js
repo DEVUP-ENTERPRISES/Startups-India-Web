@@ -20,6 +20,7 @@ const SEARCH_DATA = [
   { title: 'Campus Startup Mission', desc: 'Innovation Mission 2026 - colleges, hackathons & funding', href: '/campus-startup', category: 'Programs', color: '#e63946' },
   { title: 'Market Access', desc: 'Expand your startup to new markets', href: '/market-access', category: 'Resources', color: '#f59e0b' },
   { title: 'Source Hub', desc: 'Resources, guides and templates', href: '/source', category: 'Resources', color: '#f59e0b' },
+  { title: 'Idea Validation Program', desc: 'Validate startup ideas before building', href: '/idea-validation', category: 'Programs', color: '#e63946' },
   { title: 'Sign Up', desc: 'Join the StartupsIndia ecosystem', href: '/signup', category: 'Account', color: '#6366f1' },
   { title: 'Login', desc: 'Access your dashboard', href: '/login', category: 'Account', color: '#6366f1' },
 ];
@@ -310,6 +311,17 @@ export default function Header() {
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <rect x="2" y="3" width="20" height="14" rx="2"/>
               <path d="M8 21h8m-4-4v4"/>
+            </svg>
+          )
+        },
+        {
+          label: 'Idea Validation', desc: 'Validate startup ideas before building', href: '/idea-validation',
+          svg: (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M15 14c.2-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/>
+              <path d="M9 18h6"/>
+              <path d="M10 22h4"/>
+              <path d="m9 9 2 2 4-4"/>
             </svg>
           )
         },

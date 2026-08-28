@@ -1,0 +1,3039 @@
+/* ==========================================
+   IDEA VALIDATION PAGE
+   Dark premium editorial page
+   Brand Red: #BC1C21
+   ========================================== */
+
+/* ── Page Root ───────────────────────────────────────── */
+.idea-validation-page {
+  background: #000;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+  min-height: 100vh;
+}
+
+/* ── Shared Section Patterns ─────────────────────────── */
+.iv-section {
+  position: relative;
+  padding: clamp(60px, 8vw, 100px) 0;
+}
+
+.iv-section--tight {
+  padding: clamp(40px, 5vw, 64px) 0;
+}
+
+.iv-container {
+  max-width: 1220px;
+  margin: 0 auto;
+  padding: 0 40px;
+}
+
+.iv-section-number {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  color: rgba(255, 255, 255, 0.2);
+  text-transform: uppercase;
+  margin-bottom: 16px;
+  font-variant-numeric: tabular-nums;
+}
+
+.iv-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #BC1C21;
+  margin-bottom: 20px;
+}
+
+.iv-eyebrow::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #BC1C21;
+  flex-shrink: 0;
+}
+
+.iv-heading {
+  font-size: clamp(36px, 5vw, 56px);
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  color: #fff;
+  margin-bottom: 20px;
+}
+
+.iv-heading .red {
+  color: #BC1C21;
+}
+
+.iv-description {
+  font-size: clamp(15px, 1.1vw, 17px);
+  color: rgba(255, 255, 255, 0.55);
+  line-height: 1.7;
+  max-width: 560px;
+}
+
+/* ── CTA Button ──────────────────────────────────────── */
+.iv-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: #BC1C21;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  padding: 16px 32px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  text-decoration: none;
+  box-shadow: 0 8px 24px rgba(188, 28, 33, 0.25);
+}
+
+.iv-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(188, 28, 33, 0.35);
+  background: #d42028;
+}
+
+.iv-cta svg {
+  width: 18px;
+  height: 18px;
+  transition: transform 0.2s ease;
+}
+
+.iv-cta:hover svg {
+  transform: translateX(3px);
+}
+
+/* ── Divider between sections ────────────────────────── */
+.iv-divider {
+  width: 100%;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* ================================================================
+   SECTION 01 — HERO
+   ================================================================ */
+/* ================================================================
+   SECTION 01 — HERO
+   ================================================================ */
+.iv-hero {
+  padding: clamp(90px, 10vw, 130px) 0 clamp(40px, 5vw, 60px);
+  position: relative;
+}
+
+.iv-hero__grid {
+  display: grid;
+  grid-template-columns: 0.95fr 1.05fr;
+  gap: clamp(32px, 4vw, 56px);
+  align-items: center;
+}
+
+.iv-hero__content {
+  position: relative;
+  z-index: 2;
+}
+
+.iv-hero__heading {
+  font-size: clamp(38px, 4.8vw, 60px);
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+  margin-bottom: 14px;
+}
+
+.iv-hero__subheading {
+  font-size: clamp(16px, 1.3vw, 20px);
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+  margin-bottom: 16px;
+  line-height: 1.35;
+}
+
+.iv-hero__desc {
+  font-size: clamp(14px, 0.95vw, 15.5px);
+  color: rgba(255, 255, 255, 0.55);
+  line-height: 1.7;
+  max-width: 480px;
+  margin-bottom: 28px;
+}
+
+/* ── Hero Image Container Card ───────────────────────────── */
+.iv-hero__image-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.iv-hero__image-card {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9.8;
+  min-height: 340px;
+  border-radius: 20px;
+  border: 1.5px solid rgba(188, 28, 33, 0.5);
+  background: radial-gradient(ellipse at 50% 30%, rgba(22, 18, 22, 0.95), rgba(8, 8, 10, 0.98));
+  box-shadow: 0 0 35px rgba(188, 28, 33, 0.15), inset 0 0 40px rgba(0, 0, 0, 0.85);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 32px 24px 20px;
+  overflow: hidden;
+}
+
+/* Decorative tech corner accents */
+.iv-corner {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border: 2px solid #BC1C21;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.iv-corner--tl {
+  top: 10px;
+  left: 10px;
+  border-right: none;
+  border-bottom: none;
+}
+
+.iv-corner--br {
+  bottom: 10px;
+  right: 10px;
+  border-left: none;
+  border-top: none;
+}
+
+.iv-dots-pattern {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 60px;
+  height: 60px;
+  background-image: radial-gradient(rgba(188, 28, 33, 0.4) 1.2px, transparent 1.2px);
+  background-size: 8px 8px;
+  opacity: 0.65;
+  pointer-events: none;
+}
+
+/* Placeholder Content (Center) */
+.iv-placeholder-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  margin: auto 0;
+  gap: 8px;
+  position: relative;
+  z-index: 2;
+}
+
+.iv-placeholder-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(8px);
+}
+
+.iv-placeholder-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.75);
+  letter-spacing: -0.01em;
+}
+
+.iv-placeholder-sub {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* Bottom Journey Overlay inside Image Card */
+.iv-hero-journey {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  margin-top: auto;
+  padding-top: 16px;
+}
+
+.iv-hero-journey__track {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  position: relative;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+/* Connecting dashed line behind stages */
+.iv-hero-journey__track::before {
+  content: '';
+  position: absolute;
+  top: 21px;
+  left: 12.5%;
+  right: 12.5%;
+  height: 1px;
+  border-top: 1px dashed rgba(188, 28, 33, 0.6);
+  z-index: 0;
+}
+
+.iv-hero-journey__stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  position: relative;
+  z-index: 1;
+}
+
+.iv-hero-journey__node {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(188, 28, 33, 0.85);
+  background: #0f090a;
+  box-shadow: 0 0 15px rgba(188, 28, 33, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.iv-hero-journey__stage:hover .iv-hero-journey__node {
+  transform: scale(1.1);
+  border-color: #ff3b42;
+  box-shadow: 0 0 22px rgba(188, 28, 33, 0.7);
+}
+
+.iv-hero-journey__label {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.75);
+  line-height: 1.25;
+  max-width: 100px;
+}
+
+/* ── Hero Statistics Bar ───────────────────────────────── */
+.iv-stats-card {
+  margin-top: clamp(36px, 4vw, 48px);
+  background: rgba(14, 14, 18, 0.85);
+  border: 1px solid rgba(188, 28, 33, 0.3);
+  border-radius: 20px;
+  padding: 24px 32px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+.iv-stats-grid {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  gap: 24px;
+}
+
+.iv-stat-item {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex: 1;
+  justify-content: center;
+}
+
+.iv-stat-icon {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(188, 28, 33, 0.65);
+  background: radial-gradient(circle, rgba(188, 28, 33, 0.28) 0%, rgba(188, 28, 33, 0.05) 100%);
+  box-shadow: 0 0 20px rgba(188, 28, 33, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.iv-stat-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.iv-stat-val {
+  font-size: clamp(26px, 2.5vw, 34px);
+  font-weight: 900;
+  color: #ffffff;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.iv-stat-lbl {
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.iv-stat-divider {
+  width: 1px;
+  height: 48px;
+  background: rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+}
+
+.iv-stat__label {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.4);
+  font-weight: 500;
+  margin-top: 6px;
+}
+
+/* ================================================================
+   SECTION 02 — RISKY VS SMART WAY
+   ================================================================ */
+.iv-compare {
+  background: #0a0a0a;
+}
+
+.iv-compare__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  margin-bottom: clamp(36px, 4vw, 48px);
+}
+
+.iv-compare__header-left {
+  flex: 1;
+}
+
+.iv-compare__eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.iv-compare__section-num {
+  color: #BC1C21;
+}
+
+.iv-compare__dash {
+  width: 14px;
+  height: 1.5px;
+  background: #BC1C21;
+  display: inline-block;
+}
+
+.iv-compare__section-tag {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.iv-compare__heading {
+  font-size: clamp(34px, 4.2vw, 52px);
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  margin: 0;
+}
+
+.iv-compare__header-divider {
+  width: 1px;
+  height: 70px;
+  background: rgba(255, 255, 255, 0.1);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.iv-compare__header-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #BC1C21;
+}
+
+.iv-compare__header-right {
+  flex: 1;
+  max-width: 480px;
+}
+
+.iv-compare__br-desktop {
+  display: inline;
+}
+
+.iv-compare__description {
+  font-size: clamp(14.5px, 1.05vw, 16.5px);
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Rows Container */
+.iv-compare__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.iv-compare-card {
+  border-radius: 20px;
+  background: rgba(14, 14, 18, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.iv-compare-card--risky {
+  background: radial-gradient(ellipse at 0% 50%, rgba(30, 12, 14, 0.6) 0%, rgba(12, 12, 14, 0.95) 70%);
+  border-color: rgba(188, 28, 33, 0.22);
+}
+
+.iv-compare-card--smart {
+  background: radial-gradient(ellipse at 0% 50%, rgba(12, 28, 20, 0.6) 0%, rgba(12, 12, 14, 0.95) 70%);
+  border-color: rgba(16, 185, 129, 0.22);
+}
+
+.iv-compare-card:hover {
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.iv-compare-card--risky:hover {
+  border-color: rgba(188, 28, 33, 0.4);
+}
+
+.iv-compare-card--smart:hover {
+  border-color: rgba(16, 185, 129, 0.4);
+}
+
+/* Sidebar label block */
+.iv-compare-card__sidebar {
+  padding: 36px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  position: relative;
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.iv-compare-card__badge-icon {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  transition: transform 0.3s ease;
+}
+
+.iv-compare-card--risky .iv-compare-card__badge-icon {
+  border: 2px solid rgba(188, 28, 33, 0.55);
+  background: rgba(188, 28, 33, 0.14);
+  color: #BC1C21;
+}
+
+.iv-compare-card--smart .iv-compare-card__badge-icon {
+  border: 2px solid rgba(16, 185, 129, 0.55);
+  background: rgba(16, 185, 129, 0.14);
+  color: #10b981;
+}
+
+.iv-compare-card__label {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.iv-compare-card--risky .iv-compare-card__label {
+  color: #BC1C21;
+}
+
+.iv-compare-card--smart .iv-compare-card__label {
+  color: #10b981;
+}
+
+.iv-compare-card__indicator {
+  width: 36px;
+  height: 2px;
+  border-radius: 2px;
+}
+
+.iv-compare-card--risky .iv-compare-card__indicator {
+  background: #BC1C21;
+}
+
+.iv-compare-card--smart .iv-compare-card__indicator {
+  background: #10b981;
+}
+
+/* Timeline Wrapper */
+.iv-compare-card__timeline-wrapper {
+  padding: 40px 32px 36px;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.iv-compare-card__timeline {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  width: 100%;
+  align-items: flex-start;
+  position: relative;
+}
+
+/* Node layout */
+.iv-compare-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+.iv-compare-node__circle {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin-bottom: 24px;
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  background: #0d0d10;
+}
+
+.iv-compare-card--risky .iv-compare-node__circle {
+  border: 2px solid rgba(188, 28, 33, 0.5);
+  color: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 0 18px rgba(188, 28, 33, 0.2);
+}
+
+.iv-compare-card--smart .iv-compare-node__circle {
+  border: 2px solid rgba(16, 185, 129, 0.5);
+  color: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 0 18px rgba(16, 185, 129, 0.2);
+}
+
+.iv-compare-node--danger .iv-compare-node__circle {
+  border-color: #BC1C21;
+  color: #BC1C21;
+  background: rgba(188, 28, 33, 0.18);
+  box-shadow: 0 0 24px rgba(188, 28, 33, 0.45);
+}
+
+.iv-compare-node--success .iv-compare-node__circle {
+  border-color: #10b981;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.18);
+  box-shadow: 0 0 24px rgba(16, 185, 129, 0.45);
+}
+
+/* Hover node effect */
+.iv-compare-node:hover .iv-compare-node__circle {
+  transform: scale(1.08);
+}
+
+.iv-compare-card--risky .iv-compare-node:hover .iv-compare-node__circle {
+  border-color: #ff3b42;
+  color: #ffffff;
+}
+
+.iv-compare-card--smart .iv-compare-node:hover .iv-compare-node__circle {
+  border-color: #34d399;
+  color: #ffffff;
+}
+
+/* Badge for numbers */
+.iv-compare-node__badge {
+  position: absolute;
+  bottom: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #0a0a0d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 800;
+  z-index: 2;
+}
+
+.iv-compare-card--risky .iv-compare-node__badge {
+  border: 1.5px solid rgba(188, 28, 33, 0.7);
+  color: #BC1C21;
+}
+
+.iv-compare-card--smart .iv-compare-node__badge {
+  border: 1.5px solid rgba(16, 185, 129, 0.7);
+  color: #10b981;
+}
+
+/* Content */
+.iv-compare-node__content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.iv-compare-node__title {
+  font-size: 15px;
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1.25;
+}
+
+.iv-compare-node--danger .iv-compare-node__title {
+  color: #ff3b42;
+}
+
+.iv-compare-node--success .iv-compare-node__title {
+  color: #ffffff;
+}
+
+.iv-compare-node__sub {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.4;
+  max-width: 145px;
+}
+
+/* Connectors between nodes */
+.iv-compare-connector {
+  position: absolute;
+  top: 36px;
+  left: 50%;
+  width: 100%;
+  height: 1px;
+  z-index: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.iv-compare-card--risky .iv-compare-connector__line {
+  width: 100%;
+  height: 1px;
+  background: rgba(188, 28, 33, 0.3);
+}
+
+.iv-compare-card--smart .iv-compare-connector__line {
+  width: 100%;
+  height: 1px;
+  background: rgba(16, 185, 129, 0.3);
+}
+
+.iv-compare-connector__dot {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+}
+
+.iv-compare-card--risky .iv-compare-connector__dot {
+  background: #BC1C21;
+  box-shadow: 0 0 6px rgba(188, 28, 33, 0.8);
+}
+
+.iv-compare-card--smart .iv-compare-connector__dot {
+  background: #10b981;
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.8);
+}
+
+/* Bottom Insight Strip */
+.iv-compare-insight {
+  margin-top: 12px;
+  border-radius: 20px;
+  background: rgba(14, 14, 18, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 24px 36px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+.iv-compare-insight__dots-left {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 48px;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.1) 1.2px, transparent 1.2px);
+  background-size: 6px 6px;
+  opacity: 0.5;
+}
+
+.iv-compare-insight__dots-right {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 48px;
+  background-image: radial-gradient(rgba(188, 28, 33, 0.3) 1.2px, transparent 1.2px);
+  background-size: 6px 6px;
+  opacity: 0.6;
+}
+
+.iv-compare-insight__left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.iv-compare-insight__icon {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: 2px solid rgba(188, 28, 33, 0.6);
+  background: radial-gradient(circle, rgba(188, 28, 33, 0.22) 0%, rgba(188, 28, 33, 0.04) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  flex-shrink: 0;
+  box-shadow: 0 0 24px rgba(188, 28, 33, 0.3);
+}
+
+.iv-compare-insight__headline {
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.25;
+  color: #ffffff;
+  letter-spacing: -0.01em;
+}
+
+.iv-compare-insight__divider {
+  width: 1px;
+  height: 54px;
+  background: rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
+}
+
+.iv-compare-insight__right {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 480px;
+}
+
+.iv-compare-insight__body {
+  font-size: 15px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.4;
+}
+
+.iv-compare-insight__highlight {
+  font-size: 15px;
+  font-weight: 800;
+  color: #BC1C21;
+  line-height: 1.4;
+}
+
+/* ================================================================
+   SECTION 03 — WHAT WE HELP YOU VALIDATE
+   ================================================================ */
+.iv-validate {
+  background: #000;
+}
+
+.iv-validate__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  margin-bottom: clamp(36px, 4vw, 48px);
+}
+
+.iv-validate__header-left {
+  flex: 1;
+}
+
+.iv-validate__eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.iv-validate__section-num {
+  color: #BC1C21;
+}
+
+.iv-validate__dash {
+  width: 14px;
+  height: 1.5px;
+  background: #BC1C21;
+  display: inline-block;
+}
+
+.iv-validate__section-tag {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.iv-validate__heading {
+  font-size: clamp(34px, 4.2vw, 52px);
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  margin: 0 0 10px 0;
+}
+
+.iv-validate__heading-indicator {
+  width: 36px;
+  height: 2px;
+  background: #BC1C21;
+  border-radius: 2px;
+}
+
+.iv-validate__header-divider {
+  width: 1px;
+  height: 70px;
+  background: rgba(255, 255, 255, 0.1);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.iv-validate__header-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #BC1C21;
+}
+
+.iv-validate__header-right {
+  flex: 1;
+  max-width: 480px;
+}
+
+.iv-validate__description {
+  font-size: clamp(14.5px, 1.05vw, 16.5px);
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Four Validation Cards Grid */
+.iv-validate__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  position: relative;
+}
+
+.iv-validate-card {
+  border-radius: 20px;
+  background: radial-gradient(ellipse at 50% 0%, rgba(26, 14, 16, 0.7) 0%, rgba(12, 12, 14, 0.96) 70%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 28px 24px 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.iv-validate-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(188, 28, 33, 0.45);
+  box-shadow: 0 14px 40px rgba(188, 28, 33, 0.18);
+}
+
+/* Number badge (top left) */
+.iv-validate-card__badge {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(188, 28, 33, 0.15);
+  border: 1.5px solid rgba(188, 28, 33, 0.6);
+  color: #BC1C21;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+/* Icon Container */
+.iv-validate-card__icon-wrap {
+  margin-top: 16px;
+  margin-bottom: 24px;
+}
+
+.iv-validate-card__icon {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  border: 2px solid rgba(188, 28, 33, 0.5);
+  background: radial-gradient(circle, rgba(188, 28, 33, 0.25) 0%, rgba(188, 28, 33, 0.05) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  box-shadow: 0 0 24px rgba(188, 28, 33, 0.3);
+  transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.iv-validate-card:hover .iv-validate-card__icon {
+  transform: scale(1.08);
+  border-color: #ff3b42;
+  box-shadow: 0 0 30px rgba(188, 28, 33, 0.5);
+}
+
+/* Card Content */
+.iv-validate-card__content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.iv-validate-card__title {
+  font-size: 18px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.iv-validate-card__desc {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.45;
+  margin: 0;
+  max-width: 200px;
+}
+
+/* Bottom accent bar */
+.iv-validate-card__accent {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: transparent;
+  transition: background 0.3s ease;
+}
+
+.iv-validate-card:hover .iv-validate-card__accent {
+  background: #BC1C21;
+}
+
+/* Connectors between cards */
+.iv-validate-card__connector {
+  position: absolute;
+  top: 50%;
+  right: -10px;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 1px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.iv-validate-card__connector-line {
+  width: 100%;
+  height: 1px;
+  background: rgba(188, 28, 33, 0.3);
+}
+
+.iv-validate-card__connector-dot {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #BC1C21;
+}
+
+/* Bottom Insight Strip */
+.iv-validate-insight {
+  margin-top: 24px;
+  border-radius: 20px;
+  background: rgba(14, 14, 18, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 24px 36px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+.iv-validate-insight__dots-left {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 48px;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.1) 1.2px, transparent 1.2px);
+  background-size: 6px 6px;
+  opacity: 0.5;
+}
+
+.iv-validate-insight__dots-right {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 48px;
+  background-image: radial-gradient(rgba(188, 28, 33, 0.3) 1.2px, transparent 1.2px);
+  background-size: 6px 6px;
+  opacity: 0.6;
+}
+
+.iv-validate-insight__block {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.iv-validate-insight__icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 2px solid rgba(188, 28, 33, 0.6);
+  background: radial-gradient(circle, rgba(188, 28, 33, 0.22) 0%, rgba(188, 28, 33, 0.04) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  flex-shrink: 0;
+  box-shadow: 0 0 24px rgba(188, 28, 33, 0.3);
+}
+
+.iv-validate-insight__text {
+  font-size: 15.5px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.45;
+  max-width: 480px;
+}
+
+.iv-validate-insight__text .red {
+  color: #BC1C21;
+  font-weight: 800;
+}
+
+.iv-validate-insight__divider {
+  width: 1px;
+  height: 54px;
+  background: rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
+}
+
+.iv-validate-insight__text-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.iv-validate-insight__sub {
+  font-size: 15px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.iv-validate-insight__main {
+  font-size: 16px;
+  font-weight: 800;
+  color: #BC1C21;
+}
+
+/* ================================================================
+   SECTION 04 — HOW THE PROGRAM WORKS (TIMELINE)
+   ================================================================ */
+.iv-timeline {
+  background: #0a0a0a;
+}
+
+.iv-timeline__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  margin-bottom: clamp(36px, 4vw, 48px);
+}
+
+.iv-timeline__header-left {
+  flex: 1;
+}
+
+.iv-timeline__eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.iv-timeline__section-num {
+  color: #BC1C21;
+}
+
+.iv-timeline__dash {
+  width: 14px;
+  height: 1.5px;
+  background: #BC1C21;
+  display: inline-block;
+}
+
+.iv-timeline__section-tag {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.iv-timeline__heading {
+  font-size: clamp(34px, 4.2vw, 52px);
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  margin: 0 0 10px 0;
+}
+
+.iv-timeline__heading-indicator {
+  width: 36px;
+  height: 2px;
+  background: #BC1C21;
+  border-radius: 2px;
+}
+
+/* ================================================================
+   SECTION 04 — INTERACTIVE ROADMAP PANEL
+   ================================================================ */
+.iv-timeline {
+  background: #000;
+  position: relative;
+}
+
+.iv-timeline__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  margin-bottom: clamp(40px, 5vw, 60px);
+}
+
+.iv-timeline__header-left {
+  flex: 1;
+}
+
+.iv-timeline__eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.iv-timeline__section-num {
+  color: #BC1C21;
+}
+
+.iv-timeline__dash {
+  width: 14px;
+  height: 1.5px;
+  background: #BC1C21;
+  display: inline-block;
+}
+
+.iv-timeline__section-tag {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.iv-timeline__heading {
+  font-size: clamp(34px, 4.2vw, 52px);
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  margin: 0 0 12px 0;
+}
+
+.iv-timeline__heading-indicator {
+  width: 32px;
+  height: 2px;
+  background: #BC1C21;
+  border-radius: 2px;
+}
+
+.iv-timeline__header-divider {
+  width: 1px;
+  height: 70px;
+  background: rgba(255, 255, 255, 0.1);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.iv-timeline__header-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #BC1C21;
+}
+
+.iv-timeline__header-right {
+  flex: 1;
+  max-width: 480px;
+}
+
+.iv-timeline__description {
+  font-size: clamp(14.5px, 1.05vw, 16.5px);
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Roadmap Outer Panel Container */
+.iv-roadmap-panel {
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: radial-gradient(ellipse at 50% 0%, rgba(18, 18, 22, 0.95) 0%, rgba(8, 8, 10, 0.98) 100%);
+  padding: 32px 24px 24px;
+  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Top Clean Horizontal Track & Nodes Layer */
+.iv-roadmap-track-container {
+  position: relative;
+  width: 100%;
+  height: 76px;
+}
+
+/* Straight Horizontal Base Line */
+.iv-roadmap-line-bg {
+  position: absolute;
+  top: 48px;
+  left: 10%;
+  right: 10%;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.12);
+  z-index: 1;
+  border-radius: 1px;
+}
+
+/* Active Highlighted Red Progress Line */
+.iv-roadmap-line-active {
+  position: absolute;
+  top: 48px;
+  left: 10%;
+  height: 2.5px;
+  background: #BC1C21;
+  box-shadow: 0 0 10px rgba(188, 28, 33, 0.6);
+  z-index: 2;
+  border-radius: 1px;
+  transition: width 0.35s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+/* Five Stage Markers Layer */
+.iv-roadmap-nodes {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  width: 100%;
+  height: 100%;
+  position: relative;
+  z-index: 5;
+}
+
+.iv-roadmap-node-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  position: relative;
+}
+
+/* Floating YOU ARE HERE Pill */
+.iv-roadmap-here-badge {
+  position: absolute;
+  top: -16px;
+  background: #0d0d10;
+  border: 1px solid #BC1C21;
+  border-radius: 10px;
+  padding: 2px 8px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #ffffff;
+  box-shadow: 0 0 12px rgba(188, 28, 33, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  z-index: 10;
+}
+
+.iv-roadmap-here-badge__pointer {
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+  width: 5px;
+  height: 5px;
+  background: #0d0d10;
+  border-right: 1px solid #BC1C21;
+  border-bottom: 1px solid #BC1C21;
+}
+
+/* Stage Number above Node */
+.iv-roadmap-node__num {
+  font-size: 11px;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.4);
+  margin-bottom: 4px;
+  transition: color 0.25s ease;
+}
+
+.iv-roadmap-node__num.active {
+  color: #BC1C21;
+}
+
+.iv-roadmap-node__num.passed {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Compact Circular Node Button */
+.iv-roadmap-node {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  background: #0e0e12;
+  color: rgba(255, 255, 255, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  outline: none;
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, color 0.25s ease;
+  position: relative;
+  z-index: 6;
+}
+
+.iv-roadmap-node:hover {
+  transform: scale(1.06);
+  border-color: rgba(188, 28, 33, 0.5);
+  color: #ffffff;
+}
+
+.iv-roadmap-node.active {
+  border-color: #BC1C21;
+  background: radial-gradient(circle, rgba(188, 28, 33, 0.35) 0%, rgba(188, 28, 33, 0.1) 70%, #0e0e12 100%);
+  color: #ffffff;
+  box-shadow: 0 0 16px rgba(188, 28, 33, 0.5);
+  transform: scale(1.06);
+}
+
+.iv-roadmap-node.passed {
+  border-color: rgba(188, 28, 33, 0.4);
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* Vertical Line connecting Node to Card */
+.iv-roadmap-vertical-line {
+  width: 1.5px;
+  height: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  margin-top: 4px;
+  transition: background 0.25s ease;
+}
+
+.iv-roadmap-vertical-line.active {
+  background: #BC1C21;
+  box-shadow: 0 0 6px #BC1C21;
+}
+
+/* ── 5 Stage Cards Grid Row ────────────────────────────── */
+.iv-roadmap-cards {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 20px;
+  width: 100%;
+}
+
+.iv-roadmap-card {
+  background: #0d0d10;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 0 0 0 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  min-height: 310px;
+}
+
+.iv-roadmap-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(188, 28, 33, 0.35);
+}
+
+.iv-roadmap-card.active {
+  border-color: #BC1C21;
+  box-shadow: 0 12px 32px rgba(188, 28, 33, 0.22);
+  transform: translateY(-4px);
+}
+
+/* Top Number Tab Badge */
+.iv-roadmap-card__tab {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 11px;
+  font-weight: 800;
+  padding: 3px 12px;
+  clip-path: polygon(0 0, 100% 0, 85% 100%, 0 100%);
+  z-index: 5;
+  border-top-left-radius: 15px;
+  transition: background 0.25s ease, color 0.25s ease;
+}
+
+.iv-roadmap-card__tab.active {
+  background: #BC1C21;
+  color: #ffffff;
+}
+
+/* Card Content */
+.iv-roadmap-card__content {
+  padding: 24px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.iv-roadmap-card__title {
+  font-size: 15px;
+  font-weight: 800;
+  color: #ffffff;
+  margin-bottom: 8px;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+.iv-roadmap-card__indicator {
+  width: 20px;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 2px;
+  margin-bottom: 10px;
+  transition: background 0.25s ease, width 0.25s ease;
+}
+
+.iv-roadmap-card__indicator.active {
+  background: #BC1C21;
+  width: 28px;
+}
+
+.iv-roadmap-card__desc {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.55);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Card Image Area at Bottom (Fixed height & flex-shrink to prevent collapse) */
+.iv-roadmap-card__image-wrap {
+  width: 100%;
+  height: 125px;
+  flex-shrink: 0;
+  margin-top: auto;
+  position: relative;
+  overflow: hidden;
+  border-bottom-left-radius: 15px;
+  border-bottom-right-radius: 15px;
+}
+
+.iv-roadmap-card__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  transition: transform 0.4s ease;
+}
+
+.iv-roadmap-card:hover .iv-roadmap-card__image {
+  transform: scale(1.04);
+}
+
+.iv-roadmap-card__image-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(13, 13, 16, 0.7) 0%, rgba(0, 0, 0, 0.2) 100%);
+  pointer-events: none;
+}
+
+/* ── Bottom Insight / Navigation Bar ───────────────────── */
+.iv-roadmap-nav {
+  border-radius: 16px;
+  background: rgba(12, 12, 16, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.iv-roadmap-nav__left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  position: relative;
+  z-index: 2;
+}
+
+.iv-roadmap-nav__icon-wrap {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(188, 28, 33, 0.6);
+  background: rgba(188, 28, 33, 0.15);
+  color: #BC1C21;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.iv-roadmap-nav__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.iv-roadmap-nav__line1 {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.iv-roadmap-nav__line2 {
+  font-size: 14.5px;
+  font-weight: 800;
+}
+
+.iv-roadmap-nav__dots-bg {
+  position: absolute;
+  right: 180px;
+  top: 0;
+  bottom: 0;
+  width: 120px;
+  background-image: radial-gradient(rgba(188, 28, 33, 0.35) 1px, transparent 1px);
+  background-size: 8px 8px;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.iv-roadmap-nav__right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  position: relative;
+  z-index: 2;
+}
+
+.iv-roadmap-nav__counter {
+  font-size: 12.5px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.iv-roadmap-nav__btn-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.iv-roadmap-nav__btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  background: #0d0d10;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s ease, background 0.2s ease, opacity 0.2s ease;
+}
+
+.iv-roadmap-nav__btn:hover:not(.disabled) {
+  border-color: #BC1C21;
+  background: rgba(188, 28, 33, 0.15);
+  color: #BC1C21;
+}
+
+.iv-roadmap-nav__btn.disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* ================================================================
+   SECTION 05 — WHAT YOU GET OUT OF IT (REDESIGNED OUTCOMES)
+   ================================================================ */
+.iv-outcomes {
+  background: #000;
+  position: relative;
+}
+
+.iv-outcomes__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  margin-bottom: clamp(40px, 5vw, 60px);
+}
+
+.iv-outcomes__header-left {
+  flex: 1;
+}
+
+.iv-outcomes__eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.iv-outcomes__section-num {
+  color: #BC1C21;
+}
+
+.iv-outcomes__dash {
+  width: 14px;
+  height: 1.5px;
+  background: #BC1C21;
+  display: inline-block;
+}
+
+.iv-outcomes__section-tag {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.iv-outcomes__heading {
+  font-size: clamp(34px, 4.2vw, 52px);
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  margin: 0 0 12px 0;
+}
+
+.iv-outcomes__heading-indicator {
+  width: 32px;
+  height: 2px;
+  background: #BC1C21;
+  border-radius: 2px;
+}
+
+.iv-outcomes__header-divider {
+  width: 1px;
+  height: 70px;
+  background: rgba(255, 255, 255, 0.1);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.iv-outcomes__header-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #BC1C21;
+}
+
+.iv-outcomes__header-right {
+  flex: 1;
+  max-width: 480px;
+}
+
+.iv-outcomes__description {
+  font-size: clamp(14.5px, 1.05vw, 16.5px);
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ── Outcomes Grid & Image Cards ───────────────────────── */
+.iv-outcomes__flow-wrapper {
+  width: 100%;
+}
+
+.iv-outcomes__grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 24px;
+  align-items: stretch;
+  position: relative;
+}
+
+.iv-outcomes__stage-wrapper {
+  display: flex;
+  align-items: center;
+  position: relative;
+  height: 100%;
+}
+
+.iv-outcome-card {
+  flex: 1;
+  width: 100%;
+  position: relative;
+  background: #0d0d10;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 0 0 24px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  min-height: 330px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  overflow: hidden;
+}
+
+.iv-outcome-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(188, 28, 33, 0.4);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+}
+
+.iv-outcome-card--emphasized {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.iv-outcome-card--final {
+  border-color: rgba(188, 28, 33, 0.35);
+}
+
+.iv-outcome-card--final:hover {
+  border-color: #BC1C21;
+}
+
+/* Red Tag Badge on top-left of card (overlapping top edge of image) */
+.iv-outcome-card__badge {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: #BC1C21;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 4px 14px;
+  clip-path: polygon(0 0, 100% 0, 85% 100%, 0 100%);
+  letter-spacing: 0.05em;
+  z-index: 5;
+  border-top-left-radius: 15px;
+}
+
+/* Image Wrapper (Fixed height & flex-shrink to prevent flexbox collapse) */
+.iv-outcome-card__image-wrapper {
+  width: 100%;
+  height: 140px;
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+  border-top-left-radius: 15px;
+  border-top-right-radius: 15px;
+}
+
+.iv-outcome-card__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  transition: transform 0.4s ease;
+}
+
+.iv-outcome-card:hover .iv-outcome-card__image {
+  transform: scale(1.04);
+}
+
+/* Subtle dark gradient overlay over image bottom */
+.iv-outcome-card__image-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.1) 0%, rgba(13, 13, 16, 0.9) 100%);
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+/* Icon Container (Overlapping the bottom edge of image area) */
+.iv-outcome-card__icon-wrap {
+  margin-top: -28px;
+  margin-bottom: 14px;
+  position: relative;
+  z-index: 3;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  padding: 0 16px;
+}
+
+.iv-outcome-card__icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(188, 28, 33, 0.5);
+  background: #0d0d10;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  transition: transform 0.25s ease, border-color 0.25s ease;
+}
+
+.iv-outcome-card:hover .iv-outcome-card__icon {
+  transform: scale(1.06);
+  border-color: #BC1C21;
+}
+
+.iv-outcome-card--final .iv-outcome-card__icon {
+  border-color: #BC1C21;
+}
+
+/* Card Title */
+.iv-outcome-card__title {
+  font-size: 15px;
+  font-weight: 800;
+  color: #ffffff;
+  margin-bottom: 8px;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  padding: 0 14px;
+}
+
+.iv-outcome-card__indicator {
+  width: 24px;
+  height: 2px;
+  background: rgba(188, 28, 33, 0.7);
+  border-radius: 2px;
+  margin-bottom: 12px;
+}
+
+.iv-outcome-card--final .iv-outcome-card__indicator {
+  background: #BC1C21;
+  width: 28px;
+}
+
+/* Card Description */
+.iv-outcome-card__desc {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.55);
+  line-height: 1.55;
+  margin: 0;
+  padding: 0 14px;
+}
+
+/* ── Connector Node between cards ────────────────────── */
+.iv-outcome-connector {
+  position: absolute;
+  right: -25px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 5;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+}
+
+.iv-outcome-connector::before {
+  content: '';
+  position: absolute;
+  width: 26px;
+  height: 1px;
+  background: rgba(188, 28, 33, 0.35);
+  z-index: 1;
+}
+
+.iv-outcome-connector__node {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #000;
+  border: 1.5px solid rgba(188, 28, 33, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #BC1C21;
+  position: relative;
+  z-index: 2;
+}
+
+/* Hide connector on last item wrapper */
+.iv-outcomes__stage-wrapper:last-child .iv-outcome-connector {
+  display: none;
+}
+
+/* ================================================================
+   SECTION 06 — THIS PROGRAM IS FOR YOU IF... (REDESIGNED PROGRAM FIT)
+   ================================================================ */
+.iv-audience {
+  background: #000;
+  position: relative;
+  padding: clamp(60px, 8vw, 100px) 0;
+}
+
+.iv-audience__layout {
+  display: grid;
+  grid-template-columns: clamp(240px, 24vw, 300px) 1fr;
+  gap: clamp(24px, 3.5vw, 48px);
+  align-items: flex-start;
+}
+
+/* Left Column Heading Block */
+.iv-audience__left {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding-top: 10px;
+}
+
+.iv-audience__eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.iv-audience__section-num {
+  font-size: 14px;
+  font-weight: 800;
+  color: #BC1C21;
+  letter-spacing: 0.1em;
+}
+
+.iv-audience__dash {
+  width: 28px;
+  height: 2px;
+  background: #BC1C21;
+  display: inline-block;
+}
+
+.iv-audience__heading {
+  font-size: clamp(32px, 3.8vw, 48px);
+  font-weight: 900;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  margin: 0 0 16px 0;
+  color: #ffffff;
+}
+
+.iv-audience__heading-indicator {
+  width: 36px;
+  height: 2.5px;
+  background: #BC1C21;
+  border-radius: 2px;
+  margin-bottom: 24px;
+}
+
+.iv-audience__description {
+  font-size: clamp(13.5px, 0.95vw, 15px);
+  color: rgba(255, 255, 255, 0.55);
+  line-height: 1.65;
+  margin: 0;
+  max-width: 260px;
+}
+
+/* Right Column Cards & Strip */
+.iv-audience__right {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+
+.iv-audience__flow-wrapper {
+  width: 100%;
+}
+
+.iv-audience__grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  align-items: stretch;
+  position: relative;
+}
+
+.iv-audience__stage-wrapper {
+  display: flex;
+  align-items: center;
+  position: relative;
+  height: 100%;
+}
+
+.iv-audience-card {
+  flex: 1;
+  width: 100%;
+  position: relative;
+  background: radial-gradient(ellipse at 50% 0%, rgba(20, 16, 20, 0.95) 0%, rgba(8, 8, 10, 0.98) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%);
+  padding: 28px 12px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  min-height: 270px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+  overflow: hidden;
+}
+
+.iv-audience-card:hover {
+  transform: translateY(-5px);
+  border-color: rgba(188, 28, 33, 0.45);
+  box-shadow: 0 12px 30px rgba(188, 28, 33, 0.2);
+}
+
+.iv-audience-card--final {
+  border-color: rgba(188, 28, 33, 0.35);
+  background: radial-gradient(ellipse at 50% 0%, rgba(32, 14, 18, 0.95) 0%, rgba(8, 8, 10, 0.98) 100%);
+}
+
+/* Red Tag Badge on top-left of card */
+.iv-audience-card__badge {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: #BC1C21;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 3px 10px;
+  clip-path: polygon(0 0, 100% 0, 85% 100%, 0 100%);
+  letter-spacing: 0.05em;
+  z-index: 2;
+}
+
+/* Icon Container */
+.iv-audience-card__icon-wrap {
+  margin-top: 12px;
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: center;
+}
+
+.iv-audience-card__icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(188, 28, 33, 0.65);
+  background: radial-gradient(circle, rgba(188, 28, 33, 0.35) 0%, rgba(188, 28, 33, 0.05) 70%, rgba(10, 10, 12, 0.9) 100%);
+  box-shadow: 0 0 18px rgba(188, 28, 33, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.iv-audience-card:hover .iv-audience-card__icon {
+  transform: scale(1.06);
+  border-color: #ff3b42;
+  box-shadow: 0 0 24px rgba(188, 28, 33, 0.55);
+}
+
+/* Card Title */
+.iv-audience-card__title {
+  font-size: 13px;
+  font-weight: 800;
+  color: #ffffff;
+  margin-bottom: 10px;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Card Description */
+.iv-audience-card__desc {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.55);
+  line-height: 1.5;
+  margin: 0 0 auto 0;
+}
+
+/* Bottom Red Accent Bar on Card */
+.iv-audience-card__accent {
+  position: absolute;
+  bottom: 0;
+  left: 12px;
+  right: 12px;
+  height: 2px;
+  background: #BC1C21;
+  border-radius: 2px 2px 0 0;
+  opacity: 0.8;
+  transition: opacity 0.25s ease, height 0.25s ease;
+}
+
+.iv-audience-card:hover .iv-audience-card__accent {
+  opacity: 1;
+  height: 3px;
+}
+
+/* ── Connector Line & Red Dot between cards ───────────────── */
+.iv-audience-connector {
+  position: absolute;
+  right: -16px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 5;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+}
+
+.iv-audience-connector__line {
+  position: absolute;
+  width: 20px;
+  height: 1px;
+  background: rgba(188, 28, 33, 0.5);
+  z-index: 1;
+}
+
+.iv-audience-connector__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #BC1C21;
+  box-shadow: 0 0 8px rgba(188, 28, 33, 0.8);
+  z-index: 2;
+  position: relative;
+}
+
+.iv-audience__stage-wrapper:last-child .iv-audience-connector {
+  display: none;
+}
+
+/* ── Bottom CTA Strip ────────────────────────────────── */
+.iv-audience-strip {
+  border-radius: 14px;
+  background: rgba(12, 12, 16, 0.95);
+  border: 1px solid rgba(188, 28, 33, 0.35);
+  padding: 16px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  width: 100%;
+}
+
+.iv-audience-strip__dots-left,
+.iv-audience-strip__dots-right {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 60px;
+  background-image: radial-gradient(rgba(188, 28, 33, 0.35) 1px, transparent 1px);
+  background-size: 8px 8px;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.iv-audience-strip__dots-left {
+  left: 12px;
+}
+
+.iv-audience-strip__dots-right {
+  right: 12px;
+}
+
+.iv-audience-strip__content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  position: relative;
+  z-index: 2;
+}
+
+.iv-audience-strip__icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(188, 28, 33, 0.7);
+  background: rgba(188, 28, 33, 0.18);
+  color: #BC1C21;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 0 12px rgba(188, 28, 33, 0.3);
+}
+
+.iv-audience-strip__text {
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.01em;
+}
+
+.iv-audience-strip__divider {
+  width: 1px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.15);
+  margin: 0 4px;
+}
+
+.iv-audience-strip__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #BC1C21;
+  text-decoration: none;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.iv-audience-strip__link:hover {
+  color: #ff3b42;
+  transform: translateX(2px);
+}
+
+.iv-audience-strip__link svg {
+  transition: transform 0.2s ease;
+}
+
+.iv-audience-strip__link:hover svg {
+  transform: translateX(3px);
+}
+
+/* ================================================================
+   SECTION 07 — FINAL CTA
+   ================================================================ */
+.iv-final-cta {
+  background: #000;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Subtle background glow */
+.iv-final-cta::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 600px;
+  height: 400px;
+  background: radial-gradient(ellipse, rgba(188, 28, 33, 0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.iv-final-cta .iv-heading {
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.iv-final-cta .iv-description {
+  max-width: 560px;
+  margin: 0 auto 32px;
+}
+
+/* Benefits strip */
+.iv-benefits {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  margin-bottom: 36px;
+}
+
+.iv-benefit {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.iv-benefit__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #BC1C21;
+  flex-shrink: 0;
+}
+
+/* Final visual flow */
+.iv-final-flow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  margin-top: clamp(40px, 5vw, 56px);
+}
+
+.iv-final-flow__step {
+  padding: 10px 20px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
+  transition: border-color 0.3s ease, color 0.3s ease;
+}
+
+.iv-final-flow__step:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.iv-final-flow__step--final {
+  border-color: rgba(188, 28, 33, 0.4);
+  color: #BC1C21;
+  background: rgba(188, 28, 33, 0.06);
+}
+
+.iv-final-flow__step--final:hover {
+  border-color: rgba(188, 28, 33, 0.6);
+}
+
+.iv-final-flow__arrow {
+  width: 24px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  position: relative;
+}
+
+.iv-final-flow__arrow::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(188, 28, 33, 0.5);
+}
+
+
+/* ================================================================
+   RESPONSIVE — TABLET (≤ 1024px)
+   ================================================================ */
+@media (max-width: 1024px) {
+  .iv-container {
+    padding: 0 28px;
+  }
+
+  .iv-hero__grid {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  .iv-hero__visual {
+    order: -1;
+  }
+
+  .iv-compare-card {
+    grid-template-columns: 170px 1fr;
+  }
+  
+  .iv-compare-card__sidebar {
+    padding: 24px 16px;
+  }
+
+  .iv-compare-card__timeline-wrapper {
+    padding: 28px 20px 24px;
+  }
+
+  .iv-compare-node__sub {
+    font-size: 10.5px;
+    max-width: 100px;
+  }
+
+  .iv-compare-insight {
+    padding: 20px 28px;
+    gap: 24px;
+  }
+
+  .iv-compare-insight__headline {
+    font-size: 16px;
+  }
+
+  .iv-validate__grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  .iv-timeline-track {
+    display: none;
+  }
+
+  .iv-timeline-cards {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+
+  .iv-final-flow {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .iv-final-flow__arrow {
+    width: 16px;
+  }
+
+  /* Section 06 Tablet Layout */
+  .iv-audience__layout {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  .iv-audience__left {
+    max-width: 600px;
+  }
+
+  .iv-audience__description {
+    max-width: 560px;
+  }
+}
+
+
+/* ================================================================
+   RESPONSIVE — MOBILE (≤ 768px)
+   ================================================================ */
+@media (max-width: 768px) {
+  .iv-container {
+    padding: 0 20px;
+  }
+
+  .iv-section {
+    padding: clamp(48px, 8vw, 72px) 0;
+  }
+
+  .iv-hero {
+    padding: clamp(80px, 10vw, 100px) 0 clamp(32px, 4vw, 48px);
+  }
+
+  .iv-hero__grid {
+    gap: 32px;
+  }
+
+  .iv-stats {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+
+  .iv-compare__header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .iv-compare__header-divider {
+    display: none;
+  }
+
+  .iv-compare__br-desktop {
+    display: none;
+  }
+
+  .iv-compare__header-right {
+    max-width: 100%;
+  }
+
+  .iv-compare-card {
+    grid-template-columns: 1fr;
+  }
+
+  .iv-compare-card__sidebar {
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 16px;
+    padding: 16px 20px;
+  }
+
+  .iv-compare-card__badge-icon {
+    width: 36px;
+    height: 36px;
+    margin-bottom: 0;
+  }
+
+  .iv-compare-card__badge-icon svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .iv-compare-card__indicator {
+    display: none;
+  }
+
+  .iv-compare-card__timeline-wrapper {
+    padding: 24px 20px;
+  }
+
+  .iv-compare-card__timeline {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    position: relative;
+    padding-left: 8px;
+  }
+
+  .iv-compare-card__timeline::before {
+    content: '';
+    position: absolute;
+    top: 24px;
+    bottom: 24px;
+    left: 31px;
+    width: 1px;
+    z-index: 0;
+  }
+
+  .iv-compare-card--risky .iv-compare-card__timeline::before {
+    background: rgba(188, 28, 33, 0.3);
+  }
+
+  .iv-compare-card--smart .iv-compare-card__timeline::before {
+    background: rgba(16, 185, 129, 0.3);
+  }
+
+  .iv-compare-node {
+    flex-direction: row;
+    text-align: left;
+    gap: 16px;
+    align-items: center;
+  }
+
+  .iv-compare-node__circle {
+    margin-bottom: 0;
+    flex-shrink: 0;
+    width: 46px;
+    height: 46px;
+  }
+
+  .iv-compare-node__badge {
+    bottom: auto;
+    right: -4px;
+    left: auto;
+    transform: none;
+  }
+
+  .iv-compare-node__content {
+    align-items: flex-start;
+  }
+
+  .iv-compare-node__sub {
+    max-width: 100%;
+    text-align: left;
+  }
+
+  .iv-compare-connector {
+    display: none;
+  }
+
+  .iv-compare-insight {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 24px 20px;
+    gap: 16px;
+  }
+
+  .iv-compare-insight__divider {
+    width: 100%;
+    height: 1px;
+  }
+
+  .iv-compare-insight__dots-left,
+  .iv-compare-insight__dots-right {
+    display: none;
+  }
+
+  /* Section 03 Responsive */
+  .iv-validate__header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .iv-validate__header-divider {
+    display: none;
+  }
+
+  .iv-validate__header-right {
+    max-width: 100%;
+  }
+
+  .iv-validate__grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .iv-validate-card__connector {
+    display: none;
+  }
+
+  .iv-validate-insight {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 24px 20px;
+    gap: 16px;
+  }
+
+  .iv-validate-insight__divider {
+    width: 100%;
+    height: 1px;
+  }
+
+  .iv-validate-insight__dots-left,
+  .iv-validate-insight__dots-right {
+    display: none;
+  }
+
+  /* Section 04 Responsive */
+  .iv-timeline__header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .iv-timeline__header-divider {
+    display: none;
+  }
+
+  .iv-timeline__header-right {
+    max-width: 100%;
+  }
+
+  .iv-timeline__wrapper {
+    padding: 20px 16px;
+  }
+
+  .iv-timeline-cards {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .iv-timeline-card {
+    flex-direction: row;
+    text-align: left;
+    gap: 16px;
+    padding: 20px 18px;
+    align-items: center;
+  }
+
+  .iv-timeline-card__icon-wrap {
+    margin-bottom: 0;
+    flex-shrink: 0;
+  }
+
+  .iv-timeline-card__icon {
+    width: 54px;
+    height: 54px;
+  }
+
+  /* Section 04 — Interactive Roadmap Mobile */
+  .iv-roadmap-panel {
+    padding: 24px 16px 20px;
+    gap: 20px;
+  }
+
+  .iv-roadmap-track-container {
+    height: 64px;
+  }
+
+  .iv-roadmap-line-bg,
+  .iv-roadmap-line-active {
+    display: none;
+  }
+
+  .iv-roadmap-node {
+    width: 36px;
+    height: 36px;
+  }
+
+  .iv-roadmap-node svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  .iv-roadmap-here-badge {
+    font-size: 8px;
+    padding: 1px 6px;
+    top: -14px;
+  }
+
+  .iv-roadmap-cards {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .iv-roadmap-card {
+    min-height: auto;
+  }
+
+  .iv-roadmap-nav {
+    flex-direction: column;
+    gap: 14px;
+    align-items: flex-start;
+    padding: 16px;
+  }
+
+  .iv-roadmap-nav__right {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .iv-roadmap-nav__dots-bg {
+    display: none;
+  }
+
+  /* Section 05 — Outcomes Flow Mobile */
+  .iv-outcomes__grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .iv-outcomes__stage-wrapper {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .iv-outcomes__stage-wrapper:not(:last-child)::after {
+    content: '↓';
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #BC1C21;
+    font-size: 18px;
+    font-weight: 800;
+    margin: 8px 0 -4px;
+  }
+
+  .iv-outcome-card {
+    min-height: auto;
+    padding: 32px 20px 24px;
+  }
+
+  .iv-outcome-connector {
+    display: none;
+  }
+
+  /* Section 06 — Audience Flow Mobile */
+  .iv-audience__grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .iv-audience__stage-wrapper {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .iv-audience__stage-wrapper:not(:last-child)::after {
+    content: '↓';
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #BC1C21;
+    font-size: 18px;
+    font-weight: 800;
+    margin: 8px 0 -4px;
+  }
+
+  .iv-audience-card {
+    min-height: auto;
+    padding: 32px 20px 24px;
+  }
+
+  .iv-audience-connector {
+    display: none;
+  }
+
+  .iv-audience-strip {
+    flex-direction: column;
+    text-align: center;
+    align-items: center;
+    padding: 24px 20px;
+    gap: 16px;
+  }
+
+  .iv-audience-strip__left {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  /* Benefits */
+  .iv-benefits {
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+
+  /* Final flow: wrap to column */
+  .iv-final-flow {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .iv-final-flow__arrow {
+    width: 1px;
+    height: 16px;
+  }
+
+  .iv-final-flow__arrow::after {
+    right: 50%;
+    bottom: 0;
+    top: auto;
+    transform: translateX(50%);
+  }
+}
+
+
+/* ================================================================
+   RESPONSIVE — SMALL MOBILE (≤ 480px)
+   ================================================================ */
+@media (max-width: 480px) {
+  .iv-container {
+    padding: 0 16px;
+  }
+
+  .iv-hero__heading {
+    font-size: clamp(32px, 9vw, 44px);
+  }
+
+  .iv-heading {
+    font-size: clamp(28px, 7vw, 40px);
+  }
+
+  .iv-stats {
+    gap: 12px;
+  }
+
+  .iv-stat__number {
+    font-size: clamp(24px, 6vw, 32px);
+  }
+
+  .iv-journey__step {
+    min-width: auto;
+    padding: 10px 16px;
+  }
+
+  .iv-compare__flow-step {
+    min-width: 140px;
+    font-size: 11px;
+  }
+}
+

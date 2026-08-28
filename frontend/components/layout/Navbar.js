@@ -51,6 +51,7 @@ export default function Navbar() {
         { label: 'Startups', desc: 'Startup Growth Enablement', href: '/ecosystem#startups', icon: '🚀' },
         { label: 'Market Access', desc: 'Expand your startup to new markets', href: '/market-access', icon: '🌍' },
         { label: 'Co-Working', desc: 'Shared Workspaces & Labs', href: '/ecosystem#coworking', icon: '💡' },
+        { label: 'Idea Validation', desc: 'Validate startup ideas before building', href: '/idea-validation', icon: '💡' },
       ]
     },
     { label: 'Source', href: '/source' },
