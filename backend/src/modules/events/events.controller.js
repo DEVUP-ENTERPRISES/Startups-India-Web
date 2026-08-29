@@ -17,9 +17,7 @@ async function listEvents(req, res) {
 }
 
 async function getEvent(req, res) {
-  // Accept both slug and ObjectId - service resolves either
-  const id = req.params.slugOrId || req.params.id;
-  const event = await eventsService.getEventById(id, req.user?.userId);
+  const event = await eventsService.getEventById(req.params.id, req.user?.userId);
   res.json({ success: true, data: event });
 }
 
@@ -29,20 +27,7 @@ async function getFeaturedEvents(req, res) {
 }
 
 async function registerForEvent(req, res) {
-  const { ticketTypeName, couponCode, guest } = req.body || {};
-  if (!req.user?.userId) {
-    const data = await eventsService.registerGuestForEvent(req.params.id, guest, {
-      ticketTypeName: ticketTypeName || null,
-      ticketPrice: 0,
-      couponUsed: couponCode || '',
-    });
-    return res.json({ success: true, data });
-  }
-  const data = await eventsService.registerForEvent(req.params.id, req.user.userId, {
-    ticketTypeName: ticketTypeName || null,
-    ticketPrice: 0, // free path - no payment
-    couponUsed: couponCode || '',
-  });
+  const data = await eventsService.registerForEvent(req.params.id, req.user.userId);
   res.json({ success: true, data });
 }
 
@@ -56,12 +41,6 @@ async function getUserEvents(req, res) {
   res.json({ success: true, data: events });
 }
 
-async function getGuestRegistrationStatus(req, res) {
-  const { email } = req.body || {};
-  const data = await eventsService.getGuestRegistrationStatus(req.params.id, email);
-  res.json({ success: true, data });
-}
-
 module.exports = {
   listEvents: asyncHandler(listEvents),
   getEvent: asyncHandler(getEvent),
@@ -69,5 +48,4 @@ module.exports = {
   registerForEvent: asyncHandler(registerForEvent),
   unregisterFromEvent: asyncHandler(unregisterFromEvent),
   getUserEvents: asyncHandler(getUserEvents),
-  getGuestRegistrationStatus: asyncHandler(getGuestRegistrationStatus),
 };

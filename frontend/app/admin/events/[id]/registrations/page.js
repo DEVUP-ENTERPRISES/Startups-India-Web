@@ -86,19 +86,6 @@ export default function AdminEventRegistrationsPage({ params }) {
     setTimeout(() => setShowCsvBanner(false), 15000);
   };
 
-  const [recounting, setRecounting] = useState(false);
-  const recount = async () => {
-    setRecounting(true);
-    const { data, error } = await apiPost(`/api/v1/admin/events/${id}/recount`);
-    setRecounting(false);
-    if (error) {
-      alert(error.message || 'Recount failed');
-      return;
-    }
-    alert(`Counts recalculated: ${data?.total ?? 0} total registration(s).`);
-    load();
-  };
-
   const openNotifyModal = () => {
     setNotifyForm({
       title: event ? `Update: ${event.title}` : 'Event Update',
@@ -167,9 +154,6 @@ export default function AdminEventRegistrationsPage({ params }) {
           </h1>
         </div>
         <div style={{ display: 'flex', gap: 12 }}>
-          <button className="btn btn-secondary" onClick={recount} disabled={recounting} title="Recalculate registration counts from actual records">
-            {recounting ? 'Recounting…' : 'Recount'}
-          </button>
           <button className="btn btn-secondary" onClick={exportCSV}>Export CSV</button>
           <button className="btn btn-primary" onClick={openNotifyModal}>
             📢 Send Notification
