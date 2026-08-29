@@ -88,6 +88,147 @@ function renderBulletLines(text) {
     ));
 }
 
+function parseItemText(item) {
+  if (!item) return { title: '', desc: '' };
+
+  if (typeof item === 'object' && item !== null) {
+    const rawTitle = item.title || item.name || item.heading || item.text || item.label || item.value || '';
+    const rawDesc = item.desc || item.description || item.subtext || item.subtitle || item.detail || '';
+    const title = String(rawTitle).replace(/\*/g, '').replace(/^[\s*-•\d\.]+\s*/, '').trim();
+    const desc = String(rawDesc).replace(/\*/g, '').trim();
+    return { title, desc };
+  }
+
+  const raw = String(item).trim();
+  if (!raw) return { title: '', desc: '' };
+
+  // Strip all asterisks first to remove **bold** markers
+  const noStars = raw.replace(/\*/g, '').trim();
+
+  // Strip leading bullet/dash/number markers
+  const cleaned = noStars.replace(/^[\s*-•\d\.]+\s*/, '').trim();
+
+  let title = cleaned;
+  let desc = '';
+
+  // Split on dash (-), en-dash (–), em-dash (—), or colon (:)
+  const dashMatch = cleaned.match(/^([^-–—:]+)\s*[-–—:]\s*(.+)$/s);
+  if (dashMatch) {
+    title = dashMatch[1].trim();
+    desc = dashMatch[2].trim();
+  }
+
+  title = title.replace(/^[\s*-•]+|[\s*-•]+$/g, '').trim();
+  desc = desc.replace(/^[\s*-•]+|[\s*-•]+$/g, '').trim();
+
+  if (!title) {
+    title = cleaned || raw.replace(/\*/g, '').trim();
+  }
+
+  return { title, desc };
+}
+
+function parseChiefGuest(guest, index) {
+  if (!guest) return null;
+  if (typeof guest === 'string') {
+    const trimmed = guest.replace(/\*/g, '').replace(/^[\s*-•]+/, '').trim();
+    if (!trimmed) return null;
+    let name = trimmed;
+    let description = '';
+    if (trimmed.includes(' - ')) {
+      const parts = trimmed.split(' - ');
+      name = parts[0];
+      description = parts.slice(1).join(' - ');
+    } else if (trimmed.includes(' – ')) {
+      const parts = trimmed.split(' – ');
+      name = parts[0];
+      description = parts.slice(1).join(' – ');
+    }
+    return { _id: `guest_${index}`, name: name.trim(), description: description.trim() };
+  }
+
+  const rawName = String(guest.name || guest.title || guest.fullName || guest.speakerName || '').replace(/\*/g, '').trim();
+  if (!rawName) return null;
+
+  const description = String(guest.description || guest.desc || guest.role || guest.designation || guest.company || '').replace(/\*/g, '').trim();
+  const logo = guest.logo || guest.photo || guest.image || guest.avatar || null;
+  const website = guest.website || guest.link || null;
+  const linkedin = guest.linkedinProfile || guest.linkedin || null;
+
+  return { _id: guest._id || guest.id || index, name: rawName, description, logo, website, linkedin };
+}
+
+const DEFAULT_HIGHLIGHTS = [
+  {
+    title: 'CONNECT',
+    desc: 'Meet founders, investors, government leaders and ecosystem experts.',
+  },
+  {
+    title: 'LEARN',
+    desc: 'Gain insights on startups, funding and entrepreneurship.',
+  },
+  {
+    title: 'ACCESS',
+    desc: 'Explore government schemes, startup support and opportunities.',
+  },
+  {
+    title: 'PITCH',
+    desc: 'Present your startup through the Founder Pitch Arena.',
+  },
+  {
+    title: 'NETWORK',
+    desc: "Build valuable connections across Telangana's startup ecosystem.",
+  },
+];
+
+const DEFAULT_GAINS = [
+  {
+    title: 'Government Linkages',
+    desc: 'Connect with key government initiatives and leaders.',
+  },
+  {
+    title: 'Funding Readiness',
+    desc: "Enhance your startup's preparedness for fundraising.",
+  },
+  {
+    title: 'Investor Connect',
+    desc: 'Access curated investor interactions and opportunities.',
+  },
+  {
+    title: 'Founder Pitch Arena',
+    desc: 'Showcase your startup to investors and ecosystem leaders.',
+  },
+  {
+    title: 'Funding Readiness',
+    desc: "Improve your startup's preparedness for fundraising.",
+  },
+  {
+    title: 'StartupsIndia Ecosystem Journey',
+    desc: 'Gain visibility, community access and growth opportunities.',
+  },
+];
+
+const DEFAULT_CHIEF_GUESTS = [
+  {
+    _id: 'cg_1',
+    name: 'G. Satheesh Reddy',
+    description: 'Indian scientist and former Chairperson of DRDO',
+    logo: null,
+  },
+  {
+    _id: 'cg_2',
+    name: 'Sri U. Raghuram Sharma',
+    description: "OSD to Hon'ble Minister- ITE&C and Industries (FAC)",
+    logo: null,
+  },
+];
+
+const DEFAULT_SPECIAL_GUESTS = [
+  { _id: 'sg_1', name: 'Santosh Kumar Pabba ji' },
+  { _id: 'sg_2', name: 'Suresh Boggavarapu' },
+  { _id: 'sg_3', name: 'Raghunath Maringanti' },
+];
+
 export default function EventDetailsPage() {
   const router = useRouter();
   const params = useParams();
@@ -197,34 +338,28 @@ export default function EventDetailsPage() {
     }, [targetDate]);
 
     return (
-      <div className="event-countdown" style={{
-        display: 'flex',
-        gap: '12px',
-        marginTop: '16px',
-        background: '#1f2937',
-        padding: '12px',
-        borderRadius: '12px',
-        color: 'white',
-        justifyContent: 'center'
-      }}>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '18px', fontWeight: '800' }}>{timeLeft.days}</div>
-          <div style={{ fontSize: '10px', opacity: 0.7, textTransform: 'uppercase' }}>Days</div>
-        </div>
-        <div style={{ fontSize: '18px', fontWeight: '800' }}>:</div>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '18px', fontWeight: '800' }}>{timeLeft.hours}</div>
-          <div style={{ fontSize: '10px', opacity: 0.7, textTransform: 'uppercase' }}>Hours</div>
-        </div>
-        <div style={{ fontSize: '18px', fontWeight: '800' }}>:</div>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '18px', fontWeight: '800' }}>{timeLeft.minutes}</div>
-          <div style={{ fontSize: '10px', opacity: 0.7, textTransform: 'uppercase' }}>Mins</div>
-        </div>
-        <div style={{ fontSize: '18px', fontWeight: '800' }}>:</div>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '18px', fontWeight: '800' }}>{timeLeft.seconds}</div>
-          <div style={{ fontSize: '10px', opacity: 0.7, textTransform: 'uppercase' }}>Secs</div>
+      <div className="edp-countdown-wrap">
+        <div className="edp-countdown-label">Event Starts In</div>
+        <div className="edp-countdown-inner">
+          <div className="edp-countdown-block">
+            <div className="edp-countdown-num">{String(timeLeft.days).padStart(2, '0')}</div>
+            <div className="edp-countdown-unit">Days</div>
+          </div>
+          <div className="edp-countdown-sep">:</div>
+          <div className="edp-countdown-block">
+            <div className="edp-countdown-num">{String(timeLeft.hours).padStart(2, '0')}</div>
+            <div className="edp-countdown-unit">Hrs</div>
+          </div>
+          <div className="edp-countdown-sep">:</div>
+          <div className="edp-countdown-block">
+            <div className="edp-countdown-num">{String(timeLeft.minutes).padStart(2, '0')}</div>
+            <div className="edp-countdown-unit">Mins</div>
+          </div>
+          <div className="edp-countdown-sep">:</div>
+          <div className="edp-countdown-block">
+            <div className="edp-countdown-num">{String(timeLeft.seconds).padStart(2, '0')}</div>
+            <div className="edp-countdown-unit">Secs</div>
+          </div>
         </div>
       </div>
     );
@@ -291,12 +426,10 @@ export default function EventDetailsPage() {
   // If loading, show loading state
   if (loading) {
     return (
-      <div className="event-details-page">
-        <div className="container">
-          <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-            <div className="loading-spinner"></div>
-            <p>Loading event details...</p>
-          </div>
+      <div className="edp-root">
+        <div className="edp-loading">
+          <div className="edp-spinner"></div>
+          <p>Loading event details...</p>
         </div>
       </div>
     );
@@ -305,31 +438,13 @@ export default function EventDetailsPage() {
   // If event not found, show error
   if (!event || error) {
     return (
-      <div className="event-details-page">
-        <div className="container">
-          <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-            <h1 style={{ fontSize: '24px', color: '#1f2937', marginBottom: '16px' }}>
-              {error || 'Event Not Found'}
-            </h1>
-            <p style={{ color: '#6b7280', marginBottom: '24px' }}>
-              The event you're looking for doesn't exist.
-            </p>
-            <button
-              onClick={() => router.push('/events')}
-              style={{
-                padding: '12px 24px',
-                background: '#e63946',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                fontSize: '14px',
-                fontWeight: '600',
-                cursor: 'pointer',
-              }}
-            >
-              Back to Events
-            </button>
-          </div>
+      <div className="edp-root">
+        <div className="edp-not-found">
+          <h1>{error || 'Event Not Found'}</h1>
+          <p>The event you&apos;re looking for doesn&apos;t exist.</p>
+          <button onClick={() => router.push('/events')} className="edp-not-found-btn">
+            Back to Events
+          </button>
         </div>
       </div>
     );
@@ -585,149 +700,265 @@ export default function EventDetailsPage() {
   };
 
   return (
-    <div className="event-page-root" style={{ minHeight: '100vh', background: '#f1f5f9', paddingTop: 'var(--header-h, 72px)', paddingBottom: 60 }}>
+    <div className="edp-root">
 
-      {/* Sticky back bar */}
-      <div className="event-page-backbar" style={{ background: '#fff', borderBottom: '1px solid #e2e8f0', padding: '12px 0', position: 'sticky', top: 'var(--header-h, 72px)', zIndex: 100 }}>
-        <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <button onClick={() => router.back()} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 16px', background: 'transparent', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 14, fontWeight: 600, color: '#374151', cursor: 'pointer' }}>
+      {/* ── Top bar ─────────────────────────────────────── */}
+      <div className="edp-topbar">
+        <div className="edp-topbar-inner">
+          <button onClick={() => router.back()} className="edp-back-btn">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
             Back to Events
           </button>
-          <button onClick={handleShare} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: 'transparent', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 13, fontWeight: 600, color: '#64748b', cursor: 'pointer' }}>
+          <button onClick={handleShare} className="edp-share-btn">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" /></svg>
-            Share
+            Share Event
           </button>
         </div>
       </div>
 
-      <div className="container event-page-container">
+      <div className="edp-container">
 
-        {/* Two-column layout */}
-        <div className="event-page-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: 24, marginTop: 24, alignItems: 'start' }}>
+        {/* ── Hero Banner ───────────────────────────────── */}
+        <div className="edp-hero">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={event.coverImage || DEFAULT_EVENT_IMAGE}
+            alt=""
+            className="edp-hero-img"
+            onError={e => { e.target.onerror = null; e.target.src = DEFAULT_EVENT_IMAGE; }}
+          />
 
-          {/* LEFT column */}
-          <div className="event-page-main" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-
-            {/* Event identity */}
-            <div className="event-page-identity" style={{ background: 'linear-gradient(135deg, #ffffff 0%, #fff7f7 100%)', borderRadius: 16, padding: '24px 26px', border: '1px solid #fee2e2', boxShadow: '0 4px 16px rgba(15,23,42,0.05)' }}>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
-                {event.category && <span style={{ background: '#e63946', color: '#fff', fontSize: 10, fontWeight: 800, padding: '4px 10px', borderRadius: 20, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{event.category}</span>}
-                {event.mode && <span style={{ background: event.mode === 'Online' ? '#2563eb' : '#d97706', color: '#fff', fontSize: 10, fontWeight: 800, padding: '4px 10px', borderRadius: 20, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{event.mode}</span>}
+          <div className="edp-hero-body">
+            {/* Top row: badges + organiser logos */}
+            <div className="edp-hero-top-row">
+              <div className="edp-hero-badges">
+                {event.category && <span className="edp-badge edp-badge--cat">{event.category}</span>}
+                {event.mode && (
+                  <span className={`edp-badge ${event.mode === 'Online' ? 'edp-badge--online' : 'edp-badge--mode'}`}>
+                    {event.mode}
+                  </span>
+                )}
+                {event.isFeatured && (
+                  <span className="edp-badge edp-badge--feat">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+                    Featured Event
+                  </span>
+                )}
               </div>
-              <h1 style={{ fontSize: 'clamp(24px, 3vw, 36px)', fontWeight: 900, lineHeight: 1.12, color: '#111827', margin: 0 }}>{event.title}</h1>
-              {event.subtitle && <p style={{ fontSize: 15, lineHeight: 1.6, color: '#64748b', margin: '10px 0 0', maxWidth: 680 }}>{renderBoldText(event.subtitle)}</p>}
+
+              {/* Organiser logos */}
+              {event.organizedBy?.length > 0 && (
+                <div className="edp-organiser-row">
+                  {event.organizedBy.map((org, idx) => (
+                    <div key={org._id || idx} className="edp-organiser-label">
+                      <span>{idx === 0 ? 'Organised by' : 'In partnership with'}</span>
+                      {org.logo ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={org.logo} alt={org.name} className="edp-organiser-logo" />
+                      ) : (
+                        <span style={{ color: 'rgba(255,255,255,0.85)', fontSize: 12, fontWeight: 700 }}>{org.name}</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
-            {/* Quick meta chips */}
-            <div className="event-page-meta" style={{ background: '#fff', borderRadius: 14, padding: '18px 22px', boxShadow: '0 1px 3px rgba(0,0,0,0.07)', display: 'flex', flexWrap: 'wrap', gap: 18 }}>
-              {(event.eventStartDate || event.date) && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <div style={{ width: 32, height: 32, borderRadius: 8, background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 10, color: '#9ca3af', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Date</div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: '#374151' }}>{formatDate(event.eventStartDate || event.date)}{event.time && ` · ${event.time}`}</div>
+            {/* Title */}
+            <h1 className="edp-hero-title">{event.title}</h1>
+            {event.subtitle && <p className="edp-hero-subtitle">{renderBoldText(event.subtitle)}</p>}
+          </div>
+
+          {/* Meta strip */}
+          <div className="edp-hero-meta">
+            {(event.eventStartDate || event.date) && (
+              <div className="edp-meta-item">
+                <div className="edp-meta-icon">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
+                </div>
+                <div>
+                  <div className="edp-meta-label">Date & Time</div>
+                  <div className="edp-meta-value">
+                    {formatDate(event.eventStartDate || event.date)}
+                    {event.time && <><br />{event.time}</>}
                   </div>
                 </div>
-              )}
-              {(event.venueName || event.city || event.mode) && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <div style={{ width: 32, height: 32, borderRadius: 8, background: '#dcfce7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 10, color: '#9ca3af', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Venue</div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: '#374151' }}>
-                      {event.mode === 'Offline' ? (event.venueName || event.city || 'Offline') : 'Online'}
-                      {event.googleMapsLink && <a href={event.googleMapsLink} target="_blank" rel="noopener noreferrer" style={{ marginLeft: 6, color: '#3b82f6', fontSize: 11 }}>Map ↗</a>}
-                    </div>
-                  </div>
+              </div>
+            )}
+
+            {(event.venueName || event.city || event.mode) && (
+              <div className="edp-meta-item">
+                <div className="edp-meta-icon">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg>
                 </div>
-              )}
-              {event.duration && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <div style={{ width: 32, height: 32, borderRadius: 8, background: '#ede9fe', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="2"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
+                <div>
+                  <div className="edp-meta-label">Venue</div>
+                  <div className="edp-meta-value">
+                    {event.mode === 'Offline' ? (event.venueName || event.city || 'Offline') : 'Online'}
+                    {event.city && event.mode === 'Offline' && event.venueName && event.city !== event.venueName && (
+                      <>, {event.city}</>
+                    )}
                   </div>
-                  <div>
-                    <div style={{ fontSize: 10, color: '#9ca3af', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Duration</div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: '#374151' }}>{event.duration}</div>
-                  </div>
+                  {event.googleMapsLink && (
+                    <a href={event.googleMapsLink} target="_blank" rel="noopener noreferrer" className="edp-meta-link">
+                      View on map →
+                    </a>
+                  )}
                 </div>
-              )}
-            </div>
+              </div>
+            )}
+
+            {event.duration && (
+              <div className="edp-meta-item">
+                <div className="edp-meta-icon">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="2"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
+                </div>
+                <div>
+                  <div className="edp-meta-label">Duration</div>
+                  <div className="edp-meta-value">{event.duration}</div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* ── Two-column layout ─────────────────────────── */}
+        <div className="edp-grid">
+
+          {/* ═══ LEFT COLUMN ═══ */}
+          <div className="edp-main">
 
             {/* Tags */}
             {event.tags?.length > 0 && (
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              <div className="edp-tags">
                 {event.tags.map((tag, i) => (
-                  <span key={i} style={{ padding: '5px 14px', background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: 20, fontSize: 12, fontWeight: 600, color: '#475569' }}>{tag}</span>
+                  <span key={i} className="edp-tag">{tag}</span>
                 ))}
               </div>
             )}
 
-            {/* About */}
+            {/* About the Event */}
             {event.description && (
-              <div style={{ background: '#fff', borderRadius: 14, padding: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.07)' }}>
-                <h2 style={{ fontSize: 18, fontWeight: 800, color: '#111827', margin: '0 0 14px' }}>About the Event</h2>
-                <div style={{ fontSize: 14, lineHeight: 1.8, color: '#4b5563' }}>
-                  {event.description.split('\n\n').filter(Boolean).map((p, i) => <p key={i} style={{ margin: '0 0 12px' }}>{renderBoldText(p)}</p>)}
+              <div className="edp-card">
+                <h2 className="edp-card-title">
+                  <span className="edp-card-title-icon edp-card-title-icon--pink">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
+                  </span>
+                  About the Event
+                </h2>
+                <div className="edp-about-body">
+                  {event.description.split('\n\n').filter(Boolean).map((p, i) => {
+                    // Detect tagline/theme lines (quoted or short bold lines)
+                    const isQuote = /^[""\u201c]/.test(p.trim()) || (/^\*\*/.test(p.trim()) && p.length < 120);
+                    if (isQuote) {
+                      return (
+                        <div key={i} className="edp-quote-strip">
+                          <span className="edp-quote-mark">&ldquo;</span>
+                          <span className="edp-quote-text">{renderBoldText(p.replace(/^[""\u201c]+|[""\u201d]+$/g, ''))}</span>
+                        </div>
+                      );
+                    }
+                    return <p key={i}>{renderBoldText(p)}</p>;
+                  })}
                 </div>
               </div>
             )}
 
             {/* Highlights */}
-            {event.highlights?.filter(Boolean).length > 0 && (
-              <div style={{ background: '#fff', borderRadius: 14, padding: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.07)' }}>
-                <h2 style={{ fontSize: 18, fontWeight: 800, color: '#111827', margin: '0 0 14px' }}>Highlights</h2>
-                <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  {event.highlights.filter(Boolean).map((h, i) => (
-                    <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: 14, color: '#374151' }}>
-                      <span style={{ width: 20, height: 20, borderRadius: '50%', background: '#fef3c7', border: '1px solid #fbbf24', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>
-                      </span>
-                      {renderBoldText(h)}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+            {(() => {
+              const parsed = (event.highlights || []).map(parseItemText).filter(item => item.title || item.desc);
+              const list = parsed.length > 0 ? parsed : DEFAULT_HIGHLIGHTS;
+              return (
+                <div className="edp-card">
+                  <h2 className="edp-card-title">
+                    <span className="edp-card-title-icon edp-card-title-icon--amber">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+                    </span>
+                    Highlights
+                  </h2>
+                  <div className="edp-highlights-grid">
+                    {list.map((item, i) => {
+                      const iconColors = ['#e63946', '#d97706', '#10b981', '#8b5cf6', '#2563eb'];
+                      const bgColors = ['#fff1f2', '#fffbeb', '#ecfdf5', '#f5f3ff', '#eff6ff'];
+                      return (
+                        <div key={i} className="edp-highlight-item">
+                          <div className="edp-highlight-icon-wrap" style={{ background: bgColors[i % 5] }}>
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={iconColors[i % 5]} strokeWidth="2">
+                              {i % 5 === 0 && <><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></>}
+                              {i % 5 === 1 && <><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" /></>}
+                              {i % 5 === 2 && <><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.71 1.26-1.55 1.66-2.48M12.5 8.5L8 13l3 3 4.5-4.5" /><path d="M12 5l7 7" /><path d="M9 18h.01" /></>}
+                              {i % 5 === 3 && <><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" /><path d="M19 10v2a7 7 0 0 1-14 0v-2" /><line x1="12" y1="19" x2="12" y2="23" /><line x1="8" y1="23" x2="16" y2="23" /></>}
+                              {i % 5 === 4 && <><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></>}
+                            </svg>
+                          </div>
+                          <div className="edp-highlight-name">{item.title}</div>
+                          {item.desc && <div className="edp-highlight-desc">{item.desc}</div>}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
 
-            {/* Outcomes */}
-            {event.outcomes?.filter(Boolean).length > 0 && (
-              <div style={{ background: '#fff', borderRadius: 14, padding: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.07)' }}>
-                <h2 style={{ fontSize: 18, fontWeight: 800, color: '#111827', margin: '0 0 14px' }}>What You Will Gain</h2>
-                <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  {event.outcomes.filter(Boolean).map((o, i) => (
-                    <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: 14, color: '#374151' }}>
-                      <span style={{ width: 20, height: 20, borderRadius: '50%', background: '#dcfce7', border: '1px solid #86efac', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>
-                      </span>
-                      {renderBoldText(o)}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+            {/* What You Will Gain (Main column) */}
+            {(() => {
+              const parsed = (event.outcomes || []).map(parseItemText).filter(item => item.title || item.desc);
+              const list = parsed.length > 0 ? parsed : DEFAULT_GAINS;
+              return (
+                <div className="edp-card edp-card--gains-main">
+                  <h2 className="edp-card-title">
+                    <span className="edp-card-title-icon edp-card-title-icon--green">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+                    </span>
+                    What You Will Gain
+                  </h2>
+                  <div className="edp-gains-two-col">
+                    {list.map((item, i) => {
+                      const iconBgs = ['#ecfdf5', '#eff6ff', '#f5f3ff', '#fffbeb', '#fff1f2', '#ecfeff'];
+                      const iconColors = ['#10b981', '#2563eb', '#8b5cf6', '#d97706', '#e63946', '#0ea5e9'];
+                      return (
+                        <div key={i} className="edp-gain-card">
+                          <div className="edp-gain-card-icon" style={{ background: iconBgs[i % 6] }}>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={iconColors[i % 6]} strokeWidth="2">
+                              {i % 6 === 0 && <><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></>}
+                              {i % 6 === 1 && <><line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" /></>}
+                              {i % 6 === 2 && <><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></>}
+                              {i % 6 === 3 && <><polyline points="23 6 13.5 15.5 8.5 10.5 1 18" /><polyline points="17 6 23 6 23 12" /></>}
+                              {i % 6 === 4 && <><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" /><path d="M19 10v2a7 7 0 0 1-14 0v-2" /><line x1="12" y1="19" x2="12" y2="23" /><line x1="8" y1="23" x2="16" y2="23" /></>}
+                              {i % 6 === 5 && <><circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" /></>}
+                            </svg>
+                          </div>
+                          <div className="edp-gain-card-content">
+                            <div className="edp-gain-card-title">{item.title}</div>
+                            {item.desc && <div className="edp-gain-card-desc">{item.desc}</div>}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* Timeline */}
             {event.timeline?.length > 0 && (
-              <div style={{ background: '#fff', borderRadius: 14, padding: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.07)' }}>
-                <h2 style={{ fontSize: 18, fontWeight: 800, color: '#111827', margin: '0 0 20px' }}>Agenda</h2>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+              <div className="edp-card">
+                <h2 className="edp-card-title">
+                  <span className="edp-card-title-icon edp-card-title-icon--purple">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
+                  </span>
+                  Agenda
+                </h2>
+                <div className="edp-timeline">
                   {event.timeline.map((item, i) => (
-                    <div key={i} style={{ display: 'flex', gap: 14, paddingBottom: i < event.timeline.length - 1 ? 22 : 0, position: 'relative' }}>
-                      {i < event.timeline.length - 1 && <div style={{ position: 'absolute', left: 15, top: 30, bottom: 0, width: 2, background: '#e2e8f0' }} />}
-                      <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#e63946', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, zIndex: 1 }}>
-                        <span style={{ color: '#fff', fontSize: 11, fontWeight: 800 }}>{i + 1}</span>
-                      </div>
+                    <div key={i} className="edp-tl-item">
+                      <div className="edp-tl-num">{i + 1}</div>
                       <div style={{ flex: 1, paddingTop: 4 }}>
-                        {item.time && <div style={{ fontSize: 11, fontWeight: 700, color: '#e63946', marginBottom: 2 }}>{item.time}</div>}
-                        <div style={{ fontWeight: 700, fontSize: 14, color: '#111827' }}>{renderBoldText(item.title)}</div>
-                        {item.description && <div style={{ fontSize: 13, color: '#6b7280', marginTop: 4 }}>{renderBoldText(item.description)}</div>}
-                        {item.speaker && <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 3, fontStyle: 'italic' }}>- {renderBoldText(item.speaker)}</div>}
+                        {item.time && <div className="edp-tl-time">{item.time}</div>}
+                        <div className="edp-tl-title">{renderBoldText(item.title)}</div>
+                        {item.description && <div className="edp-tl-desc">{renderBoldText(item.description)}</div>}
+                        {item.speaker && <div className="edp-tl-speaker">– {renderBoldText(item.speaker)}</div>}
                       </div>
                     </div>
                   ))}
@@ -740,15 +971,21 @@ export default function EventDetailsPage() {
               const people = event.speakers?.length ? event.speakers : (event.artists || []);
               if (!people.length) return null;
               return (
-                <div style={{ background: '#fff', borderRadius: 14, padding: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.07)' }}>
-                  <h2 style={{ fontSize: 18, fontWeight: 800, color: '#111827', margin: '0 0 18px' }}>{event.speakers?.length ? 'Speakers' : 'Artists'}</h2>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 14 }}>
+                <div className="edp-card">
+                  <h2 className="edp-card-title">
+                    <span className="edp-card-title-icon edp-card-title-icon--blue">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" /><path d="M19 10v2a7 7 0 0 1-14 0v-2" /><line x1="12" y1="19" x2="12" y2="23" /><line x1="8" y1="23" x2="16" y2="23" /></svg>
+                    </span>
+                    {event.speakers?.length ? 'Speakers' : 'Artists'}
+                  </h2>
+                  <div className="edp-speakers-grid">
                     {people.map((p, i) => (
-                      <div key={i} style={{ display: 'flex', gap: 12, padding: 14, background: '#f8fafc', borderRadius: 12, border: '1px solid #e2e8f0' }}>
+                      <div key={i} className="edp-speaker-card">
                         {p.photo || p.image ? (
-                          <img src={p.photo || p.image} alt={p.name} style={{ width: 58, height: 58, borderRadius: 10, objectFit: 'cover', flexShrink: 0 }} />
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={p.photo || p.image} alt={p.name} className="edp-speaker-avatar" />
                         ) : (
-                          <div style={{ width: 58, height: 58, borderRadius: 10, background: '#f1f5f9', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          <div className="edp-speaker-avatar-fallback">
                             <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
                           </div>
                         )}
@@ -765,14 +1002,101 @@ export default function EventDetailsPage() {
               );
             })()}
 
-            {/* Organized By - only if data exists */}
+            {/* Chief Guests */}
+            {(() => {
+              const parsed = (event.chiefGuests || []).map(parseChiefGuest).filter(Boolean);
+              const guests = parsed.length > 0 ? parsed : DEFAULT_CHIEF_GUESTS;
+              return (
+                <div className="edp-card">
+                  <h2 className="edp-card-title">
+                    <span className="edp-card-title-icon edp-card-title-icon--pink">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="8" r="7" /><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88" /></svg>
+                    </span>
+                    Chief Guests
+                  </h2>
+                  <div className="edp-chief-grid">
+                    {guests.map((guest, i) => (
+                      <div key={guest._id || i} className="edp-chief-card">
+                        {guest.logo ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={guest.logo} alt={guest.name} className="edp-chief-avatar" />
+                        ) : (
+                          <div className="edp-chief-avatar-fallback">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+                          </div>
+                        )}
+                        <div className="edp-chief-info">
+                          <div className="edp-chief-name">
+                            {guest.website ? (
+                              <a href={guest.website} target="_blank" rel="noopener noreferrer">{guest.name}</a>
+                            ) : guest.name}
+                          </div>
+                          {guest.description && <div className="edp-chief-desc">{guest.description}</div>}
+                          {guest.linkedin && (
+                            <a href={guest.linkedin} target="_blank" rel="noopener noreferrer" className="edp-chief-linkedin" title="LinkedIn">
+                              <svg width="18" height="18" viewBox="0 0 24 24" fill="#0a66c2"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" /></svg>
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Special Guests */}
+            {(() => {
+              const parsed = (event.specialGuests || []).map(parseChiefGuest).filter(Boolean);
+              const guests = parsed.length > 0 ? parsed : DEFAULT_SPECIAL_GUESTS;
+              return (
+                <div className="edp-card">
+                  <h2 className="edp-card-title">
+                    <span className="edp-card-title-icon edp-card-title-icon--amber">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+                    </span>
+                    Special Guests
+                  </h2>
+                  <div className="edp-special-grid">
+                    {guests.map((guest, i) => (
+                      <div key={guest._id || i} className="edp-special-card">
+                        {guest.logo ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={guest.logo} alt={guest.name} className="edp-special-avatar" />
+                        ) : (
+                          <div className="edp-special-avatar-fallback">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+                          </div>
+                        )}
+                        <div className="edp-special-info">
+                          <div className="edp-special-name">
+                            {guest.website ? (
+                              <a href={guest.website} target="_blank" rel="noopener noreferrer">{guest.name}</a>
+                            ) : guest.name}
+                          </div>
+                          {guest.description && <div className="edp-special-desc">{guest.description}</div>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Organized By */}
             {(event.organizedBy?.length > 0 || (event.organizer && event.organizer !== 'StartupsIndia')) && (
-              <div style={{ background: '#fff', borderRadius: 14, padding: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.07)' }}>
-                <h2 style={{ fontSize: 18, fontWeight: 800, color: '#111827', margin: '0 0 14px' }}>Organized By</h2>
+              <div className="edp-card">
+                <h2 className="edp-card-title">
+                  <span className="edp-card-title-icon edp-card-title-icon--blue">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2" /><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" /></svg>
+                  </span>
+                  Organized By
+                </h2>
                 {event.organizedBy?.length > 0 ? (
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+                  <div className="edp-org-grid">
                     {event.organizedBy.map(org => (
-                      <a key={org._id} href={org.website || undefined} target={org.website ? '_blank' : undefined} rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', border: '1px solid #e2e8f0', borderRadius: 12, background: '#f8fafc', textDecoration: 'none' }}>
+                      <a key={org._id} href={org.website || undefined} target={org.website ? '_blank' : undefined} rel="noopener noreferrer" className="edp-org-chip">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
                         {org.logo && <img src={org.logo} alt={org.name} style={{ height: 32, maxWidth: 72, objectFit: 'contain' }} />}
                         <div>
                           <div style={{ fontWeight: 700, fontSize: 13, color: '#111827' }}>{org.name}</div>
@@ -787,82 +1111,26 @@ export default function EventDetailsPage() {
               </div>
             )}
 
-            {/* Chief Guests - dignitaries shown as prominent person cards */}
-            {event.chiefGuests?.length > 0 && (
-              <div style={{ background: '#fff', borderRadius: 14, padding: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.07)' }}>
-                <h2 style={{ fontSize: 18, fontWeight: 800, color: '#111827', margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ fontSize: 18 }}>🎖️</span> Chief Guests
-                </h2>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 14 }}>
-                  {event.chiefGuests.map(guest => (
-                    <div key={guest._id} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: 14, borderRadius: 14, border: '1px solid #fecdd3', background: 'linear-gradient(135deg,#fff1f2,#ffffff)' }}>
-                      {guest.logo ? (
-                        <img src={guest.logo} alt={guest.name} style={{ width: 60, height: 60, borderRadius: '50%', objectFit: 'cover', border: '2px solid #fecdd3', flexShrink: 0 }} />
-                      ) : (
-                        <div style={{ width: 60, height: 60, borderRadius: '50%', background: '#fff', border: '2px solid #fecdd3', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fb7185" strokeWidth="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
-                        </div>
-                      )}
-                      <div style={{ minWidth: 0 }}>
-                        {guest.website ? (
-                          <a href={guest.website} target="_blank" rel="noopener noreferrer" style={{ fontWeight: 800, fontSize: 15, color: '#111827', textDecoration: 'none' }}>{guest.name}</a>
-                        ) : (
-                          <div style={{ fontWeight: 800, fontSize: 15, color: '#111827' }}>{guest.name}</div>
-                        )}
-                        {guest.description && <div style={{ fontSize: 12, color: '#be123c', marginTop: 3, fontWeight: 600 }}>{guest.description}</div>}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Special Guests - shown as prominent person cards */}
-            {event.specialGuests?.length > 0 && (
-              <div style={{ background: '#fff', borderRadius: 14, padding: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.07)' }}>
-                <h2 style={{ fontSize: 18, fontWeight: 800, color: '#111827', margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ fontSize: 18 }}>⭐</span> Special Guests
-                </h2>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 14 }}>
-                  {event.specialGuests.map(guest => (
-                    <div key={guest._id} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: 14, borderRadius: 14, border: '1px solid #fed7aa', background: 'linear-gradient(135deg,#fff7ed,#ffffff)' }}>
-                      {guest.logo ? (
-                        <img src={guest.logo} alt={guest.name} style={{ width: 60, height: 60, borderRadius: '50%', objectFit: 'cover', border: '2px solid #fed7aa', flexShrink: 0 }} />
-                      ) : (
-                        <div style={{ width: 60, height: 60, borderRadius: '50%', background: '#fff', border: '2px solid #fed7aa', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fb923c" strokeWidth="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
-                        </div>
-                      )}
-                      <div style={{ minWidth: 0 }}>
-                        {guest.website ? (
-                          <a href={guest.website} target="_blank" rel="noopener noreferrer" style={{ fontWeight: 800, fontSize: 15, color: '#111827', textDecoration: 'none' }}>{guest.name}</a>
-                        ) : (
-                          <div style={{ fontWeight: 800, fontSize: 15, color: '#111827' }}>{guest.name}</div>
-                        )}
-                        {guest.description && <div style={{ fontSize: 12, color: '#c2410c', marginTop: 3, fontWeight: 600 }}>{guest.description}</div>}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Partner strips - only rendered when each list has data */}
+            {/* Partner strips */}
             {[
-              { key: 'supportingPartners', label: 'Supporting Partners', accent: '#15803d', bg: '#f0fdf4', border: '#bbf7d0' },
-              { key: 'academicPartners',   label: 'Academic Partners',   accent: '#7e22ce', bg: '#fdf4ff', border: '#e9d5ff' },
-              { key: 'sponsors',           label: 'Sponsors',            accent: '#b45309', bg: '#fffbeb', border: '#fde68a' },
-            ].map(({ key, label, accent, bg, border }) => {
+              { key: 'supportingPartners', label: 'Supporting Partners', icon: '🤝', accent: '#15803d', bg: '#f0fdf4', border: '#bbf7d0' },
+              { key: 'academicPartners', label: 'Academic Partners', icon: '🎓', accent: '#7e22ce', bg: '#fdf4ff', border: '#e9d5ff' },
+              { key: 'sponsors', label: 'Sponsors', icon: '💎', accent: '#b45309', bg: '#fffbeb', border: '#fde68a' },
+            ].map(({ key, label, icon, bg, border }) => {
               const list = event[key];
               if (!list?.length) return null;
               return (
-                <div key={key} style={{ background: '#fff', borderRadius: 14, padding: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.07)' }}>
-                  <h2 style={{ fontSize: 18, fontWeight: 800, color: '#111827', margin: '0 0 14px' }}>{label}</h2>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+                <div key={key} className="edp-card">
+                  <h2 className="edp-card-title">
+                    <span className="edp-card-title-icon">{icon}</span>
+                    {label}
+                  </h2>
+                  <div className="edp-partner-strip">
                     {list.map(org => (
-                      <a key={org._id} href={org.website || undefined} target={org.website ? '_blank' : undefined} rel="noopener noreferrer" title={org.name} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px', borderRadius: 10, border: `1px solid ${border}`, background: bg, textDecoration: 'none' }}>
-                        {org.logo && <img src={org.logo} alt={org.name} style={{ height: 28, maxWidth: 68, objectFit: 'contain' }} />}
-                        <span style={{ fontWeight: 700, fontSize: 12, color: '#111827' }}>{org.name}</span>
+                      <a key={org._id} href={org.website || undefined} target={org.website ? '_blank' : undefined} rel="noopener noreferrer" title={org.name} className="edp-partner-chip" style={{ border: `1px solid ${border}`, background: bg }}>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        {org.logo && <img src={org.logo} alt={org.name} className="edp-partner-logo" />}
+                        <span>{org.name}</span>
                       </a>
                     ))}
                   </div>
@@ -871,129 +1139,104 @@ export default function EventDetailsPage() {
             })}
           </div>
 
-          {/* RIGHT column - compact poster and booking card */}
-          <div className="event-page-sidebar" style={{ position: 'sticky', top: 100, display: 'flex', flexDirection: 'column', gap: 14 }}>
-
-            {/* Compact 4:5 poster */}
-            <div className="event-page-poster" style={{ position: 'relative', width: 'min(100%, 320px)', aspectRatio: '4/5', alignSelf: 'center', borderRadius: 16, overflow: 'hidden', background: '#0f172a', boxShadow: '0 8px 24px rgba(15,23,42,0.16)' }}>
-              <img
-                src={event.images?.[currentImageIndex] || event.coverImage || DEFAULT_EVENT_IMAGE}
-                alt={event.title}
-                style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.72, display: 'block' }}
-                onError={e => { e.target.onerror = null; e.target.src = DEFAULT_EVENT_IMAGE; }}
-              />
-              {event.images?.length > 1 && (
-                <>
-                  <button onClick={prevImage} aria-label="Previous poster" style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.9)', border: 'none', borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="2.5"><path d="M15 18l-6-6 6-6" /></svg>
-                  </button>
-                  <button onClick={nextImage} aria-label="Next poster" style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.9)', border: 'none', borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="2.5"><path d="M9 18l6-6-6-6" /></svg>
-                  </button>
-                  <div style={{ position: 'absolute', bottom: 94, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 5, zIndex: 2 }}>
-                    {event.images.map((_, i) => (
-                      <button key={i} onClick={() => setCurrentImageIndex(i)} aria-label={`Show poster ${i + 1}`} style={{ width: i === currentImageIndex ? 18 : 7, height: 7, borderRadius: 4, background: i === currentImageIndex ? '#fff' : 'rgba(255,255,255,0.5)', border: 'none', cursor: 'pointer', transition: 'all 0.2s', padding: 0 }} />
-                    ))}
-                  </div>
-                </>
-              )}
-              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'linear-gradient(transparent, rgba(0,0,0,0.85))', padding: '42px 18px 18px' }}>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 8 }}>
-                  {event.category && <span style={{ background: '#e63946', color: '#fff', fontSize: 8, fontWeight: 800, padding: '3px 8px', borderRadius: 20, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{event.category}</span>}
-                  {event.mode && <span style={{ background: event.mode === 'Online' ? '#3b82f6' : '#f59e0b', color: '#fff', fontSize: 8, fontWeight: 800, padding: '3px 8px', borderRadius: 20, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{event.mode}</span>}
-                  <span style={{ background: event.status === 'live' ? '#10b981' : event.status === 'upcoming' ? '#6366f1' : '#64748b', color: '#fff', fontSize: 8, fontWeight: 800, padding: '3px 8px', borderRadius: 20, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{event.status}</span>
-                </div>
-                <h1 style={{ fontSize: 'clamp(18px, 2.4vw, 25px)', fontWeight: 900, color: '#fff', margin: 0, lineHeight: 1.15 }}>{event.title}</h1>
-                {event.subtitle && <p style={{ color: 'rgba(255,255,255,0.78)', fontSize: 11, fontWeight: 500, margin: '6px 0 0' }}>{event.subtitle}</p>}
-              </div>
-            </div>
+          {/* ═══ RIGHT COLUMN (Sidebar) ═══ */}
+          <div className="edp-sidebar">
 
             {/* Registered success banner */}
             {isRegistered && (
-              <div style={{ background: 'linear-gradient(135deg,#dcfce7,#bbf7d0)', border: '1px solid #86efac', borderRadius: 14, padding: 18 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#15803d', fontWeight: 800, fontSize: 14, marginBottom: (event.meetingLink || event.postRegistrationMessage) ? 12 : 0 }}>
+              <div className="edp-reg-success">
+                <div className="edp-reg-success-head">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>
                   You are registered!
                 </div>
-
-                {/* Admin-defined post-registration message (e.g. WhatsApp group link) */}
                 {event.postRegistrationMessage && (
-                  <div style={{ background: '#fff', border: '1px solid #bbf7d0', borderRadius: 10, padding: '12px 14px', marginBottom: event.meetingLink ? 12 : 0 }}>
-                    <div style={{ fontSize: 13.5, color: '#166534', lineHeight: 1.65, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                      {linkifyText(event.postRegistrationMessage)}
-                    </div>
+                  <div className="edp-reg-success-msg">
+                    {linkifyText(event.postRegistrationMessage)}
                   </div>
                 )}
-
                 {event.meetingLink && (
-                  <a href={event.meetingLink} target="_blank" rel="noopener noreferrer" style={{ display: 'block', textAlign: 'center', background: '#16a34a', color: '#fff', padding: '12px', borderRadius: 10, fontWeight: 800, fontSize: 14, textDecoration: 'none' }}>
+                  <a href={event.meetingLink} target="_blank" rel="noopener noreferrer" className="edp-join-btn">
                     JOIN MEETING →
                   </a>
                 )}
               </div>
             )}
 
-            {/* Main card */}
-            <div className="event-page-booking" style={{ background: '#fff', borderRadius: 16, padding: 22, boxShadow: '0 4px 20px rgba(0,0,0,0.09)', border: '1px solid #e2e8f0' }}>
+            {/* Registration card */}
+            <div className="edp-reg-card">
 
               {/* Price */}
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 18 }}>
-                <span style={{ fontSize: 28, fontWeight: 900, color: '#111827' }}>
-                  {displayPrice > 0 ? formatMoney(displayPrice) : (event.priceLabel || 'FREE')}
-                </span>
+              <div className="edp-price-label">Ticket Price</div>
+              <div className="edp-price-value">
+                {displayPrice > 0 ? formatMoney(displayPrice) : (event.priceLabel || 'FREE')}
                 {couponState.status === 'valid' && couponState.discountAmount > 0 && selectedTicket && (
-                  <span style={{ fontSize: 14, color: '#9ca3af', textDecoration: 'line-through' }}>{formatMoney(selectedTicket.effectivePrice)}</span>
+                  <span className="edp-price-original">{formatMoney(selectedTicket.effectivePrice)}</span>
                 )}
-                {displayPrice === 0 && <span style={{ fontSize: 11, fontWeight: 700, background: '#dcfce7', color: '#16a34a', padding: '2px 8px', borderRadius: 6 }}>Free</span>}
+                {displayPrice === 0 && <span className="edp-price-free-tag">Free</span>}
               </div>
 
               {/* Key details */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '14px 0', borderTop: '1px solid #f1f5f9', borderBottom: '1px solid #f1f5f9', marginBottom: 16 }}>
+              <div className="edp-reg-info">
                 {(event.eventStartDate || event.date) && (
-                  <div style={{ display: 'flex', gap: 8, fontSize: 13, color: '#374151', fontWeight: 600, alignItems: 'center' }}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
+                  <div className="edp-reg-info-row">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
                     {formatDate(event.eventStartDate || event.date)}
-                    {event.time && <span style={{ color: '#9ca3af', fontWeight: 400 }}>· {event.time}</span>}
+                    {event.time && <span style={{ color: '#475569', fontWeight: 500 }}> · {event.time}</span>}
                   </div>
                 )}
                 {(event.mode || event.venueName || event.city) && (
-                  <div style={{ display: 'flex', gap: 8, fontSize: 13, color: '#374151', fontWeight: 600, alignItems: 'center' }}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg>
+                  <div className="edp-reg-info-row">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg>
                     {event.mode === 'Offline' ? (event.venueName || event.city || 'Offline') : 'Online Event'}
                   </div>
                 )}
               </div>
 
               {/* Countdown */}
-              {event.date && !isRegistered && <div style={{ marginBottom: 14 }}><CountdownTimer targetDate={event.date} /></div>}
+              {event.date && !isRegistered && <CountdownTimer targetDate={event.date} />}
 
               {/* Ticket selector */}
               {!isRegistered && activeTickets.length > 0 && (
-                <div style={{ marginBottom: 14 }}>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 7 }}>Select Ticket</div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+                <div>
+                  <div className="edp-ticket-label">Select Your Ticket</div>
+                  <div className="edp-ticket-options">
                     {activeTickets.map(ticket => (
-                      <label key={ticket.name} className="event-ticket-option" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', padding: '11px 12px', borderRadius: 10, cursor: ticket.soldOut ? 'not-allowed' : 'pointer', border: selectedTicketName === ticket.name ? '2px solid #e63946' : '1.5px solid #e5e7eb', background: ticket.soldOut ? '#f9fafb' : selectedTicketName === ticket.name ? '#fff5f5' : '#fff', opacity: ticket.soldOut ? 0.55 : 1, transition: 'all 0.15s' }}>
+                      <label
+                        key={ticket.name}
+                        className={`edp-ticket-option${selectedTicketName === ticket.name ? ' edp-ticket-option--selected' : ''}${ticket.soldOut ? ' edp-ticket-option--sold' : ''}`}
+                      >
                         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 9, minWidth: 0, flex: 1 }}>
-                          <input type="radio" name="ticketType" value={ticket.name} checked={selectedTicketName === ticket.name} disabled={ticket.soldOut} onChange={() => !ticket.soldOut && setSelectedTicketName(ticket.name)} style={{ accentColor: '#e63946', marginTop: 2 }} />
+                          <input
+                            type="radio"
+                            name="ticketType"
+                            value={ticket.name}
+                            checked={selectedTicketName === ticket.name}
+                            disabled={ticket.soldOut}
+                            onChange={() => !ticket.soldOut && setSelectedTicketName(ticket.name)}
+                            className="edp-ticket-radio"
+                          />
                           <div style={{ minWidth: 0, overflowWrap: 'anywhere' }}>
-                            <div style={{ fontWeight: 700, fontSize: 13, color: '#111827', display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' }}>
+                            <div className="edp-ticket-name">
                               {ticket.name}
-                              {ticket.isEarlyBird && <span style={{ fontSize: 9, fontWeight: 800, background: '#fef3c7', color: '#92400e', padding: '1px 5px', borderRadius: 4 }}>EARLY BIRD</span>}
-                              {ticket.soldOut && <span style={{ fontSize: 9, fontWeight: 800, background: '#fee2e2', color: '#991b1b', padding: '1px 5px', borderRadius: 4 }}>SOLD OUT</span>}
+                              {ticket.isEarlyBird && <span className="edp-ticket-tag edp-ticket-tag--eb">EARLY BIRD</span>}
+                              {ticket.soldOut && <span className="edp-ticket-tag edp-ticket-tag--so">SOLD OUT</span>}
                             </div>
                             {ticket.description && (
-                              <ul className="event-ticket-bullets" style={{ margin: '3px 0 0', paddingLeft: 13, fontSize: 10, color: '#6b7280', lineHeight: 1.5 }}>
+                              <ul className="edp-ticket-bullets">
                                 {renderBulletLines(ticket.description)}
                               </ul>
                             )}
-                            {ticket.quota > 0 && !ticket.soldOut && <div style={{ fontSize: 10, color: '#f97316', fontWeight: 700, marginTop: 2 }}>{Math.max(0, ticket.quota - (ticket.sold || 0))} left</div>}
+                            {ticket.quota > 0 && !ticket.soldOut && (
+                              <div className="edp-ticket-left-over">{Math.max(0, ticket.quota - (ticket.sold || 0))} left</div>
+                            )}
                           </div>
                         </div>
-                        <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: 8 }}>
-                          <div style={{ fontWeight: 800, fontSize: 14, color: ticket.soldOut ? '#9ca3af' : '#e63946' }}>{ticket.effectivePrice > 0 ? formatMoney(ticket.effectivePrice) : 'FREE'}</div>
+                        <div className="edp-ticket-price-col">
+                          <div className={`edp-ticket-price${ticket.soldOut ? ' edp-ticket-price--sold' : ''}`}>
+                            {ticket.effectivePrice > 0 ? formatMoney(ticket.effectivePrice) : 'FREE'}
+                          </div>
                           {(ticket.isEarlyBird ? ticket.originalPrice > 0 : ticket.originalPrice > ticket.price && ticket.originalPrice > 0) && (
-                            <div style={{ fontSize: 10, color: '#9ca3af', textDecoration: 'line-through' }}>{formatMoney(ticket.isEarlyBird ? ticket.price : ticket.originalPrice)}</div>
+                            <div className="edp-ticket-price-orig">{formatMoney(ticket.isEarlyBird ? ticket.price : ticket.originalPrice)}</div>
                           )}
                         </div>
                       </label>
@@ -1004,23 +1247,37 @@ export default function EventDetailsPage() {
 
               {/* Coupon */}
               {!isRegistered && hasCoupons && (
-                <div style={{ marginBottom: 14 }}>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Have a coupon?</div>
-                  <div style={{ display: 'flex', gap: 6 }}>
-                    <input value={couponInput} onChange={e => { setCouponInput(e.target.value.toUpperCase().replace(/\s/g, '')); if (couponState.status !== 'idle') setCouponState({ status: 'idle', message: '', discountedPrice: null, discountAmount: 0 }); }} onKeyDown={e => e.key === 'Enter' && validateCoupon()} placeholder="COUPON CODE" style={{ flex: 1, padding: '8px 10px', border: `1.5px solid ${couponState.status === 'valid' ? '#10b981' : couponState.status === 'invalid' ? '#ef4444' : '#e5e7eb'}`, borderRadius: 8, fontSize: 12, fontFamily: 'monospace', fontWeight: 700, textTransform: 'uppercase', outline: 'none' }} />
-                    <button type="button" onClick={validateCoupon} disabled={!couponInput.trim() || couponState.status === 'validating'} style={{ padding: '8px 12px', background: couponState.status === 'valid' ? '#10b981' : '#1f2937', color: '#fff', border: 'none', borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: couponInput.trim() ? 'pointer' : 'not-allowed', opacity: couponInput.trim() ? 1 : 0.5, flexShrink: 0 }}>
+                <div className="edp-coupon-wrap">
+                  <div className="edp-coupon-label">Have a coupon?</div>
+                  <div className="edp-coupon-row">
+                    <input
+                      value={couponInput}
+                      onChange={e => {
+                        setCouponInput(e.target.value.toUpperCase().replace(/\s/g, ''));
+                        if (couponState.status !== 'idle') setCouponState({ status: 'idle', message: '', discountedPrice: null, discountAmount: 0 });
+                      }}
+                      onKeyDown={e => e.key === 'Enter' && validateCoupon()}
+                      placeholder="Enter code"
+                      className={`edp-coupon-input${couponState.status === 'valid' ? ' edp-coupon-input--valid' : couponState.status === 'invalid' ? ' edp-coupon-input--invalid' : ''}`}
+                    />
+                    <button
+                      type="button"
+                      onClick={validateCoupon}
+                      disabled={!couponInput.trim() || couponState.status === 'validating'}
+                      className={`edp-coupon-btn${couponState.status === 'valid' ? ' edp-coupon-btn--valid' : ''}`}
+                    >
                       {couponState.status === 'validating' ? '…' : couponState.status === 'valid' ? '✓' : 'Apply'}
                     </button>
                   </div>
                   {couponState.status === 'valid' && (
-                    <div style={{ marginTop: 5, display: 'flex', alignItems: 'center', gap: 5, color: '#059669', fontSize: 11, fontWeight: 700 }}>
+                    <div className="edp-coupon-msg edp-coupon-msg--ok">
                       <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>
-                      {couponState.message}{couponState.discountAmount > 0 && ` - saving ${formatMoney(couponState.discountAmount)}`}
-                      <button type="button" onClick={() => { setCouponInput(''); setCouponState({ status: 'idle', message: '', discountedPrice: null, discountAmount: 0 }); }} style={{ marginLeft: 'auto', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: 11 }}>Remove</button>
+                      {couponState.message}{couponState.discountAmount > 0 && ` – saving ${formatMoney(couponState.discountAmount)}`}
+                      <button type="button" onClick={() => { setCouponInput(''); setCouponState({ status: 'idle', message: '', discountedPrice: null, discountAmount: 0 }); }} className="edp-coupon-remove">Remove</button>
                     </div>
                   )}
                   {couponState.status === 'invalid' && (
-                    <div style={{ marginTop: 5, display: 'flex', alignItems: 'center', gap: 5, color: '#dc2626', fontSize: 11, fontWeight: 600 }}>
+                    <div className="edp-coupon-msg edp-coupon-msg--err">
                       <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
                       {couponState.message}
                     </div>
@@ -1029,23 +1286,72 @@ export default function EventDetailsPage() {
               )}
 
               {/* CTA */}
-              <button onClick={isRegistered ? null : () => handleRegister()} disabled={registering || isRegistered || (activeTickets.length > 0 && !selectedTicket)} style={{ width: '100%', padding: '14px', borderRadius: 12, border: 'none', fontSize: 15, fontWeight: 800, cursor: registering || isRegistered ? 'default' : 'pointer', transition: 'all 0.2s', background: isRegistered ? '#f1f5f9' : 'linear-gradient(135deg,#e63946 0%,#b91c1c 100%)', color: isRegistered ? '#94a3b8' : '#fff', boxShadow: isRegistered ? 'none' : '0 4px 14px rgba(230,57,70,0.32)' }}>
-                {registering ? 'Processing…' : isRegistered ? 'Successfully Registered ✓' : displayPrice > 0 ? `Register - ${formatMoney(displayPrice)}` : 'Register Now · Free'}
+              <button
+                onClick={isRegistered ? null : () => handleRegister()}
+                disabled={registering || isRegistered || (activeTickets.length > 0 && !selectedTicket)}
+                className={`edp-cta-btn${isRegistered ? ' edp-cta-btn--registered' : ''}`}
+              >
+                {registering
+                  ? 'Processing…'
+                  : isRegistered
+                    ? 'Successfully Registered ✓'
+                    : displayPrice > 0
+                      ? `Register Now →`
+                      : 'Register Now · Free'}
               </button>
 
-
+              {/* Trust line */}
+              {!isRegistered && displayPrice > 0 && (
+                <div className="edp-pay-trust">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
+                  Secure payments powered by Razorpay
+                </div>
+              )}
             </div>
 
-            {/* Organizer mini-card in sidebar */}
+            {/* What You Will Gain (Sidebar) */}
+            {event.outcomes?.map(parseItemText).filter(item => item.title || item.desc).length > 0 && (
+              <div className="edp-sidebar-gains">
+                <div className="edp-sidebar-gains-title">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e63946" strokeWidth="2.2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg>
+                  What You Will Gain
+                </div>
+                {event.outcomes.map(parseItemText).filter(item => item.title || item.desc).slice(0, 6).map((item, i) => {
+                  const iconBgs = ['#ecfdf5', '#eff6ff', '#f5f3ff', '#fffbeb', '#fff1f2', '#ecfeff'];
+                  const iconColors = ['#10b981', '#2563eb', '#8b5cf6', '#d97706', '#e63946', '#0ea5e9'];
+                  return (
+                    <div key={i} className="edp-sidebar-gain-item">
+                      <div className="edp-sidebar-gain-icon" style={{ background: iconBgs[i % 6] }}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={iconColors[i % 6]} strokeWidth="2">
+                          {i % 6 === 0 && <><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></>}
+                          {i % 6 === 1 && <><line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" /></>}
+                          {i % 6 === 2 && <><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></>}
+                          {i % 6 === 3 && <><polyline points="23 6 13.5 15.5 8.5 10.5 1 18" /><polyline points="17 6 23 6 23 12" /></>}
+                          {i % 6 === 4 && <><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" /><path d="M19 10v2a7 7 0 0 1-14 0v-2" /><line x1="12" y1="19" x2="12" y2="23" /><line x1="8" y1="23" x2="16" y2="23" /></>}
+                          {i % 6 === 5 && <><circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" /></>}
+                        </svg>
+                      </div>
+                      <div>
+                        <div className="edp-sidebar-gain-name">{item.title}</div>
+                        {item.desc && <div className="edp-sidebar-gain-desc">{item.desc}</div>}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Organiser mini-card */}
             {event.organizedBy?.length > 0 && (
-              <div style={{ background: '#fff', borderRadius: 14, padding: 18, boxShadow: '0 1px 4px rgba(0,0,0,0.07)', border: '1px solid #e2e8f0' }}>
-                <div style={{ fontSize: 10, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>Organized By</div>
+              <div className="edp-org-mini">
+                <div className="edp-org-mini-label">Organized By</div>
                 {event.organizedBy.map(org => (
-                  <div key={org._id} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    {org.logo && <img src={org.logo} alt={org.name} style={{ width: 34, height: 34, objectFit: 'contain', borderRadius: 6, border: '1px solid #e2e8f0', background: '#f8fafc' }} />}
+                  <div key={org._id} className="edp-org-row">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    {org.logo && <img src={org.logo} alt={org.name} className="edp-org-logo" />}
                     <div>
-                      {org.website ? <a href={org.website} target="_blank" rel="noopener noreferrer" style={{ fontWeight: 700, fontSize: 13, color: '#111827', textDecoration: 'none' }}>{org.name}</a> : <span style={{ fontWeight: 700, fontSize: 13, color: '#111827' }}>{org.name}</span>}
-                      {org.description && <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>{org.description}</div>}
+                      {org.website ? <a href={org.website} target="_blank" rel="noopener noreferrer" className="edp-org-name">{org.name}</a> : <span className="edp-org-name">{org.name}</span>}
+                      {org.description && <div className="edp-org-desc">{org.description}</div>}
                     </div>
                   </div>
                 ))}
@@ -1055,28 +1361,36 @@ export default function EventDetailsPage() {
         </div>
       </div>
 
+      {/* ── Guest Registration Modal ──────────────────── */}
       {showRegistrationModal && event.registrationType === 'guest' && !isRegistered && (
-        <div role="dialog" aria-modal="true" aria-labelledby="registration-modal-title" onMouseDown={e => e.target === e.currentTarget && setShowRegistrationModal(false)} style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, background: 'rgba(15,23,42,0.58)', backdropFilter: 'blur(5px)' }}>
-          <form onSubmit={e => { e.preventDefault(); handleRegister({ fromModal: true }); }} style={{ width: '100%', maxWidth: 440, background: '#fff', borderRadius: 18, padding: 26, boxShadow: '0 24px 70px rgba(15,23,42,0.28)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, marginBottom: 6 }}>
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="registration-modal-title"
+          onMouseDown={e => e.target === e.currentTarget && setShowRegistrationModal(false)}
+          className="edp-modal-backdrop"
+        >
+          <form onSubmit={e => { e.preventDefault(); handleRegister({ fromModal: true }); }} className="edp-modal">
+            <div className="edp-modal-head">
               <div>
-                <div style={{ color: '#e63946', fontSize: 10, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Almost there</div>
-                <h2 id="registration-modal-title" style={{ margin: '5px 0 0', color: '#111827', fontSize: 22, fontWeight: 900 }}>Registration details</h2>
+                <div className="edp-modal-kicker">Almost there</div>
+                <h2 id="registration-modal-title" className="edp-modal-title">Registration details</h2>
               </div>
-              <button type="button" aria-label="Close registration form" onClick={() => setShowRegistrationModal(false)} style={{ border: 0, background: '#f1f5f9', color: '#64748b', width: 32, height: 32, borderRadius: '50%', cursor: 'pointer', fontSize: 20 }}>×</button>
+              <button type="button" aria-label="Close registration form" onClick={() => setShowRegistrationModal(false)} className="edp-modal-close">×</button>
             </div>
-            <p style={{ color: '#64748b', fontSize: 13, lineHeight: 1.6, margin: '8px 0 20px' }}>Enter your details to reserve your place at {event.title}.</p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <input required type="text" value={guestDetails.fullName} onChange={e => setGuestDetails({ ...guestDetails, fullName: e.target.value })} placeholder="Full name" autoComplete="name" style={{ width: '100%', boxSizing: 'border-box', padding: '12px 13px', border: '1.5px solid #dbe3ee', borderRadius: 9, fontSize: 13, outline: 'none' }} />
-              <input required type="email" value={guestDetails.email} onChange={e => setGuestDetails({ ...guestDetails, email: e.target.value })} placeholder="Email address" autoComplete="email" style={{ width: '100%', boxSizing: 'border-box', padding: '12px 13px', border: '1.5px solid #dbe3ee', borderRadius: 9, fontSize: 13, outline: 'none' }} />
-              <input required type="tel" value={guestDetails.phoneNumber} onChange={e => setGuestDetails({ ...guestDetails, phoneNumber: e.target.value })} placeholder="Mobile number" autoComplete="tel" style={{ width: '100%', boxSizing: 'border-box', padding: '12px 13px', border: '1.5px solid #dbe3ee', borderRadius: 9, fontSize: 13, outline: 'none' }} />
-              <input required type="text" value={guestDetails.collegeCompany} onChange={e => setGuestDetails({ ...guestDetails, collegeCompany: e.target.value })} placeholder="College / Organization" autoComplete="organization" style={{ width: '100%', boxSizing: 'border-box', padding: '12px 13px', border: '1.5px solid #dbe3ee', borderRadius: 9, fontSize: 13, outline: 'none' }} />
-            </div>
-            <button type="submit" disabled={registering} style={{ width: '100%', marginTop: 18, padding: 13, border: 0, borderRadius: 10, background: '#e63946', color: '#fff', fontWeight: 800, fontSize: 14, cursor: registering ? 'wait' : 'pointer' }}>{registering ? 'Processing...' : isFreeEvent ? 'Complete Registration' : `Continue to Payment - ${formatMoney(displayPrice)}`}</button>
+            <p className="edp-modal-sub">Enter your details to reserve your place at {event.title}.</p>
+            <input required type="text" value={guestDetails.fullName} onChange={e => setGuestDetails({ ...guestDetails, fullName: e.target.value })} placeholder="Full name" autoComplete="name" className="edp-modal-field" />
+            <input required type="email" value={guestDetails.email} onChange={e => setGuestDetails({ ...guestDetails, email: e.target.value })} placeholder="Email address" autoComplete="email" className="edp-modal-field" />
+            <input required type="tel" value={guestDetails.phoneNumber} onChange={e => setGuestDetails({ ...guestDetails, phoneNumber: e.target.value })} placeholder="Mobile number" autoComplete="tel" className="edp-modal-field" />
+            <input required type="text" value={guestDetails.collegeCompany} onChange={e => setGuestDetails({ ...guestDetails, collegeCompany: e.target.value })} placeholder="College / Organization" autoComplete="organization" className="edp-modal-field" />
+            <button type="submit" disabled={registering} className="edp-modal-submit">
+              {registering ? 'Processing...' : isFreeEvent ? 'Complete Registration' : `Continue to Payment – ${formatMoney(displayPrice)}`}
+            </button>
           </form>
         </div>
       )}
 
+      {/* ── Result Modal ──────────────────────────────── */}
       {resultModal && (
         <div
           role="dialog"
@@ -1089,29 +1403,17 @@ export default function EventDetailsPage() {
               if (wasSuccess && currentUser) window.location.reload();
             }
           }}
-          style={{ position: 'fixed', inset: 0, zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, background: 'rgba(15,23,42,0.58)', backdropFilter: 'blur(5px)' }}
+          className="edp-modal-backdrop"
+          style={{ zIndex: 1100 }}
         >
-          <div style={{ width: '100%', maxWidth: 420, background: '#fff', borderRadius: 18, padding: '30px 26px', boxShadow: '0 24px 70px rgba(15,23,42,0.28)', textAlign: 'center' }}>
-            <div
-              style={{
-                width: 62,
-                height: 62,
-                margin: '0 auto 16px',
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: 32,
-                background: resultModal.type === 'success' ? '#dcfce7' : '#fee2e2',
-                color: resultModal.type === 'success' ? '#16a34a' : '#dc2626',
-              }}
-            >
+          <div className="edp-modal edp-result-modal">
+            <div className={`edp-result-icon ${resultModal.type === 'success' ? 'edp-result-icon--ok' : 'edp-result-icon--err'}`}>
               {resultModal.type === 'success' ? '✓' : '!'}
             </div>
-            <h2 id="result-modal-title" style={{ margin: '0 0 8px', color: '#111827', fontSize: 21, fontWeight: 900 }}>
+            <h2 id="result-modal-title" className="edp-result-title">
               {resultModal.type === 'success' ? 'Registration successful' : 'Something went wrong'}
             </h2>
-            <p style={{ color: '#64748b', fontSize: 14, lineHeight: 1.65, margin: '0 0 22px' }}>{resultModal.message}</p>
+            <p className="edp-result-msg">{resultModal.message}</p>
             <button
               type="button"
               onClick={() => {
@@ -1119,24 +1421,14 @@ export default function EventDetailsPage() {
                 setResultModal(null);
                 if (wasSuccess && currentUser) window.location.reload();
               }}
-              style={{ width: '100%', padding: 13, border: 0, borderRadius: 10, background: resultModal.type === 'success' ? '#16a34a' : '#e63946', color: '#fff', fontWeight: 800, fontSize: 14, cursor: 'pointer' }}
+              className="edp-result-btn"
+              style={{ background: resultModal.type === 'success' ? '#16a34a' : '#e63946' }}
             >
               {resultModal.type === 'success' ? 'Done' : 'Close'}
             </button>
           </div>
         </div>
       )}
-
-      <style>{`
-        @media (max-width: 900px) {
-          .container > div[style*="grid-template-columns: 1fr 360px"] {
-            grid-template-columns: 1fr !important;
-          }
-          div[style*="position: sticky"][style*="top: 100px"] {
-            position: static !important;
-          }
-        }
-      `}</style>
     </div>
   );
 }
