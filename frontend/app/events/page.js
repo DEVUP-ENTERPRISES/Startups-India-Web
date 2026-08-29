@@ -36,19 +36,42 @@ export default function EventsPage() {
   };
 
   const formatPrice = event => {
+    // If the event has ticket types, derive price from the lowest active ticket
+    if (event?.ticketTypes?.length) {
+      const now = new Date();
+      const activePrices = event.ticketTypes
+        .filter(t => t.isActive !== false && !(t.quota > 0 && (t.sold || 0) >= t.quota))
+        .map(t => {
+          const isEarlyBird = t.earlyBirdPrice > 0 && t.earlyBirdDeadline && now <= new Date(t.earlyBirdDeadline);
+          return isEarlyBird ? t.earlyBirdPrice : t.price;
+        });
+      if (activePrices.length > 0) {
+        const minPrice = Math.min(...activePrices);
+        const hasFree = activePrices.some(p => p === 0);
+        if (hasFree && activePrices.every(p => p === 0)) return { label: 'FREE', isFree: true, original: null };
+        const label = event.ticketTypes.filter(t => t.isActive !== false).length > 1
+          ? `from ₹${(minPrice / 100).toLocaleString('en-IN')}`
+          : `₹${(minPrice / 100).toLocaleString('en-IN')}`;
+        return { label, isFree: false, original: null };
+      }
+    }
+
     const rawPrice = event?.price;
-    const price = rawPrice !== undefined && rawPrice !== null ? Number(rawPrice) : null;
-    const originalPrice = event?.originalPrice ? Number(event.originalPrice) : null;
-    
+    // price is stored in paise - divide by 100 for display
+    const priceInPaise = rawPrice !== undefined && rawPrice !== null ? Number(rawPrice) : null;
+    const price = priceInPaise !== null ? priceInPaise / 100 : null;
+    const originalPriceInPaise = event?.originalPrice ? Number(event.originalPrice) : null;
+    const originalPrice = originalPriceInPaise !== null ? originalPriceInPaise / 100 : null;
+
     // If isPaid is true or price > 0, it's not free
-    const isActuallyFree = !event?.isPaid && (price === null || price <= 0);
-    
+    const isActuallyFree = !event?.isPaid && (priceInPaise === null || priceInPaise <= 0);
+
     if (isActuallyFree) return { label: 'FREE', isFree: true, original: null };
-    
+
     return {
-      label: `₹${price || 0}`,
+      label: `₹${price ? price.toLocaleString('en-IN') : 0}`,
       isFree: false,
-      original: originalPrice && originalPrice > (price || 0) ? `₹${originalPrice}` : null,
+      original: originalPrice && originalPrice > (price || 0) ? `₹${originalPrice.toLocaleString('en-IN')}` : null,
     };
   };
 
@@ -528,11 +551,11 @@ export default function EventsPage() {
                     whileHover={{ y: -10 }}
                     role="link"
                     tabIndex={0}
-                    onClick={() => router.push(`/events/${event._id || event.id}`)}
+                    onClick={() => router.push(`/events/${event.slug || event._id || event.id}`)}
                     onKeyDown={e => {
                       if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
-                        router.push(`/events/${event._id || event.id}`);
+                        router.push(`/events/${event.slug || event._id || event.id}`);
                       }
                     }}
                   >
@@ -610,27 +633,9 @@ export default function EventsPage() {
                         </div>
                       </div>
 
-                      <div className="event-card-footer">
-                        <div className="attendees-info">
-                          <svg
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                          >
-                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                            <circle cx="9" cy="7" r="4" />
-                            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                          </svg>
-                          <span>
-                            {event.registrations?.length || event.attendees || 0} registered
-                          </span>
-                        </div>
+                      <div className="event-card-footer" style={{ justifyContent: 'flex-end' }}>
                         <Link
-                          href={`/events/${event._id || event.id}`}
+                          href={`/events/${event.slug || event._id || event.id}`}
                           onClick={e => e.stopPropagation()}
                         >
                           <button className={`book-now-btn ${event.isRegistered ? 'registered' : ''}`}>
@@ -748,11 +753,11 @@ export default function EventsPage() {
                   whileHover={{ y: -12 }}
                   role="link"
                   tabIndex={0}
-                  onClick={() => router.push(`/events/${event._id || event.id}`)}
+                  onClick={() => router.push(`/events/${event.slug || event._id || event.id}`)}
                   onKeyDown={e => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
-                      router.push(`/events/${event._id || event.id}`);
+                      router.push(`/events/${event.slug || event._id || event.id}`);
                     }
                   }}
                 >
@@ -776,14 +781,6 @@ export default function EventsPage() {
                             )}
                           </span>
                         );
-                      })()}
-                      {(() => {
-                        const max =
-                          typeof event?.maxAttendees === 'number' ? event.maxAttendees : 0;
-                        const registered = event?.registrations?.length || 0;
-                        const left = max > 0 ? Math.max(0, max - registered) : null;
-                        if (left === null || left > 50) return null;
-                        return <span className="seats-badge">{left} seats left</span>;
                       })()}
                     </div>
                   </div>
@@ -849,15 +846,21 @@ export default function EventsPage() {
 
                     <div className="event-footer">
                       <div className="event-organizer">
-                        <div className="organizer-avatar">
-                          {String(event.organizer || 'S').charAt(0)}
-                        </div>
+                        {event.organizedBy?.[0]?.logo ? (
+                          <img
+                            src={event.organizedBy[0].logo}
+                            alt={event.organizedBy[0].name}
+                            className="organizer-avatar"
+                            style={{ width: 32, height: 32, objectFit: 'contain', borderRadius: '50%', border: '1px solid #e2e8f0', background: '#f8fafc' }}
+                          />
+                        ) : (
+                          <div className="organizer-avatar">
+                            {String(event.organizedBy?.[0]?.name || event.organizer || 'S').charAt(0)}
+                          </div>
+                        )}
                         <div className="organizer-info">
                           <span className="organizer-name">
-                            {event.organizer || 'StartupsIndia'}
-                          </span>
-                          <span className="attendees-count">
-                            {event.registrations?.length || event.attendees || 0} attending
+                            {event.organizedBy?.[0]?.name || event.organizer || 'StartupsIndia'}
                           </span>
                         </div>
                       </div>
@@ -866,7 +869,7 @@ export default function EventsPage() {
                         className="register-btn"
                         onClick={e => {
                           e.stopPropagation();
-                          router.push(`/events/${event._id || event.id}`);
+                          router.push(`/events/${event.slug || event._id || event.id}`);
                         }}
                       >
                         View Details
