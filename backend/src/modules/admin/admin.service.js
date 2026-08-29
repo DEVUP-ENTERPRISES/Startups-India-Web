@@ -399,6 +399,7 @@ async function listPayments({ page = 1, limit = 20, status, sort = '-createdAt' 
     Payment.find(paymentStatusFilter)
       .populate('userId', 'fullName email')
       .populate('courseId', 'title')
+      .populate('eventId', 'title')
       .lean(),
     EvaluationPayment.find(grantStatusFilter)
       .populate('userId', 'fullName email')
@@ -637,7 +638,27 @@ async function listEvents({ page = 1, limit = 20, status, sort = '-date' }) {
   const events = await Event.find(query)
     .sort(sort)
     .skip((page - 1) * limit)
-    .limit(limit);
+    .limit(limit)
+    .lean();
+
+  // Attach an accurate registration count from the EventRegistration collection
+  // (source of truth for the Regs page), covering both logged-in and guest
+  // registrations. The event.registrations array only holds logged-in users.
+  const eventIds = events.map(e => e._id);
+  if (eventIds.length) {
+    const counts = await EventRegistration.aggregate([
+      { $match: { event: { $in: eventIds }, attendanceStatus: { $ne: 'Cancelled' } } },
+      { $group: { _id: '$event', count: { $sum: 1 } } },
+    ]);
+    const countMap = counts.reduce((acc, c) => {
+      acc[String(c._id)] = c.count;
+      return acc;
+    }, {});
+    events.forEach(e => {
+      e.registrationCount = countMap[String(e._id)] || 0;
+    });
+  }
+
   return { events, total, page, pages: Math.ceil(total / limit) };
 }
 
@@ -704,8 +725,143 @@ async function duplicateEvent(id, userId) {
   return newEvent;
 }
 
+/**
+ * Self-healing reconciliation: for a given event, find every succeeded Razorpay
+ * payment that does NOT have a matching EventRegistration and create it.
+ *
+ * This fixes the data-integrity gap where a payment succeeds but the inline
+ * registerForEvent/registerGuestForEvent call failed (and was logged but swallowed).
+ * Routing through the events service means the confirmation email also fires.
+ *
+ * Returns the number of registrations backfilled.
+ */
+async function reconcileEventRegistrations(eventId) {
+  const eventsService = require('../events/events.service');
+  const event = await Event.findById(eventId).lean();
+  if (!event) return 0;
+
+  const paidOk = await Payment.find({
+    eventId,
+    status: 'succeeded',
+    // Only heal payments that have NEVER produced a registration. Once a payment
+    // has been registered, it is marked (metadata.registeredAt) so that an admin
+    // deleting the registration afterwards does NOT get it silently recreated.
+    'metadata.registeredAt': { $exists: false },
+  }).lean();
+  if (!paidOk.length) return 0;
+
+  let healed = 0;
+
+  for (const p of paidOk) {
+    try {
+      if (p.userId) {
+        // Logged-in user: registered if their id is in event.registrations OR a reg row exists
+        const already = await EventRegistration.exists({ event: eventId, user: p.userId });
+        if (already) {
+          await markPaymentRegistered(p._id);
+          continue;
+        }
+        await eventsService.registerForEvent(String(eventId), String(p.userId), {
+          ticketTypeName: p.metadata?.ticketTypeName || null,
+          ticketPrice: p.amount,
+          couponUsed: p.metadata?.couponCode || '',
+          fromVerifiedPayment: true,
+          paymentOrderId: p.orderId,
+        });
+        await markPaymentRegistered(p._id);
+        healed += 1;
+      } else if (p.metadata?.isGuest && p.metadata?.guest?.email) {
+        const email = String(p.metadata.guest.email).trim().toLowerCase();
+        const already = await EventRegistration.exists({
+          event: eventId,
+          email,
+          attendanceStatus: { $ne: 'Cancelled' },
+        });
+        if (already) {
+          await markPaymentRegistered(p._id);
+          continue;
+        }
+        await eventsService.registerGuestForEvent(String(eventId), p.metadata.guest, {
+          ticketTypeName: p.metadata?.ticketTypeName || null,
+          ticketPrice: p.amount,
+          couponUsed: p.metadata?.couponCode || '',
+          fromVerifiedPayment: true,
+          paymentOrderId: p.orderId,
+        });
+        await markPaymentRegistered(p._id);
+        healed += 1;
+      }
+    } catch (e) {
+      // "Already registered" is expected/benign here; log anything else.
+      if (!/already registered/i.test(e.message)) {
+        console.error(`[reconcile] event=${eventId} payment=${p._id} error=${e.message}`);
+      }
+    }
+  }
+
+  return healed;
+}
+
+/**
+ * Recompute an event's cached registration counters (guestRegistrations and each
+ * ticketType.sold) from the actual EventRegistration rows. Fixes drift caused by
+ * failed/raced attempts that incremented counters without a completed registration,
+ * or by admin deletions. Also rebuilds the logged-in `registrations` array.
+ * Returns the recomputed totals.
+ */
+async function recountEventRegistrations(eventId) {
+  const event = await Event.findById(eventId);
+  if (!event) throw new ApiError(404, 'Event not found');
+
+  const regs = await EventRegistration.find({
+    event: eventId,
+    attendanceStatus: { $ne: 'Cancelled' },
+  }).select('user ticketTypeName').lean();
+
+  // Logged-in registrations array (unique user ids)
+  const userIds = [...new Set(regs.filter(r => r.user).map(r => String(r.user)))];
+  const guestCount = regs.filter(r => !r.user).length;
+
+  // Per-ticket sold counts by ticketTypeName
+  const soldByTicket = regs.reduce((acc, r) => {
+    const name = r.ticketTypeName || 'General';
+    acc[name] = (acc[name] || 0) + 1;
+    return acc;
+  }, {});
+
+  event.registrations = userIds;
+  event.guestRegistrations = guestCount;
+  if (Array.isArray(event.ticketTypes)) {
+    event.ticketTypes.forEach(t => {
+      t.sold = soldByTicket[t.name] || 0;
+    });
+  }
+  await event.save();
+  await invalidateEventCache(String(event._id), event.slug || null).catch(() => {});
+
+  return {
+    total: regs.length,
+    loggedInRegistrations: userIds.length,
+    guestRegistrations: guestCount,
+    soldByTicket,
+  };
+}
+
+/** Stamp a Payment as having produced a registration (idempotency for reconcile). */
+async function markPaymentRegistered(paymentId) {
+  await Payment.updateOne(
+    { _id: paymentId },
+    { $set: { 'metadata.registeredAt': new Date().toISOString() } }
+  ).catch(err => console.error(`[reconcile] failed to mark payment ${paymentId}: ${err.message}`));
+}
+
 const EVENT_REG_SORT_FIELDS = ['createdAt', 'fullName', 'email', 'attendanceStatus', 'paymentStatus'];
 async function getEventRegistrations(id, { page = 1, limit = 20, search, status, paymentStatus, sort = '-createdAt' }) {
+  // Heal any paid-but-unregistered attendees before listing (best-effort).
+  await reconcileEventRegistrations(id).catch(err =>
+    console.error(`[reconcile] failed for event=${id}: ${err.message}`)
+  );
+
   const query = { event: id };
   if (search) {
     const safe = escapeRegex(search);
@@ -1573,6 +1729,8 @@ module.exports = {
   duplicateEvent,
   getEventRegistrations,
   getEventAnalytics,
+  reconcileEventRegistrations,
+  recountEventRegistrations,
   listLeads,
   createLead,
   updateLead,

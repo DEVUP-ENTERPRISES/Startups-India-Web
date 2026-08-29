@@ -85,6 +85,7 @@ adminRouter.post('/events/:id/duplicate', asyncHandler(ctrl.duplicateEvent));
 adminRouter.get('/events/:id/registrations', asyncHandler(ctrl.getEventRegistrations));
 adminRouter.post('/events/:id/notify-registrants', asyncHandler(ctrl.notifyEventRegistrants));
 adminRouter.get('/events/:id/analytics', asyncHandler(ctrl.getEventAnalytics));
+adminRouter.post('/events/:id/recount', asyncHandler(ctrl.recountEventRegistrations));
 
 // Event Partners Library (reusable organiser / partner / sponsor directory)
 adminRouter.get('/event-partners', asyncHandler(ctrl.getEventPartners));

@@ -42,7 +42,10 @@ export default function AdminEventsPage() {
     // Online Fields
     meetingPlatform: '',
     meetingLink: '',
-    
+
+    // Shown to attendees after they register (+ emailed to them)
+    postRegistrationMessage: '',
+
     coverImage: '',
     images: [],
     
@@ -79,6 +82,8 @@ export default function AdminEventsPage() {
     supportingPartners: [],
     academicPartners: [],
     sponsors: [],
+    chiefGuests: [],
+    specialGuests: [],
   };
 
   const [form, setForm] = useState(initialFormState);
@@ -159,6 +164,7 @@ export default function AdminEventsPage() {
       googleMapsLink: ev.googleMapsLink || '',
       meetingPlatform: ev.meetingPlatform || '',
       meetingLink: ev.meetingLink || '',
+      postRegistrationMessage: ev.postRegistrationMessage || '',
       coverImage: ev.coverImage || '',
       images: ev.images || [],
       isPaid: ev.isPaid || false,
@@ -215,6 +221,8 @@ export default function AdminEventsPage() {
       supportingPartners: (ev.supportingPartners || []).map(p => (typeof p === 'object' ? p._id : p)),
       academicPartners: (ev.academicPartners || []).map(p => (typeof p === 'object' ? p._id : p)),
       sponsors: (ev.sponsors || []).map(p => (typeof p === 'object' ? p._id : p)),
+      chiefGuests: (ev.chiefGuests || []).map(p => (typeof p === 'object' ? p._id : p)),
+      specialGuests: (ev.specialGuests || []).map(p => (typeof p === 'object' ? p._id : p)),
     });
     setShowModal(true);
     loadPartnerLibrary();
@@ -437,7 +445,9 @@ export default function AdminEventsPage() {
                     )}
                   </td>
                   <td>
-                    {(ev.registrations || []).length}
+                    {typeof ev.registrationCount === 'number'
+                      ? ev.registrationCount
+                      : ((ev.registrations || []).length + (ev.guestRegistrations || 0))}
                     {ev.maxAttendees ? `/${ev.maxAttendees}` : ''}
                   </td>
                   <td>
@@ -614,6 +624,21 @@ export default function AdminEventsPage() {
                     Name, email & mobile
                   </label>
                 </div>
+              </div>
+
+              <div className="admin-form-group">
+                <label>
+                  Post-Registration Message
+                  <span style={{ fontWeight: 400, color: '#94a3b8', fontSize: 11, marginLeft: 6 }}>
+                    - shown after they register &amp; included in the confirmation email
+                  </span>
+                </label>
+                <textarea
+                  value={form.postRegistrationMessage}
+                  onChange={e => setForm({ ...form, postRegistrationMessage: e.target.value })}
+                  placeholder={'e.g. Thank you for registering! Join our WhatsApp group for updates: https://chat.whatsapp.com/xxxx'}
+                  rows={3}
+                />
               </div>
 
               {form.mode === 'Online' && (
@@ -1108,6 +1133,8 @@ export default function AdminEventsPage() {
               {/* Helper: multi-select pills for a partner category */}
               {[
                 { key: 'organizedBy',       label: 'Organized By',         color: '#eff6ff', border: '#bfdbfe', badge: '#1d4ed8' },
+                { key: 'chiefGuests',       label: 'Chief Guests',         color: '#fff1f2', border: '#fecdd3', badge: '#be123c' },
+                { key: 'specialGuests',     label: 'Special Guests',       color: '#fff7ed', border: '#fed7aa', badge: '#c2410c' },
                 { key: 'supportingPartners', label: 'Supporting Partners',  color: '#f0fdf4', border: '#bbf7d0', badge: '#15803d' },
                 { key: 'academicPartners',   label: 'Academic Partners',    color: '#fdf4ff', border: '#e9d5ff', badge: '#7e22ce' },
                 { key: 'sponsors',           label: 'Sponsors',             color: '#fffbeb', border: '#fde68a', badge: '#b45309' },
@@ -1152,18 +1179,26 @@ export default function AdminEventsPage() {
 
                     {/* Quick-add new partner to library inline */}
                     {quickPartner?.for !== key ? (
-                      <button type="button" onClick={() => setQuickPartner({ for: key, name: '', logo: '', website: '', type: key === 'organizedBy' ? 'organizer' : key === 'sponsors' ? 'sponsor' : key === 'academicPartners' ? 'academic' : 'supporting' })}
+                      <button type="button" onClick={() => setQuickPartner({ for: key, name: '', logo: '', website: '', description: '', type: key === 'organizedBy' ? 'organizer' : key === 'sponsors' ? 'sponsor' : key === 'academicPartners' ? 'academic' : key === 'chiefGuests' ? 'chiefGuest' : key === 'specialGuests' ? 'specialGuest' : 'supporting' })}
                         style={{ marginTop: 8, background: 'none', border: 'none', color: badge, cursor: 'pointer', fontSize: 12, fontWeight: 700, padding: 0 }}>
                         + Add new to library
                       </button>
                     ) : (
                       <div style={{ marginTop: 10, background: '#fff', border: `1px solid ${border}`, borderRadius: 8, padding: 12 }}>
-                        <div style={{ fontWeight: 700, fontSize: 12, marginBottom: 8, color: badge }}>New partner (saves to shared library)</div>
+                        <div style={{ fontWeight: 700, fontSize: 12, marginBottom: 8, color: badge }}>
+                          {(key === 'chiefGuests' || key === 'specialGuests') ? 'New guest (saves to shared library)' : 'New partner (saves to shared library)'}
+                        </div>
                         <div style={{ display: 'grid', gridTemplateColumns: '2fr 2fr 1fr', gap: 8, marginBottom: 8 }}>
                           <input placeholder="Name *" value={quickPartner.name} onChange={e => setQuickPartner({ ...quickPartner, name: e.target.value })} style={{ padding: '6px 9px', borderRadius: 6, border: '1px solid #e2e8f0', fontSize: 12 }} />
-                          <input placeholder="Logo URL" value={quickPartner.logo} onChange={e => setQuickPartner({ ...quickPartner, logo: e.target.value })} style={{ padding: '6px 9px', borderRadius: 6, border: '1px solid #e2e8f0', fontSize: 12 }} />
+                          <input placeholder={(key === 'chiefGuests' || key === 'specialGuests') ? 'Photo URL' : 'Logo URL'} value={quickPartner.logo} onChange={e => setQuickPartner({ ...quickPartner, logo: e.target.value })} style={{ padding: '6px 9px', borderRadius: 6, border: '1px solid #e2e8f0', fontSize: 12 }} />
                           <input placeholder="Website" value={quickPartner.website} onChange={e => setQuickPartner({ ...quickPartner, website: e.target.value })} style={{ padding: '6px 9px', borderRadius: 6, border: '1px solid #e2e8f0', fontSize: 12 }} />
                         </div>
+                        <input
+                          placeholder={(key === 'chiefGuests' || key === 'specialGuests') ? 'Role / Designation (e.g. Minister of IT, Govt. of Telangana)' : 'Short description (optional)'}
+                          value={quickPartner.description || ''}
+                          onChange={e => setQuickPartner({ ...quickPartner, description: e.target.value })}
+                          style={{ width: '100%', boxSizing: 'border-box', padding: '6px 9px', borderRadius: 6, border: '1px solid #e2e8f0', fontSize: 12, marginBottom: 8 }}
+                        />
                         <div style={{ display: 'flex', gap: 8 }}>
                           <button type="button"
                             onClick={async () => {

@@ -45,6 +45,7 @@ export default function AdminPaymentsPage() {
     }
     if (p.courseId?.title) return p.courseId.title;
     if (p.eventId?.title) return p.eventId.title;
+    if (p.metadata?.isGuest && p.eventId) return 'Guest Event Registration';
     return '-';
   }
 
@@ -129,7 +130,11 @@ export default function AdminPaymentsPage() {
               {payments.map(p => (
                 <tr key={p._id}>
                   <td style={{ fontWeight: 500 }}>
-                    {p.userId?.fullName || p.userId?.email || '-'}
+                    {p.userId?.fullName
+                      || p.userId?.email
+                      || p.metadata?.guest?.fullName
+                      || p.metadata?.guest?.email
+                      || (p.metadata?.isGuest ? 'Guest' : '-')}
                   </td>
                   <td style={{ color: '#374151', maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {purposeLabel(p)}

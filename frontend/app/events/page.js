@@ -633,27 +633,9 @@ export default function EventsPage() {
                         </div>
                       </div>
 
-                      <div className="event-card-footer">
-                        <div className="attendees-info">
-                          <svg
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                          >
-                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                            <circle cx="9" cy="7" r="4" />
-                            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                          </svg>
-                          <span>
-                            {event.registrations?.length || event.attendees || 0} registered
-                          </span>
-                        </div>
+                      <div className="event-card-footer" style={{ justifyContent: 'flex-end' }}>
                         <Link
-                          href={`/events/${event._id || event.id}`}
+                          href={`/events/${event.slug || event._id || event.id}`}
                           onClick={e => e.stopPropagation()}
                         >
                           <button className={`book-now-btn ${event.isRegistered ? 'registered' : ''}`}>
@@ -800,14 +782,6 @@ export default function EventsPage() {
                           </span>
                         );
                       })()}
-                      {(() => {
-                        const max =
-                          typeof event?.maxAttendees === 'number' ? event.maxAttendees : 0;
-                        const registered = event?.registrations?.length || 0;
-                        const left = max > 0 ? Math.max(0, max - registered) : null;
-                        if (left === null || left > 50) return null;
-                        return <span className="seats-badge">{left} seats left</span>;
-                      })()}
                     </div>
                   </div>
 
@@ -887,9 +861,6 @@ export default function EventsPage() {
                         <div className="organizer-info">
                           <span className="organizer-name">
                             {event.organizedBy?.[0]?.name || event.organizer || 'StartupsIndia'}
-                          </span>
-                          <span className="attendees-count">
-                            {event.registrations?.length || event.attendees || 0} attending
                           </span>
                         </div>
                       </div>

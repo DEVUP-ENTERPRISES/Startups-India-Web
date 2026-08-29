@@ -49,6 +49,45 @@ async function createPaymentForUser(userId, input) {
   });
 }
 
+/**
+ * True if a guest EventRegistration already exists for this payment's event+email.
+ * Used to report accurate registration status when verify is idempotent (already
+ * settled by the webhook or a prior call) instead of returning nothing.
+ */
+async function guestRegistrationExists(payment) {
+  const eventId = payment?.eventId;
+  const email = payment?.metadata?.guest?.email;
+  if (!eventId || !email) return false;
+  const { EventRegistration } = require('../../models/EventRegistration');
+  const found = await EventRegistration.exists({
+    event: eventId,
+    email: String(email).trim().toLowerCase(),
+    attendanceStatus: { $ne: 'Cancelled' },
+  });
+  return !!found;
+}
+
+/**
+ * Stamp a Payment as having produced a registration. Reconcile uses this marker
+ * so that an admin deleting a registration later does NOT get it recreated.
+ */
+async function markPaymentRegistered(orderId) {
+  if (!orderId) return;
+  await Payment.updateOne(
+    { orderId },
+    { $set: { 'metadata.registeredAt': new Date().toISOString() } }
+  ).catch(err => console.error(`[payments] failed to mark payment registered (order=${orderId}): ${err.message}`));
+}
+
+/** True if a logged-in user's EventRegistration already exists for this payment's event. */
+async function userRegistrationExists(payment, userId) {
+  const eventId = payment?.eventId;
+  if (!eventId || !userId) return false;
+  const { EventRegistration } = require('../../models/EventRegistration');
+  const found = await EventRegistration.exists({ event: eventId, user: userId });
+  return !!found;
+}
+
 async function createRazorpayOrder(userId, input) {
   if (!razorpay) {
     throw new ApiError(500, 'Razorpay is not configured');
@@ -205,6 +244,7 @@ async function createGuestRazorpayOrder(input) {
         fullName: guest.fullName.trim(),
         email: guest.email.trim().toLowerCase(),
         phoneNumber: guest.phoneNumber.trim(),
+        collegeCompany: guest.collegeCompany?.trim() || '',
       },
     },
   });
@@ -243,7 +283,10 @@ async function verifyGuestRazorpayPayment(input) {
   }
 
   if (existing.status === 'succeeded') {
-    return existing;
+    // Already settled (e.g. by the webhook or a prior verify). Report the real
+    // registration status so the client shows success when a registration exists.
+    const registered = await guestRegistrationExists(existing);
+    return { ...existing, registration: { ok: registered } };
   }
 
   const updated = await Payment.findOneAndUpdate(
@@ -262,7 +305,10 @@ async function verifyGuestRazorpayPayment(input) {
   ).lean();
 
   if (!updated) {
-    return Payment.findOne({ orderId: input.orderId }).lean();
+    // Another handler (webhook or concurrent verify) settled it first.
+    const settled = await Payment.findOne({ orderId: input.orderId }).lean();
+    const registered = settled ? await guestRegistrationExists(settled) : false;
+    return { ...(settled || {}), registration: { ok: registered } };
   }
 
   const couponCode = existing.metadata?.couponCode;
@@ -284,6 +330,7 @@ async function verifyGuestRazorpayPayment(input) {
     currency: updated.currency,
   });
 
+  let registration = null;
   if (eventId && existing.metadata?.guest) {
     const eventsService = require('../events/events.service');
     try {
@@ -292,13 +339,36 @@ async function verifyGuestRazorpayPayment(input) {
         ticketPrice: updated.amount,
         couponUsed: couponCode || '',
         fromVerifiedPayment: true,
+        paymentOrderId: updated.orderId,
       });
+      registration = { ok: true };
     } catch (e) {
-      console.error(`Guest event registration error after payment: ${e.message}`);
+      // The webhook and the client verify can race. If the other path already
+      // created the registration, this call throws (duplicate / "already
+      // registered" / ticket full from the concurrent inc). Re-check whether the
+      // registration actually exists before reporting failure - that is the
+      // reliable signal, not the specific error message.
+      const alreadyThere = await guestRegistrationExists(updated);
+      if (alreadyThere) {
+        registration = { ok: true };
+      } else {
+        console.error(
+          `[payments] Guest event registration FAILED after successful payment. ` +
+          `orderId=${updated.orderId} eventId=${eventId} error=${e.message}`,
+          e.stack
+        );
+        registration = { ok: false, error: e.message };
+      }
     }
+    if (registration.ok) await markPaymentRegistered(updated.orderId);
+  } else {
+    console.warn(
+      `[payments] Verified GUEST payment missing eventId or metadata.guest - no registration attempted. ` +
+      `orderId=${updated.orderId} eventId=${eventId || 'null'} hasGuest=${!!existing.metadata?.guest}`
+    );
   }
 
-  return updated;
+  return { ...updated, registration };
 }
 
 async function verifyRazorpayPayment(userId, input) {
@@ -317,9 +387,11 @@ async function verifyRazorpayPayment(userId, input) {
     throw new ApiError(404, 'Payment order not found');
   }
 
-  // H2/M5 fix: idempotency - if already succeeded, return without re-processing
+  // H2/M5 fix: idempotency - if already succeeded, return without re-processing.
+  // Report the real registration status so the client shows success correctly.
   if (existing.status === 'succeeded') {
-    return existing;
+    const registered = await userRegistrationExists(existing, userId);
+    return { ...existing, registration: { ok: registered } };
   }
 
   // H2 fix: filter on status:'created' so concurrent calls can't both settle
@@ -340,7 +412,9 @@ async function verifyRazorpayPayment(userId, input) {
 
   // If updated is null, another request already settled it - return existing
   if (!updated) {
-    return Payment.findOne({ orderId: input.orderId, userId }).lean();
+    const settled = await Payment.findOne({ orderId: input.orderId, userId }).lean();
+    const registered = settled ? await userRegistrationExists(settled, userId) : false;
+    return { ...(settled || {}), registration: { ok: registered } };
   }
 
   // C1 fix: increment coupon usedCount NOW (after payment confirmed), not at order creation
@@ -378,6 +452,7 @@ async function verifyRazorpayPayment(userId, input) {
     });
   }
 
+  let registration = null;
   if (eventId) {
     const eventsService = require('../events/events.service');
     try {
@@ -385,13 +460,35 @@ async function verifyRazorpayPayment(userId, input) {
         ticketTypeName: existing.metadata?.ticketTypeName || null,
         ticketPrice: updated.amount,
         couponUsed: couponCode || '',
+        fromVerifiedPayment: true,
+        paymentOrderId: updated.orderId,
       });
+      registration = { ok: true };
     } catch (e) {
-      console.error(`Event registration error after payment: ${e.message}`);
+      // The webhook and client verify can race - if the registration already
+      // exists (created by the other path), this is success, not failure.
+      const alreadyThere = await userRegistrationExists(updated, userId);
+      if (alreadyThere) {
+        registration = { ok: true };
+      } else {
+        // A paid user with no registration is a data-integrity bug - log loudly.
+        console.error(
+          `[payments] Event registration FAILED after successful payment. ` +
+          `orderId=${updated.orderId} userId=${userId} eventId=${eventId} error=${e.message}`,
+          e.stack
+        );
+        registration = { ok: false, error: e.message };
+      }
     }
+    if (registration.ok) await markPaymentRegistered(updated.orderId);
+  } else {
+    console.warn(
+      `[payments] Verified payment has no eventId - no event registration attempted. ` +
+      `orderId=${updated.orderId} userId=${userId}`
+    );
   }
 
-  return updated;
+  return { ...updated, registration };
 }
 
 async function verifyPaymentIntent(paymentIntentId) {
@@ -583,7 +680,11 @@ async function processRazorpayWebhook(rawBody, signature) {
             ticketTypeName: existing.metadata?.ticketTypeName || null,
             ticketPrice: updated.amount,
             couponUsed: existing.metadata?.couponCode || '',
-          }).catch(e => console.error(`Webhook event registration error: ${e.message}`));
+            fromVerifiedPayment: true,
+            paymentOrderId: updated.orderId,
+          })
+            .then(() => markPaymentRegistered(updated.orderId))
+            .catch(e => console.error(`Webhook event registration error: ${e.message}`));
         }
       } else if (existing.eventId && existing.metadata?.isGuest && existing.metadata?.guest) {
         const eventsService = require('../events/events.service');
@@ -592,7 +693,10 @@ async function processRazorpayWebhook(rawBody, signature) {
           ticketPrice: updated.amount,
           couponUsed: existing.metadata?.couponCode || '',
           fromVerifiedPayment: true,
-        }).catch(e => console.error(`Webhook guest event registration error: ${e.message}`));
+          paymentOrderId: updated.orderId,
+        })
+          .then(() => markPaymentRegistered(updated.orderId))
+          .catch(e => console.error(`Webhook guest event registration error: ${e.message}`));
       }
     }
 

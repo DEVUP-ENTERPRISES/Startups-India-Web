@@ -303,6 +303,11 @@ async function getEventAnalytics(req, res) {
   res.json({ success: true, data });
 }
 
+async function recountEventRegistrations(req, res) {
+  const data = await adminService.recountEventRegistrations(req.params.id);
+  res.json({ success: true, data });
+}
+
 // ─── LEADS/CRM ──────────────────────────────────────────────────
 async function getLeads(req, res) {
   const { page, limit, status, sort } = req.query;
@@ -523,6 +528,7 @@ module.exports = {
   duplicateEvent,
   getEventRegistrations,
   getEventAnalytics,
+  recountEventRegistrations,
   getLeads,
   createLead,
   updateLead,

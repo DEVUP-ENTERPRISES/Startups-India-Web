@@ -5,6 +5,8 @@ import { apiGet, apiPost, apiPatch, apiDelete } from '@/lib/api';
 
 const TYPE_OPTIONS = [
   { value: 'organizer',  label: 'Organizer',          color: '#eff6ff', text: '#1d4ed8' },
+  { value: 'chiefGuest', label: 'Chief Guest',         color: '#fff1f2', text: '#be123c' },
+  { value: 'specialGuest', label: 'Special Guest',      color: '#fff7ed', text: '#c2410c' },
   { value: 'supporting', label: 'Supporting Partner',  color: '#f0fdf4', text: '#15803d' },
   { value: 'academic',   label: 'Academic Partner',    color: '#fdf4ff', text: '#7e22ce' },
   { value: 'sponsor',    label: 'Sponsor',             color: '#fffbeb', text: '#b45309' },
@@ -210,8 +212,8 @@ export default function EventPartnersPage() {
               </div>
 
               <div className="admin-form-group">
-                <label>Description (optional)</label>
-                <textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} rows={2} placeholder="One-line description shown on event pages" />
+                <label>{(form.type === 'chiefGuest' || form.type === 'specialGuest') ? 'Role / Designation' : 'Description (optional)'}</label>
+                <textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} rows={2} placeholder={(form.type === 'chiefGuest' || form.type === 'specialGuest') ? 'e.g. Minister of IT, Govt. of Telangana' : 'One-line description shown on event pages'} />
               </div>
 
               <div className="admin-form-group">

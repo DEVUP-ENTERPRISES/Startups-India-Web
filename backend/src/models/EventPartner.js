@@ -11,6 +11,8 @@ const mongoose = require('mongoose');
  *   supporting       - general supporting partner / co-organiser
  *   academic         - university / college / research institution
  *   sponsor          - financial/title sponsor
+ *   chiefGuest       - guest of honour / keynote dignitary (name + photo/logo)
+ *   specialGuest     - special invited guest (name + photo/logo)
  */
 const eventPartnerSchema = new mongoose.Schema(
   {
@@ -20,7 +22,7 @@ const eventPartnerSchema = new mongoose.Schema(
     description: { type: String, trim: true, default: '' },
     type: {
       type: String,
-      enum: ['organizer', 'supporting', 'academic', 'sponsor'],
+      enum: ['organizer', 'supporting', 'academic', 'sponsor', 'chiefGuest', 'specialGuest'],
       default: 'supporting',
       index: true,
     },

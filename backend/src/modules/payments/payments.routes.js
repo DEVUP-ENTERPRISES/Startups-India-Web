@@ -57,6 +57,7 @@ router.post(
         fullName: z.string().min(1),
         email: z.string().email(),
         phoneNumber: z.string().min(1),
+        collegeCompany: z.string().optional(),
       }),
     })
   ),

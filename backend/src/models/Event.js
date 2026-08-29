@@ -57,7 +57,11 @@ const eventSchema = new mongoose.Schema(
     // Online Fields
     meetingPlatform: { type: String, trim: true },
     meetingLink: { type: String, trim: true },
-    
+
+    // Shown to attendees AFTER they register (e.g. "Join our WhatsApp group: <link>",
+    // "Thank you for registering"). Also included in the confirmation email.
+    postRegistrationMessage: { type: String, trim: true, default: '' },
+
     coverImage: { type: String, default: '' },
     images: [{ type: String }],
     
@@ -132,6 +136,8 @@ const eventSchema = new mongoose.Schema(
     supportingPartners: [{ type: mongoose.Schema.Types.ObjectId, ref: 'EventPartner' }],
     academicPartners: [{ type: mongoose.Schema.Types.ObjectId, ref: 'EventPartner' }],
     sponsors: [{ type: mongoose.Schema.Types.ObjectId, ref: 'EventPartner' }],
+    chiefGuests: [{ type: mongoose.Schema.Types.ObjectId, ref: 'EventPartner' }],
+    specialGuests: [{ type: mongoose.Schema.Types.ObjectId, ref: 'EventPartner' }],
     attendees: { type: Number, default: 0 },
     ageLimit: { type: String, default: '18yrs +' },
     language: { type: String, default: 'English' },

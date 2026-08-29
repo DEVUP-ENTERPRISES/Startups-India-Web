@@ -9,6 +9,30 @@ import '../../../styles/event-details.css';
 
 const DEFAULT_EVENT_IMAGE = 'https://images.unsplash.com/photo-1557683316-973673baf926?w=800&q=80';
 
+// Turns plain text with URLs into React nodes where each URL is a clickable link.
+// Preserves line breaks (used inside white-space: pre-wrap containers).
+function linkifyText(text) {
+  if (!text) return null;
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  return String(text).split(urlRegex).map((part, i) => {
+    // A split part is a URL if it starts with http(s):// (avoids stateful regex.test)
+    if (/^https?:\/\//.test(part)) {
+      return (
+        <a
+          key={i}
+          href={part}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ color: '#15803d', fontWeight: 700, textDecoration: 'underline', wordBreak: 'break-all' }}
+        >
+          {part}
+        </a>
+      );
+    }
+    return part;
+  });
+}
+
 function guestRegStorageKey(slug) {
   return `guest_event_reg:${slug}`;
 }
@@ -29,6 +53,7 @@ function setStoredGuestDetails(slug, details) {
     fullName: details.fullName || '',
     email: details.email || '',
     phoneNumber: details.phoneNumber || '',
+    collegeCompany: details.collegeCompany || '',
   }));
 }
 
@@ -73,9 +98,11 @@ export default function EventDetailsPage() {
   const [isRegistered, setIsRegistered] = useState(false);
   const [registering, setRegistering] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
-  const [guestDetails, setGuestDetails] = useState({ fullName: '', email: '', phoneNumber: '' });
+  const [guestDetails, setGuestDetails] = useState({ fullName: '', email: '', phoneNumber: '', collegeCompany: '' });
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
   const [guestStatusMessage, setGuestStatusMessage] = useState('');
+  // Post-registration feedback modal (replaces the old alert() boxes)
+  const [resultModal, setResultModal] = useState(null); // { type: 'success' | 'error', message: string }
   // Ticket selection
   const [selectedTicketName, setSelectedTicketName] = useState(null);
   const [couponInput, setCouponInput] = useState('');
@@ -364,10 +391,13 @@ export default function EventDetailsPage() {
       setRegistering(true);
 
       const hasTicketTypes = activeTickets.length > 0;
+      // A 100%-off coupon brings the payable amount to 0 - that must be treated
+      // as a free registration (skip Razorpay), not a ₹0 paid order.
+      const couponMakesFree = couponState.status === 'valid' && couponState.discountedPrice === 0;
       // H4 fix: use optional chaining so null selectedTicket → undefined === 0 → false
-      const isFree = hasTicketTypes
+      const isFree = couponMakesFree || (hasTicketTypes
         ? selectedTicket?.effectivePrice === 0
-        : !event.isPaid && (!event.price || event.price === 0);
+        : !event.isPaid && (!event.price || event.price === 0));
 
       // Validate ticket selection for paid multi-ticket events
       if (hasTicketTypes && !selectedTicket) {
@@ -422,7 +452,7 @@ export default function EventDetailsPage() {
               router.push(`/login?returnUrl=/events/${params.slug}`);
               return;
             }
-            alert(orderRes.error.message || 'Could not initiate payment');
+            setResultModal({ type: 'error', message: orderRes.error.message || 'Could not initiate payment' });
             setRegistering(false);
             return;
           }
@@ -463,16 +493,35 @@ export default function EventDetailsPage() {
                   paymentId: response.razorpay_payment_id,
                   signature: response.razorpay_signature,
                 });
+                const regResult = verifyRes.data?.registration;
                 if (verifyRes.error) {
-                  alert('Payment received but registration confirmation failed. Please refresh the page or contact support.');
+                  setResultModal({
+                    type: 'error',
+                    message: 'Your payment was received, but we could not confirm your registration automatically. Our team has been notified - please contact support if it is not resolved shortly.',
+                  });
+                } else if (regResult && regResult.ok === false) {
+                  // Payment succeeded; registration is being finalised in the
+                  // background (webhook/reconcile will complete it). Reassure the
+                  // user rather than alarming them - their spot is secured.
+                  setIsRegistered(true);
+                  setShowRegistrationModal(false);
+                  setResultModal({
+                    type: 'success',
+                    message: 'Your payment was successful and your spot is secured. Your confirmation email will arrive shortly. If you do not see it, please contact support.',
+                  });
                 } else {
                   setIsRegistered(true);
                   setShowRegistrationModal(false);
-                  alert('Registration successful! You are now registered for this event.');
-                  if (!isGuestRegistration) window.location.reload();
+                  setResultModal({
+                    type: 'success',
+                    message: 'You are now registered for this event. A confirmation email with your ticket is on its way to your inbox.',
+                  });
                 }
               } catch (err) {
-                alert('Verification failed. Please refresh the page to check your registration status.');
+                setResultModal({
+                  type: 'error',
+                  message: 'We could not verify your payment. Please refresh the page to check your registration status, or contact support.',
+                });
               } finally {
                 setRegistering(false);
               }
@@ -487,12 +536,13 @@ export default function EventDetailsPage() {
           if (window.Razorpay) {
             new window.Razorpay(options).open();
           } else {
-            alert('Payment gateway is still loading. Please refresh.');
+            setResultModal({ type: 'error', message: 'Payment gateway is still loading. Please refresh the page and try again.' });
             setRegistering(false);
           }
         } else {
           const res = await apiPost(`/api/v1/events/${params.slug}/register`, {
             ...(selectedTicketName ? { ticketTypeName: selectedTicketName } : {}),
+            ...(couponInput.trim() ? { couponCode: couponInput.trim().toUpperCase() } : {}),
             ...(isGuestRegistration ? { guest: guestDetails } : {}),
           });
           if (res.error) {
@@ -500,13 +550,17 @@ export default function EventDetailsPage() {
               router.push(`/login?returnUrl=/events/${params.slug}`);
               return;
             }
-            alert(res.error.message || 'Could not register for event');
+            setResultModal({ type: 'error', message: res.error.message || 'Could not register for event' });
             setRegistering(false);
             return;
           }
           setIsRegistered(true);
           setShowRegistrationModal(false);
           setRegistering(false);
+          setResultModal({
+            type: 'success',
+            message: 'You are now registered for this event. A confirmation email with your ticket is on its way to your inbox.',
+          });
         }
       }
     } catch (err) {
@@ -694,7 +748,9 @@ export default function EventDetailsPage() {
                         {p.photo || p.image ? (
                           <img src={p.photo || p.image} alt={p.name} style={{ width: 58, height: 58, borderRadius: 10, objectFit: 'cover', flexShrink: 0 }} />
                         ) : (
-                          <div style={{ width: 58, height: 58, borderRadius: 10, background: 'linear-gradient(135deg,#fecaca,#fca5a5)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 20, color: '#e63946', flexShrink: 0 }}>{p.name?.charAt(0) || 'S'}</div>
+                          <div style={{ width: 58, height: 58, borderRadius: 10, background: '#f1f5f9', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+                          </div>
                         )}
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ fontWeight: 800, fontSize: 14, color: '#111827' }}>{p.name}</div>
@@ -717,7 +773,7 @@ export default function EventDetailsPage() {
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
                     {event.organizedBy.map(org => (
                       <a key={org._id} href={org.website || undefined} target={org.website ? '_blank' : undefined} rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', border: '1px solid #e2e8f0', borderRadius: 12, background: '#f8fafc', textDecoration: 'none' }}>
-                        {org.logo ? <img src={org.logo} alt={org.name} style={{ height: 32, maxWidth: 72, objectFit: 'contain' }} /> : <div style={{ width: 32, height: 32, borderRadius: 8, background: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, color: '#1d4ed8', fontSize: 14 }}>{org.name.charAt(0)}</div>}
+                        {org.logo && <img src={org.logo} alt={org.name} style={{ height: 32, maxWidth: 72, objectFit: 'contain' }} />}
                         <div>
                           <div style={{ fontWeight: 700, fontSize: 13, color: '#111827' }}>{org.name}</div>
                           {org.description && <div style={{ fontSize: 11, color: '#6b7280' }}>{org.description}</div>}
@@ -728,6 +784,66 @@ export default function EventDetailsPage() {
                 ) : (
                   <div style={{ fontSize: 14, color: '#374151', fontWeight: 600 }}>{event.organizer}</div>
                 )}
+              </div>
+            )}
+
+            {/* Chief Guests - dignitaries shown as prominent person cards */}
+            {event.chiefGuests?.length > 0 && (
+              <div style={{ background: '#fff', borderRadius: 14, padding: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.07)' }}>
+                <h2 style={{ fontSize: 18, fontWeight: 800, color: '#111827', margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: 18 }}>🎖️</span> Chief Guests
+                </h2>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 14 }}>
+                  {event.chiefGuests.map(guest => (
+                    <div key={guest._id} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: 14, borderRadius: 14, border: '1px solid #fecdd3', background: 'linear-gradient(135deg,#fff1f2,#ffffff)' }}>
+                      {guest.logo ? (
+                        <img src={guest.logo} alt={guest.name} style={{ width: 60, height: 60, borderRadius: '50%', objectFit: 'cover', border: '2px solid #fecdd3', flexShrink: 0 }} />
+                      ) : (
+                        <div style={{ width: 60, height: 60, borderRadius: '50%', background: '#fff', border: '2px solid #fecdd3', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fb7185" strokeWidth="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+                        </div>
+                      )}
+                      <div style={{ minWidth: 0 }}>
+                        {guest.website ? (
+                          <a href={guest.website} target="_blank" rel="noopener noreferrer" style={{ fontWeight: 800, fontSize: 15, color: '#111827', textDecoration: 'none' }}>{guest.name}</a>
+                        ) : (
+                          <div style={{ fontWeight: 800, fontSize: 15, color: '#111827' }}>{guest.name}</div>
+                        )}
+                        {guest.description && <div style={{ fontSize: 12, color: '#be123c', marginTop: 3, fontWeight: 600 }}>{guest.description}</div>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Special Guests - shown as prominent person cards */}
+            {event.specialGuests?.length > 0 && (
+              <div style={{ background: '#fff', borderRadius: 14, padding: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.07)' }}>
+                <h2 style={{ fontSize: 18, fontWeight: 800, color: '#111827', margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: 18 }}>⭐</span> Special Guests
+                </h2>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 14 }}>
+                  {event.specialGuests.map(guest => (
+                    <div key={guest._id} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: 14, borderRadius: 14, border: '1px solid #fed7aa', background: 'linear-gradient(135deg,#fff7ed,#ffffff)' }}>
+                      {guest.logo ? (
+                        <img src={guest.logo} alt={guest.name} style={{ width: 60, height: 60, borderRadius: '50%', objectFit: 'cover', border: '2px solid #fed7aa', flexShrink: 0 }} />
+                      ) : (
+                        <div style={{ width: 60, height: 60, borderRadius: '50%', background: '#fff', border: '2px solid #fed7aa', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fb923c" strokeWidth="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+                        </div>
+                      )}
+                      <div style={{ minWidth: 0 }}>
+                        {guest.website ? (
+                          <a href={guest.website} target="_blank" rel="noopener noreferrer" style={{ fontWeight: 800, fontSize: 15, color: '#111827', textDecoration: 'none' }}>{guest.name}</a>
+                        ) : (
+                          <div style={{ fontWeight: 800, fontSize: 15, color: '#111827' }}>{guest.name}</div>
+                        )}
+                        {guest.description && <div style={{ fontSize: 12, color: '#c2410c', marginTop: 3, fontWeight: 600 }}>{guest.description}</div>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 
@@ -745,7 +861,7 @@ export default function EventDetailsPage() {
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
                     {list.map(org => (
                       <a key={org._id} href={org.website || undefined} target={org.website ? '_blank' : undefined} rel="noopener noreferrer" title={org.name} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px', borderRadius: 10, border: `1px solid ${border}`, background: bg, textDecoration: 'none' }}>
-                        {org.logo ? <img src={org.logo} alt={org.name} style={{ height: 28, maxWidth: 68, objectFit: 'contain' }} /> : <div style={{ width: 28, height: 28, borderRadius: 6, background: '#fff', border: `1px solid ${border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 12, color: accent }}>{org.name.charAt(0)}</div>}
+                        {org.logo && <img src={org.logo} alt={org.name} style={{ height: 28, maxWidth: 68, objectFit: 'contain' }} />}
                         <span style={{ fontWeight: 700, fontSize: 12, color: '#111827' }}>{org.name}</span>
                       </a>
                     ))}
@@ -795,10 +911,20 @@ export default function EventDetailsPage() {
             {/* Registered success banner */}
             {isRegistered && (
               <div style={{ background: 'linear-gradient(135deg,#dcfce7,#bbf7d0)', border: '1px solid #86efac', borderRadius: 14, padding: 18 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#15803d', fontWeight: 800, fontSize: 14, marginBottom: event.meetingLink ? 12 : 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#15803d', fontWeight: 800, fontSize: 14, marginBottom: (event.meetingLink || event.postRegistrationMessage) ? 12 : 0 }}>
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>
                   You are registered!
                 </div>
+
+                {/* Admin-defined post-registration message (e.g. WhatsApp group link) */}
+                {event.postRegistrationMessage && (
+                  <div style={{ background: '#fff', border: '1px solid #bbf7d0', borderRadius: 10, padding: '12px 14px', marginBottom: event.meetingLink ? 12 : 0 }}>
+                    <div style={{ fontSize: 13.5, color: '#166534', lineHeight: 1.65, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                      {linkifyText(event.postRegistrationMessage)}
+                    </div>
+                  </div>
+                )}
+
                 {event.meetingLink && (
                   <a href={event.meetingLink} target="_blank" rel="noopener noreferrer" style={{ display: 'block', textAlign: 'center', background: '#16a34a', color: '#fff', padding: '12px', borderRadius: 10, fontWeight: 800, fontSize: 14, textDecoration: 'none' }}>
                     JOIN MEETING →
@@ -907,9 +1033,7 @@ export default function EventDetailsPage() {
                 {registering ? 'Processing…' : isRegistered ? 'Successfully Registered ✓' : displayPrice > 0 ? `Register - ${formatMoney(displayPrice)}` : 'Register Now · Free'}
               </button>
 
-              {event.registrations?.length > 0 && (
-                <div style={{ textAlign: 'center', marginTop: 10, fontSize: 12, color: '#9ca3af' }}>🎟 {event.registrations.length} people registered</div>
-              )}
+
             </div>
 
             {/* Organizer mini-card in sidebar */}
@@ -918,7 +1042,7 @@ export default function EventDetailsPage() {
                 <div style={{ fontSize: 10, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>Organized By</div>
                 {event.organizedBy.map(org => (
                   <div key={org._id} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    {org.logo ? <img src={org.logo} alt={org.name} style={{ width: 34, height: 34, objectFit: 'contain', borderRadius: 6, border: '1px solid #e2e8f0', background: '#f8fafc' }} /> : <div style={{ width: 34, height: 34, borderRadius: 6, background: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 13, color: '#1d4ed8', flexShrink: 0 }}>{org.name.charAt(0)}</div>}
+                    {org.logo && <img src={org.logo} alt={org.name} style={{ width: 34, height: 34, objectFit: 'contain', borderRadius: 6, border: '1px solid #e2e8f0', background: '#f8fafc' }} />}
                     <div>
                       {org.website ? <a href={org.website} target="_blank" rel="noopener noreferrer" style={{ fontWeight: 700, fontSize: 13, color: '#111827', textDecoration: 'none' }}>{org.name}</a> : <span style={{ fontWeight: 700, fontSize: 13, color: '#111827' }}>{org.name}</span>}
                       {org.description && <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>{org.description}</div>}
@@ -946,9 +1070,60 @@ export default function EventDetailsPage() {
               <input required type="text" value={guestDetails.fullName} onChange={e => setGuestDetails({ ...guestDetails, fullName: e.target.value })} placeholder="Full name" autoComplete="name" style={{ width: '100%', boxSizing: 'border-box', padding: '12px 13px', border: '1.5px solid #dbe3ee', borderRadius: 9, fontSize: 13, outline: 'none' }} />
               <input required type="email" value={guestDetails.email} onChange={e => setGuestDetails({ ...guestDetails, email: e.target.value })} placeholder="Email address" autoComplete="email" style={{ width: '100%', boxSizing: 'border-box', padding: '12px 13px', border: '1.5px solid #dbe3ee', borderRadius: 9, fontSize: 13, outline: 'none' }} />
               <input required type="tel" value={guestDetails.phoneNumber} onChange={e => setGuestDetails({ ...guestDetails, phoneNumber: e.target.value })} placeholder="Mobile number" autoComplete="tel" style={{ width: '100%', boxSizing: 'border-box', padding: '12px 13px', border: '1.5px solid #dbe3ee', borderRadius: 9, fontSize: 13, outline: 'none' }} />
+              <input required type="text" value={guestDetails.collegeCompany} onChange={e => setGuestDetails({ ...guestDetails, collegeCompany: e.target.value })} placeholder="College / Organization" autoComplete="organization" style={{ width: '100%', boxSizing: 'border-box', padding: '12px 13px', border: '1.5px solid #dbe3ee', borderRadius: 9, fontSize: 13, outline: 'none' }} />
             </div>
             <button type="submit" disabled={registering} style={{ width: '100%', marginTop: 18, padding: 13, border: 0, borderRadius: 10, background: '#e63946', color: '#fff', fontWeight: 800, fontSize: 14, cursor: registering ? 'wait' : 'pointer' }}>{registering ? 'Processing...' : isFreeEvent ? 'Complete Registration' : `Continue to Payment - ${formatMoney(displayPrice)}`}</button>
           </form>
+        </div>
+      )}
+
+      {resultModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="result-modal-title"
+          onMouseDown={e => {
+            if (e.target === e.currentTarget) {
+              const wasSuccess = resultModal.type === 'success';
+              setResultModal(null);
+              if (wasSuccess && currentUser) window.location.reload();
+            }
+          }}
+          style={{ position: 'fixed', inset: 0, zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, background: 'rgba(15,23,42,0.58)', backdropFilter: 'blur(5px)' }}
+        >
+          <div style={{ width: '100%', maxWidth: 420, background: '#fff', borderRadius: 18, padding: '30px 26px', boxShadow: '0 24px 70px rgba(15,23,42,0.28)', textAlign: 'center' }}>
+            <div
+              style={{
+                width: 62,
+                height: 62,
+                margin: '0 auto 16px',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 32,
+                background: resultModal.type === 'success' ? '#dcfce7' : '#fee2e2',
+                color: resultModal.type === 'success' ? '#16a34a' : '#dc2626',
+              }}
+            >
+              {resultModal.type === 'success' ? '✓' : '!'}
+            </div>
+            <h2 id="result-modal-title" style={{ margin: '0 0 8px', color: '#111827', fontSize: 21, fontWeight: 900 }}>
+              {resultModal.type === 'success' ? 'Registration successful' : 'Something went wrong'}
+            </h2>
+            <p style={{ color: '#64748b', fontSize: 14, lineHeight: 1.65, margin: '0 0 22px' }}>{resultModal.message}</p>
+            <button
+              type="button"
+              onClick={() => {
+                const wasSuccess = resultModal.type === 'success';
+                setResultModal(null);
+                if (wasSuccess && currentUser) window.location.reload();
+              }}
+              style={{ width: '100%', padding: 13, border: 0, borderRadius: 10, background: resultModal.type === 'success' ? '#16a34a' : '#e63946', color: '#fff', fontWeight: 800, fontSize: 14, cursor: 'pointer' }}
+            >
+              {resultModal.type === 'success' ? 'Done' : 'Close'}
+            </button>
+          </div>
         </div>
       )}
 
