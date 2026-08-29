@@ -58,19 +58,42 @@ export default function EventsPage() {
   };
 
   const formatPrice = event => {
+    // If the event has ticket types, derive price from the lowest active ticket
+    if (event?.ticketTypes?.length) {
+      const now = new Date();
+      const activePrices = event.ticketTypes
+        .filter(t => t.isActive !== false && !(t.quota > 0 && (t.sold || 0) >= t.quota))
+        .map(t => {
+          const isEarlyBird = t.earlyBirdPrice > 0 && t.earlyBirdDeadline && now <= new Date(t.earlyBirdDeadline);
+          return isEarlyBird ? t.earlyBirdPrice : t.price;
+        });
+      if (activePrices.length > 0) {
+        const minPrice = Math.min(...activePrices);
+        const hasFree = activePrices.some(p => p === 0);
+        if (hasFree && activePrices.every(p => p === 0)) return { label: 'FREE', isFree: true, original: null };
+        const label = event.ticketTypes.filter(t => t.isActive !== false).length > 1
+          ? `from ₹${(minPrice / 100).toLocaleString('en-IN')}`
+          : `₹${(minPrice / 100).toLocaleString('en-IN')}`;
+        return { label, isFree: false, original: null };
+      }
+    }
+
     const rawPrice = event?.price;
-    const price = rawPrice !== undefined && rawPrice !== null ? Number(rawPrice) : null;
-    const originalPrice = event?.originalPrice ? Number(event.originalPrice) : null;
-    
+    // price is stored in paise - divide by 100 for display
+    const priceInPaise = rawPrice !== undefined && rawPrice !== null ? Number(rawPrice) : null;
+    const price = priceInPaise !== null ? priceInPaise / 100 : null;
+    const originalPriceInPaise = event?.originalPrice ? Number(event.originalPrice) : null;
+    const originalPrice = originalPriceInPaise !== null ? originalPriceInPaise / 100 : null;
+
     // If isPaid is true or price > 0, it's not free
-    const isActuallyFree = !event?.isPaid && (price === null || price <= 0);
-    
+    const isActuallyFree = !event?.isPaid && (priceInPaise === null || priceInPaise <= 0);
+
     if (isActuallyFree) return { label: 'FREE', isFree: true, original: null };
-    
+
     return {
-      label: `₹${price || 0}`,
+      label: `₹${price ? price.toLocaleString('en-IN') : 0}`,
       isFree: false,
-      original: originalPrice && originalPrice > (price || 0) ? `₹${originalPrice}` : null,
+      original: originalPrice && originalPrice > (price || 0) ? `₹${originalPrice.toLocaleString('en-IN')}` : null,
     };
   };
 
