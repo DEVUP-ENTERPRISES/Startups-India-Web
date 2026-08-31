@@ -165,7 +165,18 @@ async function scheduleMeeting({ applicationDbId, mode, scheduledAt, link, locat
  * The pass/fail decision is frozen onto the evaluation, so a later change to the
  * threshold can't retroactively flip an outcome the applicant was already told.
  */
-async function submitResult({ applicationDbId, score, feedback, reviewerId }) {
+/**
+ * Canonical scoring action (score-first model).
+ *
+ * The admin scores the application. This does NOT reveal the report. Instead the
+ * applicant is told to book their 1:1 slot - the report (score, pass/fail,
+ * feedback, downloadable file) only unlocks 2 hours before that booked slot
+ * (see isReportUnlocked + the report-unlock job).
+ *
+ * Both admin scoring endpoints funnel through here so there is a single source
+ * of truth for scoring behaviour, messaging and status transitions.
+ */
+async function scoreApplication({ applicationDbId, score, feedback, reviewerId }) {
   const n = Number(score);
   if (!Number.isFinite(n) || n < 0 || n > 100) {
     throw new ApiError(400, 'Score must be a number between 0 and 100.');
@@ -181,79 +192,95 @@ async function submitResult({ applicationDbId, score, feedback, reviewerId }) {
 
   const application = await GrantApplication.findById(applicationDbId);
   if (!application) throw new ApiError(404, 'Application not found');
-  if (application.status !== STATUS.EVALUATION_SCHEDULED) {
-    throw new ApiError(409, 'A result can only be recorded once the evaluation meet is scheduled.');
-  }
 
   const evaluation = await IdeaEvaluation.findOneAndUpdate(
     { applicationId: application._id },
-    { $set: { score: n, passed, feedback: feedback || '', reviewerId, submittedAt: new Date() } },
-    { new: true }
+    {
+      $set: { score: n, passed, feedback: feedback || '', reviewerId, submittedAt: new Date() },
+      // A fresh score re-locks the report; it must be re-earned via the slot.
+      $unset: { 'report.unlockedAt': '', 'report.emailSentAt': '' },
+    },
+    { upsert: true, new: true }
   );
 
-  // Pass → Evaluation Completed (Phase 2 cleared). Fail → Rejected.
-  await changeStatus({
-    applicationDbId: application._id,
-    toStatus: passed ? STATUS.EVALUATION_COMPLETED : STATUS.REJECTED,
-    adminUserId: reviewerId,
-    reason: passed ? '' : (feedback || ''),
-    // changeStatus sends its own notification with the reason; for a pass we send
-    // a richer "you're through" message ourselves below.
-    notify: !passed,
-  });
+  // Pass → advance so the next phases unlock (existing behaviour). Fail → Rejected.
+  // Status is set directly (score-first flow doesn't require a prior scheduled
+  // meet); the report reveal is gated separately by isReportUnlocked, NOT status.
+  const nextStatus = passed ? STATUS.PRE_INCUBATION : STATUS.REJECTED;
+  const from = application.status;
+  application.status = nextStatus;
+  application.lastActionBy = reviewerId;
+  application.lastActionAt = new Date();
+  await application.save();
 
   await addTimelineEntry({
     applicationId: application._id,
-    event: 'evaluation_completed',
+    event: 'scored',
+    fromStatus: from,
+    toStatus: nextStatus,
     message: passed
-      ? `Idea Evaluation cleared - scored ${n}/100.`
+      ? `Idea Evaluation scored ${n}/100 - cleared the ${threshold} pass mark.`
       : `Idea Evaluation scored ${n}/100 - below the ${threshold} pass mark.`,
     actorId: reviewerId,
     actorRole: 'admin',
     reason: feedback || '',
-    // The raw mark stays internal; the applicant sees the outcome + feedback.
+    // The raw mark stays internal; the applicant unlocks it via their slot.
     visibleToStudent: false,
-    metadata: { score: n, passed },
+    metadata: { score: n, passed, nextStatus },
   });
 
-  if (passed) {
-    const env = require('../../config/env');
-    const ideaValidationUrl = `${env.FRONTEND_URL}/dashboard/journey/idea-validation`;
+  const env = require('../../config/env');
+  const ideaValidationUrl = `${env.FRONTEND_URL}/dashboard/journey/idea-validation`;
 
+  if (passed) {
+    // IMPORTANT: do NOT tell them the report is ready. It is locked until they
+    // book a 1:1 slot and reach the 2-hours-before window.
     await notifyUser({
       userId: application.userId,
-      title: '🎉 Idea Evaluation Complete!',
+      title: '✅ Your Idea Has Been Evaluated',
       message:
-        'Your idea has been evaluated by our expert panel. '
-        + 'View your full evaluation report on the Idea Validation page.',
+        'Our expert panel has evaluated your idea. To unlock your evaluation report, '
+        + 'book your 1:1 session on the Idea Validation page. Your report unlocks 2 hours '
+        + 'before your booked slot.',
       type: 'success',
       data: {
         applicationId: String(application._id),
         applicationRef: application.applicationId,
         ctaUrl: ideaValidationUrl,
-        ctaText: 'View Your Report',
+        ctaText: 'Book Your 1:1 Slot',
       },
     });
 
-    // FCM push notification - fires even if the tab is closed
     await sendToUser(application.userId, {
-      title: '🎉 Idea Evaluation Complete!',
-      body: 'Your evaluation report is ready. Tap to view it on the Idea Validation page.',
+      title: '✅ Your Idea Has Been Evaluated',
+      body: 'Book your 1:1 session to unlock your evaluation report. It unlocks 2 hours before your slot.',
       data: {
-        type: 'idea_validated',
+        type: 'idea_scored',
         applicationId: String(application._id),
         clickUrl: ideaValidationUrl,
       },
-    }).catch(() => {}); // Non-blocking - don't fail the whole request if FCM is down
+    }).catch(() => {});
   } else {
-    // FCM for failed evaluation
+    await notifyUser({
+      userId: application.userId,
+      title: 'Application Update',
+      message: feedback || 'Thank you for applying. Unfortunately your idea did not clear evaluation this time.',
+      type: 'info',
+      data: {
+        applicationId: String(application._id),
+        applicationRef: application.applicationId,
+        ctaUrl: ideaValidationUrl,
+        ctaText: 'View Feedback',
+      },
+    });
+
     await sendToUser(application.userId, {
       title: 'Evaluation Result Available',
       body: 'Your idea evaluation result is in. Check your dashboard for feedback and next steps.',
       data: {
         type: 'idea_evaluated',
         applicationId: String(application._id),
-        clickUrl: `/dashboard/journey/idea-validation`,
+        clickUrl: ideaValidationUrl,
       },
     }).catch(() => {});
   }
@@ -261,11 +288,84 @@ async function submitResult({ applicationDbId, score, feedback, reviewerId }) {
   return evaluation;
 }
 
+/**
+ * Student report download. Enforces the unlock gate server-side: the report is
+ * only served once it is unlocked (scored + slot booked + within 2h of the slot,
+ * or already stamped by the unlock job). Ownership is enforced in the query.
+ *
+ * Returns a presigned download URL when a report file was attached; otherwise
+ * signals that the on-page score/feedback IS the report (no file to download).
+ */
+async function getReportDownload(userId, applicationDbId) {
+  const { isReportUnlocked } = require('./grant.phases');
+
+  const application = await GrantApplication.findOne({ _id: applicationDbId, userId })
+    .select('_id applicationId')
+    .lean();
+  if (!application) throw new ApiError(404, 'Application not found');
+
+  const evaluation = await IdeaEvaluation.findOne({ applicationId: application._id }).lean();
+  if (!evaluation?.submittedAt) {
+    throw new ApiError(409, 'Your evaluation has not been completed yet.');
+  }
+
+  if (!isReportUnlocked(evaluation)) {
+    // Locked: tell them exactly why (book a slot vs wait for the 2h window).
+    if (!evaluation?.meeting?.scheduledAt) {
+      throw new ApiError(423, 'Book your 1:1 session to unlock your report.');
+    }
+    throw new ApiError(423, 'Your report unlocks 2 hours before your booked session.');
+  }
+
+  // Unlocked. If a downloadable file was attached, sign it. Otherwise the report
+  // is the on-page score/feedback (returned by getEvaluationSummary).
+  if (evaluation.report?.fileKey) {
+    const { generateDownloadUrl } = require('../../utils/s3');
+    const url = await generateDownloadUrl(evaluation.report.fileKey, 300);
+    return { hasFile: true, url, fileName: `Evaluation-Report-${application.applicationId}.pdf` };
+  }
+  if (evaluation.report?.fileUrl) {
+    return { hasFile: true, url: evaluation.report.fileUrl, fileName: `Evaluation-Report-${application.applicationId}.pdf` };
+  }
+
+  return {
+    hasFile: false,
+    // The report is the on-page result. Return it so the client can render/print.
+    result: {
+      score: evaluation.score,
+      maxScore: 100,
+      passed: evaluation.passed,
+      feedback: evaluation.feedback || '',
+    },
+  };
+}
+
+/**
+ * Admin attaches (or replaces) a downloadable report file for an application's
+ * evaluation. Stores the S3 key/url on IdeaEvaluation.report - unlock timing is
+ * unchanged (still gated by isReportUnlocked).
+ */
+async function attachReportFile({ applicationDbId, fileKey = null, fileUrl = null }) {
+  if (!fileKey && !fileUrl) throw new ApiError(400, 'A report fileKey or fileUrl is required.');
+  const evaluation = await IdeaEvaluation.findOneAndUpdate(
+    { applicationId: applicationDbId },
+    { $set: { 'report.fileKey': fileKey, 'report.fileUrl': fileUrl } },
+    { new: true }
+  );
+  if (!evaluation) throw new ApiError(404, 'Evaluation not found for this application.');
+  return { attached: true };
+}
+
 module.exports = {
   MEETING_MODES,
   RECOMMENDATIONS,
+  scoreApplication,
+  // Back-compat alias: the /evaluation/result route now funnels into the single
+  // canonical scoring path so both endpoints behave identically.
+  submitResult: scoreApplication,
   listEvaluations,
   getEvaluation,
   scheduleMeeting,
-  submitResult,
+  getReportDownload,
+  attachReportFile,
 };

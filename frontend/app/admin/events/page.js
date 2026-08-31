@@ -120,9 +120,17 @@ export default function AdminEventsPage() {
     loadPartnerLibrary();
   };
 
+  // Format a stored Date into a `datetime-local` value (YYYY-MM-DDTHH:mm) in LOCAL
+  // time. Using toISOString() here would render the instant in UTC, which shifts
+  // the wall-clock (and can roll the calendar date back a day for IST-stored
+  // times near midnight) - and that shift compounds on every edit/save. We build
+  // the string from local getters so the admin sees exactly the time they entered.
   const formatDateForInput = (dateString) => {
     if (!dateString) return '';
-    return new Date(dateString).toISOString().slice(0, 16);
+    const d = new Date(dateString);
+    if (Number.isNaN(d.valueOf())) return '';
+    const pad = n => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
   };
 
   // Convert rupees → paise before sending to the backend
@@ -183,7 +191,7 @@ export default function AdminEventsPage() {
         price: t.price ? t.price / 100 : 0,
         originalPrice: t.originalPrice ? t.originalPrice / 100 : 0,
         earlyBirdPrice: t.earlyBirdPrice ? t.earlyBirdPrice / 100 : 0,
-        earlyBirdDeadline: t.earlyBirdDeadline ? new Date(t.earlyBirdDeadline).toISOString().slice(0, 16) : '',
+        earlyBirdDeadline: formatDateForInput(t.earlyBirdDeadline),
         quota: t.quota || 0,
         sold: t.sold || 0,
         isActive: t.isActive !== false,
@@ -196,8 +204,8 @@ export default function AdminEventsPage() {
         discountValue: c.discountType === 'flat' ? (c.discountValue ? c.discountValue / 100 : 0) : (c.discountValue || 0),
         maxUses: c.maxUses || 0,
         usedCount: c.usedCount || 0,
-        validFrom: c.validFrom ? new Date(c.validFrom).toISOString().slice(0, 16) : '',
-        validUntil: c.validUntil ? new Date(c.validUntil).toISOString().slice(0, 16) : '',
+        validFrom: formatDateForInput(c.validFrom),
+        validUntil: formatDateForInput(c.validUntil),
         applicableTickets: c.applicableTickets || [],
         isActive: c.isActive !== false,
       })),
@@ -269,8 +277,19 @@ export default function AdminEventsPage() {
       }
     }
 
+    // Normalise event date fields to full ISO instants. The inputs are
+    // `datetime-local` (local wall-clock, no timezone); `new Date(str)` parses
+    // that as LOCAL time and toISOString() gives the correct UTC instant. Sending
+    // the raw timezone-less string would let the server guess the zone and could
+    // shift the day. Empty strings become null.
+    const toIso = v => (v ? new Date(v).toISOString() : null);
+    payload.registrationStartDate = toIso(form.registrationStartDate);
+    payload.registrationEndDate = toIso(form.registrationEndDate);
+    payload.eventStartDate = toIso(form.eventStartDate);
+    payload.eventEndDate = toIso(form.eventEndDate);
+
     // Make sure date field is set for backward compatibility
-    payload.date = payload.eventStartDate || payload.date || new Date().toISOString();
+    payload.date = payload.eventStartDate || toIso(form.date) || new Date().toISOString();
     // Strip empty lines from bullet-point fields before saving
     payload.highlights = (form.highlights || []).filter(Boolean);
     payload.outcomes = (form.outcomes || []).filter(Boolean);

@@ -95,17 +95,14 @@ function computePhases(application, evaluation = null) {
 
   const [pos, complete] = STATUS_POSITION[status] || [0, false];
 
-  // Score reveal logic:
-  // - If admin has already submitted a score (evaluation.submittedAt is set),
-  //   reveal immediately (admin scored = approved = stages unlocked now)
-  // - Otherwise, only reveal 2hrs before the booked slot
-  const adminScored = Boolean(evaluation?.submittedAt);
-  const slotTime = evaluation?.meeting?.scheduledAt
-    ? new Date(evaluation.meeting.scheduledAt).getTime()
-    : null;
-  const now = Date.now();
-  const twoHoursMs = 2 * 60 * 60 * 1000;
-  const scoreRevealed = adminScored || (slotTime ? (now >= slotTime - twoHoursMs) : false);
+  // Report / score reveal logic:
+  // The report (score, pass/fail, feedback, downloadable file) stays LOCKED after
+  // the admin scores. It only unlocks 2 hours before the booked 1:1 slot. We treat
+  // it as revealed when EITHER the unlock job has stamped report.unlockedAt, OR the
+  // live "2 hours before slot" moment has already passed (fallback so the UI is
+  // correct even in the gap before the 5-min job runs). Merely having a score is
+  // NOT enough - the applicant must have booked a slot and reached the 2h window.
+  const scoreRevealed = isReportUnlocked(evaluation);
 
   const score = scoreRevealed ? (evaluation?.score ?? null) : null;
   const passed = evaluation?.submittedAt ? evaluation.passed === true : null;
@@ -167,4 +164,27 @@ function computePhases(application, evaluation = null) {
   };
 }
 
-module.exports = { PHASES, STATUS_POSITION, computePhases };
+const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
+
+/**
+ * Single source of truth for whether an evaluation's report (score, pass/fail,
+ * feedback, downloadable file) is unlocked for the applicant.
+ *
+ * Rules (ALL must hold):
+ *  - The admin has submitted a score (evaluation.submittedAt).
+ *  - A 1:1 slot has been booked (meeting.scheduledAt).
+ *  - Either the unlock job has stamped report.unlockedAt, OR we are already
+ *    within 2 hours of the booked slot (live fallback for the gap before the
+ *    5-minute job runs).
+ */
+function isReportUnlocked(evaluation, at = Date.now()) {
+  if (!evaluation?.submittedAt) return false;
+  const slotTime = evaluation?.meeting?.scheduledAt
+    ? new Date(evaluation.meeting.scheduledAt).getTime()
+    : null;
+  if (!slotTime) return false;
+  if (evaluation?.report?.unlockedAt) return true;
+  return at >= slotTime - TWO_HOURS_MS;
+}
+
+module.exports = { PHASES, STATUS_POSITION, computePhases, isReportUnlocked, TWO_HOURS_MS };

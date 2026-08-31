@@ -615,11 +615,16 @@ async function syncApplicationToUserProfile(userId, founder, startup) {
       if (founder.state) profile.dynamicProfileData.state = founder.state;
     }
 
-    // Merge startup details into dynamicProfileData
+    // Merge startup details into dynamicProfileData.
+    //
+    // IMPORTANT: we deliberately do NOT sync startup.category → industry or
+    // startup.stage → startupStage back into the profile. Those grant fields are
+    // NORMALISED to the admin's grant taxonomy (e.g. a real industry of
+    // "Logistics" resolves to the grant category "Other"). Writing them back would
+    // silently clobber the user's own profile values. The profile is the source of
+    // truth for industry/stage; the grant application only consumes them.
     if (startup) {
       if (startup.name) profile.dynamicProfileData.startupName = startup.name;
-      if (startup.stage) profile.dynamicProfileData.startupStage = startup.stage;
-      if (startup.category) profile.dynamicProfileData.industry = startup.category;
       if (startup.teamSize) profile.dynamicProfileData.teamSize = startup.teamSize;
       if (startup.problemStatement) profile.dynamicProfileData.problemStatement = startup.problemStatement;
       if (startup.solution) profile.dynamicProfileData.description = startup.solution;

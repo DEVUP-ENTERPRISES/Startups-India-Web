@@ -68,9 +68,37 @@ function resolveCategory(industry, categories = []) {
   return 'Other';
 }
 
-// ── EvaluatedSection: shown after admin scores and approves ──────────────
-function EvaluatedSection({ appId }) {
+// ── EvaluatedSection: shown after admin scores. The report (score, feedback,
+// downloadable file) stays LOCKED until 2 hours before the booked 1:1 slot. ──
+function EvaluatedSection({ appId, evalSummary }) {
   const [showDialog, setShowDialog] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+  const [dlError, setDlError] = useState('');
+
+  const reportUnlocked = Boolean(evalSummary?.reportUnlocked);
+  const hasSlot = Boolean(evalSummary?.meeting?.scheduledAt);
+  const result = evalSummary?.result || null;
+
+  const slotLabel = hasSlot
+    ? new Date(evalSummary.meeting.scheduledAt).toLocaleString('en-IN', {
+      weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit',
+    })
+    : null;
+
+  const handleDownload = async () => {
+    setDlError('');
+    setDownloading(true);
+    const { data, error } = await apiFetch(`/api/v1/grants/applications/${appId}/evaluation/report`);
+    setDownloading(false);
+    if (error) {
+      setDlError(error.message || 'Report is not available yet.');
+      return;
+    }
+    if (data?.hasFile && data.url) {
+      window.open(data.url, '_blank', 'noopener,noreferrer');
+    }
+    // If there is no file, the on-page score/feedback below IS the report.
+  };
 
   return (
     <>
@@ -95,29 +123,97 @@ function EvaluatedSection({ appId }) {
           <h2 style={{ margin: '0 0 10px', fontSize: '22px', fontWeight: 900, color: '#fff', letterSpacing: '-0.3px' }}>
             Your idea has been validated!
           </h2>
-          <p style={{ margin: '0 0 22px', fontSize: '14px', color: '#a7f3d0', lineHeight: 1.6 }}>
-            Congratulations! Our expert panel has reviewed and approved your startup idea.
-            Your evaluation report is ready - book a 1:1 session to access it and unlock your next stages.
-          </p>
 
-          {/* Download Report button - shows dialog */}
-          <button
-            type="button"
-            onClick={() => setShowDialog(true)}
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: '10px',
-              padding: '13px 22px', borderRadius: '12px',
-              border: '1.5px solid rgba(16,185,129,0.5)',
-              background: 'rgba(16,185,129,0.15)',
-              color: '#34d399', fontWeight: 700, fontSize: '14px', cursor: 'pointer',
-            }}>
-            <Download size={16} />
-            Download Evaluation Report (PDF)
-            <ArrowRight size={14} />
-          </button>
-          <p style={{ margin: '10px 0 0', fontSize: '11.5px', color: 'rgba(167,243,208,0.6)' }}>
-            A 1:1 session is required to access your report.
-          </p>
+          {reportUnlocked ? (
+            <>
+              <p style={{ margin: '0 0 18px', fontSize: '14px', color: '#a7f3d0', lineHeight: 1.6 }}>
+                Your evaluation report is unlocked. View your score and feedback below, or download the full report.
+              </p>
+
+              {/* On-page score + feedback (the report itself when no file exists) */}
+              {result && (
+                <div style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(16,185,129,0.35)', borderRadius: '12px', padding: '16px 18px', marginBottom: '18px' }}>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', marginBottom: result.feedback ? '10px' : 0 }}>
+                    <span style={{ fontSize: '30px', fontWeight: 900, color: '#fff' }}>{result.score}</span>
+                    <span style={{ fontSize: '15px', color: '#a7f3d0' }}>/ {result.maxScore || 100}</span>
+                    <span style={{
+                      marginLeft: 'auto', padding: '4px 12px', borderRadius: '100px', fontSize: '12px', fontWeight: 800,
+                      background: result.passed ? 'rgba(16,185,129,0.25)' : 'rgba(239,68,68,0.25)',
+                      color: result.passed ? '#34d399' : '#fca5a5',
+                    }}>
+                      {result.passed ? 'PASSED' : 'NOT CLEARED'}
+                    </span>
+                  </div>
+                  {result.feedback && (
+                    <p style={{ margin: 0, fontSize: '13.5px', color: '#d1fae5', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
+                      {result.feedback}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {result?.hasFile && (
+                <button
+                  type="button"
+                  onClick={handleDownload}
+                  disabled={downloading}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '10px',
+                    padding: '13px 22px', borderRadius: '12px',
+                    border: '1.5px solid rgba(16,185,129,0.5)',
+                    background: 'rgba(16,185,129,0.15)',
+                    color: '#34d399', fontWeight: 700, fontSize: '14px',
+                    cursor: downloading ? 'wait' : 'pointer',
+                  }}>
+                  <Download size={16} />
+                  {downloading ? 'Preparing…' : 'Download Evaluation Report (PDF)'}
+                  <ArrowRight size={14} />
+                </button>
+              )}
+              {dlError && (
+                <p style={{ margin: '10px 0 0', fontSize: '12px', color: '#fca5a5' }}>{dlError}</p>
+              )}
+            </>
+          ) : (
+            <>
+              <p style={{ margin: '0 0 18px', fontSize: '14px', color: '#a7f3d0', lineHeight: 1.6 }}>
+                Congratulations! Our expert panel has reviewed your startup idea.
+                {hasSlot
+                  ? ' Your evaluation report unlocks 2 hours before your booked 1:1 session.'
+                  : ' Book a 1:1 session to unlock your report - it opens 2 hours before your slot.'}
+              </p>
+
+              {hasSlot ? (
+                <div style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '10px',
+                  padding: '13px 20px', borderRadius: '12px',
+                  border: '1.5px solid rgba(148,163,184,0.4)', background: 'rgba(15,23,42,0.35)',
+                  color: '#cbd5e1', fontWeight: 600, fontSize: '13.5px',
+                }}>
+                  <CalendarClock size={16} />
+                  Report unlocks 2 hrs before your session{slotLabel ? ` — ${slotLabel}` : ''}
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setShowDialog(true)}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '10px',
+                    padding: '13px 22px', borderRadius: '12px',
+                    border: '1.5px solid rgba(16,185,129,0.5)',
+                    background: 'rgba(16,185,129,0.15)',
+                    color: '#34d399', fontWeight: 700, fontSize: '14px', cursor: 'pointer',
+                  }}>
+                  <CalendarClock size={16} />
+                  Book 1:1 Session to Unlock Report
+                  <ArrowRight size={14} />
+                </button>
+              )}
+              <p style={{ margin: '10px 0 0', fontSize: '11.5px', color: 'rgba(167,243,208,0.6)' }}>
+                🔒 Your report is locked until 2 hours before your 1:1 session.
+              </p>
+            </>
+          )}
         </div>
       </div>
 
@@ -201,6 +297,10 @@ export default function IdeaValidationPage() {
   const [paying, setPaying] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  // Optimistic post-payment state: flipped the instant Razorpay confirms success,
+  // so the user immediately sees "payment received / confirming" instead of a
+  // stale "Continue to Payment" button while verify + reload run in the background.
+  const [paymentDone, setPaymentDone] = useState(false);
 
   const [problemStatement, setProblemStatement] = useState('');
   const [solution, setSolution] = useState('');
@@ -328,9 +428,10 @@ export default function IdeaValidationPage() {
     const appId = saved._id;
     setDraftId(appId);
 
-    // Submit the application
-    const { error: subErr } = await submitApplication(appId, true);
-    if (subErr) { setSaving(false); setError(subErr.message || 'Could not submit.'); return; }
+    // NOTE: we deliberately do NOT submit the application here. The application
+    // stays a draft until payment SUCCEEDS - submission happens inside the
+    // Razorpay success handler, right before verification. This way, cancelling
+    // the payment leaves the form editable and the user can pay again.
 
     setSaving(false);
     setPaying(true);
@@ -357,27 +458,43 @@ export default function IdeaValidationPage() {
           contact: user?.phone || '',
         },
         handler: async response => {
-          // Clear any previous payment-failed error before processing success
+          // Payment succeeded. Flip the UI to a success/confirming state IMMEDIATELY
+          // so the user never sees a stale "Continue to Payment" button while the
+          // verify + reload happen. The money is already taken at this point.
           setError('');
-          const { error: verifyErr } = await apiFetch(
-            `/api/v1/grants/applications/${appId}/evaluation/verify`,
-            {
-              method: 'POST',
-              body: JSON.stringify({
-                orderId: response.razorpay_order_id,
-                paymentId: response.razorpay_payment_id,
-                signature: response.razorpay_signature,
-              }),
-            }
-          );
-          if (verifyErr) {
-            setError('Payment went through but verification failed. Contact support - do not pay again.');
-            setPaying(false);
-            return;
-          }
-          // Reload to show "Application Under Review"
-          await loadData();
           setPaying(false);
+          setPaymentDone(true);
+          setSuccess('Payment received! Confirming your registration…');
+
+          // Record submission (best-effort - the backend also self-heals submittedAt
+          // on verify) and verify in parallel to cut the wait.
+          const [, verifyRes] = await Promise.all([
+            submitApplication(appId, true).catch(() => ({})),
+            apiFetch(
+              `/api/v1/grants/applications/${appId}/evaluation/verify`,
+              {
+                method: 'POST',
+                body: JSON.stringify({
+                  orderId: response.razorpay_order_id,
+                  paymentId: response.razorpay_payment_id,
+                  signature: response.razorpay_signature,
+                }),
+              }
+            ),
+          ]);
+
+          if (verifyRes?.error) {
+            // Rare: payment captured but signature verify failed. Keep the success
+            // framing but flag it for support rather than telling them to pay again.
+            setSuccess('');
+            setError('Payment received. We are finalising your registration - if it does not update shortly, contact support (do NOT pay again).');
+          } else {
+            setSuccess('Payment confirmed! Your idea has been submitted for evaluation.');
+          }
+
+          // Refresh the real application state in the background. The optimistic
+          // paymentDone flag already updated the UI, so any delay here is invisible.
+          await loadData().catch(() => {});
         },
         modal: { ondismiss: () => { setPaying(false); } },
         theme: { color: '#dc2626' },
@@ -405,8 +522,15 @@ export default function IdeaValidationPage() {
   }
 
   const status = app?.status || 'not_applied';
-  const isSubmitted = status !== 'not_applied' && status !== 'draft';
   const isPaid = PAID_STATUSES.includes(status);
+  // Statuses where the user has self-submitted but NOT yet paid - they can still
+  // pay (and edit). Treat these like a draft so a cancelled/abandoned payment
+  // never locks the user out of paying again.
+  const UNPAID_OPEN_STATUSES = ['draft', 'submitted', 'idea_evaluation_pending'];
+  // "Submitted" for UI purposes = past the point where the user can still pay.
+  // An unpaid self-submitted app is NOT treated as submitted here, so the form
+  // and payment button remain available.
+  const isSubmitted = status !== 'not_applied' && !UNPAID_OPEN_STATUSES.includes(status);
   // Paid but waiting for admin to score and schedule - show "Under Review"
   const isUnderReview = status === 'idea_evaluation_paid';
   const isScheduled = status === 'evaluation_scheduled';
@@ -478,8 +602,32 @@ export default function IdeaValidationPage() {
         </Link>
       </div>
 
+      {/* ── PAYMENT CONFIRMED (optimistic): shown the instant Razorpay succeeds,
+             until the real status refreshes into the Under Review / report state ── */}
+      {paymentDone && !isUnderReview && !isScheduled && !isEvaluated && (
+        <div style={{
+          background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)',
+          border: '1.5px solid #bbf7d0', borderRadius: '16px',
+          padding: '24px', marginBottom: '20px',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: 'linear-gradient(135deg, #16a34a, #15803d)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <CheckCircle2 size={22} color="#fff" />
+            </div>
+            <div>
+              <p style={{ margin: '0 0 2px', fontSize: '15px', fontWeight: 700, color: '#15803d' }}>
+                ✅ Payment Successful
+              </p>
+              <p style={{ margin: 0, fontSize: '13px', color: '#16a34a', lineHeight: 1.5 }}>
+                Your payment went through and your idea is being submitted for evaluation. This page will update in a moment.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── STEP 1: Problem & Solution ── */}
-      {!isSubmitted && (
+      {!isSubmitted && !paymentDone && (
         <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '24px', marginBottom: '20px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '18px' }}>
             <span style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'linear-gradient(135deg, #dc2626, #b91c1c)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 800, flexShrink: 0 }}>1</span>
@@ -516,7 +664,7 @@ export default function IdeaValidationPage() {
       )}
 
       {/* ── STEP 2: Upload Documents (before payment) ── */}
-      {!isPaid && config && (
+      {!isPaid && !paymentDone && !isSubmitted && config && (
         <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '24px', marginBottom: '20px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '18px' }}>
             <span style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'linear-gradient(135deg, #dc2626, #b91c1c)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 800, flexShrink: 0 }}>2</span>
@@ -570,7 +718,7 @@ export default function IdeaValidationPage() {
       )}
 
       {/* ── STEP 3: Continue to Payment button ── */}
-      {!isSubmitted && !isPaid && (
+      {!isSubmitted && !isPaid && !paymentDone && (
         <div style={{ marginBottom: '20px' }}>
           <button
             type="button"
@@ -686,9 +834,9 @@ export default function IdeaValidationPage() {
         </div>
       )}
 
-      {/* ── EVALUATED: Shortlisted notification + Report Download ── */}
+      {/* ── EVALUATED: Report (locked until 2h before slot, then unlocks) ── */}
       {isEvaluated && (
-        <EvaluatedSection appId={app?._id} isScheduled={isScheduled} />
+        <EvaluatedSection appId={app?._id} evalSummary={evalSummary} />
       )}
 
       {/* ── REJECTED ── */}

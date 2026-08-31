@@ -157,6 +157,22 @@ const ideaEvaluationSchema = new mongoose.Schema(
     // Shown to the applicant - praise if passed, improvement suggestions if not.
     feedback: { type: String, default: '', maxlength: 5000 },
 
+    // ── Report (downloadable file + on-page reveal) ──
+    // The evaluation report is LOCKED after scoring. It only unlocks 2 hours
+    // before the booked 1:1 slot (see the report-unlock job). Both the on-page
+    // score/feedback and the downloadable file are gated on reportUnlockedAt.
+    report: {
+      // S3/Blob object key + public/presignable URL for the generated report PDF.
+      // Optional: if no file is uploaded, the on-page score/feedback IS the report.
+      fileKey: { type: String, default: null },
+      fileUrl: { type: String, default: null, trim: true },
+      // When the report became downloadable (set by the 2h-before job). Null = locked.
+      unlockedAt: { type: Date, default: null },
+      // Persisted dedup so the "your report is here" email fires exactly once,
+      // even across server restarts and multiple PM2 workers.
+      emailSentAt: { type: Date, default: null },
+    },
+
     // Legacy multi-criteria fields, kept for older records; no longer written.
     scores: { type: Map, of: Number, default: undefined },
     totalScore: { type: Number, default: null },
@@ -167,6 +183,9 @@ const ideaEvaluationSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+// The report-unlock job queries on the meeting time + un-sent email flag.
+ideaEvaluationSchema.index({ 'meeting.scheduledAt': 1, 'report.emailSentAt': 1 });
 
 // ─── EVALUATION PAYMENT ───────────────────────────────────────────────
 // The fee actually charged is frozen here at order time. If an admin changes the

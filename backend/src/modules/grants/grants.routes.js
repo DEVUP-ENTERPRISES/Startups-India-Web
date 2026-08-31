@@ -7,6 +7,7 @@ const { ApiError } = require('../../utils/apiError');
 const grantService = require('./grant.service');
 const documentsService = require('./grant.documents.service');
 const paymentService = require('./grant.payment.service');
+const evaluationService = require('./grant.evaluation.service');
 const { getGrantSettings, computeEvaluationFee } = require('./grant.settings');
 const { STATUS_LABELS } = require('./grant.status');
 const { PHASES } = require('./grant.phases');
@@ -204,6 +205,17 @@ router.get(
   '/applications/:id/evaluation',
   asyncHandler(async (req, res) => {
     const data = await paymentService.getEvaluationSummary(req.user.userId, req.params.id);
+    res.json({ success: true, data });
+  })
+);
+
+// Download the evaluation report. Server-side gated: only served once the report
+// is unlocked (2 hours before the booked 1:1 slot). Returns a presigned file URL
+// when a report file was attached, else the on-page score/feedback.
+router.get(
+  '/applications/:id/evaluation/report',
+  asyncHandler(async (req, res) => {
+    const data = await evaluationService.getReportDownload(req.user.userId, req.params.id);
     res.json({ success: true, data });
   })
 );

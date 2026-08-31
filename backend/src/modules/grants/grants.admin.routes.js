@@ -158,8 +158,10 @@ router.get(
 );
 
 // ─── IDEA EVALUATION ────────────────────────────────────────────────────
-// Admin scores an application directly from the detail page (no separate
-// evaluation meeting required for shortlisting).
+// Admin scores an application directly from the detail page. Scoring does NOT
+// reveal the report - the applicant must book a 1:1 slot, and the report unlocks
+// 2 hours before that slot. All scoring funnels through the single canonical
+// evaluationService.scoreApplication so behaviour/messaging can't drift.
 router.post(
   '/applications/:id/score',
   validateBody(
@@ -169,92 +171,33 @@ router.post(
     })
   ),
   asyncHandler(async (req, res) => {
-    const { score, feedback } = req.body;
-    const { GrantApplication, IdeaEvaluation } = require('./grant.models');
-    const { ApiError: AE } = require('../../utils/apiError');
-    const { sendToUser } = require('../push/push.service');
-    const { notifyUser } = require('./grant.notify');
-    const { addTimelineEntry } = require('./grant.service');
-
-    const application = await GrantApplication.findById(req.params.id);
-    if (!application) throw new AE(404, 'Application not found');
-
-    const n = Number(score);
-
-    // Determine which stages to unlock based on score.
-    let nextStatus;
-    if (n >= 1) {
-      nextStatus = 'pre_incubation';
-    } else {
-      nextStatus = 'rejected';
-    }
-
-    // Notification copy - score is NOT revealed here; it's a surprise shown
-    // on the Idea Validation page 2 hours before the session (or immediately
-    // after admin scores, per scoreRevealed logic in grant.phases.js).
-    const notifTitle = n >= 1 ? '🎉 Idea Validation Complete!' : 'Application Update';
-    const notifMessage = n >= 1
-      ? 'Your idea has been evaluated by our expert panel. View your report on the Idea Validation page.'
-      : (feedback || 'Thank you for applying. Unfortunately your idea did not clear evaluation this time.');
-    const env = require('../../config/env');
-    const ctaUrl = `${env.FRONTEND_URL}/dashboard/journey/idea-validation`;
-
-    // Save score to IdeaEvaluation
-    await IdeaEvaluation.findOneAndUpdate(
-      { applicationId: application._id },
-      {
-        $set: {
-          score: n,
-          passed: n >= 1,
-          feedback: feedback || '',
-          reviewerId: req.user.userId,
-          submittedAt: new Date(),
-        },
-      },
-      { upsert: true, new: true }
-    );
-
-    // Advance the application status
-    application.status = nextStatus;
-    application.lastActionBy = req.user.userId;
-    application.lastActionAt = new Date();
-    await application.save();
-
-    await addTimelineEntry({
-      applicationId: application._id,
-      event: 'scored',
-      message: `Score: ${n}/100. ${nextStatus === 'rejected' ? 'Not selected.' : 'Stages unlocked based on score.'}`,
-      actorId: req.user.userId,
-      actorRole: 'admin',
-      visibleToStudent: false,
-      metadata: { score: n, nextStatus },
+    const evaluation = await evaluationService.scoreApplication({
+      applicationDbId: req.params.id,
+      score: req.body.score,
+      feedback: req.body.feedback,
+      reviewerId: req.user.userId,
     });
+    res.json({ success: true, data: { score: evaluation.score, passed: evaluation.passed } });
+  })
+);
 
-    // In-app notification - no score in the message
-    await notifyUser({
-      userId: application.userId,
-      title: notifTitle,
-      message: notifMessage,
-      type: n >= 1 ? 'success' : 'info',
-      data: {
-        applicationId: String(application._id),
-        ctaUrl,
-        ctaText: 'View Your Report',
-      },
+// Admin attaches (or replaces) the downloadable report file for an application.
+// Unlock timing is unchanged - the student still only gets it 2h before the slot.
+router.post(
+  '/applications/:id/report-file',
+  validateBody(
+    z.object({
+      fileKey: z.string().max(1024).optional().default(''),
+      fileUrl: z.string().url().max(2048).optional().or(z.literal('')).default(''),
+    })
+  ),
+  asyncHandler(async (req, res) => {
+    const data = await evaluationService.attachReportFile({
+      applicationDbId: req.params.id,
+      fileKey: req.body.fileKey || null,
+      fileUrl: req.body.fileUrl || null,
     });
-
-    // FCM push notification - no score in the body
-    await sendToUser(application.userId, {
-      title: notifTitle,
-      body: notifMessage,
-      data: {
-        type: 'idea_scored',
-        applicationId: String(application._id),
-        clickUrl: ctaUrl,
-      },
-    }).catch(() => {});
-
-    res.json({ success: true, data: { score: n, nextStatus } });
+    res.json({ success: true, data });
   })
 );
 router.get(

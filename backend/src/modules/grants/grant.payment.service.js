@@ -8,6 +8,7 @@ const { STATUS } = require('./grant.status');
 const { computeEvaluationFee, getGrantSettings } = require('./grant.settings');
 const { addTimelineEntry } = require('./grant.service');
 const { notifyStatusChange } = require('./grant.notify');
+const { isReportUnlocked } = require('./grant.phases');
 
 const razorpay =
   env.RAZORPAY_KEY_ID && env.RAZORPAY_KEY_SECRET
@@ -31,11 +32,19 @@ const razorpay =
  *     double-advance the application.
  */
 
-// Only a Selected / Evaluation-Pending application may pay. Anything else means
-// someone is trying to buy their way past a stage they haven't reached.
-// Self-submitted applications start at SUBMITTED and are immediately moved to
-// EVALUATION_PENDING so the user can pay without waiting for admin selection.
-const PAYABLE_STATUSES = [STATUS.SELECTED, STATUS.EVALUATION_PENDING, STATUS.SUBMITTED, STATUS.UNDER_REVIEW, STATUS.SHORTLISTED];
+// Which application states may open a payment. For the self-submitted Idea
+// Validation flow, the application is a DRAFT when the user pays - it is only
+// SUBMITTED after payment succeeds (see the verify handler). We therefore allow
+// paying from DRAFT; buying past a *later* stage is still blocked because those
+// statuses are not listed here.
+const PAYABLE_STATUSES = [
+  STATUS.DRAFT,
+  STATUS.SELECTED,
+  STATUS.EVALUATION_PENDING,
+  STATUS.SUBMITTED,
+  STATUS.UNDER_REVIEW,
+  STATUS.SHORTLISTED,
+];
 
 function generateInvoiceNumber(applicationRef) {
   const year = new Date().getFullYear();
@@ -223,6 +232,14 @@ async function verifyEvaluationPayment(userId, { orderId, paymentId, signature }
   // silently corrupting the lifecycle.
   if (PAYABLE_STATUSES.includes(application.status)) {
     const from = application.status;
+    // If the client's submit didn't run (e.g. it failed), record the submission
+    // milestone now - payment success IS the submission for this flow.
+    if (!application.submittedAt) {
+      application.submittedAt = new Date();
+    }
+    if (!application.termsAcceptedAt) {
+      application.termsAcceptedAt = new Date();
+    }
     application.status = STATUS.EVALUATION_PAID;
     await application.save();
 
@@ -306,6 +323,8 @@ async function getEvaluationSummary(userId, applicationDbId) {
     computeEvaluationFee(),
   ]);
 
+  const reportUnlocked = isReportUnlocked(evaluation);
+
   return {
     applicationRef: application.applicationId,
     status: application.status,
@@ -323,18 +342,25 @@ async function getEvaluationSummary(userId, applicationDbId) {
       : fee,
     invoiceNumber: payment?.invoiceNumber || null,
     meeting: evaluation?.meeting?.scheduledAt ? evaluation.meeting : null,
-    // The result is only surfaced once scored (not mid-review). Shows the mark,
-    // whether it passed, and the panel's feedback (which becomes improvement
-    // suggestions when it didn't pass).
-    result:
-      evaluation?.submittedAt && application.status !== STATUS.EVALUATION_SCHEDULED
-        ? {
-          score: evaluation.score,
-          maxScore: 100,
-          passed: evaluation.passed,
-          feedback: evaluation.feedback || '',
-        }
-        : null,
+    // Has the admin scored yet? (Drives the "book your slot to unlock" CTA.)
+    scored: Boolean(evaluation?.submittedAt),
+    // Is the report unlocked? Locked after scoring; unlocks 2h before the booked
+    // 1:1 slot. Same rule everywhere via isReportUnlocked.
+    reportUnlocked,
+    // The result (score/feedback) and downloadable file are ONLY surfaced once
+    // the report is unlocked. Before that the applicant sees the "book a slot"
+    // / "unlocks 2h before your session" state instead.
+    result: reportUnlocked
+      ? {
+        score: evaluation.score,
+        maxScore: 100,
+        passed: evaluation.passed,
+        feedback: evaluation.feedback || '',
+        // Downloadable report file, if one was attached. When absent, the
+        // on-page score/feedback IS the report.
+        hasFile: Boolean(evaluation?.report?.fileKey || evaluation?.report?.fileUrl),
+      }
+      : null,
   };
 }
 
