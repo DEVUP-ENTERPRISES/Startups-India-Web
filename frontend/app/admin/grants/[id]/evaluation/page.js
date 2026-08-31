@@ -6,6 +6,17 @@ import Link from 'next/link';
 import { ArrowLeft, CalendarClock, Star, CheckCircle2, AlertCircle } from 'lucide-react';
 import { getEvaluation, scheduleMeeting, submitEvaluationResult, adminUrl } from '@/lib/grantsAdmin';
 
+// Format a stored instant into a `datetime-local` value (YYYY-MM-DDTHH:mm) in
+// LOCAL time. toISOString() renders in UTC and can shift the wall-clock / date
+// back for IST times near midnight, so we build the string from local getters.
+function toLocalDatetimeInput(value) {
+  if (!value) return '';
+  const d = new Date(value);
+  if (Number.isNaN(d.valueOf())) return '';
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
 const MODES = [
   { id: 'google_meet', label: 'Google Meet' },
   { id: 'zoom', label: 'Zoom' },
@@ -61,7 +72,7 @@ export default function AdminEvaluationPage() {
     if (data.meeting?.link) setLink(data.meeting.link);
     if (data.meeting?.location) setLocation(data.meeting.location);
     if (data.meeting?.scheduledAt) {
-      setWhen(new Date(data.meeting.scheduledAt).toISOString().slice(0, 16));
+      setWhen(toLocalDatetimeInput(data.meeting.scheduledAt));
     }
     if (data.score !== null && data.score !== undefined) setScore(String(data.score));
     if (data.feedback) setFeedback(data.feedback);

@@ -6,6 +6,18 @@ import { ArrowLeft, Save, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { getGrantSettings, updateGrantSettings, adminUrl } from '@/lib/grantsAdmin';
 import { formatMoney } from '@/lib/grants';
 
+// Format a stored instant into a `datetime-local` value (YYYY-MM-DDTHH:mm) in
+// LOCAL time. toISOString() would render in UTC and shift the wall-clock (and can
+// roll the date back a day for IST times near midnight), so we build it from
+// local getters instead.
+function toLocalDatetimeInput(value) {
+  if (!value) return '';
+  const d = new Date(value);
+  if (Number.isNaN(d.valueOf())) return '';
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
 /**
  * Grant Settings.
  *
@@ -192,7 +204,7 @@ export default function GrantSettingsPage() {
         type={key.includes('deadline') ? 'datetime-local' : 'text'}
         value={
           key.includes('deadline') && value
-            ? new Date(value).toISOString().slice(0, 16)
+            ? toLocalDatetimeInput(value)
             : value ?? ''
         }
         onChange={e =>
