@@ -38,7 +38,6 @@ import ConditionalLayout from '@/components/layout/ConditionalLayout';
 import ScrollToTop from '@/components/ui/ScrollToTop';
 import CustomCursor from '@/components/ui/CustomCursor';
 import { organizationSchema, websiteSchema } from '@/lib/seo';
-import AgentationProvider from '@/components/providers/AgentationProvider';
 
 // Configure Poppins font - SIMPLE FIX for FOUC
 const poppins = Poppins({
@@ -226,7 +225,6 @@ export default function RootLayout({ children }) {
           <ConditionalLayout>{children}</ConditionalLayout>
           <CustomCursor />
           <ScrollToTop />
-          <AgentationProvider />
         </ClientErrorBoundary>
       </body>
     </html>

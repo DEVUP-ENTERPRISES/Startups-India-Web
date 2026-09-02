@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { UploadCloud, FileText, X, Check, AlertCircle } from 'lucide-react';
 import { uploadDocument, deleteDocument } from '@/lib/grants';
 
@@ -29,6 +29,7 @@ export default function FileDropzone({
   maxFiles = 1,
   existing = [],
   onChange,
+  onBusyChange,         // (kind, isBusy) => void  - lets the parent gate sibling dropzones
   disabled = false,
 }) {
   const inputRef = useRef(null);
@@ -36,6 +37,12 @@ export default function FileDropzone({
   const [progress, setProgress] = useState(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+
+  // Report busy transitions up so the parent can disable other uploaders while
+  // this one is mid-upload (only one document upload should run at a time).
+  useEffect(() => {
+    onBusyChange?.(kind, busy);
+  }, [busy, kind, onBusyChange]);
 
   const atCapacity = existing.length >= maxFiles;
   const locked = disabled || atCapacity || busy;
@@ -206,10 +213,11 @@ export default function FileDropzone({
         </div>
       ))}
 
-      {/* Dropzone */}
-      {!atCapacity && !disabled && (
+      {/* Dropzone. Stays visible (but inert + dimmed) when disabled by a sibling
+          upload, so it doesn't vanish mid-flow. */}
+      {!atCapacity && (
         <div
-          onDragOver={e => { e.preventDefault(); setDragging(true); }}
+          onDragOver={e => { e.preventDefault(); if (!locked) setDragging(true); }}
           onDragLeave={() => setDragging(false)}
           onDrop={e => {
             e.preventDefault();
@@ -218,7 +226,8 @@ export default function FileDropzone({
           }}
           onClick={() => !locked && inputRef.current?.click()}
           role="button"
-          tabIndex={0}
+          tabIndex={locked ? -1 : 0}
+          aria-disabled={locked}
           onKeyDown={e => {
             if ((e.key === 'Enter' || e.key === ' ') && !locked) inputRef.current?.click();
           }}
@@ -228,8 +237,9 @@ export default function FileDropzone({
             borderRadius: '14px',
             background: dragging ? '#fff5f5' : '#fafafa',
             textAlign: 'center',
-            cursor: locked ? 'default' : 'pointer',
-            transition: 'border-color .15s, background .15s',
+            cursor: locked ? 'not-allowed' : 'pointer',
+            transition: 'border-color .15s, background .15s, opacity .15s',
+            opacity: disabled && !busy ? 0.55 : 1,
           }}
         >
           <input
@@ -237,6 +247,7 @@ export default function FileDropzone({
             type="file"
             accept={acceptAttr}
             hidden
+            disabled={locked}
             onChange={e => handleFiles(e.target.files)}
           />
 
@@ -256,6 +267,13 @@ export default function FileDropzone({
                 />
               </div>
             </div>
+          ) : disabled ? (
+            <>
+              <UploadCloud size={26} color="#cbd5e1" style={{ margin: '0 auto 8px' }} />
+              <p style={{ margin: 0, fontSize: '12.5px', fontWeight: 600, color: '#94a3b8' }}>
+                Please wait for the current upload to finish…
+              </p>
+            </>
           ) : (
             <>
               <UploadCloud size={26} color="#9ca3af" style={{ margin: '0 auto 8px' }} />

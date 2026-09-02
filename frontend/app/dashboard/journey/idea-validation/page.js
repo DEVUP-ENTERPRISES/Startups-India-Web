@@ -303,6 +303,19 @@ export default function IdeaValidationPage() {
   const [paying, setPaying] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  // Which document kind is currently uploading (if any). Used to disable the
+  // other dropzone so only one upload runs at a time.
+  const [uploadingKind, setUploadingKind] = useState(null);
+
+  // A dropzone tells us when it starts/finishes uploading. Track the active
+  // kind so we can disable the sibling dropzone while one upload is in flight.
+  const handleUploadBusyChange = useCallback((kind, isBusy) => {
+    setUploadingKind(prev => {
+      if (isBusy) return kind;
+      // Only clear if the finishing upload is the one we were tracking.
+      return prev === kind ? null : prev;
+    });
+  }, []);
   // Optimistic post-payment state: flipped the instant Razorpay confirms success,
   // so the user immediately sees "payment received / confirming" instead of a
   // stale "Continue to Payment" button while verify + reload run in the background.
@@ -686,6 +699,8 @@ export default function IdeaValidationPage() {
               maxSizeMb={config.upload?.maxSizeMb || 10}
               maxFiles={1}
               existing={docsOf('pitch_deck')}
+              onBusyChange={handleUploadBusyChange}
+              disabled={uploadingKind === 'business_plan'}
               onChange={next => setDocuments(prev => [
                 ...prev.filter(d => d.kind !== 'pitch_deck'),
                 ...next.filter(d => d.kind === 'pitch_deck'),
@@ -701,6 +716,8 @@ export default function IdeaValidationPage() {
               maxSizeMb={config.upload?.maxSizeMb || 10}
               maxFiles={1}
               existing={docsOf('business_plan')}
+              onBusyChange={handleUploadBusyChange}
+              disabled={uploadingKind === 'pitch_deck'}
               onChange={next => setDocuments(prev => [
                 ...prev.filter(d => d.kind !== 'business_plan'),
                 ...next.filter(d => d.kind === 'business_plan'),
