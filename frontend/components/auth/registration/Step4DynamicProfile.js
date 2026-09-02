@@ -42,23 +42,66 @@ const GithubIcon = ({ size = 18, className = "" }) => (
 const ImageUploadDropzone = ({ label, value, onChange }) => {
   const fileInputRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
 
-  const handleFile = (file) => {
+  const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
+  // Upload the image straight to S3 (under profiles/) via a presigned URL and
+  // store only the resulting URL on the profile. This replaces the old base64
+  // data-URL approach, which bloated the onboarding payload past the server's
+  // body-size limit (HTTP 413).
+  const handleFile = async (file) => {
     if (!file) return;
-    if (!file.type.startsWith('image/')) {
-      alert('Please select a valid image file (PNG, JPG, WEBP, etc.)');
+    setUploadError('');
+
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+      setUploadError('Please choose a JPG, PNG or WebP image.');
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      alert('File size exceeds 5MB limit. Please choose a smaller photo.');
+      setUploadError('That image is over 5MB. Please choose a smaller one.');
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      onChange(e.target.result); // Base64 Data URL for local display & storage
-    };
-    reader.readAsDataURL(file);
+    setUploading(true);
+    try {
+      const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
+      const token = typeof window !== 'undefined' ? sessionStorage.getItem('_at') : null;
+
+      // 1. Ask our API for a short-lived presigned PUT URL.
+      const presignRes = await fetch(`${apiBase}/api/v1/auth/profile/photo-upload-url`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        credentials: 'include',
+        body: JSON.stringify({ fileType: file.type, fileName: file.name, fileSize: file.size }),
+      });
+      const presign = await presignRes.json();
+      if (!presignRes.ok || !presign?.success) {
+        throw new Error(presign?.message || 'Could not prepare the upload.');
+      }
+
+      // 2. PUT the bytes directly to S3. The presigned URL is locked to this
+      //    content type (and size, if provided), so the header must match.
+      const putRes = await fetch(presign.data.uploadUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': file.type },
+        body: file,
+      });
+      if (!putRes.ok) {
+        throw new Error('Upload to storage failed. Please try again.');
+      }
+
+      // 3. Store only the public URL on the profile.
+      onChange(presign.data.fileUrl);
+    } catch (err) {
+      setUploadError(err.message || 'Upload failed. Please try again.');
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleDrop = (e) => {
@@ -117,8 +160,8 @@ const ImageUploadDropzone = ({ label, value, onChange }) => {
             }}
           />
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: '13px', fontWeight: 600, color: '#0f172a' }}>Local Image Uploaded ✓</div>
-            <div style={{ fontSize: '11px', color: '#059669', marginTop: '2px' }}>Ready to save to profile</div>
+            <div style={{ fontSize: '13px', fontWeight: 600, color: '#0f172a' }}>Image Uploaded ✓</div>
+            <div style={{ fontSize: '11px', color: '#059669', marginTop: '2px' }}>Saved to your profile</div>
           </div>
           <button
             type="button"
@@ -142,8 +185,8 @@ const ImageUploadDropzone = ({ label, value, onChange }) => {
         </div>
       ) : (
         <div
-          onClick={() => fileInputRef.current?.click()}
-          onDrop={handleDrop}
+          onClick={() => !uploading && fileInputRef.current?.click()}
+          onDrop={uploading ? (e) => e.preventDefault() : handleDrop}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           style={{
@@ -152,14 +195,15 @@ const ImageUploadDropzone = ({ label, value, onChange }) => {
             borderRadius: '12px',
             padding: '16px 20px',
             textAlign: 'center',
-            cursor: 'pointer',
+            cursor: uploading ? 'wait' : 'pointer',
             transition: 'all 0.2s ease',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
             gap: '6px',
-            marginTop: '4px'
+            marginTop: '4px',
+            opacity: uploading ? 0.75 : 1,
           }}
         >
           <div style={{
@@ -174,12 +218,24 @@ const ImageUploadDropzone = ({ label, value, onChange }) => {
           }}>
             <UploadCloud size={20} />
           </div>
-          <div style={{ fontSize: '13px', fontWeight: 600, color: '#1e293b' }}>
-            Drag & drop photo here or <span style={{ color: '#dc2626', textDecoration: 'underline' }}>browse local files</span>
-          </div>
-          <div style={{ fontSize: '11px', color: '#64748b' }}>
-            Supports PNG, JPG, JPEG, WEBP up to 5MB
-          </div>
+          {uploading ? (
+            <div style={{ fontSize: '13px', fontWeight: 600, color: '#1e293b' }}>Uploading…</div>
+          ) : (
+            <>
+              <div style={{ fontSize: '13px', fontWeight: 600, color: '#1e293b' }}>
+                Drag &amp; drop photo here or <span style={{ color: '#dc2626', textDecoration: 'underline' }}>browse files</span>
+              </div>
+              <div style={{ fontSize: '11px', color: '#64748b' }}>
+                Supports PNG, JPG, JPEG, WEBP up to 5MB
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {uploadError && (
+        <div style={{ fontSize: '11.5px', color: '#dc2626', fontWeight: 500, marginTop: '6px' }}>
+          {uploadError}
         </div>
       )}
     </div>

@@ -585,6 +585,63 @@ router.get(
   })
 );
 
+// ─── PROFILE IMAGE UPLOAD (authenticated) ───────────────────────────
+// Onboarding profile photos / logos go straight to S3 under profiles/, and the
+// profile stores only the resulting URL. This keeps the complete-onboarding
+// JSON body tiny - embedding base64 images used to blow past the 1MB body limit
+// (HTTP 413). The browser PUTs the bytes directly to S3 via the presigned URL,
+// so image data never transits this API.
+const PROFILE_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
+router.post(
+  '/profile/photo-upload-url',
+  authRequired,
+  validateBody(
+    z.object({
+      fileType: z.string().min(1).max(120),
+      fileName: z.string().min(1).max(200).optional(),
+      fileSize: z.coerce.number().int().positive().max(5 * 1024 * 1024).optional(),
+    })
+  ),
+  asyncHandler(async (req, res) => {
+    const { fileType, fileName, fileSize } = req.body;
+
+    if (!PROFILE_IMAGE_TYPES.includes(fileType)) {
+      return res
+        .status(400)
+        .json({ success: false, message: 'Please upload a JPG, PNG or WebP image.' });
+    }
+
+    const crypto = require('crypto');
+    const { generateUploadUrl } = require('../../utils/s3');
+
+    const ext = (fileName && fileName.includes('.') ? fileName.split('.').pop() : 'jpg')
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '')
+      .slice(0, 5) || 'jpg';
+
+    // Namespaced per user, with random entropy so filenames can't collide or be guessed.
+    const key = `profiles/${req.user.userId}/${crypto.randomBytes(12).toString('hex')}.${ext}`;
+
+    try {
+      const presigned = await generateUploadUrl({
+        key,
+        contentType: fileType,
+        contentLength: Number.isFinite(fileSize) ? fileSize : undefined,
+        expiresIn: 300,
+      });
+      return res.json({
+        success: true,
+        data: { uploadUrl: presigned.uploadUrl, fileUrl: presigned.fileUrl, key: presigned.key },
+      });
+    } catch (err) {
+      return res
+        .status(500)
+        .json({ success: false, message: 'Could not prepare the upload. Please try again.' });
+    }
+  })
+);
+
 // ─── ONBOARDING COMPLETION ──────────────────────────────────────────
 // Called at the end of the /onboarding flow. Saves role, phone, profile data
 // and marks the account as onboarding-complete so the client can redirect
