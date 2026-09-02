@@ -551,8 +551,6 @@
   max-width: 600px;
   margin: 0 auto;
   width: 100%;
-  overflow-y: auto;
-  max-height: calc(100vh - 280px);
   padding-right: 4px;
 }
 
@@ -789,8 +787,6 @@
   flex-direction: column;
   gap: 12px;
   margin-bottom: 20px;
-  max-height: calc(100vh - 360px);
-  overflow-y: auto;
   padding-right: 4px;
 }
 
@@ -860,6 +856,25 @@
   margin-top: auto;
   padding-top: 14px;
   border-top: 1px solid #f1f5f9;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+@media (max-width: 480px) {
+  .reg-v2-footer-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .reg-v2-footer-actions > div {
+    width: 100%;
+  }
+
+  .reg-v2-btn-back,
+  .reg-v2-btn-continue {
+    width: 100%;
+    justify-content: center;
+  }
 }
 
 .reg-v2-btn-back {

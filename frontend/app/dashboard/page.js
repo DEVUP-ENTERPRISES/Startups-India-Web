@@ -816,17 +816,29 @@ function StartupDashboardView({ user }) {
     const rejected = appStatus === 'rejected';
     const scoreRevealed = app?.scoreRevealed || false;
     const score = app?.score ?? null;
+    // Keep in lockstep with the backend (grant.phases.js computePhases):
+    // score-based unlocking only kicks in for a score of 1+. A score of 0 is a
+    // rejection and unlocks nothing.
     let unlockedUpTo = pos;
     if (scoreRevealed && score !== null) {
       if (score >= 75) unlockedUpTo = Math.max(pos, 4);
       else if (score >= 50) unlockedUpTo = Math.max(pos, 3);
-      else unlockedUpTo = Math.max(pos, 2);
+      else if (score >= 1) unlockedUpTo = Math.max(pos, 2);
     }
+
+    // Which phase to mark as 'rejected'. The backend derives this from whether an
+    // evaluation was actually submitted (passedEvaluation is non-null once it was):
+    // rejected before evaluation → Stage 1 (index 0), rejected at evaluation →
+    // Stage 2 (index 1).
+    const evaluationSubmitted = app?.passedEvaluation !== null && app?.passedEvaluation !== undefined;
+    const rejectedPhase = evaluationSubmitted ? 1 : 0;
 
     return PHASE_DEFS.map((p, i) => {
       let state;
       if (rejected) {
-        state = i <= 1 ? (i < 1 ? 'done' : 'rejected') : 'locked';
+        if (i < rejectedPhase) state = 'done';
+        else if (i === rejectedPhase) state = 'rejected';
+        else state = 'locked';
       } else if (i < pos) {
         state = 'done';
       } else if (i === pos) {

@@ -53,15 +53,18 @@ const SCHEMA = {
 
   // ─── Uploads ────────────────────────────────────────────────────────
   'grant.upload.maxSizeMb': { type: 'integer', default: 10, min: 1, max: 200 },
+  // PDF-only by default. Office formats (ppt/pptx/doc/docx) are intentionally NOT
+  // allowed: browsers report their MIME type inconsistently (often "" or
+  // application/octet-stream), so those uploads failed the type check while the
+  // UI still advertised them - misleading the user. PDF renders consistently for
+  // reviewers too. An admin can still widen these lists via settings if needed.
   'grant.upload.pitchDeckTypes': {
     type: 'stringArray',
-    default: ['application/pdf', 'application/vnd.ms-powerpoint',
-      'application/vnd.openxmlformats-officedocument.presentationml.presentation'],
+    default: ['application/pdf'],
   },
   'grant.upload.documentTypes': {
     type: 'stringArray',
-    default: ['application/pdf', 'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+    default: ['application/pdf'],
   },
   'grant.upload.imageTypes': {
     type: 'stringArray',

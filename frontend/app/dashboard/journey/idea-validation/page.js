@@ -38,6 +38,12 @@ const PAID_STATUSES = [
   'pre_incubation', 'incubation', 'funding_process_started', 'grant_approved', 'completed',
 ];
 
+// The canonical startup-stage taxonomy lives in admin settings (grant.stages) and
+// is delivered via the /config endpoint as config.stages. This list is only a
+// fallback for the brief window before config loads - prefer config.stages so an
+// admin edit never silently goes stale here.
+const DEFAULT_STARTUP_STAGES = ['Idea', 'Prototype', 'MVP', 'Revenue', 'Scaling'];
+
 /**
  * Maps a free-text industry value (from the user's profile) to the nearest
  * valid grant category from the admin's config list.
@@ -363,7 +369,7 @@ export default function IdeaValidationPage() {
       },
       startup: {
         name: dp.startupName || 'My Startup',
-        stage: resolveCategory(dp.startupStage, ['Idea', 'Prototype', 'MVP', 'Revenue', 'Scaling']) || 'Idea',
+        stage: resolveCategory(dp.startupStage, config?.stages || DEFAULT_STARTUP_STAGES) || 'Idea',
         category: resolveCategory(dp.industry, config?.categories) || 'Other',
         problemStatement: problemStatement.trim() || '-',
         solution: solution.trim() || '-',
@@ -386,7 +392,7 @@ export default function IdeaValidationPage() {
     draftId, app?._id, creatingDraft,
     user?.email, user?.fullName, user?.full_name, user?.phone,
     dp.collegeName, dp.industry, dp.startupName, dp.startupStage, dp.city, dp.state,
-    config?.categories, problemStatement, solution,
+    config?.categories, config?.stages, problemStatement, solution,
   ]);
 
   const handleContinueToPayment = async () => {
@@ -416,7 +422,7 @@ export default function IdeaValidationPage() {
     };
     const startupPayload = {
       name: dp.startupName || 'My Startup',
-      stage: resolveCategory(dp.startupStage, ['Idea', 'Prototype', 'MVP', 'Revenue', 'Scaling']) || 'Idea',
+      stage: resolveCategory(dp.startupStage, config?.stages || DEFAULT_STARTUP_STAGES) || 'Idea',
       category: resolveCategory(dp.industry, config?.categories) || 'Other',
       problemStatement: problemStatement.trim(),
       solution: solution.trim(),

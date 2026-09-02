@@ -254,7 +254,7 @@ async function listMyApplications(userId) {
   const applications = await GrantApplication.find({ userId }).sort({ createdAt: -1 }).lean();
   if (applications.length === 0) return applications;
 
-  // Attach the 5-phase journey state so the sidebar roadmap can unlock phases
+  // Attach the 6-phase journey state so the sidebar roadmap can unlock phases
   // (e.g. Idea Evaluation opens only once the idea is accepted) without the
   // frontend having to know which statuses map to which phase.
   const evaluations = await IdeaEvaluation.find({

@@ -40,15 +40,32 @@ export default function FileDropzone({
   const atCapacity = existing.length >= maxFiles;
   const locked = disabled || atCapacity || busy;
 
+  // Map MIME types to human-readable names and file extensions. The extensions
+  // are what make the native file dialog filter reliably (a MIME-only `accept`
+  // still lets some OS dialogs fall back to "All files").
+  const MIME_META = {
+    'application/pdf': { label: 'pdf', ext: '.pdf' },
+    'application/msword': { label: 'doc', ext: '.doc' },
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': { label: 'docx', ext: '.docx' },
+    'application/vnd.ms-powerpoint': { label: 'ppt', ext: '.ppt' },
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation': { label: 'pptx', ext: '.pptx' },
+    'image/jpeg': { label: 'jpg', ext: '.jpg,.jpeg' },
+    'image/png': { label: 'png', ext: '.png' },
+    'image/webp': { label: 'webp', ext: '.webp' },
+    'video/mp4': { label: 'mp4', ext: '.mp4' },
+    'video/quicktime': { label: 'mov', ext: '.mov' },
+    'video/webm': { label: 'webm', ext: '.webm' },
+  };
+
   const prettyTypes = accept
-    .map(t =>
-      t.split('/').pop()
-       .replace('vnd.openxmlformats-officedocument.presentationml.presentation', 'pptx')
-       .replace('vnd.openxmlformats-officedocument.wordprocessingml.document', 'docx')
-       .replace('vnd.ms-powerpoint', 'ppt')
-       .replace('msword', 'doc')
-    )
+    .map(t => MIME_META[t]?.label || t.split('/').pop())
     .join(', ');
+
+  // Build the file input's accept attribute from MIME types + their extensions,
+  // so the OS picker only offers matching files.
+  const acceptAttr = accept
+    .flatMap(t => [t, MIME_META[t]?.ext].filter(Boolean))
+    .join(',');
 
   const handleFiles = async fileList => {
     setError('');
@@ -56,7 +73,14 @@ export default function FileDropzone({
     if (!file) return;
 
     // Client-side type + size checks - fail fast before touching the network.
-    if (accept.length && !accept.includes(file.type)) {
+    // Match on MIME type, but fall back to the file extension when the browser
+    // reports an empty/generic type (drag-drop can leave file.type blank even
+    // for a valid PDF). The server re-validates, so this is purely UX.
+    const allowedExts = accept.flatMap(t => (MIME_META[t]?.ext || '').split(',')).filter(Boolean);
+    const nameLower = (file.name || '').toLowerCase();
+    const typeOk = accept.includes(file.type);
+    const extOk = allowedExts.some(ext => nameLower.endsWith(ext));
+    if (accept.length && !typeOk && !extOk) {
       setError(`That file type isn't accepted here. Allowed: ${prettyTypes}.`);
       return;
     }
@@ -211,7 +235,7 @@ export default function FileDropzone({
           <input
             ref={inputRef}
             type="file"
-            accept={accept.join(',')}
+            accept={acceptAttr}
             hidden
             onChange={e => handleFiles(e.target.files)}
           />

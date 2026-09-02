@@ -455,7 +455,6 @@ function OnboardingContent() {
                           borderRadius: '20px', padding: '6px 16px',
                           fontSize: '12px', fontWeight: 700, color: '#15803d',
                         }}>
-                          <span style={{ fontSize: '14px' }}>🔒</span>
                           Secured &amp; Verified
                         </div>
 

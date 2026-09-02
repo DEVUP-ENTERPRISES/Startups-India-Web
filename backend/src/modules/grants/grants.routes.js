@@ -88,7 +88,7 @@ router.get(
         },
         evaluationFee: fee,
         statusLabels: STATUS_LABELS,
-        // The 5-phase journey (static definitions, no per-applicant state) so the
+        // The 6-phase journey (static definitions, no per-applicant state) so the
         // apply page can showcase the full path before anyone applies. `fee` is the
         // base price in paise for phases that have one (0/null = not published).
         phases: PHASES.map(p => {
