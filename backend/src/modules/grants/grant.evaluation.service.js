@@ -239,9 +239,8 @@ async function scoreApplication({ applicationDbId, score, feedback, reviewerId }
       userId: application.userId,
       title: '✅ Your Idea Has Been Evaluated',
       message:
-        'Our expert panel has evaluated your idea. To unlock your evaluation report, '
-        + 'book your 1:1 session on the Idea Validation page. Your report unlocks 2 hours '
-        + 'before your booked slot.',
+        'Our expert panel has evaluated your idea. Access your evaluation report by '
+        + 'opening the Idea Validation page and downloading your report.',
       type: 'success',
       data: {
         applicationId: String(application._id),
@@ -259,7 +258,7 @@ async function scoreApplication({ applicationDbId, score, feedback, reviewerId }
         applicationId: String(application._id),
         clickUrl: ideaValidationUrl,
       },
-    }).catch(() => {});
+    }).catch(() => { });
   } else {
     await notifyUser({
       userId: application.userId,
@@ -282,7 +281,7 @@ async function scoreApplication({ applicationDbId, score, feedback, reviewerId }
         applicationId: String(application._id),
         clickUrl: ideaValidationUrl,
       },
-    }).catch(() => {});
+    }).catch(() => { });
   }
 
   return evaluation;

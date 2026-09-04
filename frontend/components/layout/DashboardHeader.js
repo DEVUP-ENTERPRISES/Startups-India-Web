@@ -7,6 +7,21 @@ import Icon from '@/components/ui/Icon';
 import Link from 'next/link';
 import { useDashboard } from '@/contexts/DashboardProvider';
 import { signOut } from '@/lib/auth';
+import { apiFetch } from '@/lib/api';
+
+// Turn a stored timestamp into a short "10 mins ago" style label.
+function timeAgo(iso) {
+  if (!iso) return '';
+  const diff = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'Just now';
+  if (mins < 60) return `${mins} min${mins === 1 ? '' : 's'} ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs} hour${hrs === 1 ? '' : 's'} ago`;
+  const days = Math.floor(hrs / 24);
+  if (days < 7) return `${days} day${days === 1 ? '' : 's'} ago`;
+  return new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+}
 
 const dashboardPages = [
   { title: 'Dashboard Home', path: '/dashboard', category: 'Module', icon: 'layout' },
@@ -35,12 +50,33 @@ export default function DashboardHeader({ onOpenMobileMenu }) {
   const profileRef = useRef(null);
   const notificationRef = useRef(null);
 
-  const [notifications, setNotifications] = useState([
-    { id: 1, title: 'Pitch Deck Reviewed', message: 'Your Pitch Deck has been reviewed by Mentor Aditi Patel. Check comments!', time: '10 mins ago', isUnread: true },
-    { id: 2, title: 'New Course Available', message: 'A new advanced Android module "Kotlin Flows & State" is now live.', time: '2 hours ago', isUnread: true },
-    { id: 3, title: 'Upcoming Live Session', message: 'Cohort VC networking event starts tomorrow at 5:00 PM.', time: '5 hours ago', isUnread: true },
-    { id: 4, title: 'Quiz Passed!', message: 'Congratulations on passing the "Market Research Fundamentals" quiz.', time: '1 day ago', isUnread: false },
-  ]);
+  // Real per-user notifications from the backend (Notification model). Empty
+  // until the fetch below resolves; no mock data.
+  const [notifications, setNotifications] = useState([]);
+
+  const loadNotifications = async () => {
+    const { data } = await apiFetch('/api/v1/notifications?limit=20');
+    if (data?.items) {
+      setNotifications(data.items.map(n => ({
+        id: n.id,
+        title: n.title,
+        message: n.message,
+        type: n.type,
+        time: timeAgo(n.createdAt),
+        isUnread: n.isUnread,
+      })));
+    }
+  };
+
+  // Load once the user is known, then poll every 60s so a freshly-sent
+  // notification (e.g. admin scored the idea) shows up without a manual reload.
+  useEffect(() => {
+    if (!user) return;
+    loadNotifications();
+    const t = setInterval(loadNotifications, 60000);
+    return () => clearInterval(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   const unreadCount = notifications.filter(n => n.isUnread).length;
   const filteredNotifications = notifications.filter(n => notifFilter === 'all' || n.isUnread);
@@ -272,8 +308,10 @@ export default function DashboardHeader({ onOpenMobileMenu }) {
                 {unreadCount > 0 && (
                   <button 
                     className="notif-action-btn"
-                    onClick={() => {
+                    onClick={async () => {
+                      // Optimistic; persist on the server.
                       setNotifications(notifications.map(n => ({ ...n, isUnread: false })));
+                      await apiFetch('/api/v1/notifications/read-all', { method: 'PATCH' });
                     }}
                   >
                     Mark all read
@@ -307,8 +345,13 @@ export default function DashboardHeader({ onOpenMobileMenu }) {
                     <div 
                       key={notif.id} 
                       className={`notification-item ${notif.isUnread ? 'unread' : ''}`}
-                      onClick={() => {
+                      onClick={async () => {
+                        if (!notif.isUnread) return;
                         setNotifications(notifications.map(n => n.id === notif.id ? { ...n, isUnread: false } : n));
+                        await apiFetch(`/api/v1/notifications/${notif.id}/read`, {
+                          method: 'PATCH',
+                          body: JSON.stringify({}),
+                        });
                       }}
                     >
                       <div className="notif-dot-wrapper">
@@ -321,9 +364,19 @@ export default function DashboardHeader({ onOpenMobileMenu }) {
                       </div>
                       <button 
                         className="notif-delete-btn"
-                        onClick={(e) => {
+                        title="Dismiss"
+                        onClick={async (e) => {
                           e.stopPropagation();
+                          // Dismiss from the view and mark it read server-side (there is
+                          // no per-user delete; a broadcast is shared, so we mark read
+                          // rather than destroy it for everyone).
                           setNotifications(notifications.filter(n => n.id !== notif.id));
+                          if (notif.isUnread) {
+                            await apiFetch(`/api/v1/notifications/${notif.id}/read`, {
+                              method: 'PATCH',
+                              body: JSON.stringify({}),
+                            });
+                          }
                         }}
                       >
                         ×
@@ -336,7 +389,11 @@ export default function DashboardHeader({ onOpenMobileMenu }) {
               <div className="notification-dropdown-footer">
                 <button 
                   className="clear-all-notif-btn"
-                  onClick={() => setNotifications([])}
+                  onClick={async () => {
+                    // Clear the view and mark everything read server-side.
+                    setNotifications([]);
+                    await apiFetch('/api/v1/notifications/read-all', { method: 'PATCH' });
+                  }}
                 >
                   Clear All Messages
                 </button>

@@ -35,8 +35,13 @@ const inputStyle = {
 };
 
 const REASON_REQUIRED = ['rejected', 'changes_requested'];
-// Hide "under_review" - happens automatically after payment, no manual trigger needed
-const HIDDEN_ACTIONS = ['under_review', 'shortlisted'];
+// Hide "under_review" - happens automatically after payment, no manual trigger needed.
+// Hide "evaluation_scheduled" too: a bare status flip here would mark the app
+// scheduled WITHOUT a real meeting date/time, which permanently blocks the
+// student's report from unlocking. Scheduling must go through the dedicated
+// "Schedule meeting" screen (scheduleMeeting), which sets the slot then advances
+// the status itself.
+const HIDDEN_ACTIONS = ['under_review', 'shortlisted', 'evaluation_scheduled'];
 
 export default function AdminGrantDetailPage() {
   const { id } = useParams();

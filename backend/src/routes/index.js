@@ -65,6 +65,10 @@ function registerRoutes(app) {
   app.use('/api/v1/achievements', achievementsRouter);
   app.use('/api/v1/community', communityRouter);
   app.use('/api/v1/settings', settingsRouter);
+
+  // Student-facing notification feed (own notifications, unread count, mark read).
+  const { notificationsRouter } = require('../modules/notifications/notifications.routes');
+  app.use('/api/v1/notifications', notificationsRouter);
   app.use('/api/v1/media', mediaRouter);
   app.use('/api/v1/events', eventsRouter);
   app.use('/api/v1/articles', articleRouter);

@@ -179,9 +179,6 @@ export default function BookSlotPage() {
           <h2 style={{ margin: '0 0 6px', fontSize: '22px', fontWeight: 900, color: '#0f172a' }}>
             Your 1:1 Session is Confirmed
           </h2>
-          <p style={{ margin: '0 0 24px', fontSize: '14px', color: '#64748b', lineHeight: 1.5 }}>
-            Your evaluation report will be revealed <strong>2 hours before</strong> this session.
-          </p>
 
           {/* Slot details */}
           <div style={{ background: '#fff', borderRadius: '14px', border: '1px solid #bbf7d0', padding: '20px', marginBottom: '18px', textAlign: 'left' }}>
@@ -190,7 +187,7 @@ export default function BookSlotPage() {
                 <p style={{ margin: '0 0 3px', fontSize: '11px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.6px' }}>Date</p>
                 <p style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: '#0f172a' }}>
                   {bookedDate.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-                </p>--
+                </p>
               </div>
               <div style={{ flex: 1 }}>
                 <p style={{ margin: '0 0 3px', fontSize: '11px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.6px' }}>Time</p>
@@ -211,16 +208,11 @@ export default function BookSlotPage() {
                   🔗 Meeting link will be shared before the session
                 </p>
               )}
-              {!isOnline && booked.location && (
-                <p style={{ margin: '8px 0 0', fontSize: '12.5px', color: '#64748b' }}>
-                  📍 {booked.location}
-                </p>
-              )}
             </div>
           </div>
 
           <div style={{ padding: '12px 16px', background: 'rgba(22,163,74,0.08)', borderRadius: '10px', border: '1px solid rgba(22,163,74,0.2)', fontSize: '13px', color: '#15803d', fontWeight: 500, lineHeight: 1.5, marginBottom: '20px' }}>
-            📋 Your evaluation report will be available <strong>2 hours before</strong> your session. Sessions run <strong>Mon–Sat, 11 AM – 6 PM</strong>.
+            📋 Your evaluation report will be available shortly.
           </div>
 
           {/* Action buttons */}
@@ -236,13 +228,15 @@ export default function BookSlotPage() {
                   setError('');
                 }}
                 style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
                   padding: '12px 20px', borderRadius: '12px',
                   border: '1.5px solid #e2e8f0', background: '#fff',
                   color: '#374151', fontWeight: 600, fontSize: '14px', cursor: 'pointer',
                 }}
               >
-                <RefreshCw size={15} /> Reschedule Session
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                  <RefreshCw size={15} /> Reschedule Session
+                </span>
               </button>
             )}
             <button

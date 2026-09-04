@@ -9,29 +9,11 @@ import { signOut } from '@/lib/auth';
 export default function DashboardNavbar({ user }) {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      title: 'New course available',
-      message: 'Check out the new AI course',
-      time: '2 hours ago',
-      read: false,
-    },
-    {
-      id: 2,
-      title: 'Assignment due',
-      message: 'Your assignment is due tomorrow',
-      time: '5 hours ago',
-      read: false,
-    },
-    {
-      id: 3,
-      title: 'Certificate earned',
-      message: 'You earned a new certificate',
-      time: '1 day ago',
-      read: true,
-    },
-  ]);
+  // NOTE: this component is currently unused (the live header is DashboardHeader.js,
+  // which fetches real notifications from /api/v1/notifications). Mock data was
+  // removed so it can't mislead. If this navbar is ever revived, wire it to the
+  // same endpoint.
+  const [notifications, setNotifications] = useState([]);
   const router = useRouter();
 
   const unreadCount = notifications.filter(n => !n.read).length;

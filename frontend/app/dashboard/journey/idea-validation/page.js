@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
-  Sparkles, CheckCircle2, CalendarClock,
+  Sparkles, CheckCircle2, DownloadIcon, CalendarClock,
   CreditCard, FileText, AlertCircle, Loader2,
   Download, ArrowRight, Shield,
 } from 'lucide-react';
@@ -11,7 +11,7 @@ import { useDashboard } from '@/contexts/DashboardProvider';
 import { apiFetch } from '@/lib/api';
 import {
   listMyApplications, getApplication, saveDraft,
-  submitApplication, getGrantConfig, formatMoney,
+  getGrantConfig, formatMoney,
 } from '@/lib/grants';
 import FileDropzone from '@/components/grants/FileDropzone';
 
@@ -185,8 +185,8 @@ function EvaluatedSection({ appId, evalSummary }) {
               <p style={{ margin: '0 0 18px', fontSize: '14px', color: '#a7f3d0', lineHeight: 1.6 }}>
                 Congratulations! Our expert panel has reviewed your startup idea.
                 {hasSlot
-                  ? ' Your evaluation report unlocks 2 hours before your booked 1:1 session.'
-                  : ' Book a 1:1 session to unlock your report - it opens 2 hours before your slot.'}
+                  ? ' Your will receive the evaluation report shortly.'
+                  : ' Click here to receive your evaluation report.'}
               </p>
 
               {hasSlot ? (
@@ -196,8 +196,8 @@ function EvaluatedSection({ appId, evalSummary }) {
                   border: '1.5px solid rgba(148,163,184,0.4)', background: 'rgba(15,23,42,0.35)',
                   color: '#cbd5e1', fontWeight: 600, fontSize: '13.5px',
                 }}>
-                  <CalendarClock size={16} />
-                  Report unlocks 2 hrs before your session{slotLabel ? ` — ${slotLabel}` : ''}
+                  <DownloadIcon size={16} />
+                  Report will unlock shortly
                 </div>
               ) : (
                 <button
@@ -210,14 +210,11 @@ function EvaluatedSection({ appId, evalSummary }) {
                     background: 'rgba(16,185,129,0.15)',
                     color: '#34d399', fontWeight: 700, fontSize: '14px', cursor: 'pointer',
                   }}>
-                  <CalendarClock size={16} />
-                  Book 1:1 Session to Unlock Report
+                  <DownloadIcon size={16} />
+                  Download the Report
                   <ArrowRight size={14} />
                 </button>
               )}
-              <p style={{ margin: '10px 0 0', fontSize: '11.5px', color: 'rgba(167,243,208,0.6)' }}>
-                🔒 Your report is locked until 2 hours before your 1:1 session.
-              </p>
             </>
           )}
         </div>
@@ -485,22 +482,28 @@ export default function IdeaValidationPage() {
           setPaymentDone(true);
           setSuccess('Payment received! Confirming your registration…');
 
-          // Record submission (best-effort - the backend also self-heals submittedAt
-          // on verify) and verify in parallel to cut the wait.
-          const [, verifyRes] = await Promise.all([
-            submitApplication(appId, true).catch(() => ({})),
-            apiFetch(
-              `/api/v1/grants/applications/${appId}/evaluation/verify`,
-              {
-                method: 'POST',
-                body: JSON.stringify({
-                  orderId: response.razorpay_order_id,
-                  paymentId: response.razorpay_payment_id,
-                  signature: response.razorpay_signature,
-                }),
-              }
-            ),
-          ]);
+          // Verify the payment. This is the SINGLE source of truth for advancing
+          // the application: verifyEvaluationPayment sets status to
+          // EVALUATION_PAID and self-heals submittedAt / termsAcceptedAt.
+          //
+          // We must NOT also call submitApplication here. Running it in parallel
+          // caused a last-write-wins race: submit (DRAFT→SUBMITTED) and verify
+          // (DRAFT→EVALUATION_PAID) each loaded their own copy of the document,
+          // and whichever saved last won - so submit could clobber the paid
+          // status back to SUBMITTED. Since SUBMITTED is still a payable state,
+          // the page then bounced back to the "pay" screen even though the money
+          // was taken. Verify alone does everything this flow needs.
+          const verifyRes = await apiFetch(
+            `/api/v1/grants/applications/${appId}/evaluation/verify`,
+            {
+              method: 'POST',
+              body: JSON.stringify({
+                orderId: response.razorpay_order_id,
+                paymentId: response.razorpay_payment_id,
+                signature: response.razorpay_signature,
+              }),
+            }
+          );
 
           if (verifyRes?.error) {
             // Rare: payment captured but signature verify failed. Keep the success
@@ -818,7 +821,7 @@ export default function IdeaValidationPage() {
             </div>
           </div>
           <p style={{ margin: '0 0 16px', fontSize: '13.5px', color: '#1e40af', lineHeight: 1.6 }}>
-            Your evaluation report will be shared during the session - available <strong>2 hours before</strong> it starts.
+            Your will receive the evaluation report shortly.
             Sessions run <strong>Mon–Sat, 11 AM – 6 PM</strong>.
           </p>
           <Link
@@ -851,9 +854,6 @@ export default function IdeaValidationPage() {
               ? '📍 StartupsIndia Office - In-person session'
               : '💻 Online session - Link will be shared before the meeting'}
           </p>
-          <div style={{ padding: '12px 16px', background: '#fff', borderRadius: '10px', border: '1px solid #bfdbfe', fontSize: '13px', color: '#1e3a8a', fontWeight: 600 }}>
-            🔒 Your evaluation report will be available 2 hours before this session.
-          </div>
         </div>
       )}
 
