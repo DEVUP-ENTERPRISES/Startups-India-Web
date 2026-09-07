@@ -35,10 +35,10 @@ async function bootstrap() {
   await warmCache();
   await reconcileOrphanedPayments();
 
-  // Report-unlock job: every 5 minutes, unlock the evaluation report (score,
-  // feedback, downloadable file) 2 hours before a booked 1:1 slot, and send the
-  // "your report is here" email + push. Persisted dedup (report.emailSentAt) makes
-  // it safe across restarts and PM2 workers; it also catches up on missed slots.
+  // Report-unlock job: every 5 minutes, unlock the evaluation report 2 hours
+  // before a booked 1:1 slot and send the "your report is ready" email + push.
+  // Persisted dedup (report.emailSentAt) makes it safe across restarts and PM2
+  // workers; it also catches up on missed slots.
   require('./modules/grants/grant.reportUnlock.job').start();
 
   // CRM: seed the ready-to-send templates (idempotent) and start the drain

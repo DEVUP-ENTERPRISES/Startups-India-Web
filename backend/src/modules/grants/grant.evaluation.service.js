@@ -197,8 +197,6 @@ async function scoreApplication({ applicationDbId, score, feedback, reviewerId }
     { applicationId: application._id },
     {
       $set: { score: n, passed, feedback: feedback || '', reviewerId, submittedAt: new Date() },
-      // A fresh score re-locks the report; it must be re-earned via the slot.
-      $unset: { 'report.unlockedAt': '', 'report.emailSentAt': '' },
     },
     { upsert: true, new: true }
   );
@@ -233,14 +231,13 @@ async function scoreApplication({ applicationDbId, score, feedback, reviewerId }
   const ideaValidationUrl = `${env.FRONTEND_URL}/dashboard/journey/idea-validation`;
 
   if (passed) {
-    // IMPORTANT: do NOT tell them the report is ready. It is locked until they
-    // book a 1:1 slot and reach the 2-hours-before window.
+    // Report unlocks 2 hours before the booked slot - tell them to book.
     await notifyUser({
       userId: application.userId,
       title: '✅ Your Idea Has Been Evaluated',
       message:
-        'Our expert panel has evaluated your idea. Access your evaluation report by '
-        + 'opening the Idea Validation page and downloading your report.',
+        'Our expert panel has evaluated your idea. Book your 1:1 session on the '
+        + 'Idea Validation page - your evaluation report unlocks 2 hours before your slot.',
       type: 'success',
       data: {
         applicationId: String(application._id),
@@ -252,7 +249,7 @@ async function scoreApplication({ applicationDbId, score, feedback, reviewerId }
 
     await sendToUser(application.userId, {
       title: '✅ Your Idea Has Been Evaluated',
-      body: 'Book your 1:1 session to unlock your evaluation report. It unlocks 2 hours before your slot.',
+      body: 'Book your 1:1 session - your report unlocks 2 hours before your slot.',
       data: {
         type: 'idea_scored',
         applicationId: String(application._id),
@@ -311,13 +308,12 @@ async function getReportDownload(userId, applicationDbId) {
   if (!isReportUnlocked(evaluation)) {
     // Locked: tell them exactly why (book a slot vs wait for the 2h window).
     if (!evaluation?.meeting?.scheduledAt) {
-      throw new ApiError(423, 'Book your 1:1 session to unlock your report.');
+      throw new ApiError(423, 'Book your 1:1 session to unlock your evaluation report.');
     }
     throw new ApiError(423, 'Your report unlocks 2 hours before your booked session.');
   }
 
-  // Unlocked. If a downloadable file was attached, sign it. Otherwise the report
-  // is the on-page score/feedback (returned by getEvaluationSummary).
+  // Unlocked (scored + slot booked). Serve the admin-uploaded PDF if one exists.
   if (evaluation.report?.fileKey) {
     const { generateDownloadUrl } = require('../../utils/s3');
     const url = await generateDownloadUrl(evaluation.report.fileKey, 300);
@@ -327,16 +323,8 @@ async function getReportDownload(userId, applicationDbId) {
     return { hasFile: true, url: evaluation.report.fileUrl, fileName: `Evaluation-Report-${application.applicationId}.pdf` };
   }
 
-  return {
-    hasFile: false,
-    // The report is the on-page result. Return it so the client can render/print.
-    result: {
-      score: evaluation.score,
-      maxScore: 100,
-      passed: evaluation.passed,
-      feedback: evaluation.feedback || '',
-    },
-  };
+  // Unlocked, but the admin hasn't uploaded the PDF yet.
+  throw new ApiError(423, 'Your evaluation report is being prepared and will be available shortly.');
 }
 
 /**

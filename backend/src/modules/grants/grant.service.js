@@ -386,7 +386,7 @@ async function getApplicationForAdmin(applicationDbId) {
     .lean();
   if (!application) throw new ApiError(404, 'Application not found');
 
-  const [timeline, documents, comments, userProfile] = await Promise.all([
+  const [timeline, documents, comments, userProfile, evaluation] = await Promise.all([
     ApplicationTimeline.find({ applicationId: application._id })
       .sort({ createdAt: -1 })
       .populate('actorId', 'fullName email')
@@ -400,6 +400,7 @@ async function getApplicationForAdmin(applicationDbId) {
       const { Profile } = require('../profiles/profile.model');
       return Profile.findOne({ userId: application.userId?._id || application.userId }).lean();
     })(),
+    IdeaEvaluation.findOne({ applicationId: application._id }).lean(),
   ]);
 
   return {
@@ -409,6 +410,17 @@ async function getApplicationForAdmin(applicationDbId) {
     documents,
     comments,
     userProfile: userProfile || null,
+    // Evaluation summary the admin panel needs: whether it's been scored, whether
+    // a report PDF is uploaded, and whether the student has booked a slot.
+    evaluation: evaluation
+      ? {
+        scored: Boolean(evaluation.submittedAt),
+        score: evaluation.score,
+        passed: evaluation.passed,
+        slotBooked: Boolean(evaluation.meeting?.scheduledAt),
+        reportFileUploaded: Boolean(evaluation.report?.fileKey || evaluation.report?.fileUrl),
+      }
+      : null,
   };
 }
 

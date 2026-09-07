@@ -87,6 +87,45 @@ export async function submitScore(applicationId, { score, feedback = '' }) {
   });
 }
 
+// ─── Report PDF upload ───────────────────────────────────────────────────
+// Uploads the evaluation report PDF straight to S3 via a presigned URL, then
+// attaches the resulting key to the application's evaluation. The student can
+// download it once they book a 1:1 slot.
+export async function uploadReportPdf(applicationId, file) {
+  if (!file) return { data: null, error: { message: 'No file selected.' } };
+  if (file.type !== 'application/pdf') {
+    return { data: null, error: { message: 'The report must be a PDF.' } };
+  }
+
+  // 1. Presigned PUT URL.
+  const { data: presign, error: presignErr } = await apiFetch(
+    `${BASE}/applications/${applicationId}/report-file/upload-url`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ fileName: file.name, fileType: file.type, fileSize: file.size }),
+    }
+  );
+  if (presignErr) return { data: null, error: presignErr };
+
+  // 2. PUT the bytes to S3.
+  try {
+    const putRes = await fetch(presign.uploadUrl, {
+      method: 'PUT',
+      headers: { 'Content-Type': file.type },
+      body: file,
+    });
+    if (!putRes.ok) throw new Error(`Upload failed (${putRes.status}).`);
+  } catch (err) {
+    return { data: null, error: { message: err.message || 'Upload to storage failed.' } };
+  }
+
+  // 3. Attach the key to the evaluation.
+  return apiFetch(`${BASE}/applications/${applicationId}/report-file`, {
+    method: 'POST',
+    body: JSON.stringify({ fileKey: presign.key }),
+  });
+}
+
 // ─── Evaluations ───────────────────────────────────────────────────────
 export async function listEvaluations(params = {}) {
   const qs = new URLSearchParams(

@@ -95,24 +95,27 @@ function computePhases(application, evaluation = null) {
 
   const [pos, complete] = STATUS_POSITION[status] || [0, false];
 
-  // Report / score reveal logic:
-  // The report (score, pass/fail, feedback, downloadable file) stays LOCKED after
-  // the admin scores. It only unlocks 2 hours before the booked 1:1 slot. We treat
-  // it as revealed when EITHER the unlock job has stamped report.unlockedAt, OR the
-  // live "2 hours before slot" moment has already passed (fallback so the UI is
-  // correct even in the gap before the 5-min job runs). Merely having a score is
-  // NOT enough - the applicant must have booked a slot and reached the 2h window.
-  const scoreRevealed = isReportUnlocked(evaluation);
+  // Report reveal: the downloadable report PDF unlocks 2 hours before the booked
+  // 1:1 slot (see isReportUnlocked). This gates the DOWNLOAD, not the stages.
+  const reportUnlocked = isReportUnlocked(evaluation);
 
-  const score = scoreRevealed ? (evaluation?.score ?? null) : null;
-  const passed = evaluation?.submittedAt ? evaluation.passed === true : null;
+  // Stage unlocking is driven by the SCORE as soon as the admin has scored
+  // (submittedAt), independent of booking a slot. Scoring an idea 76/100 should
+  // open the corresponding stages immediately; booking only gates the PDF.
+  const scored = Boolean(evaluation?.submittedAt);
+  const score = scored ? (evaluation?.score ?? null) : null;
+  const passed = scored ? evaluation.passed === true : null;
+
+  // For backward compatibility with callers reading `scoreRevealed`, expose the
+  // score-reveal flag as "scored" (the score itself is available once scored).
+  const scoreRevealed = scored;
 
   // Determine how many stages are unlocked based on score thresholds:
   // < 50  → Pre-Incubation only (stage index 2)
   // 50-74 → Pre-Incubation + Incubation (stage index 3)
   // ≥ 75  → Pre-Incubation + Incubation + Accelerator (stage index 4)
   let unlockedUpTo = pos;
-  if (scoreRevealed && score !== null) {
+  if (scored && score !== null) {
     if (score >= 75) {
       unlockedUpTo = Math.max(pos, 4); // Accelerator Program
     } else if (score >= 50) {
@@ -159,6 +162,8 @@ function computePhases(application, evaluation = null) {
     passedEvaluation: passed,
     score,
     scoreRevealed,
+    // Whether the downloadable report PDF is available (scored + slot booked).
+    reportUnlocked,
     unlockedUpTo,
     phases,
   };
@@ -167,15 +172,20 @@ function computePhases(application, evaluation = null) {
 const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
 
 /**
- * Single source of truth for whether an evaluation's report (score, pass/fail,
- * feedback, downloadable file) is unlocked for the applicant.
+ * Single source of truth for whether an evaluation's report (downloadable PDF)
+ * is unlocked for the applicant.
+ *
+ * Model: the report unlocks 2 hours BEFORE the booked 1:1 slot.
  *
  * Rules (ALL must hold):
  *  - The admin has submitted a score (evaluation.submittedAt).
- *  - A 1:1 slot has been booked (meeting.scheduledAt).
+ *  - A 1:1 slot has been booked (meeting.scheduledAt is set).
  *  - Either the unlock job has stamped report.unlockedAt, OR we are already
  *    within 2 hours of the booked slot (live fallback for the gap before the
  *    5-minute job runs).
+ *
+ * Note: this gates the report DOWNLOAD only. Journey-stage unlocking is driven
+ * separately by the score as soon as the admin scores (see computePhases).
  */
 function isReportUnlocked(evaluation, at = Date.now()) {
   if (!evaluation?.submittedAt) return false;

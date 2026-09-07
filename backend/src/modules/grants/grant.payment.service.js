@@ -344,20 +344,22 @@ async function getEvaluationSummary(userId, applicationDbId) {
     meeting: evaluation?.meeting?.scheduledAt ? evaluation.meeting : null,
     // Has the admin scored yet? (Drives the "book your slot to unlock" CTA.)
     scored: Boolean(evaluation?.submittedAt),
-    // Is the report unlocked? Locked after scoring; unlocks 2h before the booked
-    // 1:1 slot. Same rule everywhere via isReportUnlocked.
+    // Is the report unlocked? Unlocks as soon as the applicant books a slot
+    // (after being scored). Same rule everywhere via isReportUnlocked.
     reportUnlocked,
-    // The result (score/feedback) and downloadable file are ONLY surfaced once
-    // the report is unlocked. Before that the applicant sees the "book a slot"
-    // / "unlocks 2h before your session" state instead.
+    // Whether the admin has actually uploaded the report PDF yet. The report is
+    // the uploaded PDF - if unlocked but not yet uploaded, the applicant sees a
+    // "being prepared" state.
+    reportFileReady: reportUnlocked
+      && Boolean(evaluation?.report?.fileKey || evaluation?.report?.fileUrl),
+    // The result (score/feedback) is surfaced once the report is unlocked.
     result: reportUnlocked
       ? {
         score: evaluation.score,
         maxScore: 100,
         passed: evaluation.passed,
         feedback: evaluation.feedback || '',
-        // Downloadable report file, if one was attached. When absent, the
-        // on-page score/feedback IS the report.
+        // Downloadable report PDF, uploaded by the admin.
         hasFile: Boolean(evaluation?.report?.fileKey || evaluation?.report?.fileUrl),
       }
       : null,

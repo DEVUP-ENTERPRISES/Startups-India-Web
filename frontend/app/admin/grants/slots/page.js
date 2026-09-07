@@ -40,6 +40,12 @@ export default function AdminSlotsPage() {
 
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
 
+  // Today at local midnight, and its YMD, used to block past dates.
+  const todayMidnight = (() => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; })();
+  const todayYMD = toYMD(todayMidnight);
+  // Can't page to a week that ends before today.
+  const canGoPrevWeek = toYMD(addDays(weekStart, 6)) > todayYMD || toYMD(weekStart) > todayYMD;
+
   const loadSlots = useCallback(async (date) => {
     setLoadingSlots(true);
     const { data } = await apiFetch(`${BASE}/slots?date=${date}`);
@@ -141,8 +147,9 @@ export default function AdminSlotsPage() {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
               <button
                 type="button"
-                onClick={() => setWeekStart(d => addDays(d, -7))}
-                style={{ width: '30px', height: '30px', borderRadius: '8px', border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                onClick={() => canGoPrevWeek && setWeekStart(d => addDays(d, -7))}
+                disabled={!canGoPrevWeek}
+                style={{ width: '30px', height: '30px', borderRadius: '8px', border: '1px solid #e5e7eb', background: '#fff', cursor: canGoPrevWeek ? 'pointer' : 'not-allowed', opacity: canGoPrevWeek ? 1 : 0.4, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               >
                 <ChevronLeft size={15} />
               </button>
@@ -162,22 +169,24 @@ export default function AdminSlotsPage() {
               {weekDays.map(day => {
                 const ymd = toYMD(day);
                 const isSunday = day.getDay() === 0;
+                const isPast = ymd < todayYMD;
+                const disabled = isSunday || isPast;
                 const sel = selectedDate === ymd;
                 return (
                   <button
                     key={ymd}
                     type="button"
-                    disabled={isSunday}
-                    onClick={() => !isSunday && setSelectedDate(ymd)}
+                    disabled={disabled}
+                    onClick={() => !disabled && setSelectedDate(ymd)}
                     style={{
                       display: 'flex', flexDirection: 'column', alignItems: 'center',
                       padding: '7px 3px', borderRadius: '10px', border: 'none', fontFamily: 'inherit',
-                      background: sel ? 'linear-gradient(135deg, #e63946, #dc2626)' : isSunday ? '#f9fafb' : '#f3f4f6',
-                      color: sel ? '#fff' : isSunday ? '#d1d5db' : '#111827',
-                      cursor: isSunday ? 'default' : 'pointer',
+                      background: sel ? 'linear-gradient(135deg, #e63946, #dc2626)' : disabled ? '#f9fafb' : '#f3f4f6',
+                      color: sel ? '#fff' : disabled ? '#d1d5db' : '#111827',
+                      cursor: disabled ? 'default' : 'pointer',
                     }}
                   >
-                    <span style={{ fontSize: '9px', fontWeight: 700, marginBottom: '2px', opacity: isSunday ? 0.4 : 1 }}>
+                    <span style={{ fontSize: '9px', fontWeight: 700, marginBottom: '2px', opacity: disabled ? 0.4 : 1 }}>
                       {DAYS[day.getDay()]}
                     </span>
                     <span style={{ fontSize: '14px', fontWeight: 800 }}>{day.getDate()}</span>
@@ -206,29 +215,32 @@ export default function AdminSlotsPage() {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', marginBottom: '16px' }}>
                 {slots.map(slot => {
                   const isBooked = Boolean(slot.bookedBy);
+                  // A slot on today whose start time has already passed.
+                  const isPast = new Date(`${selectedDate}T${slot.time}:00+05:30`).getTime() < Date.now();
+                  const locked = isBooked || isPast;
                   const bg = isBooked
                     ? '#eff6ff'
-                    : slot.blocked ? '#f3f4f6' : '#f0fdf4';
+                    : isPast ? '#f9fafb' : slot.blocked ? '#f3f4f6' : '#f0fdf4';
                   const border = isBooked
                     ? '#bfdbfe'
-                    : slot.blocked ? '#e5e7eb' : '#bbf7d0';
-                  const color = isBooked ? '#1d4ed8' : slot.blocked ? '#9ca3af' : '#047857';
+                    : isPast ? '#f1f5f9' : slot.blocked ? '#e5e7eb' : '#bbf7d0';
+                  const color = isBooked ? '#1d4ed8' : isPast ? '#cbd5e1' : slot.blocked ? '#9ca3af' : '#047857';
 
                   return (
                     <button
                       key={slot.time}
                       type="button"
-                      disabled={isBooked}
-                      onClick={() => !isBooked && toggleBlocked(slot.time)}
+                      disabled={locked}
+                      onClick={() => !locked && toggleBlocked(slot.time)}
                       style={{
                         padding: '10px 6px', borderRadius: '10px',
                         border: `1.5px solid ${border}`,
                         background: bg, color,
                         fontFamily: 'inherit', fontSize: '13px', fontWeight: 700,
-                        cursor: isBooked ? 'default' : 'pointer',
+                        cursor: locked ? 'default' : 'pointer',
                         textAlign: 'center',
                       }}
-                      title={isBooked ? `Booked by ${slot.bookedBy?.fullName || 'user'}` : slot.blocked ? 'Blocked - click to unblock' : 'Available - click to block'}
+                      title={isBooked ? `Booked by ${slot.bookedBy?.fullName || 'user'}` : isPast ? 'This time has passed' : slot.blocked ? 'Blocked - click to unblock' : 'Available - click to block'}
                     >
                       {slot.time}
                       {isBooked && (
@@ -239,7 +251,8 @@ export default function AdminSlotsPage() {
                           </span>
                         </>
                       )}
-                      {!isBooked && slot.blocked && <span style={{ display: 'block', fontSize: '9px', marginTop: '2px', opacity: 0.7 }}>BLOCKED</span>}
+                      {!isBooked && isPast && <span style={{ display: 'block', fontSize: '9px', marginTop: '2px', opacity: 0.7 }}>PAST</span>}
+                      {!isBooked && !isPast && slot.blocked && <span style={{ display: 'block', fontSize: '9px', marginTop: '2px', opacity: 0.7 }}>BLOCKED</span>}
                     </button>
                   );
                 })}

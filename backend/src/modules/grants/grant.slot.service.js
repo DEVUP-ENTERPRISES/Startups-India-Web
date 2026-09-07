@@ -14,6 +14,14 @@ function isSunday(dateStr) {
   return new Date(dateStr + 'T12:00:00').getDay() === 0;
 }
 
+// A slot (date + "HH:mm", IST) is in the past if its start time is before now.
+function isPastSlot(dateStr, time) {
+  if (!dateStr || !time) return false;
+  const start = new Date(`${dateStr}T${time}:00+05:30`);
+  if (Number.isNaN(start.getTime())) return false;
+  return start.getTime() < Date.now();
+}
+
 async function getOrCreateDay(date) {
   if (isSunday(date)) throw new ApiError(400, 'Slots are not available on Sundays.');
 
@@ -91,14 +99,15 @@ async function getAvailableSlots(date) {
   if (!day) {
     return {
       date,
-      slots: OFFICE_TIMES.map(time => ({ time, available: true })),
+      // Past times on today are not bookable.
+      slots: OFFICE_TIMES.map(time => ({ time, available: !isPastSlot(date, time) })),
     };
   }
   return {
     date: day.date,
     slots: day.slots.map(s => ({
       time: s.time,
-      available: !s.blocked && !s.bookedBy,
+      available: !s.blocked && !s.bookedBy && !isPastSlot(date, s.time),
     })),
   };
 }
@@ -112,6 +121,9 @@ async function bookSlot({ userId, applicationId, date, time, mode }) {
     throw new ApiError(400, 'mode must be "online" or "offline".');
   }
   if (isSunday(date)) throw new ApiError(400, 'Slots are not available on Sundays.');
+  if (isPastSlot(date, time)) {
+    throw new ApiError(400, 'That slot is in the past. Please pick an upcoming time.');
+  }
 
   const application = await GrantApplication.findOne({ _id: applicationId, userId }).lean();
   if (!application) throw new ApiError(404, 'Application not found.');
@@ -184,6 +196,10 @@ async function bookSlot({ userId, applicationId, date, time, mode }) {
       notify: true,
     }).catch(() => {});
   }
+
+  // The "your report is ready" email is NOT sent here - the report unlocks 2
+  // hours before the slot, and the report-unlock job sends it at that moment
+  // (see grant.reportUnlock.job.js).
 
   return { date, time, mode, scheduledAt };
 }
@@ -282,10 +298,11 @@ async function cancelSlot({ userId, applicationId }) {
   slot.mode = null;
   await day.save();
 
-  // Clear the meeting from IdeaEvaluation
+  // Clear the meeting from IdeaEvaluation. Also clear the report unlock/email
+  // stamps so that rebooking re-triggers the 2-hours-before unlock + email.
   await IdeaEvaluation.findOneAndUpdate(
     { applicationId },
-    { $unset: { meeting: '' } }
+    { $unset: { meeting: '', 'report.unlockedAt': '', 'report.emailSentAt': '' } }
   );
 
   // Roll status back to EVALUATION_PAID so the student can pick a new slot

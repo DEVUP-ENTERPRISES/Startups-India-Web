@@ -929,7 +929,7 @@ function StartupDashboardView({ user }) {
       case 'idea_evaluation_paid': case 'evaluation_scheduled':
         return {
           title: 'Evaluation Session Booked',
-          desc: `Your 1:1 session is confirmed. Your score will be revealed 2 hours before the session${app?.scoreRevealed ? ' - check your results now!' : '.'}`,
+          desc: `Your 1:1 session is confirmed. Your evaluation report unlocks 2 hours before your session${app?.scoreRevealed ? ' - check your results now!' : '.'}`,
           btnText: app?.scoreRevealed ? 'View Score & Unlocked Stages' : 'View Meeting Details',
           action: () => router.push(`/dashboard/grants/applications/${app._id}`),
         };

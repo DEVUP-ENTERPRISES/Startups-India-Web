@@ -212,7 +212,7 @@ export default function BookSlotPage() {
           </div>
 
           <div style={{ padding: '12px 16px', background: 'rgba(22,163,74,0.08)', borderRadius: '10px', border: '1px solid rgba(22,163,74,0.2)', fontSize: '13px', color: '#15803d', fontWeight: 500, lineHeight: 1.5, marginBottom: '20px' }}>
-            📋 Your evaluation report will be available shortly.
+            📋 Your evaluation report unlocks 2 hours before your session.
           </div>
 
           {/* Action buttons */}
@@ -395,7 +395,7 @@ export default function BookSlotPage() {
       </button>
 
       <p style={{ margin: '12px 0 0', textAlign: 'center', fontSize: '12px', color: '#94a3b8' }}>
-        Session duration: 1 hour · Report revealed 2 hours before session
+        Session duration: 1 hour · Report unlocks 2 hours before session
       </p>
     </div>
   );

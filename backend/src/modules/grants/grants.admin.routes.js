@@ -181,8 +181,45 @@ router.post(
   })
 );
 
-// Admin attaches (or replaces) the downloadable report file for an application.
-// Unlock timing is unchanged - the student still only gets it 2h before the slot.
+// Admin: presigned PUT URL to upload the evaluation report PDF straight to S3.
+// The browser PUTs the bytes, then calls /report-file with the returned key.
+router.post(
+  '/applications/:id/report-file/upload-url',
+  validateBody(
+    z.object({
+      fileName: z.string().min(1).max(200),
+      fileType: z.string().min(1).max(120),
+      fileSize: z.coerce.number().int().positive().max(50 * 1024 * 1024),
+    })
+  ),
+  asyncHandler(async (req, res) => {
+    const { fileName, fileType, fileSize } = req.body;
+    if (fileType !== 'application/pdf') {
+      throw new ApiError(400, 'The evaluation report must be a PDF.');
+    }
+
+    const crypto = require('crypto');
+    const { generateUploadUrl } = require('../../utils/s3');
+
+    // Namespaced per application, random entropy so keys can't collide/be guessed.
+    const key = `grants/reports/${req.params.id}/${crypto.randomBytes(10).toString('hex')}.pdf`;
+
+    const presigned = await generateUploadUrl({
+      key,
+      contentType: fileType,
+      contentLength: fileSize,
+      expiresIn: 300,
+    });
+    res.json({
+      success: true,
+      data: { uploadUrl: presigned.uploadUrl, key: presigned.key, expiresIn: presigned.expiresIn },
+    });
+  })
+);
+
+// Admin attaches (or replaces) the downloadable report PDF for an application.
+// The report unlocks for the student as soon as they book a 1:1 slot; uploading
+// the PDF makes it downloadable.
 router.post(
   '/applications/:id/report-file',
   validateBody(

@@ -74,8 +74,8 @@ function resolveCategory(industry, categories = []) {
   return 'Other';
 }
 
-// ── EvaluatedSection: shown after admin scores. The report (score, feedback,
-// downloadable file) stays LOCKED until 2 hours before the booked 1:1 slot. ──
+// ── EvaluatedSection: shown after admin scores. The report (downloadable PDF)
+// stays LOCKED until 2 hours before the booked 1:1 slot. ──
 function EvaluatedSection({ appId, evalSummary }) {
   const [showDialog, setShowDialog] = useState(false);
   const [downloading, setDownloading] = useState(false);
@@ -185,8 +185,8 @@ function EvaluatedSection({ appId, evalSummary }) {
               <p style={{ margin: '0 0 18px', fontSize: '14px', color: '#a7f3d0', lineHeight: 1.6 }}>
                 Congratulations! Our expert panel has reviewed your startup idea.
                 {hasSlot
-                  ? ' Your will receive the evaluation report shortly.'
-                  : ' Click here to receive your evaluation report.'}
+                  ? ' Your evaluation report unlocks 2 hours before your booked session.'
+                  : ' Book a 1:1 slot to receive your evaluation report.'}
               </p>
 
               {hasSlot ? (
@@ -197,7 +197,7 @@ function EvaluatedSection({ appId, evalSummary }) {
                   color: '#cbd5e1', fontWeight: 600, fontSize: '13.5px',
                 }}>
                   <DownloadIcon size={16} />
-                  Report will unlock shortly
+                  Unlocks 2 hours before your session
                 </div>
               ) : (
                 <button
@@ -619,9 +619,6 @@ export default function IdeaValidationPage() {
             </div>
           ))}
         </div>
-        <Link href="/dashboard/journey/registration" style={{ display: 'inline-block', marginTop: '8px', fontSize: '12px', color: '#94a3b8', textDecoration: 'underline' }}>
-          Edit profile →
-        </Link>
       </div>
 
       {/* ── PAYMENT CONFIRMED (optimistic): shown the instant Razorpay succeeds,
@@ -638,7 +635,7 @@ export default function IdeaValidationPage() {
             </div>
             <div>
               <p style={{ margin: '0 0 2px', fontSize: '15px', fontWeight: 700, color: '#15803d' }}>
-                ✅ Payment Successful
+                Payment Successful
               </p>
               <p style={{ margin: 0, fontSize: '13px', color: '#16a34a', lineHeight: 1.5 }}>
                 Your payment went through and your idea is being submitted for evaluation. This page will update in a moment.
@@ -787,7 +784,7 @@ export default function IdeaValidationPage() {
             </div>
             <div>
               <p style={{ margin: '0 0 2px', fontSize: '15px', fontWeight: 700, color: '#15803d' }}>
-                ✅ Payment Confirmed - Application Under Review
+                Payment Confirmed - Application Under Review
               </p>
               <p style={{ margin: 0, fontSize: '13px', color: '#16a34a', lineHeight: 1.5 }}>
                 Our expert panel is reviewing your idea. We'll notify you once it's evaluated.
@@ -795,7 +792,7 @@ export default function IdeaValidationPage() {
             </div>
           </div>
           <div style={{ padding: '12px 16px', background: '#fff', borderRadius: '10px', border: '1px solid #bbf7d0', fontSize: '13px', color: '#15803d', fontWeight: 500, lineHeight: 1.6 }}>
-            📋 You'll receive an email when your evaluation is complete. This usually takes <strong>2–5 business days</strong>.
+            You'll receive an email when your evaluation is complete. This usually takes <strong>2–5 business days</strong>.
           </div>
         </div>
       )}
@@ -839,21 +836,50 @@ export default function IdeaValidationPage() {
         </div>
       )}
 
-      {/* ── SCHEDULED: Session booked ── */}
-      {isScheduled && evalSummary?.meeting && (
+      {/* ── BOOKED SESSION: shown whenever a slot exists, regardless of whether
+             the status is "scheduled" or already "evaluated". This is the
+             persistent record so the user always sees their booking here. ── */}
+      {evalSummary?.meeting?.scheduledAt && (
         <div style={{ background: '#eff6ff', border: '1.5px solid #bfdbfe', borderRadius: '16px', padding: '22px 24px', marginBottom: '20px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
             <CalendarClock size={22} color="#1d4ed8" />
-            <p style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#1e3a8a' }}>1:1 Session Booked</p>
+            <p style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#1e3a8a' }}>Your 1:1 Session is Booked</p>
           </div>
-          <p style={{ margin: '0 0 6px', fontSize: '20px', fontWeight: 800, color: '#0f172a' }}>
-            {new Date(evalSummary.meeting.scheduledAt).toLocaleString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}
-          </p>
-          <p style={{ margin: '0 0 14px', fontSize: '13.5px', color: '#3b82f6' }}>
+
+          <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', marginBottom: '14px' }}>
+            <div>
+              <p style={{ margin: '0 0 2px', fontSize: '11px', fontWeight: 700, color: '#93c5fd', textTransform: 'uppercase', letterSpacing: '0.6px' }}>Date &amp; Time</p>
+              <p style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0f172a' }}>
+                {new Date(evalSummary.meeting.scheduledAt).toLocaleString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}
+              </p>
+            </div>
+            <div>
+              <p style={{ margin: '0 0 2px', fontSize: '11px', fontWeight: 700, color: '#93c5fd', textTransform: 'uppercase', letterSpacing: '0.6px' }}>Format</p>
+              <p style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#0f172a' }}>
+                {evalSummary.meeting.mode === 'physical'
+                  ? 'In-Person - StartupsIndia Office'
+                  : 'Online - Google Meet / Zoom'}
+              </p>
+            </div>
+          </div>
+
+          <p style={{ margin: '0 0 14px', fontSize: '12.5px', color: '#3b82f6' }}>
             {evalSummary.meeting.mode === 'physical'
-              ? '📍 StartupsIndia Office - In-person session'
-              : '💻 Online session - Link will be shared before the meeting'}
+              ? 'Please arrive at the StartupsIndia Office for your session.'
+              : 'The meeting link will be shared before the session.'}
           </p>
+
+          <Link
+            href={`/dashboard/journey/book-slot?appId=${app?._id}`}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: '8px',
+              padding: '10px 18px', borderRadius: '10px',
+              border: '1.5px solid #bfdbfe', background: '#fff',
+              color: '#1d4ed8', fontWeight: 700, fontSize: '13.5px', textDecoration: 'none',
+            }}
+          >
+            <CalendarClock size={16} /> View / Reschedule Session
+          </Link>
         </div>
       )}
 

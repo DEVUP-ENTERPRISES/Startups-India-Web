@@ -9,6 +9,7 @@ import {
 import {
   getGrantApplication, getStatusMachine, changeStatus, saveInternalNotes,
   addComment, setRevisionAllowed, getAdminDocumentUrl, adminUrl, submitScore,
+  uploadReportPdf,
 } from '@/lib/grantsAdmin';
 import { apiFetch } from '@/lib/api';
 import StatusBadge from '@/components/grants/StatusBadge';
@@ -64,6 +65,10 @@ export default function AdminGrantDetailPage() {
   const [scoreFeedback, setScoreFeedback] = useState('');
   const [scoring, setScoring] = useState(false);
 
+  // Report PDF upload (selected inside the Score & Approve panel)
+  const [uploadingReport, setUploadingReport] = useState(false);
+  const [reportFile, setReportFile] = useState(null);
+
   // Delete / reset
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -104,16 +109,51 @@ export default function AdminGrantDetailPage() {
       setError('Enter a score between 0 and 100.');
       return;
     }
+    if (reportFile && reportFile.type !== 'application/pdf') {
+      setError('The report must be a PDF.');
+      return;
+    }
     setScoring(true);
     setError('');
+
+    // 1. Submit the score (this creates/updates the evaluation).
     const { error: err } = await submitScore(id, { score: n, feedback: scoreFeedback.trim() });
+    if (err) { setScoring(false); setError(err.message || 'Could not submit score.'); return; }
+
+    // 2. If the admin attached a report PDF, upload it too.
+    if (reportFile) {
+      const { error: upErr } = await uploadReportPdf(id, reportFile);
+      if (upErr) {
+        setScoring(false);
+        setError(`Score saved, but the report upload failed: ${upErr.message || 'try again from here.'}`);
+        await load();
+        return;
+      }
+    }
+
     setScoring(false);
-    if (err) { setError(err.message || 'Could not submit score.'); return; }
     setShowScorePanel(false);
     setScoreInput('');
     setScoreFeedback('');
+    setReportFile(null);
     await load();
-    flash(`Score ${n}/100 submitted - user notified and stages unlocked.`);
+    flash(
+      reportFile
+        ? `Score ${n}/100 submitted with report - user notified.`
+        : `Score ${n}/100 submitted - user notified and stages unlocked.`
+    );
+  };
+
+  const handleReportUpload = async file => {
+    if (!file) return;
+    if (file.type !== 'application/pdf') { setError('The report must be a PDF.'); return; }
+    setUploadingReport(true);
+    setError('');
+    const { error: err } = await uploadReportPdf(id, file);
+    setUploadingReport(false);
+    if (err) { setError(err.message || 'Could not upload the report.'); return; }
+    await load();
+    flash('Report PDF uploaded. The student can download it once they book a slot.');
   };
 
   const handleDelete = async () => {
@@ -159,7 +199,7 @@ export default function AdminGrantDetailPage() {
   const scoreLabel = scoreInput !== '' && Number.isFinite(Number(scoreInput))
     ? Number(scoreInput) >= 75
       ? '🚀 Pre-Inc + Incubation + Accelerator'
-      : Number(scoreInput) >= 51
+      : Number(scoreInput) >= 50
         ? '🏢 Pre-Inc + Incubation'
         : Number(scoreInput) >= 1
           ? '🎓 Pre-Incubation only'
@@ -270,18 +310,18 @@ export default function AdminGrantDetailPage() {
               Score this application (0–100)
             </p>
             <p style={{ margin: '0 0 16px', fontSize: '12.5px', color: '#0369a1' }}>
-              &lt;50 = Pre-Incubation only &nbsp;·&nbsp; 51–74 = Pre-Inc + Incubation &nbsp;·&nbsp; 75+ = Pre-Inc + Incubation + Accelerator
+              &lt;50 = Pre-Incubation only &nbsp;·&nbsp; 50–74 = Pre-Inc + Incubation &nbsp;·&nbsp; 75+ = Pre-Inc + Incubation + Accelerator
             </p>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px', flexWrap: 'wrap' }}>
-              <input type="number" min="0" max="100" placeholder="0–100"
+              <input type="number" min="0" max="100" step="0.1" placeholder="0–100"
                 value={scoreInput} onChange={e => setScoreInput(e.target.value)}
                 style={{ ...inputStyle, width: '130px', fontSize: '28px', fontWeight: 900, textAlign: 'center', padding: '10px' }}
               />
               <span style={{ fontSize: '16px', color: '#64748b', fontWeight: 600 }}>/ 100</span>
               {scoreLabel && (
                 <span style={{ padding: '6px 14px', borderRadius: '100px', fontSize: '13px', fontWeight: 700,
-                  background: Number(scoreInput) >= 75 ? '#fef3c7' : Number(scoreInput) >= 51 ? '#dbeafe' : Number(scoreInput) >= 1 ? '#dcfce7' : '#fef2f2',
-                  color: Number(scoreInput) >= 75 ? '#d97706' : Number(scoreInput) >= 51 ? '#1d4ed8' : Number(scoreInput) >= 1 ? '#15803d' : '#dc2626',
+                  background: Number(scoreInput) >= 75 ? '#fef3c7' : Number(scoreInput) >= 50 ? '#dbeafe' : Number(scoreInput) >= 1 ? '#dcfce7' : '#fef2f2',
+                  color: Number(scoreInput) >= 75 ? '#d97706' : Number(scoreInput) >= 50 ? '#1d4ed8' : Number(scoreInput) >= 1 ? '#15803d' : '#dc2626',
                 }}>
                   {scoreLabel}
                 </span>
@@ -291,6 +331,43 @@ export default function AdminGrantDetailPage() {
               value={scoreFeedback} onChange={e => setScoreFeedback(e.target.value)}
               style={{ ...inputStyle, resize: 'vertical', marginBottom: '12px' }}
             />
+
+            {/* Report PDF - uploaded together with the score. The student can
+                download it once they book a 1:1 slot. */}
+            <div style={{ marginBottom: '14px' }}>
+              <p style={{ margin: '0 0 6px', fontSize: '13px', fontWeight: 700, color: '#0c4a6e' }}>
+                Evaluation Report (PDF)
+                {app.evaluation?.reportFileUploaded && !reportFile && (
+                  <span style={{ marginLeft: '8px', fontSize: '12px', fontWeight: 700, color: '#047857' }}>· already uploaded</span>
+                )}
+              </p>
+              <label
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '8px',
+                  padding: '9px 14px', borderRadius: '10px',
+                  border: '1.5px solid #bae6fd', background: '#fff',
+                  color: '#1d4ed8', fontWeight: 700, fontSize: '13px', cursor: 'pointer',
+                }}
+              >
+                <Download size={14} style={{ transform: 'rotate(180deg)' }} />
+                {reportFile ? 'Change PDF' : (app.evaluation?.reportFileUploaded ? 'Replace report PDF' : 'Choose report PDF')}
+                <input
+                  type="file"
+                  accept="application/pdf,.pdf"
+                  hidden
+                  onChange={e => { setReportFile(e.target.files?.[0] || null); e.target.value = ''; }}
+                />
+              </label>
+              {reportFile && (
+                <span style={{ marginLeft: '10px', fontSize: '12.5px', color: '#0369a1', fontWeight: 600 }}>
+                  {reportFile.name}
+                </span>
+              )}
+              <p style={{ margin: '6px 0 0', fontSize: '11.5px', color: '#64748b' }}>
+                Optional. If attached, it uploads when you submit the score. The student can download it after booking a slot.
+              </p>
+            </div>
+
             <div style={{ display: 'flex', gap: '8px' }}>
               <button type="button" onClick={applyScore} disabled={scoring || scoreInput === ''}
                 style={{ padding: '10px 20px', borderRadius: '10px', border: 'none',
@@ -299,7 +376,7 @@ export default function AdminGrantDetailPage() {
                   fontWeight: 700, fontSize: '13px', cursor: scoring || scoreInput === '' ? 'default' : 'pointer' }}>
                 {scoring ? 'Submitting…' : 'Submit Score & Notify User'}
               </button>
-              <button type="button" onClick={() => { setShowScorePanel(false); setScoreInput(''); setScoreFeedback(''); }}
+              <button type="button" onClick={() => { setShowScorePanel(false); setScoreInput(''); setScoreFeedback(''); setReportFile(null); }}
                 style={{ ...inputStyle, width: 'auto', fontWeight: 600, cursor: 'pointer' }}>
                 Cancel
               </button>
@@ -334,6 +411,56 @@ export default function AdminGrantDetailPage() {
           </div>
         )}
       </div>
+
+      {/* Report PDF is normally uploaded inside the Score & Approve panel. This
+          card is a fallback: it lets an admin add or replace the report for an
+          application that was already scored (e.g. scored before, or to swap the
+          PDF later) without re-scoring. */}
+      {app.evaluation?.scored && !showScorePanel && (
+        <div style={card}>
+          <h2 style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '15px', fontWeight: 800, color: '#111827', margin: '0 0 6px' }}>
+            <FileText size={16} color="#ef4444" /> Evaluation Report (PDF)
+          </h2>
+          <p style={{ margin: '0 0 14px', fontSize: '13px', color: '#6b7280' }}>
+            {app.evaluation.reportFileUploaded
+              ? 'A report is uploaded. Uploading a new PDF replaces it.'
+              : 'This application was scored without a report. Upload the report PDF here.'}
+            {' '}
+            {app.evaluation.slotBooked
+              ? 'The student has booked a slot, so it is available to them now.'
+              : 'The student can download it once they book a slot.'}
+          </p>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+            <label
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: '8px',
+                padding: '10px 16px', borderRadius: '10px',
+                border: '1.5px solid #dbeafe', background: uploadingReport ? '#f1f5f9' : '#eff6ff',
+                color: uploadingReport ? '#94a3b8' : '#1d4ed8', fontWeight: 700, fontSize: '13px',
+                cursor: uploadingReport ? 'wait' : 'pointer',
+              }}
+            >
+              <Download size={14} style={{ transform: 'rotate(180deg)' }} />
+              {uploadingReport
+                ? 'Uploading…'
+                : app.evaluation.reportFileUploaded ? 'Replace Report PDF' : 'Upload Report PDF'}
+              <input
+                type="file"
+                accept="application/pdf,.pdf"
+                hidden
+                disabled={uploadingReport}
+                onChange={e => { const f = e.target.files?.[0]; e.target.value = ''; handleReportUpload(f); }}
+              />
+            </label>
+            {app.evaluation.reportFileUploaded && (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 700, color: '#047857' }}>
+                <FileText size={14} /> Report uploaded
+              </span>
+            )}
+          </div>
+        </div>
+      )}
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(320px,1fr))', gap: '16px' }}>
         {/* Application details */}
