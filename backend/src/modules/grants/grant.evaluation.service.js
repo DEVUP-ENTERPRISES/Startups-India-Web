@@ -159,11 +159,11 @@ async function scheduleMeeting({ applicationDbId, mode, scheduledAt, link, locat
  * after the offline evaluation meet.
  *
  * The mark decides the outcome automatically:
- *   >= passThreshold → cleared Phase 2, advances toward the next phases.
- *   <  passThreshold → not selected; the feedback is shown as improvement
- *                      suggestions.
- * The pass/fail decision is frozen onto the evaluation, so a later change to the
- * threshold can't retroactively flip an outcome the applicant was already told.
+ *   >= 1 → selected; advances to Pre-Incubation. The score TIER then decides how
+ *          many later stages unlock (1-49 Pre-Inc, 50-74 +Incubation, 75+
+ *          +Accelerator).
+ *   0    → not selected (rejected); the feedback is shown as improvement notes.
+ * The outcome is frozen onto the evaluation.
  */
 /**
  * Canonical scoring action (score-first model).
@@ -182,12 +182,19 @@ async function scoreApplication({ applicationDbId, score, feedback, reviewerId }
     throw new ApiError(400, 'Score must be a number between 0 and 100.');
   }
 
-  const settings = await getGrantSettings();
-  const threshold = settings['grant.evaluation.passThreshold'];
-  const passed = n >= threshold;
+  // A score of 1+ means the idea is selected and advances into the journey
+  // (Pre-Incubation onward). The score TIER then decides how many later stages
+  // unlock (see computePhases: 1-49 → Pre-Inc, 50-74 → +Incubation, 75+ →
+  // +Accelerator). ONLY a score of 0 is a rejection.
+  const advances = n >= 1;
+  // `passed` mirrors advancement so the student-facing PASSED/NOT CLEARED badge
+  // and the timeline stay consistent with the outcome. (The old fixed 50 pass
+  // mark is no longer used to decide pass/fail - it wrongly rejected valid
+  // low-but-nonzero scores like 42.)
+  const passed = advances;
 
-  if (!passed && !String(feedback || '').trim()) {
-    throw new ApiError(400, 'Please give feedback / suggestions when the applicant does not pass.');
+  if (!advances && !String(feedback || '').trim()) {
+    throw new ApiError(400, 'Please give feedback / suggestions when rejecting (score 0).');
   }
 
   const application = await GrantApplication.findById(applicationDbId);
@@ -201,10 +208,10 @@ async function scoreApplication({ applicationDbId, score, feedback, reviewerId }
     { upsert: true, new: true }
   );
 
-  // Pass → advance so the next phases unlock (existing behaviour). Fail → Rejected.
-  // Status is set directly (score-first flow doesn't require a prior scheduled
-  // meet); the report reveal is gated separately by isReportUnlocked, NOT status.
-  const nextStatus = passed ? STATUS.PRE_INCUBATION : STATUS.REJECTED;
+  // Score ≥ 1 → advance to Pre-Incubation (later stages unlock by tier). Score 0
+  // → Rejected. Status is set directly; report reveal is gated separately by
+  // isReportUnlocked, NOT status.
+  const nextStatus = advances ? STATUS.PRE_INCUBATION : STATUS.REJECTED;
   const from = application.status;
   application.status = nextStatus;
   application.lastActionBy = reviewerId;
@@ -216,21 +223,21 @@ async function scoreApplication({ applicationDbId, score, feedback, reviewerId }
     event: 'scored',
     fromStatus: from,
     toStatus: nextStatus,
-    message: passed
-      ? `Idea Evaluation scored ${n}/100 - cleared the ${threshold} pass mark.`
-      : `Idea Evaluation scored ${n}/100 - below the ${threshold} pass mark.`,
+    message: advances
+      ? `Idea Evaluation scored ${n}/100 - advanced to the next phase.`
+      : `Idea Evaluation scored ${n}/100 - not selected.`,
     actorId: reviewerId,
     actorRole: 'admin',
     reason: feedback || '',
     // The raw mark stays internal; the applicant unlocks it via their slot.
     visibleToStudent: false,
-    metadata: { score: n, passed, nextStatus },
+    metadata: { score: n, passed, advances, nextStatus },
   });
 
   const env = require('../../config/env');
   const ideaValidationUrl = `${env.FRONTEND_URL}/dashboard/journey/idea-validation`;
 
-  if (passed) {
+  if (advances) {
     // Report unlocks 2 hours before the booked slot - tell them to book.
     await notifyUser({
       userId: application.userId,

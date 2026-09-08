@@ -191,9 +191,12 @@ export default function AdminGrantDetailPage() {
 
   const nextStates = (machine.transitions[app.status] || []).filter(s => !HIDDEN_ACTIONS.includes(s));
 
-  // Score button appears when app is paid/submitted/under_review - admin reviews and scores
+  // Score button appears when app is paid/submitted/under_review - admin reviews
+  // and scores. 'rejected' is included so an admin can RE-SCORE a rejected
+  // application: re-scoring with 1+ reverts it into the journey (Pre-Incubation).
   const canScore = ['submitted', 'under_review', 'idea_evaluation_paid', 'evaluation_scheduled',
-    'idea_evaluation_pending'].includes(app.status);
+    'idea_evaluation_pending', 'rejected'].includes(app.status);
+  const isRejected = app.status === 'rejected';
 
   // Score badge for display
   const scoreLabel = scoreInput !== '' && Number.isFinite(Number(scoreInput))
@@ -281,11 +284,12 @@ export default function AdminGrantDetailPage() {
         <h2 style={{ fontSize: '15px', fontWeight: 800, color: '#111827', margin: '0 0 14px' }}>Actions</h2>
 
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-          {/* Score & Approve - replaces shortlisted */}
+          {/* Score & Approve. On a rejected app this re-scores and restores it
+              into the journey (a score of 1+ moves it to Pre-Incubation). */}
           {canScore && !showScorePanel && (
             <button type="button" onClick={() => { setShowScorePanel(true); setPending(null); setError(''); }}
               style={{ padding: '10px 16px', borderRadius: '10px', border: '1.5px solid #dbeafe', background: '#eff6ff', color: '#1d4ed8', fontWeight: 700, fontSize: '13px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-              <Star size={14} /> Score & Approve
+              <Star size={14} /> {isRejected ? 'Re-Score & Restore' : 'Score & Approve'}
             </button>
           )}
           {/* Other action buttons (under_review and shortlisted hidden) */}
