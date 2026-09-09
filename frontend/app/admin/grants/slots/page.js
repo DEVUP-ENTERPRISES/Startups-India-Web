@@ -319,6 +319,18 @@ export default function AdminSlotsPage() {
                       {b.applicationId?.applicationId && (
                         <span style={{ marginLeft: '8px' }}>· {b.applicationId.applicationId}</span>
                       )}
+                      {b.mode && (
+                        <span style={{
+                          marginLeft: '8px',
+                          display: 'inline-flex', alignItems: 'center', gap: '4px',
+                          padding: '2px 8px', borderRadius: '100px', fontSize: '11px', fontWeight: 700,
+                          background: b.mode === 'online' ? '#eff6ff' : '#f0fdf4',
+                          color: b.mode === 'online' ? '#1d4ed8' : '#047857',
+                          border: `1px solid ${b.mode === 'online' ? '#bfdbfe' : '#bbf7d0'}`,
+                        }}>
+                          {b.mode === 'online' ? '💻 Online' : '📍 In-Person'}
+                        </span>
+                      )}
                     </p>
                     {b.bookedBy?.email && (
                       <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#9ca3af' }}>
