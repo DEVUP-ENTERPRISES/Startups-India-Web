@@ -665,19 +665,20 @@ router.patch(
     const userStatus = requiresApproval ? 'pending' : 'approved';
     const isApproved = !requiresApproval;
 
-    // Phone is already written and verified by /phone/send-otp → /phone/verify
-    // during the onboarding flow. We must NOT write phoneE164 here again - it
-    // would hit the partial unique index if another account was previously
-    // verified with the same number (even a deleted/ghost account).
-    // The only phone-related thing we do here is set isPhoneVerified on the User
-    // doc as a convenience flag, which the index does not cover.
-
+    // Persist the phone onto the User so it shows up in the admin panel, /me, and
+    // anywhere the profile is read. We write the free-text `phone` field (which
+    // has NO unique index) and the isPhoneVerified flag + verified timestamp.
+    //
+    // We deliberately do NOT write `phoneE164` here: it carries a partial unique
+    // index, so re-writing it could collide with a previously-verified (even
+    // deleted/ghost) account. `phone` is the display field and is safe to set.
     await User.updateOne(
       { _id: userId },
       {
         $set: {
           role,
-          ...(isPhoneVerified ? { isPhoneVerified: true } : {}),
+          ...(phone ? { phone } : {}),
+          ...(isPhoneVerified ? { isPhoneVerified: true, phoneVerifiedAt: new Date() } : {}),
           status: userStatus,
           isApproved,
           onboardingCompleted: true,

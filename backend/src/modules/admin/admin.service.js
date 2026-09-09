@@ -21,6 +21,9 @@ const { cacheDel, cacheFlushPattern } = require('../../infrastructure/cache/redi
 const { invalidateEventCache } = require('../events/events.service');
 const { extractS3Key } = require('../../utils/s3');
 const { EvaluationPayment, GrantApplication } = require('../grants/grant.models');
+const { StartupApplication } = require('../../models/StartupApplication');
+const { MentorApplication } = require('../../models/MentorApplication');
+const { InvestorApplication } = require('../../models/InvestorApplication');
 const { EventPartner } = require('../../models/EventPartner');
 const { escapeRegex, sanitizeSort } = require('../../utils/sanitizer');
 const { sendEmail } = require('../../utils/emailService');
@@ -164,6 +167,23 @@ async function listUsers({ page = 1, limit = 20, search, role, sort = '-createdA
 async function getUser(id) {
   const user = await User.findById(id).select('-passwordHash -refreshTokenHash');
   if (!user) throw new ApiError(404, 'User not found');
+
+  // Self-heal a missing phone: older accounts saved the verified number only on
+  // their role application doc, not on the User. Backfill it here (matched by
+  // email) so the admin panel always shows it, and persist so we do it once.
+  if (!user.phone && user.email) {
+    const q = { email: user.email };
+    const [s, m, i] = await Promise.all([
+      StartupApplication.findOne(q).select('phone').lean(),
+      MentorApplication.findOne(q).select('phone').lean(),
+      InvestorApplication.findOne(q).select('phone').lean(),
+    ]);
+    const foundPhone = (s?.phone || m?.phone || i?.phone || '').trim();
+    if (foundPhone) {
+      user.phone = foundPhone;
+      await User.updateOne({ _id: user._id }, { $set: { phone: foundPhone } }).catch(() => {});
+    }
+  }
 
   const [enrollments, payments, lessonProgressCount, quizAttempts, certificates, profile] =
     await Promise.all([
