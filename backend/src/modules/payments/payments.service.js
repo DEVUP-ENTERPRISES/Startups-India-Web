@@ -106,6 +106,16 @@ async function createRazorpayOrder(userId, input) {
     const event = await Event.findById(input.eventId).lean();
     if (!event) throw new ApiError(404, 'Event not found');
 
+    // Block payment order creation for completed or cancelled events
+    if (event.status === 'completed' || event.status === 'cancelled') {
+      throw new ApiError(400, `Registration is not available — this event has been ${event.status}`);
+    }
+
+    // Block payment order creation after registration deadline
+    if (event.registrationEndDate && new Date() > new Date(event.registrationEndDate)) {
+      throw new ApiError(400, 'Registration for this event has closed');
+    }
+
     if (ticketTypeName && event.ticketTypes?.length) {
       // Multi-ticket: find the specific ticket and compute its effective price
       const ticket = (event.ticketTypes || []).find(

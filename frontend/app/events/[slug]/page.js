@@ -967,71 +967,119 @@ export default function EventDetailsPage() {
               {/* Countdown */}
               {event.date && !isRegistered && <div style={{ marginBottom: 14 }}><CountdownTimer targetDate={event.date} /></div>}
 
-              {/* Ticket selector */}
-              {!isRegistered && activeTickets.length > 0 && (
-                <div style={{ marginBottom: 14 }}>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 7 }}>Select Ticket</div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-                    {activeTickets.map(ticket => (
-                      <label key={ticket.name} className="event-ticket-option" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', padding: '11px 12px', borderRadius: 10, cursor: ticket.soldOut ? 'not-allowed' : 'pointer', border: selectedTicketName === ticket.name ? '2px solid #e63946' : '1.5px solid #e5e7eb', background: ticket.soldOut ? '#f9fafb' : selectedTicketName === ticket.name ? '#fff5f5' : '#fff', opacity: ticket.soldOut ? 0.55 : 1, transition: 'all 0.15s' }}>
-                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 9, minWidth: 0, flex: 1 }}>
-                          <input type="radio" name="ticketType" value={ticket.name} checked={selectedTicketName === ticket.name} disabled={ticket.soldOut} onChange={() => !ticket.soldOut && setSelectedTicketName(ticket.name)} style={{ accentColor: '#e63946', marginTop: 2 }} />
-                          <div style={{ minWidth: 0, overflowWrap: 'anywhere' }}>
-                            <div style={{ fontWeight: 700, fontSize: 13, color: '#111827', display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' }}>
-                              {ticket.name}
-                              {ticket.isEarlyBird && <span style={{ fontSize: 9, fontWeight: 800, background: '#fef3c7', color: '#92400e', padding: '1px 5px', borderRadius: 4 }}>EARLY BIRD</span>}
-                              {ticket.soldOut && <span style={{ fontSize: 9, fontWeight: 800, background: '#fee2e2', color: '#991b1b', padding: '1px 5px', borderRadius: 4 }}>SOLD OUT</span>}
+              {/* Registration closed banner for completed / cancelled events or past deadline */}
+              {(event.status === 'completed' || event.status === 'cancelled' || (event.registrationEndDate && new Date() > new Date(event.registrationEndDate))) ? (
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  padding: '14px 16px',
+                  borderRadius: 12,
+                  background: event.status === 'cancelled' ? '#fef2f2' : '#f8fafc',
+                  border: `1px solid ${event.status === 'cancelled' ? '#fecaca' : '#e2e8f0'}`,
+                }}>
+                  <div style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: '50%',
+                    flexShrink: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: event.status === 'cancelled' ? '#fee2e2' : '#f1f5f9',
+                  }}>
+                    {event.status === 'cancelled' ? (
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                    ) : (
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                    )}
+                  </div>
+                  <div>
+                    <div style={{ fontWeight: 800, fontSize: 13, color: event.status === 'cancelled' ? '#dc2626' : '#374151' }}>
+                      {event.status === 'cancelled'
+                        ? 'Event Cancelled'
+                        : event.status === 'completed'
+                        ? 'Event Completed'
+                        : 'Registrations Closed'}
+                    </div>
+                    <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
+                      {event.status === 'cancelled'
+                        ? 'Registrations are closed as this event has been cancelled.'
+                        : event.status === 'completed'
+                        ? 'This event has already taken place. Registrations are closed.'
+                        : 'The registration deadline for this event has passed.'}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  {/* Ticket selector */}
+                  {!isRegistered && activeTickets.length > 0 && (
+                    <div style={{ marginBottom: 14 }}>
+                      <div style={{ fontSize: 10, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 7 }}>Select Ticket</div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+                        {activeTickets.map(ticket => (
+                          <label key={ticket.name} className="event-ticket-option" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', padding: '11px 12px', borderRadius: 10, cursor: ticket.soldOut ? 'not-allowed' : 'pointer', border: selectedTicketName === ticket.name ? '2px solid #e63946' : '1.5px solid #e5e7eb', background: ticket.soldOut ? '#f9fafb' : selectedTicketName === ticket.name ? '#fff5f5' : '#fff', opacity: ticket.soldOut ? 0.55 : 1, transition: 'all 0.15s' }}>
+                            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 9, minWidth: 0, flex: 1 }}>
+                              <input type="radio" name="ticketType" value={ticket.name} checked={selectedTicketName === ticket.name} disabled={ticket.soldOut} onChange={() => !ticket.soldOut && setSelectedTicketName(ticket.name)} style={{ accentColor: '#e63946', marginTop: 2 }} />
+                              <div style={{ minWidth: 0, overflowWrap: 'anywhere' }}>
+                                <div style={{ fontWeight: 700, fontSize: 13, color: '#111827', display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' }}>
+                                  {ticket.name}
+                                  {ticket.isEarlyBird && <span style={{ fontSize: 9, fontWeight: 800, background: '#fef3c7', color: '#92400e', padding: '1px 5px', borderRadius: 4 }}>EARLY BIRD</span>}
+                                  {ticket.soldOut && <span style={{ fontSize: 9, fontWeight: 800, background: '#fee2e2', color: '#991b1b', padding: '1px 5px', borderRadius: 4 }}>SOLD OUT</span>}
+                                </div>
+                                {ticket.description && (
+                                  <ul className="event-ticket-bullets" style={{ margin: '3px 0 0', paddingLeft: 13, fontSize: 10, color: '#6b7280', lineHeight: 1.5 }}>
+                                    {renderBulletLines(ticket.description)}
+                                  </ul>
+                                )}
+                                {ticket.quota > 0 && !ticket.soldOut && <div style={{ fontSize: 10, color: '#f97316', fontWeight: 700, marginTop: 2 }}>{Math.max(0, ticket.quota - (ticket.sold || 0))} left</div>}
+                              </div>
                             </div>
-                            {ticket.description && (
-                              <ul className="event-ticket-bullets" style={{ margin: '3px 0 0', paddingLeft: 13, fontSize: 10, color: '#6b7280', lineHeight: 1.5 }}>
-                                {renderBulletLines(ticket.description)}
-                              </ul>
-                            )}
-                            {ticket.quota > 0 && !ticket.soldOut && <div style={{ fontSize: 10, color: '#f97316', fontWeight: 700, marginTop: 2 }}>{Math.max(0, ticket.quota - (ticket.sold || 0))} left</div>}
-                          </div>
-                        </div>
-                        <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: 8 }}>
-                          <div style={{ fontWeight: 800, fontSize: 14, color: ticket.soldOut ? '#9ca3af' : '#e63946' }}>{ticket.effectivePrice > 0 ? formatMoney(ticket.effectivePrice) : 'FREE'}</div>
-                          {(ticket.isEarlyBird ? ticket.originalPrice > 0 : ticket.originalPrice > ticket.price && ticket.originalPrice > 0) && (
-                            <div style={{ fontSize: 10, color: '#9ca3af', textDecoration: 'line-through' }}>{formatMoney(ticket.isEarlyBird ? ticket.price : ticket.originalPrice)}</div>
-                          )}
-                        </div>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Coupon */}
-              {!isRegistered && hasCoupons && (
-                <div style={{ marginBottom: 14 }}>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Have a coupon?</div>
-                  <div style={{ display: 'flex', gap: 6 }}>
-                    <input value={couponInput} onChange={e => { setCouponInput(e.target.value.toUpperCase().replace(/\s/g, '')); if (couponState.status !== 'idle') setCouponState({ status: 'idle', message: '', discountedPrice: null, discountAmount: 0 }); }} onKeyDown={e => e.key === 'Enter' && validateCoupon()} placeholder="COUPON CODE" style={{ flex: 1, padding: '8px 10px', border: `1.5px solid ${couponState.status === 'valid' ? '#10b981' : couponState.status === 'invalid' ? '#ef4444' : '#e5e7eb'}`, borderRadius: 8, fontSize: 12, fontFamily: 'monospace', fontWeight: 700, textTransform: 'uppercase', outline: 'none' }} />
-                    <button type="button" onClick={validateCoupon} disabled={!couponInput.trim() || couponState.status === 'validating'} style={{ padding: '8px 12px', background: couponState.status === 'valid' ? '#10b981' : '#1f2937', color: '#fff', border: 'none', borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: couponInput.trim() ? 'pointer' : 'not-allowed', opacity: couponInput.trim() ? 1 : 0.5, flexShrink: 0 }}>
-                      {couponState.status === 'validating' ? '…' : couponState.status === 'valid' ? '✓' : 'Apply'}
-                    </button>
-                  </div>
-                  {couponState.status === 'valid' && (
-                    <div style={{ marginTop: 5, display: 'flex', alignItems: 'center', gap: 5, color: '#059669', fontSize: 11, fontWeight: 700 }}>
-                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>
-                      {couponState.message}{couponState.discountAmount > 0 && ` - saving ${formatMoney(couponState.discountAmount)}`}
-                      <button type="button" onClick={() => { setCouponInput(''); setCouponState({ status: 'idle', message: '', discountedPrice: null, discountAmount: 0 }); }} style={{ marginLeft: 'auto', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: 11 }}>Remove</button>
+                            <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: 8 }}>
+                              <div style={{ fontWeight: 800, fontSize: 14, color: ticket.soldOut ? '#9ca3af' : '#e63946' }}>{ticket.effectivePrice > 0 ? formatMoney(ticket.effectivePrice) : 'FREE'}</div>
+                              {(ticket.isEarlyBird ? ticket.originalPrice > 0 : ticket.originalPrice > ticket.price && ticket.originalPrice > 0) && (
+                                <div style={{ fontSize: 10, color: '#9ca3af', textDecoration: 'line-through' }}>{formatMoney(ticket.isEarlyBird ? ticket.price : ticket.originalPrice)}</div>
+                              )}
+                            </div>
+                          </label>
+                        ))}
+                      </div>
                     </div>
                   )}
-                  {couponState.status === 'invalid' && (
-                    <div style={{ marginTop: 5, display: 'flex', alignItems: 'center', gap: 5, color: '#dc2626', fontSize: 11, fontWeight: 600 }}>
-                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
-                      {couponState.message}
+
+                  {/* Coupon */}
+                  {!isRegistered && hasCoupons && (
+                    <div style={{ marginBottom: 14 }}>
+                      <div style={{ fontSize: 10, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Have a coupon?</div>
+                      <div style={{ display: 'flex', gap: 6 }}>
+                        <input value={couponInput} onChange={e => { setCouponInput(e.target.value.toUpperCase().replace(/\s/g, '')); if (couponState.status !== 'idle') setCouponState({ status: 'idle', message: '', discountedPrice: null, discountAmount: 0 }); }} onKeyDown={e => e.key === 'Enter' && validateCoupon()} placeholder="COUPON CODE" style={{ flex: 1, padding: '8px 10px', border: `1.5px solid ${couponState.status === 'valid' ? '#10b981' : couponState.status === 'invalid' ? '#ef4444' : '#e5e7eb'}`, borderRadius: 8, fontSize: 12, fontFamily: 'monospace', fontWeight: 700, textTransform: 'uppercase', outline: 'none' }} />
+                        <button type="button" onClick={validateCoupon} disabled={!couponInput.trim() || couponState.status === 'validating'} style={{ padding: '8px 12px', background: couponState.status === 'valid' ? '#10b981' : '#1f2937', color: '#fff', border: 'none', borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: couponInput.trim() ? 'pointer' : 'not-allowed', opacity: couponInput.trim() ? 1 : 0.5, flexShrink: 0 }}>
+                          {couponState.status === 'validating' ? '…' : couponState.status === 'valid' ? '✓' : 'Apply'}
+                        </button>
+                      </div>
+                      {couponState.status === 'valid' && (
+                        <div style={{ marginTop: 5, display: 'flex', alignItems: 'center', gap: 5, color: '#059669', fontSize: 11, fontWeight: 700 }}>
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>
+                          {couponState.message}{couponState.discountAmount > 0 && ` - saving ${formatMoney(couponState.discountAmount)}`}
+                          <button type="button" onClick={() => { setCouponInput(''); setCouponState({ status: 'idle', message: '', discountedPrice: null, discountAmount: 0 }); }} style={{ marginLeft: 'auto', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: 11 }}>Remove</button>
+                        </div>
+                      )}
+                      {couponState.status === 'invalid' && (
+                        <div style={{ marginTop: 5, display: 'flex', alignItems: 'center', gap: 5, color: '#dc2626', fontSize: 11, fontWeight: 600 }}>
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
+                          {couponState.message}
+                        </div>
+                      )}
                     </div>
                   )}
-                </div>
-              )}
 
-              {/* CTA */}
-              <button onClick={isRegistered ? null : () => handleRegister()} disabled={registering || isRegistered || (activeTickets.length > 0 && !selectedTicket)} style={{ width: '100%', padding: '14px', borderRadius: 12, border: 'none', fontSize: 15, fontWeight: 800, cursor: registering || isRegistered ? 'default' : 'pointer', transition: 'all 0.2s', background: isRegistered ? '#f1f5f9' : 'linear-gradient(135deg,#e63946 0%,#b91c1c 100%)', color: isRegistered ? '#94a3b8' : '#fff', boxShadow: isRegistered ? 'none' : '0 4px 14px rgba(230,57,70,0.32)' }}>
-                {registering ? 'Processing…' : isRegistered ? 'Successfully Registered ✓' : displayPrice > 0 ? `Register - ${formatMoney(displayPrice)}` : 'Register Now · Free'}
-              </button>
+                  {/* CTA */}
+                  <button onClick={isRegistered ? null : () => handleRegister()} disabled={registering || isRegistered || (activeTickets.length > 0 && !selectedTicket)} style={{ width: '100%', padding: '14px', borderRadius: 12, border: 'none', fontSize: 15, fontWeight: 800, cursor: registering || isRegistered ? 'default' : 'pointer', transition: 'all 0.2s', background: isRegistered ? '#f1f5f9' : 'linear-gradient(135deg,#e63946 0%,#b91c1c 100%)', color: isRegistered ? '#94a3b8' : '#fff', boxShadow: isRegistered ? 'none' : '0 4px 14px rgba(230,57,70,0.32)' }}>
+                    {registering ? 'Processing…' : isRegistered ? 'Successfully Registered ✓' : displayPrice > 0 ? `Register - ${formatMoney(displayPrice)}` : 'Register Now · Free'}
+                  </button>
+                </>
+              )}
 
 
             </div>

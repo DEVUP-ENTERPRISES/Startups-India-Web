@@ -43,7 +43,7 @@ importers:
         version: 7.2.0
       incubation-platform:
         specifier: file:..
-        version: Startups-India-Web@file:..
+        version: Old@file:..
       jsonwebtoken:
         specifier: ^9.0.2
         version: 9.0.3
@@ -362,7 +362,7 @@ packages:
   '@types/whatwg-url@11.0.5':
     resolution: {integrity: sha512-coYR071JRaHa+xoEvvYqvnIHaVqaYrLPbsufM9BF63HkwI5Lgmy2QR8Q5K/lYDYo5AK82wOvSOS0UsLTpTG7uQ==}
 
-  Startups-India-Web@file:..:
+  Old@file:..:
     resolution: {directory: .., type: directory}
 
   abort-controller@3.0.0:
@@ -1916,7 +1916,7 @@ snapshots:
     dependencies:
       '@types/webidl-conversions': 7.0.3
 
-  Startups-India-Web@file:..: {}
+  Old@file:..: {}
 
   abort-controller@3.0.0:
     dependencies:

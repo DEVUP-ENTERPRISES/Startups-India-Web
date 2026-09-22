@@ -394,6 +394,16 @@ async function registerForEvent(eventId, userId, ticketInfo = {}) {
   const event = await Event.findById(eventId).lean();
   if (!event) throw new ApiError(404, 'Event not found');
 
+  // ── Guard: block registration for completed or cancelled events ──
+  if (event.status === 'completed' || event.status === 'cancelled') {
+    throw new ApiError(400, `Registration is not available — this event has been ${event.status}`);
+  }
+
+  // ── Guard: block registration after registration deadline ──
+  if (event.registrationEndDate && new Date() > new Date(event.registrationEndDate)) {
+    throw new ApiError(400, 'Registration for this event has closed');
+  }
+
   // ── Guard: a paid event may only be registered for free when payment is
   // verified, or a valid coupon brings the effective price to ₹0. This is
   // re-validated server-side so the free endpoint can't bypass payment.
@@ -542,6 +552,17 @@ async function registerGuestForEvent(eventId, guestInfo = {}, ticketInfo = {}) {
 
   const event = await Event.findOne(buildEventLookup(eventId)).lean();
   if (!event) throw new ApiError(404, 'Event not found');
+
+  // ── Guard: block registration for completed or cancelled events ──
+  if (event.status === 'completed' || event.status === 'cancelled') {
+    throw new ApiError(400, `Registration is not available — this event has been ${event.status}`);
+  }
+
+  // ── Guard: block registration after registration deadline ──
+  if (event.registrationEndDate && new Date() > new Date(event.registrationEndDate)) {
+    throw new ApiError(400, 'Registration for this event has closed');
+  }
+
   if (event.registrationType !== 'guest') throw new ApiError(401, 'Login is required to register for this event');
 
   const isPaidEvent = event.isPaid || event.ticketTypes?.some(t => t.isActive !== false && t.price > 0);
