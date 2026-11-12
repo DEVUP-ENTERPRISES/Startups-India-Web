@@ -1,12 +1,12 @@
 # Engineering & Optimization Audit — Startups India
 
-Status: **Not ready for production sign-off.** The P0 fixes are on branch `audit/production-hardening` and have **not** been pushed or deployed. Rotating the leaked key and upgrading Next.js still need owner action (see §8).
+Status: **Not ready for production — the backend API is down.** As of 2026-11-12 13:30 UTC, `api.startupsindia.in` (EC2 3.108.35.112) does not answer on ports 22, 80 or 443. All fixes are on `main` (pushed 2026-11-12). The frontend deployed via Vercel; the backend deploy is blocked until the EC2 host is reachable again.
 
 | | |
 |---|---|
 | Audit started | 2026-11-12 |
 | Baseline | `origin/main` @ `36cb326` (2026-09-22) |
-| Work branch | `audit/production-hardening` (4 commits, local only) |
+| Delivered | pushed to `main`: `36cb326..c9985db` |
 
 ## 1. System assessment
 
@@ -25,7 +25,7 @@ Status: **Not ready for production sign-off.** The P0 fixes are on branch `audit
 
 | ID | Sev | Finding | Evidence | Status |
 |---|---|---|---|---|
-| S1 | P0 | 2Factor SMS API key hardcoded as an env fallback | `config/env.js:74` (in git history) | Fallback removed; **key must be rotated** |
+| S1 | P0 | 2Factor SMS API key hardcoded as an env fallback | `config/env.js:74` (in git history) | Fallback removed. The owner chose not to rotate it (private repo, accepted risk). Production boot now fails without `TWOFACTOR_API_KEY`, which triggers the rollback |
 | S2 | P0 | Generic `POST /admin/settings` writes any `grant.*` key with any raw value. It bypasses validation and never clears the `grant:settings` cache. The general settings page sends fees as strings, and `base + gst` then concatenates strings | `admin.service.upsertSetting`, `grant.settings.computeEvaluationFee` | Fixed + tests |
 | S3 | P0 | `GET /courses/modules/:id/lessons` is public and returns full lessons (`videoUrl`, `readingContent`, `quizQuestions`, attachments) | Route has no auth; the baseline probe reached the DB unauthenticated | Fixed + tests |
 | S4 | P1 | `/courses/:id/materials` is served to any logged-in user, enrolled or not | `courses.routes.js` | Fixed + tests |
@@ -34,8 +34,10 @@ Status: **Not ready for production sign-off.** The P0 fixes are on branch `audit
 | P3 | P2 | HMAC comparisons use `===` (not constant-time) | `payments.service.js` | Fixed |
 | S5 | P1 | Admin rate limiter is mounted on `/api/v1/admin` (the decoy 404), so the real admin API has only the global limit | `app.js` | Fixed + test |
 | D1 | P1 | Backend deps: 2 critical, 24 high (mongoose sanitizeFilter bypass, proxy-addr IP spoofing, nodemailer recipient injection, axios, body-parser) | `pnpm audit --prod` | Now 0 critical, 2 high |
-| D2 | P1 | Frontend: Next.js 14.2.35 has 3 critical advisories (Image Optimizer RCE, Windows RCE) plus about 10 high. All are fixed only in 15.5.x | `pnpm audit --prod` (36 vulns) | **Needs approval** (major migration) |
-| C1 | P1 | CI on `main` is red (Backend Safety and Code Quality), the frontend Build job is skipped, and the backend still auto-deploys because the deploy doesn't depend on CI | `gh run list` | Fixed: deploy `needs: verify`, CI fixture corrected |
+| D2 | P1 | Frontend: Next.js 14.2.35 has 3 critical advisories (Image Optimizer RCE, Windows RCE) plus about 10 high | `pnpm audit --prod` (36 vulns) | Fixed: Next 15.5.29 + React 19; audit 3C/16H → 0C/2H |
+| C1 | P1 | CI on `main` is red (Backend Safety and Code Quality), the frontend Build job is skipped, and the backend still auto-deploys because the deploy doesn't depend on CI | `gh run list` | Fixed: CI fully green on `c9985db` |
+| C2 | P0 | Deploy auto-rollback ran `cp -r backup/src/ src/`, which nests the backup as `src/src` and leaves the failed release live | Reproduced locally | Fixed |
+| I1 | P0 | Production API host unreachable (ports 22/80/443), so the backend deploy fails at the SSH step | curl/tcp probes, run 43227184433 | **Owner action: check the EC2 instance, security group and AWS account** |
 | R1 | P2 | Boot-time `reconcileOrphanedPayments` makes 1 + n queries over all historical payments on every PM2 worker boot | `enrollments.service.js` | Fixed: one aggregation |
 | Q1 | P2 | Dead code: 4 nested dirs (`config/config.js/`, `middlewares/security.js/`, `utils/performance.js/`, `utils/specialUser.js/`) use ESM syntax inside CJS, are never required, and one holds a demo password | grep: no references | Removed |
 | Q2 | P2 | Duplicate route registrations (wishlist, complete) and duplicate `trust proxy` | `courses.routes.js`, `app.js` | Removed |
@@ -69,8 +71,12 @@ Status: **Not ready for production sign-off.** The P0 fixes are on branch `audit
 | `pnpm test` (backend, new `node:test` suite) | **21/21 pass** |
 | Same suite run against the original `src/` | 12 of 19 fail (the tests detect the defects) |
 | `pnpm audit --prod` (backend) before/after | 2C/24H/29M/2L → 0C/2H/0M/1L |
-| `pnpm audit --prod` (frontend) | 3C/16H/14M/3L (unchanged) |
-| `next lint` (frontend) | clean |
+| `pnpm audit --prod` (frontend) | 3C/16H/14M/3L → 0C/2H/1M/0L |
+| `next lint` (frontend, Next 15) | clean |
+| `next build` Next 14 baseline / Next 15 | both pass, 134/134 pages; shared JS 88.3 → 104 kB |
+| `next start` smoke test, 14 routes (Next 15) | all 200, no server errors |
+| GitHub CI on `c9985db` | all jobs green |
+| Deploy Backend run 43227184433 | verify passed; ship failed (EC2 unreachable), production untouched |
 | `jest --ci` (frontend) | 6/6 pass (1 suite) |
 | CI boot fixture reproduced locally (prod config, module load) | passes after the fixture fix |
 | `scripts/check-case-imports.js` | passes |
@@ -91,7 +97,7 @@ Rollback: revert the branch's commits, or redeploy the previous `src/` from `~/.
 
 ## 7. Next priorities
 
-1. Next.js 15.5 migration (D2), on its own branch, with a full build and route smoke test.
+1. Restore the EC2 host (I1), then re-run the Deploy Backend workflow.
 2. Decide on QR scan tracking (O9), restoring it from `archive/qr-scan-tracking` with server-derived IP.
 3. Unique index on `EvaluationPayment.orderId` (O1) after a duplicate check.
 4. Integration tests against a disposable MongoDB (Docker) for the payment and enrollment flows.
