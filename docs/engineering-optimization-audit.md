@@ -19,7 +19,7 @@ Status: **Not ready for production sign-off.** The P0 fixes are on branch `audit
 ### Repository state found
 - Local `main` had diverged from `origin/main` (6 commits ahead, 16 behind). `origin/main` lacks the QR scan-tracking feature (`scanRouter`, `POST /api/v1/campaigns/scan`, a middleware ping). It looks like origin was rebuilt from the `events` branch without it. Those commits are preserved in the local tag `archive/qr-scan-tracking`.
 - At the owner's request (2026-11-12), the old team's branches were deleted on GitHub (`dev`, `events`, `fix/onboarding-tokens`, `fix/role-enum`) and locally. Their tips are kept as local tags `archive/*`. `fix/onboarding-tokens` held 2 unmerged commits that re-issue tokens after onboarding.
-- `backend/send-payment-link.js` is untracked and contains customer PII. It documents a live incident in which a customer was charged ₹1.18 instead of ₹1,768.82. **Never commit it.** Delete it once it has served its purpose.
+- An untracked one-off script, `backend/send-payment-link.js`, contained customer PII. It documented a live incident in which a customer was charged ₹1.18 instead of ₹1,768.82. It was never committed and was deleted on 2026-11-12.
 
 ## 2. Findings (ranked)
 
