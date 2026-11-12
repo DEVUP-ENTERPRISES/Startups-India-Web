@@ -1,6 +1,6 @@
 # Engineering & Optimization Audit — Startups India
 
-Status: **Not ready for production — the backend API is down.** As of 2026-11-12 13:30 UTC, `api.startupsindia.in` (EC2 3.108.35.112) does not answer on ports 22, 80 or 443. All fixes are on `main` (pushed 2026-11-12). The frontend deployed via Vercel; the backend deploy is blocked until the EC2 host is reachable again.
+Status: **Not ready for production — the backend API is down (EC2 + database stopped by the owner, being restored).** As of 2026-11-12 13:30 UTC, `api.startupsindia.in` (EC2 3.108.35.112) does not answer on ports 22, 80 or 443. All fixes are on `main` (pushed 2026-11-12). The frontend deployed via Vercel; the backend deploy is blocked until the EC2 host is reachable again.
 
 | | |
 |---|---|
@@ -20,6 +20,36 @@ Status: **Not ready for production — the backend API is down.** As of 2026-11-
 - Local `main` had diverged from `origin/main` (6 commits ahead, 16 behind). `origin/main` lacks the QR scan-tracking feature (`scanRouter`, `POST /api/v1/campaigns/scan`, a middleware ping). It looks like origin was rebuilt from the `events` branch without it. Those commits are preserved in the local tag `archive/qr-scan-tracking`.
 - At the owner's request (2026-11-12), the old team's branches were deleted on GitHub (`dev`, `events`, `fix/onboarding-tokens`, `fix/role-enum`) and locally. Their tips are kept as local tags `archive/*`. `fix/onboarding-tokens` held 2 unmerged commits that re-issue tokens after onboarding.
 - An untracked one-off script, `backend/send-payment-link.js`, contained customer PII. It documented a live incident in which a customer was charged ₹1.18 instead of ₹1,768.82. It was never committed and was deleted on 2026-11-12.
+
+## 1b. Round 2 — end-to-end verification (2026-11-12/13)
+
+A real-database E2E suite (`backend/test/e2e`, `mongodb-memory-server`, real HTTP, Razorpay SDK stubbed) now runs in CI and in the deploy gate. It found these production defects, all fixed on `main`:
+
+| ID | Sev | Finding | Commit |
+|---|---|---|---|
+| E1 | P0 | Course price taken from the client (`input.amount`): any paid course could be bought for ₹1. Client `metadata`/`notes`/`currency` were also trusted | `17e6aee` |
+| E2 | P0 | `POST /payments` accepted `status: succeeded`; the boot reconciler then granted a free enrollment and inflated revenue | `17e6aee` |
+| E3 | P0 | **All Razorpay/Stripe webhooks have failed since 2026-05-22** (`6e1d860`): the NoSQL sanitizer rebuilt the raw Buffer body, so the HMAC never matched | `17e6aee` |
+| E4 | P0 | Paid guest event registrations failed after capture (`buildEventLookup` compared an ObjectId to a string) | `33d79aa` |
+| E5 | P0 | Refresh-token rotation, logout and reset revocation were ineffective: bcrypt reads 72 bytes, and every refresh JWT for a user shares that prefix | `508c9b1` |
+| E6 | P1 | Unique guards never built: `EventRegistration.paymentOrderId` and `Event.slug` had conflicting index declarations | `17e6aee` + `scripts/fix-unique-indexes.js` |
+| E7 | P1 | Admin role trusted from the JWT for 15 min after demotion or deletion | `0153a77` |
+| E8 | P1 | CRM click tracker was an open redirect on the API domain | `85f1c13` |
+| E9 | P1 | `POST /mentors/welcome` was a public mail relay | `85f1c13` |
+| E10 | P2 | Applicant bcrypt hashes returned by the admin application lists | `85f1c13` |
+| E11 | P2 | `/auth/refresh` shared the 20/15min login limit (campus NAT logouts); no reuse window for concurrent tabs | `bc8b35c` |
+| E12 | P2 | QR scan tracking missing from main (restored, hardened); `X-Forwarded-For[0]` trusted for visitor IPs | `e4b696a` |
+| E13 | P2 | Grant applicants without a role failed profile sync | `17e6aee` |
+
+**Required after the server is back** (in this order):
+1. Ensure `TWOFACTOR_API_KEY` is in the EC2 `.env`, then re-run **Deploy Backend (EC2)**.
+2. `node scripts/fix-unique-indexes.js` (dry run), then add `--apply` if no duplicates are reported.
+3. In Razorpay, list captured payments since 2026-05-22 whose orders are still `created` in the DB (E3 window) and settle or refund them.
+4. All users must sign in once (E5 invalidated stored refresh hashes).
+
+Reviewed without changes needed: media uploads and signed URLs, grant documents, password reset (hashed single-use tokens), mentor/investor apply (no mass assignment).
+
+Still open: `xlsx` (needs approval to install from cdn.sheetjs.com); `zod` v3 advisory (mitigated by the 1 MB body limit; v4 is a major migration); application passwords allow 6 characters versus 8 at signup.
 
 ## 2. Findings (ranked)
 
