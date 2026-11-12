@@ -98,36 +98,40 @@ async function upsertLessonProgress(userId, input) {
 async function reconcileOrphanedPayments() {
   try {
     const { Payment } = require('../payments/payment.model');
-    const orphaned = await Payment.find({
-      status: 'succeeded',
-      courseId: { $exists: true, $ne: null },
-    }).lean();
+    // One round-trip; the correlated lookup hits the unique {userId, courseId} enrollment index.
+    const orphaned = await Payment.aggregate([
+      { $match: { status: 'succeeded', courseId: { $ne: null } } },
+      {
+        $lookup: {
+          from: Enrollment.collection.name,
+          let: { u: '$userId', c: '$courseId' },
+          pipeline: [
+            { $match: { $expr: { $and: [{ $eq: ['$userId', '$$u'] }, { $eq: ['$courseId', '$$c'] }] } } },
+            { $limit: 1 },
+            { $project: { _id: 1 } },
+          ],
+          as: 'enrollment',
+        },
+      },
+      { $match: { enrollment: { $size: 0 } } },
+      { $project: { userId: 1, courseId: 1, provider: 1, amount: 1, paymentIntentId: 1, paymentId: 1 } },
+    ]);
 
     if (orphaned.length === 0) return;
 
-    let fixed = 0;
     for (const payment of orphaned) {
-      const exists = await Enrollment.findOne({
-        userId: payment.userId,
-        courseId: payment.courseId,
-      }).lean();
-      if (!exists) {
-        await upsertEnrollment(payment.userId, {
-          courseId: String(payment.courseId),
-          paymentVerified: true,
-          paymentStatus: 'completed',
-          paymentId: String(payment._id),
-          stripePaymentId: payment.paymentIntentId || payment.paymentId || null,
-          paymentMethod: payment.provider,
-          amountPaid: payment.amount,
-        });
-        fixed++;
-      }
+      await upsertEnrollment(payment.userId, {
+        courseId: String(payment.courseId),
+        paymentVerified: true,
+        paymentStatus: 'completed',
+        paymentId: String(payment._id),
+        stripePaymentId: payment.paymentIntentId || payment.paymentId || null,
+        paymentMethod: payment.provider,
+        amountPaid: payment.amount,
+      });
     }
 
-    if (fixed > 0) {
-      logger.info('Reconciled orphaned payment enrollments on startup', { fixed });
-    }
+    logger.info('Reconciled orphaned payment enrollments on startup', { fixed: orphaned.length });
   } catch (err) {
     logger.error('Payment reconciliation failed', { error: err.message });
   }
