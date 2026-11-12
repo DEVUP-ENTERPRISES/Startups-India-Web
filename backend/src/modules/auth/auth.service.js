@@ -21,21 +21,20 @@ const {
   recordSecurityEvent,
 } = require('../../infrastructure/observability/securityEvents');
 
-// Generates access + refresh tokens and persists a bcrypt hash of the
-// refresh token so it can be validated and rotated on the next /refresh call.
+// Stores only a SHA-256 digest of the refresh token so /refresh can validate and rotate it.
 async function generateAndStoreTokens(user) {
   const accessToken = jwt.sign(
     { sub: user._id, role: user.role, email: user.email },
     env.JWT_ACCESS_SECRET,
     { expiresIn: env.JWT_ACCESS_EXPIRES_IN || '15m' }
   );
+  // jti makes every token unique; without it two tokens issued in the same second are identical.
   const refreshToken = jwt.sign({ sub: user._id }, env.JWT_REFRESH_SECRET, {
     expiresIn: env.JWT_REFRESH_EXPIRES_IN || '30d',
+    jwtid: crypto.randomBytes(16).toString('hex'),
   });
 
-  // Store hashed refresh token - rounds=8 is fast (~10ms) and sufficient
-  const refreshTokenHash = await bcrypt.hash(refreshToken, 8);
-  await User.updateOne({ _id: user._id }, { $set: { refreshTokenHash } });
+  await User.updateOne({ _id: user._id }, { $set: { refreshTokenHash: hashRefreshToken(refreshToken) } });
 
   return { accessToken, refreshToken };
 }
@@ -428,14 +427,24 @@ async function refresh(token, envConfig) {
   if (!user.refreshTokenHash) {
     throw new ApiError(401, 'Session invalidated. Please log in again.');
   }
-  const isValid = await bcrypt.compare(token, user.refreshTokenHash);
-  if (!isValid) {
+  if (!refreshTokenMatches(token, user.refreshTokenHash)) {
     throw new ApiError(401, 'Session expired or already rotated. Please log in again.');
   }
 
   // Rotate: issue brand-new tokens (old hash overwritten)
   const tokens = await generateAndStoreTokens(user);
   return { user, ...tokens };
+}
+
+// bcrypt reads only the first 72 bytes, and every JWT for a user shares that prefix, so it matched any old token.
+function hashRefreshToken(token) {
+  return crypto.createHash('sha256').update(token).digest('hex');
+}
+
+function refreshTokenMatches(token, storedHash) {
+  const expected = Buffer.from(hashRefreshToken(token), 'utf8');
+  const stored = Buffer.from(String(storedHash), 'utf8');
+  return expected.length === stored.length && crypto.timingSafeEqual(expected, stored);
 }
 
 async function logout(userId) {
