@@ -49,7 +49,15 @@ A real-database E2E suite (`backend/test/e2e`, `mongodb-memory-server`, real HTT
 
 Reviewed without changes needed: media uploads and signed URLs, grant documents, password reset (hashed single-use tokens), mentor/investor apply (no mass assignment).
 
-Still open: `xlsx` (needs approval to install from cdn.sheetjs.com); `zod` v3 advisory (mitigated by the 1 MB body limit; v4 is a major migration); application passwords allow 6 characters versus 8 at signup.
+Closed in `3a7399c`: `zod` → v4; `xlsx` removed (backend parser was dead code; the frontend uses exceljs + papaparse); six dead Next.js API routes removed, including a second public mailer branded `noreply@startupindia.com`. **Audits: backend 0 critical / 0 high (1 low); frontend no known vulnerabilities. CI fully green.**
+
+## Final readiness assessment (2026-11-13)
+
+**Code: Ready with minor issues. Production: Not ready — offline.** The EC2 host, MongoDB Atlas and Redis Cloud are currently unreachable, so nothing below is live until the restore and deploy in §1b are done.
+
+Evidence: 59 backend tests (19 unit + 40 E2E on a real MongoDB) cover auth, sessions, admin access, IDOR, grant/course/event/guest payments, webhooks, reconciliation, paid-content gating, mentor onboarding, QR tracking and open redirects. Frontend: 11 Jest tests, lint, and a 129-page production build. All of this runs in CI and gates the backend deploy.
+
+Remaining minor items: application passwords allow 6 characters versus 8 at signup; 493 legacy files are unformatted (only changed files are checked); no real-browser (Playwright) tests; no external error tracking or uptime alerting; backups depend on the Atlas tier; frontend test coverage is thin.
 
 ## 2. Findings (ranked)
 
