@@ -610,7 +610,7 @@ async function syncApplicationToUserProfile(userId, founder, startup) {
     if (!profile) {
       profile = new Profile({
         userId,
-        role: user ? user.role : 'startup',
+        role: user?.role || 'startup',
         dynamicProfileData: {},
       });
     }

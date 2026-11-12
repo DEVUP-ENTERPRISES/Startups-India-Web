@@ -20,7 +20,6 @@ const eventSchema = new mongoose.Schema(
       type: String,
       trim: true,
       lowercase: true,
-      sparse: true,  // allows null on old records that pre-date this field
     },
     title: { type: String, required: true, trim: true },
     subtitle: { type: String, trim: true },

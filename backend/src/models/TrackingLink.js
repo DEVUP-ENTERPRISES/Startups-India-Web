@@ -45,7 +45,6 @@ const trackingLinkSchema = new mongoose.Schema(
 );
 
 trackingLinkSchema.index({ campaign: 1, createdAt: -1 });
-trackingLinkSchema.index({ shortCode: 1 }, { unique: true });
 
 const TrackingLink = mongoose.model('TrackingLink', trackingLinkSchema);
 module.exports = { TrackingLink };

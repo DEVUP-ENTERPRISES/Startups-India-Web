@@ -36,16 +36,17 @@ async function listPaymentsForUser(userId) {
   return Payment.find({ userId }).sort({ createdAt: -1 }).lean();
 }
 
+// A client may open a payment record but never mark it settled: a 'succeeded' row is auto-enrolled on boot.
 async function createPaymentForUser(userId, input) {
   return Payment.create({
     userId,
     courseId: input.courseId,
-    provider: input.provider || 'stripe',
+    provider: input.provider === 'razorpay' ? 'razorpay' : 'stripe',
     paymentIntentId: input.paymentIntentId,
     amount: input.amount,
-    currency: input.currency || 'INR',
-    status: input.status || 'created',
-    metadata: input.metadata || {},
+    currency: 'INR',
+    status: 'created',
+    metadata: {},
   });
 }
 
@@ -88,12 +89,15 @@ async function userRegistrationExists(payment, userId) {
   return !!found;
 }
 
-async function createRazorpayOrder(userId, input) {
+async function createRazorpayOrder(userId, input, serverMetadata = {}) {
   if (!razorpay) {
     throw new ApiError(500, 'Razorpay is not configured');
   }
+  if (!input.courseId && !input.eventId) {
+    throw new ApiError(400, 'courseId or eventId is required');
+  }
 
-  let amountInPaise = Math.round(Number(input.amount || 0));
+  let amountInPaise = 0;
   let ticketTypeName = input.ticketTypeName || null;
   let resolvedCoupon = input.couponCode || null;
 
@@ -167,28 +171,31 @@ async function createRazorpayOrder(userId, input) {
 
       amountInPaise = effectivePrice;
     } else if (!ticketTypeName) {
-      // Legacy single-price event: use server-stored price, ignore client amount
-      if (event.isPaid && event.price > 0) {
-        amountInPaise = event.price; // already in paise
-      }
+      // Legacy single-price event: the stored price is the only price.
+      amountInPaise = event.isPaid && event.price > 0 ? event.price : 0;
     }
+  } else {
+    const { Course } = require('../courses/course.model');
+    const course = await Course.findById(input.courseId).select('priceInr').lean();
+    if (!course) throw new ApiError(404, 'Course not found');
+    amountInPaise = Math.round(Number(course.priceInr) || 0);
   }
 
   if (!amountInPaise || amountInPaise <= 0) {
     throw new ApiError(400, 'Invalid amount');
   }
 
+  // Prices are stored in INR paise; currency, receipt, notes and metadata are never client-controlled.
   const order = await razorpay.orders.create({
     amount: amountInPaise,
-    currency: input.currency || 'INR',
-    receipt: input.receipt || `rcpt_${Date.now()}_${Math.floor(Math.random() * 10000)}`,
+    currency: 'INR',
+    receipt: `rcpt_${Date.now()}_${Math.floor(Math.random() * 10000)}`,
     notes: {
       ...(userId ? { userId: String(userId) } : { isGuest: 'true' }),
       ...(input.courseId ? { courseId: String(input.courseId) } : {}),
       ...(input.eventId ? { eventId: String(input.eventId) } : {}),
       ...(ticketTypeName ? { ticketTypeName } : {}),
       // couponCode intentionally excluded from notes - visible in Razorpay dashboard (L2)
-      ...(input.notes || {}),
     },
   });
 
@@ -202,7 +209,7 @@ async function createRazorpayOrder(userId, input) {
     currency: order.currency,
     status: 'created',
     metadata: {
-      ...(input.metadata || {}),
+      ...serverMetadata,
       receipt: order.receipt,
       razorpayOrderStatus: order.status,
       ...(ticketTypeName ? { ticketTypeName } : {}),
@@ -245,17 +252,13 @@ async function createGuestRazorpayOrder(input) {
   }).lean();
   if (existing) throw new ApiError(400, 'This email is already registered for the event');
 
-  return createRazorpayOrder(null, {
-    ...input,
-    metadata: {
-      ...(input.metadata || {}),
-      isGuest: true,
-      guest: {
-        fullName: guest.fullName.trim(),
-        email: guest.email.trim().toLowerCase(),
-        phoneNumber: guest.phoneNumber.trim(),
-        collegeCompany: guest.collegeCompany?.trim() || '',
-      },
+  return createRazorpayOrder(null, input, {
+    isGuest: true,
+    guest: {
+      fullName: guest.fullName.trim(),
+      email: guest.email.trim().toLowerCase(),
+      phoneNumber: guest.phoneNumber.trim(),
+      collegeCompany: guest.collegeCompany?.trim() || '',
     },
   });
 }

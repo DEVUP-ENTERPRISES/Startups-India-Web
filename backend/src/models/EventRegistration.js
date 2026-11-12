@@ -13,7 +13,7 @@ const eventRegistrationSchema = new mongoose.Schema(
     // Razorpay order id for paid registrations - used as an idempotency key so
     // the client-verify, webhook, and reconcile paths register a payment exactly
     // once even when they race. Sparse+unique: only enforced when present.
-    paymentOrderId: { type: String, index: true },
+    paymentOrderId: { type: String },
     paymentStatus: { type: String, enum: ['Pending', 'Completed', 'Failed', 'Refunded', 'Free'], default: 'Free' },
     ticketType: { type: String, default: 'General' },       // legacy label
     ticketTypeName: { type: String, default: 'General' },   // matches ticketTypes[].name

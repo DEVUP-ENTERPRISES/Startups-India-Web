@@ -106,7 +106,8 @@ app.use(express.urlencoded({ extended: true }));
 
 // Strip MongoDB operator keys ($gt, $where, etc.) from request bodies to prevent NoSQL injection
 app.use((req, res, next) => {
-  if (req.body && typeof req.body === 'object') {
+  // Webhook bodies are raw Buffers; rebuilding one as an object destroys the bytes the HMAC covers.
+  if (req.body && typeof req.body === 'object' && !Buffer.isBuffer(req.body)) {
     req.body = stripMongoOperators(req.body);
   }
   next();
