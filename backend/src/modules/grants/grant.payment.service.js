@@ -195,16 +195,25 @@ async function verifyEvaluationPayment(userId, { orderId, paymentId, signature }
 
   const valid = verifyRazorpaySignature({ orderId, paymentId, signature });
   if (!valid) {
-    payment.status = 'failed';
-    await payment.save();
+    // Leave the order 'created': a forged or garbled callback must not orphan a genuine capture.
     logger.warn('Grant evaluation payment signature INVALID', { orderId, userId: String(userId) });
     throw new ApiError(400, 'Payment could not be verified.');
   }
 
-  // Atomic settle: whoever flips 'created' → 'paid' first wins, so two
+  return settleEvaluationPayment(payment, { paymentId, signature, actorRole: 'student' });
+}
+
+// Razorpay's signed webhook is authoritative even if the order was marked failed/expired locally.
+const SETTLEABLE_STATUSES = ['created', 'failed', 'expired'];
+
+/** Shared by the client verify and the webhook; the caller must have verified a signature. */
+async function settleEvaluationPayment(payment, { paymentId, signature = null, actorRole }) {
+  const userId = payment.userId;
+
+  // Atomic settle: whoever flips the order to 'paid' first wins, so two
   // simultaneous callbacks cannot both advance the application.
   const settled = await EvaluationPayment.findOneAndUpdate(
-    { _id: payment._id, status: 'created' },
+    { _id: payment._id, status: { $in: SETTLEABLE_STATUSES } },
     {
       $set: {
         status: 'paid',
@@ -250,7 +259,7 @@ async function verifyEvaluationPayment(userId, { orderId, paymentId, signature }
       toStatus: STATUS.EVALUATION_PAID,
       message: 'Idea Evaluation fee paid.',
       actorId: userId,
-      actorRole: 'student',
+      actorRole,
       metadata: {
         invoiceNumber: settled.invoiceNumber,
         totalAmount: settled.totalAmount,
@@ -279,6 +288,30 @@ async function verifyEvaluationPayment(userId, { orderId, paymentId, signature }
   }
 
   return { alreadyPaid: false, payment: settled };
+}
+
+/**
+ * Webhook path for Idea Evaluation orders, so a founder who closes the tab after paying is still settled.
+ * Returns { handled: false } when the order is not a grant order.
+ */
+async function settleEvaluationPaymentFromWebhook({ orderId, paymentId, amount, currency }) {
+  const payment = await EvaluationPayment.findOne({ orderId });
+  if (!payment) return { handled: false };
+  if (payment.status === 'paid') return { handled: true, alreadyPaid: true };
+
+  if (amount !== payment.totalAmount || String(currency || '').toUpperCase() !== payment.currency.toUpperCase()) {
+    logger.error('Grant evaluation webhook amount mismatch - not settling', {
+      orderId,
+      expected: payment.totalAmount,
+      received: amount,
+      currency,
+    });
+    return { handled: true, error: 'amount_mismatch' };
+  }
+
+  const result = await settleEvaluationPayment(payment, { paymentId, actorRole: 'system' });
+  logger.info('Grant evaluation payment settled by webhook', { orderId, alreadyPaid: result.alreadyPaid });
+  return { handled: true, ...result };
 }
 
 /** Invoice for a settled payment. Owner or admin only. */
@@ -369,6 +402,7 @@ async function getEvaluationSummary(userId, applicationDbId) {
 module.exports = {
   createEvaluationOrder,
   verifyEvaluationPayment,
+  settleEvaluationPaymentFromWebhook,
   getInvoice,
   getEvaluationSummary,
   PAYABLE_STATUSES,

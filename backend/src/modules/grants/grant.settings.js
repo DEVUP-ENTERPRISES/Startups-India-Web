@@ -215,8 +215,12 @@ async function updateGrantSettings(patch, adminUserId) {
  */
 async function computeEvaluationFee() {
   const s = await getGrantSettings();
-  const base = s['grant.evaluation.fee'];
-  const gstPercent = s['grant.evaluation.gstPercent'];
+  // Rows written before validation existed may hold strings; "149900" + 26982 would concatenate.
+  const base = Number(s['grant.evaluation.fee']);
+  const gstPercent = Number(s['grant.evaluation.gstPercent']);
+  if (!Number.isSafeInteger(base) || base < 0 || !Number.isFinite(gstPercent) || gstPercent < 0 || gstPercent > 100) {
+    throw new ApiError(500, 'Evaluation fee is misconfigured.');
+  }
   const gst = Math.round((base * gstPercent) / 100);
 
   return {

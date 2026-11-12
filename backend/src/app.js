@@ -16,9 +16,6 @@ const mongoose = require('mongoose');
 
 const app = express();
 
-// Trust nginx/load-balancer proxy on EC2 (fixes X-Forwarded-For + rate-limit)
-app.set('trust proxy', 1);
-
 // ─── SECURITY HARDENING ──────────────────────────────────────
 app.use(
   helmet({
@@ -55,7 +52,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Trust first proxy for correct client IPs (if behind a proxy)
+// One hop (nginx on EC2) so req.ip and rate limits see the real client address.
 app.set('trust proxy', env.NODE_ENV === 'production' ? 1 : false);
 
 const allowedOrigins = [
@@ -201,7 +198,7 @@ app.use('/api/v1/auth/phone', otpLimiter);
 
 // Stricter rate limit for admin panel - 120 req/min per IP
 app.use(
-  '/api/v1/admin',
+  [`/api/v1/${env.ADMIN_SLUG}`, '/api/v1/crm'],
   rateLimit({
     windowMs: 60 * 1000,
     max: 120,

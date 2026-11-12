@@ -156,8 +156,19 @@ async function listModulesByCourse(courseId) {
   return Module.find({ courseId }).sort({ sortOrder: 1 }).lean();
 }
 
+// Public syllabus view; paid content is served only by the enrollment-gated learning engine.
+const PUBLIC_LESSON_FIELDS =
+  'moduleId lessonNumber title description contentType videoDurationSeconds readingTimeMinutes durationMinutes isPreview isMandatory sortOrder videoUrl readingContent';
+
+function toPublicLesson(lesson) {
+  if (lesson.isPreview) return lesson;
+  const { videoUrl, readingContent, ...rest } = lesson;
+  return rest;
+}
+
 async function listLessonsByModule(moduleId) {
-  return Lesson.find({ moduleId }).sort({ sortOrder: 1 }).lean();
+  const lessons = await Lesson.find({ moduleId }).select(PUBLIC_LESSON_FIELDS).sort({ sortOrder: 1 }).lean();
+  return lessons.map(toPublicLesson);
 }
 
 async function trackProgress(userId, { videoId, watchedSeconds, completed, courseId }) {
@@ -239,6 +250,7 @@ module.exports = {
   getCourseById,
   listCourses,
   listLessonsByModule,
+  toPublicLesson,
   listModulesByCourse,
   submitQuiz,
   trackProgress,

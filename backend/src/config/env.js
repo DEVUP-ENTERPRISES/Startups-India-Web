@@ -71,7 +71,7 @@ const env = {
   // Default country for bare 10-digit numbers typed by Indian users.
   DEFAULT_PHONE_COUNTRY: process.env.DEFAULT_PHONE_COUNTRY || 'IN',
 
-  TWOFACTOR_API_KEY: process.env.TWOFACTOR_API_KEY || '16ac4ef8-8a8a-11f1-908b-0200cd936042',
+  TWOFACTOR_API_KEY: process.env.TWOFACTOR_API_KEY || '',
   TWOFACTOR_TEMPLATE_NAME: process.env.TWOFACTOR_TEMPLATE_NAME || '',
 
   OTP_LENGTH: Number(process.env.OTP_LENGTH || 6),

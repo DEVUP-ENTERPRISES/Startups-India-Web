@@ -269,7 +269,12 @@ function verifyRazorpaySignature({ orderId, paymentId, signature }) {
     .createHmac('sha256', env.RAZORPAY_KEY_SECRET)
     .update(payload)
     .digest('hex');
-  return expected === signature;
+  return timingSafeEqualHex(expected, signature);
+}
+
+function timingSafeEqualHex(expected, received) {
+  if (typeof received !== 'string' || received.length !== expected.length) return false;
+  return crypto.timingSafeEqual(Buffer.from(expected, 'utf8'), Buffer.from(received, 'utf8'));
 }
 
 async function verifyGuestRazorpayPayment(input) {
@@ -579,7 +584,7 @@ function verifyRazorpayWebhookSignature(rawBody, signature) {
     .update(rawBody)
     .digest('hex');
 
-  return expected === signature;
+  return timingSafeEqualHex(expected, signature);
 }
 
 async function processRazorpayWebhook(rawBody, signature) {
@@ -613,6 +618,16 @@ async function processRazorpayWebhook(rawBody, signature) {
     // Never upsert with userId/courseId from notes - those are user-controlled.
     const existing = await Payment.findOne({ orderId }).lean();
     if (!existing) {
+      if (isSuccessEvent) {
+        const { settleEvaluationPaymentFromWebhook } = require('../grants/grant.payment.service');
+        const grant = await settleEvaluationPaymentFromWebhook({
+          orderId,
+          paymentId,
+          amount: paymentEntity.amount,
+          currency: paymentEntity.currency,
+        });
+        if (grant.handled) return { received: true, grant: true, error: grant.error };
+      }
       // No Payment record means this order wasn't created through our system
       return { received: true, ignored: true };
     }

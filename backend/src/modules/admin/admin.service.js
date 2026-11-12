@@ -1079,17 +1079,35 @@ async function getSettings(category) {
   return Settings.find(query).sort({ key: 1 });
 }
 
+// Grant keys drive checkout pricing, so they must pass the grant validator and bust its cache.
+function isGrantSettingKey(key, category) {
+  return category === 'grant' || (typeof key === 'string' && key.startsWith('grant.'));
+}
+
 async function upsertSetting({ key, value, category, description, updatedBy }) {
+  if (typeof key !== 'string' || !key.trim()) throw new ApiError(400, 'Setting key is required');
+
+  if (isGrantSettingKey(key, category)) {
+    const { updateGrantSettings } = require('../grants/grant.settings');
+    await updateGrantSettings({ [key]: value }, updatedBy);
+    if (description !== undefined) await Settings.updateOne({ key }, { description });
+    return Settings.findOne({ key });
+  }
+
   return Settings.findOneAndUpdate(
     { key },
     { value, category, description, updatedBy },
-    { upsert: true, new: true }
+    { upsert: true, new: true, runValidators: true }
   );
 }
 
 async function deleteSetting(key) {
   const s = await Settings.findOneAndDelete({ key });
   if (!s) throw new ApiError(404, 'Setting not found');
+  if (isGrantSettingKey(s.key, s.category)) {
+    const { GRANT_SETTINGS_CACHE_KEY } = require('../grants/grant.settings');
+    await cacheDel(GRANT_SETTINGS_CACHE_KEY);
+  }
   return { deleted: true };
 }
 

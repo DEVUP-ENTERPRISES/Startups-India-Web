@@ -14,7 +14,8 @@
     "logs": "pm2 logs incubation-backend",
     "monit": "pm2 monit",
     "docker:build": "docker build -t incubation-backend .",
-    "docker:run": "docker run -p 5000:5000 --env-file .env incubation-backend"
+    "docker:run": "docker run -p 5000:5000 --env-file .env incubation-backend",
+    "test": "node --test --test-concurrency=1 test/*.test.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1020.0",
