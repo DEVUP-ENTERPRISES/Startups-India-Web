@@ -21,8 +21,45 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  verify:
+    name: Verify backend before shipping
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: backend/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+        working-directory: backend
+      - run: node ../scripts/check-case-imports.js
+        working-directory: backend
+      - run: pnpm test
+        working-directory: backend
+      - name: Production-config module load
+        working-directory: backend
+        env:
+          NODE_ENV: production
+          MONGODB_URI: mongodb://localhost:27017/ci
+          JWT_ACCESS_SECRET: ci-only
+          JWT_REFRESH_SECRET: ci-only
+          FRONTEND_URL: https://ci.invalid
+          SMTP_HOST: smtp.invalid
+          TWO_FACTOR_ENABLED: 'false'
+        run: node -e "require('./src/app'); console.log('backend modules load')"
+
   deploy:
     name: Ship backend to EC2 + reload
+    needs: verify
     runs-on: ubuntu-latest
     timeout-minutes: 10
     # Private repo: explicitly grant the built-in token read access so checkout

@@ -15,6 +15,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -36,9 +38,15 @@ jobs:
         run: pnpm run lint
         working-directory: frontend
 
-      - name: Prettier check
-        run: pnpm run format:check
+      # 490+ legacy files predate Prettier; enforce it on changed files until a coordinated format commit lands.
+      - name: Prettier check (changed files)
         working-directory: frontend
+        run: |
+          BASE="${{ github.event.pull_request.base.sha || github.event.before }}"
+          if [ -z "$BASE" ] || ! git cat-file -e "$BASE^{commit}" 2>/dev/null; then BASE="HEAD~1"; fi
+          FILES=$(git diff --name-only --diff-filter=ACMR "$BASE" HEAD -- . | sed 's#^frontend/##' | grep -E '\.(js|jsx|json|css|md)$' || true)
+          if [ -z "$FILES" ]; then echo "No formattable frontend changes"; exit 0; fi
+          echo "$FILES" | xargs npx prettier --check
 
       - name: Audit (frontend)
         run: pnpm audit --audit-level high
@@ -205,6 +213,14 @@ jobs:
         run: node ../scripts/check-case-imports.js
         working-directory: backend
 
+      - name: Unit tests
+        run: pnpm test
+        working-directory: backend
+
+      - name: Dependency audit (fail on critical)
+        run: pnpm audit --prod --audit-level critical
+        working-directory: backend
+
       # Verify the server can actually start (catches missing modules, syntax
       # errors, broken requires). Starts the server, waits for health check,
       # then shuts down.
@@ -226,7 +242,9 @@ jobs:
           ADMIN_SLUG=test-panel
           SMS_PROVIDER=console
           OTP_PEPPER=test-pepper
-          FRONTEND_URL=http://localhost:3000
+          FRONTEND_URL=https://ci.invalid
+          SMTP_HOST=smtp.invalid
+          TWO_FACTOR_ENABLED=false
           EOF
 
           # Try to require all route files (catches import errors without needing
