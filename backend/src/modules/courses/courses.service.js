@@ -1,3 +1,4 @@
+const { ApiError } = require('../../utils/apiError');
 const { Course, Module, Lesson } = require('./course.model');
 const { Progress, Quiz, QuizResponse, QuizAttempt } = require('../learning/learning.model');
 const { extractS3Key, generateDownloadUrl } = require('../../utils/s3');
@@ -87,7 +88,7 @@ async function listCourses(options = {}) {
 async function toggleWishlist(userId, courseId) {
   const { User } = require('../users/user.model');
   const user = await User.findById(userId);
-  if (!user) throw new Error('User not found');
+  if (!user) throw new ApiError(404, 'User not found');
 
   const index = user.wishlist.indexOf(courseId);
   if (index > -1) {
@@ -95,7 +96,7 @@ async function toggleWishlist(userId, courseId) {
   } else {
     // Validate course exists
     const course = await Course.findById(courseId).select('_id');
-    if (!course) throw new Error('Course not found');
+    if (!course) throw new ApiError(404, 'Course not found');
     user.wishlist.push(courseId);
   }
 
@@ -114,32 +115,10 @@ async function getWishlist(userId) {
   return Promise.all(user.wishlist.map(w => decorateCourseMedia(w.toObject())));
 }
 
-async function markCourseCompleted(userId, courseId) {
-  const { Enrollment } = require('../enrollments/enrollment.model');
-
-  const enrollment = await Enrollment.findOne({ userId, courseId });
-  if (!enrollment) throw new Error('Not enrolled in this course');
-
-  if (enrollment.status === 'completed') return enrollment;
-
-  enrollment.status = 'completed';
-  enrollment.completed = true;
-  enrollment.completedAt = new Date();
-  enrollment.progress = 100;
-
-  await enrollment.save();
-
-  // Invalidate cache
-  const { cacheDel } = require('../../infrastructure/cache/redis');
-  cacheDel(`enrollment:${userId}:${courseId}`, `progress:${userId}:${courseId}`).catch(() => {});
-
-  return enrollment;
-}
-
 async function getUserWishlist(userId) {
   const { User } = require('../users/user.model');
   const user = await User.findById(userId).populate('wishlist').lean();
-  if (!user) throw new Error('User not found');
+  if (!user) throw new ApiError(404, 'User not found');
 
   const courses = await Promise.all((user.wishlist || []).map(decorateCourseMedia));
   return courses;
@@ -229,20 +208,17 @@ async function submitQuiz(userId, { responses, courseId }) {
 async function markCourseComplete(userId, courseId) {
   const { Enrollment } = require('../enrollments/enrollment.model');
   const enrollment = await Enrollment.findOne({ userId, courseId });
-
-  if (!enrollment) {
-    throw new Error('You are not enrolled in this course');
-  }
-
-  if (enrollment.status === 'completed') {
-    return enrollment;
-  }
+  if (!enrollment) throw new ApiError(403, 'You are not enrolled in this course');
+  if (enrollment.status === 'completed') return enrollment;
 
   enrollment.status = 'completed';
   enrollment.completed = true;
   enrollment.completedAt = new Date();
+  enrollment.progress = 100;
   await enrollment.save();
 
+  const { cacheDel } = require('../../infrastructure/cache/redis');
+  cacheDel(`enrollment:${userId}:${courseId}`, `progress:${userId}:${courseId}`).catch(() => {});
   return enrollment;
 }
 
@@ -256,7 +232,6 @@ module.exports = {
   trackProgress,
   toggleWishlist,
   getWishlist,
-  markCourseCompleted,
   getUserWishlist,
   markCourseComplete,
 };

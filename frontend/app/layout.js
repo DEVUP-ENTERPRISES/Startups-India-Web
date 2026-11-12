@@ -36,6 +36,7 @@ import '@/styles/responsive-overrides.css';
 import ClientErrorBoundary from '@/components/errors/ClientErrorBoundary';
 import ConditionalLayout from '@/components/layout/ConditionalLayout';
 import ScrollToTop from '@/components/ui/ScrollToTop';
+import QrScanBeacon from '@/components/analytics/QrScanBeacon';
 import CustomCursor from '@/components/ui/CustomCursor';
 import { organizationSchema, websiteSchema } from '@/lib/seo';
 
@@ -69,66 +70,149 @@ export const metadata = {
     "Startups India is India's most comprehensive startup ecosystem platform - incubation programs, startup funding resources, mentorship from top founders, startup events, online courses, and a thriving community for entrepreneurs, investors, and innovators across India.",
   keywords: [
     // Brand
-    'startups india', 'startupsindia', 'startupsindia.in',
+    'startups india',
+    'startupsindia',
+    'startupsindia.in',
     // Ecosystem
-    'startup india', 'indian startup ecosystem', 'startup ecosystem india',
-    'startup hub india', 'startup culture india', 'best startup platform india',
+    'startup india',
+    'indian startup ecosystem',
+    'startup ecosystem india',
+    'startup hub india',
+    'startup culture india',
+    'best startup platform india',
     // Incubation
-    'startup incubation india', 'startup incubator india', 'best incubators india',
-    'incubation program india', 'pre-incubation india', 'startup incubation centre',
-    'iit incubator india', 'government incubator india', 'atal incubation centre',
-    'technology business incubator india', 'tbi india',
+    'startup incubation india',
+    'startup incubator india',
+    'best incubators india',
+    'incubation program india',
+    'pre-incubation india',
+    'startup incubation centre',
+    'iit incubator india',
+    'government incubator india',
+    'atal incubation centre',
+    'technology business incubator india',
+    'tbi india',
     // Funding
-    'startup funding india', 'startup fundraising india', 'startup funding guide',
-    'seed funding india', 'pre-seed funding india', 'series a india',
-    'angel funding india', 'venture capital india', 'startup grants india',
-    'sisfs grant india', 'startup india seed fund', 'dpiit recognition',
+    'startup funding india',
+    'startup fundraising india',
+    'startup funding guide',
+    'seed funding india',
+    'pre-seed funding india',
+    'series a india',
+    'angel funding india',
+    'venture capital india',
+    'startup grants india',
+    'sisfs grant india',
+    'startup india seed fund',
+    'dpiit recognition',
     // Angel & VC
-    'angel investors india', 'angel network india', 'indian angel network',
-    'vc firms india', 'top vc india', 'early stage investors india',
+    'angel investors india',
+    'angel network india',
+    'indian angel network',
+    'vc firms india',
+    'top vc india',
+    'early stage investors india',
     // Programs
-    'startup programs india', 'startup scheme india', 'startup india initiative',
-    'startup india registration', 'startup india scheme benefits',
-    'startup india tax benefits', 'startup india scholarship',
+    'startup programs india',
+    'startup scheme india',
+    'startup india initiative',
+    'startup india registration',
+    'startup india scheme benefits',
+    'startup india tax benefits',
+    'startup india scholarship',
     // Entrepreneurship
-    'entrepreneurship india', 'how to start startup india', 'entrepreneur india',
-    'young entrepreneur india', 'student entrepreneur india', 'first time founder india',
-    'serial entrepreneur india', 'startup ideas india', 'startup opportunities india',
+    'entrepreneurship india',
+    'how to start startup india',
+    'entrepreneur india',
+    'young entrepreneur india',
+    'student entrepreneur india',
+    'first time founder india',
+    'serial entrepreneur india',
+    'startup ideas india',
+    'startup opportunities india',
     // Mentorship
-    'startup mentors india', 'startup mentorship india', 'startup advisor india',
-    'startup coach india', 'find mentor startup india', 'business mentor india',
+    'startup mentors india',
+    'startup mentorship india',
+    'startup advisor india',
+    'startup coach india',
+    'find mentor startup india',
+    'business mentor india',
     // Events
-    'startup events india', 'startup summit india', 'pitch competition india',
-    'startup hackathon india', 'demo day india', 'startup networking india',
-    'startup conference india', 'entrepreneur events india',
+    'startup events india',
+    'startup summit india',
+    'pitch competition india',
+    'startup hackathon india',
+    'demo day india',
+    'startup networking india',
+    'startup conference india',
+    'entrepreneur events india',
     // Community
-    'startup community india', 'founder community india', 'entrepreneur community india',
-    'startup network india', 'startup forum india',
+    'startup community india',
+    'founder community india',
+    'entrepreneur community india',
+    'startup network india',
+    'startup forum india',
     // Courses
-    'startup courses india', 'entrepreneurship course india', 'startup training india',
-    'online startup course india', 'startup education india', 'learn startup building',
+    'startup courses india',
+    'entrepreneurship course india',
+    'startup training india',
+    'online startup course india',
+    'startup education india',
+    'learn startup building',
     // Registration & Legal
-    'startup registration india', 'register startup india', 'company registration startup',
-    'startup compliance india', 'startup tax benefits india', 'msme startup india',
+    'startup registration india',
+    'register startup india',
+    'company registration startup',
+    'startup compliance india',
+    'startup tax benefits india',
+    'msme startup india',
     // Sectors
-    'fintech startups india', 'healthtech india', 'edtech startup india',
-    'agritech india', 'cleantech india', 'saas startup india', 'd2c brand india',
-    'deeptech india', 'spacetech india', 'foodtech india', 'ev startup india',
+    'fintech startups india',
+    'healthtech india',
+    'edtech startup india',
+    'agritech india',
+    'cleantech india',
+    'saas startup india',
+    'd2c brand india',
+    'deeptech india',
+    'spacetech india',
+    'foodtech india',
+    'ev startup india',
     // Student/College
-    'student startup india', 'college startup india', 'iit startup', 'iim startup',
-    'e-cell india', 'startup competition college', 'campus entrepreneur india',
+    'student startup india',
+    'college startup india',
+    'iit startup',
+    'iim startup',
+    'e-cell india',
+    'startup competition college',
+    'campus entrepreneur india',
     // Stories
-    'startup success stories india', 'unicorn startup india', 'indian unicorn list',
-    'startup founder story india', 'indian entrepreneur story',
+    'startup success stories india',
+    'unicorn startup india',
+    'indian unicorn list',
+    'startup founder story india',
+    'indian entrepreneur story',
     // Cities
-    'startup bangalore', 'startup mumbai', 'startup delhi ncr', 'startup hyderabad',
-    'startup pune', 'startup chennai', 'startup ahmedabad', 'startup jaipur',
+    'startup bangalore',
+    'startup mumbai',
+    'startup delhi ncr',
+    'startup hyderabad',
+    'startup pune',
+    'startup chennai',
+    'startup ahmedabad',
+    'startup jaipur',
     // Resources
-    'startup resources india', 'startup tools india', 'startup checklist india',
-    'startup guide india', 'startup knowledge base',
+    'startup resources india',
+    'startup tools india',
+    'startup checklist india',
+    'startup guide india',
+    'startup knowledge base',
     // Hiring
-    'startup jobs india', 'startup hiring india', 'esop startup india',
-    'work at startup india', 'startup career india',
+    'startup jobs india',
+    'startup hiring india',
+    'esop startup india',
+    'work at startup india',
+    'startup career india',
   ],
   authors: [{ name: 'Startups India', url: SITE_URL }],
   creator: 'Startups India',
@@ -215,16 +299,19 @@ export default function RootLayout({ children }) {
       <body className={poppins.className} suppressHydrationWarning>
         <script
           type="application/ld+json"
-          suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema()) }}
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema()) }}
         />
         <script
           type="application/ld+json"
-          suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema()) }}
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema()) }}
         />
         <ClientErrorBoundary>
           <ConditionalLayout>{children}</ConditionalLayout>
           <CustomCursor />
           <ScrollToTop />
+          <QrScanBeacon />
         </ClientErrorBoundary>
       </body>
     </html>

@@ -239,10 +239,8 @@ async function recordScanAndGetRedirect(shortCode, req) {
 
   if (!link) return null;
 
-  const ip =
-    (req.headers['x-forwarded-for'] || '').split(',')[0].trim() ||
-    req.socket?.remoteAddress ||
-    '';
+  // req.ip honours trust proxy; the first X-Forwarded-For entry is whatever the client wrote.
+  const ip = req.ip || '';
   const ua = req.headers['user-agent'] || '';
   const { deviceType, browser, os } = parseUserAgent(ua);
 
@@ -264,6 +262,55 @@ async function recordScanAndGetRedirect(shortCode, req) {
   });
 
   return buildRedirectUrl(link);
+}
+
+const LANDING_DEDUPE_MS = 30 * 60 * 1000;
+
+function campaignSlug(name) {
+  return String(name || '').toLowerCase().replace(/\s+/g, '_');
+}
+
+/**
+ * Records a visit that arrived from a printed QR (?utm_medium=qr&utm_campaign=<slug>).
+ * Same visitor + campaign within 30 minutes counts once, so reloads do not inflate scans.
+ */
+async function recordQrLanding(utmCampaign, req) {
+  const slug = campaignSlug(utmCampaign).slice(0, 200);
+  if (!slug) return { tracked: false };
+
+  // Campaigns are a small admin-managed set; matching in memory avoids a per-request $expr collection scan.
+  const campaigns = await Campaign.find({}, 'name').lean();
+  const campaign = campaigns.find(c => campaignSlug(c.name) === slug);
+  if (!campaign) return { tracked: false };
+
+  const link = await TrackingLink.findOne({ campaign: campaign._id, isActive: { $ne: false } })
+    .sort({ createdAt: 1 })
+    .lean();
+  if (!link) return { tracked: false };
+
+  const ua = String(req.headers['user-agent'] || '').slice(0, 500);
+  const visitorHash = hashVisitor(req.ip || '', ua);
+  const recent = await CampaignScan.exists({
+    campaign: campaign._id,
+    visitorHash,
+    createdAt: { $gte: new Date(Date.now() - LANDING_DEDUPE_MS) },
+  });
+  if (recent) return { tracked: false, duplicate: true };
+
+  const { deviceType, browser, os } = parseUserAgent(ua);
+  await Promise.all([
+    TrackingLink.updateOne({ _id: link._id }, { $inc: { scanCount: 1 } }),
+    CampaignScan.create({
+      trackingLink: link._id,
+      campaign: campaign._id,
+      visitorHash,
+      deviceType,
+      browser,
+      os,
+      referrer: String(req.headers.referer || '').slice(0, 500),
+    }),
+  ]);
+  return { tracked: true };
 }
 
 // ─── Analytics ───────────────────────────────────────────────────────────────
@@ -362,6 +409,7 @@ module.exports = {
   updateLink,
   deleteLink,
   recordScanAndGetRedirect,
+  recordQrLanding,
   getCampaignAnalytics,
   getLinkAnalytics,
   buildRedirectUrl,

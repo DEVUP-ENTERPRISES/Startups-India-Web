@@ -61,7 +61,7 @@ articleRouter.get('/:slug', optionalAuth, asyncHandler(async (req, res) => {
 
 // Record a view (analytics)
 articleRouter.post('/:id/view', optionalAuth, asyncHandler(async (req, res) => {
-  const ipAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+  const ipAddress = req.ip || req.socket.remoteAddress;
   const userId = req.user ? req.user.userId : null;
   
   // Create view record

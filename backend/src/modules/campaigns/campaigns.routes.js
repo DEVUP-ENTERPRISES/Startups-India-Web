@@ -30,4 +30,20 @@ campaignsAdminRouter.get('/:campaignId/links/:linkId/analytics', asyncHandler(ct
 const redirectRouter = Router();
 redirectRouter.get('/:code', asyncHandler(ctrl.redirect));
 
-module.exports = { campaignsAdminRouter, redirectRouter };
+// ─── Public QR landing beacon ────────────────────────────────────────────────
+// Sent by the browser when a visitor lands with utm_medium=qr; IP and UA come from the request, never the body.
+const rateLimit = require('express-rate-limit');
+const { recordQrLanding } = require('./campaigns.service');
+
+const scanRouter = Router();
+scanRouter.post(
+  '/',
+  rateLimit({ windowMs: 60 * 1000, max: 20, standardHeaders: true, legacyHeaders: false }),
+  asyncHandler(async (req, res) => {
+    const utmCampaign = typeof req.body?.utmCampaign === 'string' ? req.body.utmCampaign : '';
+    const result = await recordQrLanding(utmCampaign, req);
+    res.json({ success: true, tracked: result.tracked });
+  })
+);
+
+module.exports = { campaignsAdminRouter, redirectRouter, scanRouter };

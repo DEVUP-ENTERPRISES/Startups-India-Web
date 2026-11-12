@@ -3,24 +3,15 @@
 import { useState, useEffect, useCallback } from 'react';
 import { apiGet, apiPost, apiDelete } from '@/lib/api';
 
-// Keys whose values are stored in paise - display and edit in rupees.
-const PAISE_KEYS = [
-  'grant.evaluation.fee',
-  'grant.preIncubation.fee',
-  'grant.incubation.fee',
-];
+const ADMIN_SLUG = process.env.NEXT_PUBLIC_ADMIN_SLUG || 'ctrl-x9k2m3-panel';
 
-function isPaiseKey(key) {
-  return PAISE_KEYS.includes(key);
+// Grant fees and limits have one editor (Grant Settings) with typed, validated fields.
+function isGrantKey(key) {
+  return String(key || '').startsWith('grant.');
 }
 
-function formatValue(key, value) {
-  if (typeof value === 'object') return JSON.stringify(value);
-  if (isPaiseKey(key) && Number(value) > 0) {
-    const rupees = (Number(value) / 100).toLocaleString('en-IN');
-    return `₹${rupees} (${value} paise)`;
-  }
-  return String(value);
+function formatValue(value) {
+  return typeof value === 'object' ? JSON.stringify(value) : String(value);
 }
 
 export default function AdminSettingsPage() {
@@ -29,12 +20,16 @@ export default function AdminSettingsPage() {
   const [category, setCategory] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({ key: '', value: '', category: 'general', description: '' });
+  const [formError, setFormError] = useState('');
 
   const load = useCallback(async () => {
     setLoading(true);
     const params = category ? `?category=${category}` : '';
     const { data } = await apiGet(`/api/v1/admin/settings${params}`);
-    if (data) setSettings(Array.isArray(data) ? data : []);
+    if (data)
+      setSettings(
+        (Array.isArray(data) ? data : []).filter(s => !isGrantKey(s.key) && s.category !== 'grant')
+      );
     setLoading(false);
   }, [category]);
 
@@ -44,12 +39,16 @@ export default function AdminSettingsPage() {
 
   const handleSave = async () => {
     if (!form.key) return;
-    let valueToSave = form.value;
-    // Convert rupees → paise before saving fee keys.
-    if (isPaiseKey(form.key) && form.value !== '') {
-      valueToSave = String(Math.round(Number(form.value) * 100));
+    if (isGrantKey(form.key)) {
+      setFormError('Grant settings are edited under Grants → Settings.');
+      return;
     }
-    await apiPost('/api/v1/admin/settings', { ...form, value: valueToSave });
+    const { error } = await apiPost('/api/v1/admin/settings', form);
+    if (error) {
+      setFormError(error.message || 'Could not save setting');
+      return;
+    }
+    setFormError('');
     setShowModal(false);
     setForm({ key: '', value: '', category: 'general', description: '' });
     load();
@@ -62,12 +61,7 @@ export default function AdminSettingsPage() {
   };
 
   const openEdit = s => {
-    // Show fee keys in rupees so the admin types a natural number.
-    let displayValue =
-      typeof s.value === 'object' ? JSON.stringify(s.value) : String(s.value);
-    if (isPaiseKey(s.key) && s.value !== '' && s.value !== null) {
-      displayValue = String(Number(s.value) / 100);
-    }
+    const displayValue = typeof s.value === 'object' ? JSON.stringify(s.value) : String(s.value);
     setForm({
       key: s.key,
       value: displayValue,
@@ -98,6 +92,14 @@ export default function AdminSettingsPage() {
           + Add Setting
         </button>
       </div>
+
+      <p style={{ margin: '0 0 16px', fontSize: 13, color: '#4b5563' }}>
+        Grant fees, limits and labels are managed in{' '}
+        <a href={`/${ADMIN_SLUG}/grants/settings`} style={{ fontWeight: 600 }}>
+          Grants → Settings
+        </a>
+        .
+      </p>
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
         <button
@@ -149,7 +151,7 @@ export default function AdminSettingsPage() {
                       whiteSpace: 'nowrap',
                     }}
                   >
-                    {formatValue(s.key, s.value)}
+                    {formatValue(s.value)}
                   </td>
                   <td>
                     <span className="badge badge-gray" style={{ textTransform: 'capitalize' }}>
@@ -172,16 +174,10 @@ export default function AdminSettingsPage() {
                   </td>
                   <td>
                     <div style={{ display: 'flex', gap: 6 }}>
-                      <button
-                        className="btn btn-secondary btn-sm"
-                        onClick={() => openEdit(s)}
-                      >
+                      <button className="btn btn-secondary btn-sm" onClick={() => openEdit(s)}>
                         Edit
                       </button>
-                      <button
-                        className="btn btn-danger btn-sm"
-                        onClick={() => handleDelete(s.key)}
-                      >
+                      <button className="btn btn-danger btn-sm" onClick={() => handleDelete(s.key)}>
                         Delete
                       </button>
                     </div>
@@ -229,28 +225,11 @@ export default function AdminSettingsPage() {
                 />
               </div>
               <div className="admin-form-group">
-                <label>
-                  Value
-                  {isPaiseKey(form.key) && (
-                    <span
-                      style={{
-                        marginLeft: 8,
-                        fontSize: 11,
-                        fontWeight: 600,
-                        color: '#7A1F2B',
-                        background: '#fef2f2',
-                        padding: '2px 8px',
-                        borderRadius: 6,
-                      }}
-                    >
-                      Enter in ₹ rupees - saved as paise automatically
-                    </span>
-                  )}
-                </label>
+                <label>Value</label>
                 <textarea
                   value={form.value}
                   onChange={e => setForm({ ...form, value: e.target.value })}
-                  placeholder={isPaiseKey(form.key) ? 'e.g. 1499 for ₹1,499' : ''}
+                  placeholder=""
                 />
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
@@ -276,6 +255,11 @@ export default function AdminSettingsPage() {
                 </div>
               </div>
             </div>
+            {formError && (
+              <p role="alert" style={{ margin: '0 24px 12px', fontSize: 13, color: '#b91c1c' }}>
+                {formError}
+              </p>
+            )}
             <div className="admin-modal-footer">
               <button className="btn btn-secondary" onClick={() => setShowModal(false)}>
                 Cancel
