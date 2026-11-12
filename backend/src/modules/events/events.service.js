@@ -54,8 +54,10 @@ const EVENT_TTL       = 600;  // 10 minutes - single event (populated, heavy)
 const LIST_TTL        = 300;  // 5 minutes  - lists
 
 function buildEventLookup(idOrSlug) {
-  const isObjectId = mongoose.Types.ObjectId.isValid(idOrSlug) && String(new mongoose.Types.ObjectId(idOrSlug)) === idOrSlug;
-  return isObjectId ? { _id: idOrSlug } : { slug: idOrSlug };
+  // Payment paths pass an ObjectId instance; comparing it to a string sent paid guests to a slug lookup.
+  const key = String(idOrSlug);
+  const isObjectId = mongoose.Types.ObjectId.isValid(key) && String(new mongoose.Types.ObjectId(key)) === key;
+  return isObjectId ? { _id: key } : { slug: key };
 }
 
 /**

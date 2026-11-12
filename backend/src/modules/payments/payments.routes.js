@@ -46,7 +46,8 @@ router.post(
   validateBody(
     z.object({
       eventId: z.string().min(1),
-      amount: z.number().nonnegative(),
+      // Ignored: the price is always computed server-side.
+      amount: z.number().nonnegative().optional(),
       currency: z.string().optional(),
       receipt: z.string().optional(),
       ticketTypeName: z.string().optional(),
@@ -83,7 +84,8 @@ router.post(
     z.object({
       courseId: z.string().min(1).optional(),
       eventId: z.string().min(1).optional(),
-      amount: z.number().nonnegative(),
+      // Ignored: the price is always computed server-side.
+      amount: z.number().nonnegative().optional(),
       currency: z.string().optional(),
       receipt: z.string().optional(),
       ticketTypeName: z.string().optional(),
