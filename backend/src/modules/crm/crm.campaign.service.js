@@ -1,3 +1,4 @@
+const { clickSignature } = require('./crm.tracking.service');
 const crypto = require('crypto');
 const env = require('../../config/env');
 const { ApiError } = require('../../utils/apiError');
@@ -42,7 +43,7 @@ function withTracking(html, token, subject = 'From Startups India') {
   const rewritten = html.replace(/href\s*=\s*"(https?:\/\/[^"]+)"/gi, (m, url) => {
     // Never rewrite the unsubscribe link itself.
     if (url.includes('/crm/unsubscribe/')) return m;
-    return `href="${t.clickBase}?u=${encodeURIComponent(url)}"`;
+    return `href="${t.clickBase}?u=${encodeURIComponent(url)}&amp;s=${clickSignature(token, url)}"`;
   });
 
   const pixel = `<img src="${t.open}" width="1" height="1" alt="" style="display:none" />`;

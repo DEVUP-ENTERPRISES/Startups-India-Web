@@ -14,7 +14,16 @@ const uploadLimiter = rateLimit({
 });
 
 // ─── PUBLIC ─────────────────────────────────────────────────────────
-router.post('/apply', investorsController.applyInvestor);
+// Public application forms create records and notify admins; cap them against spam.
+const applyLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: 'Too many applications, please try again later.' },
+});
+
+router.post('/apply', applyLimiter, investorsController.applyInvestor);
 router.post('/application-photo-url', uploadLimiter, investorsController.getApplicationPhotoUploadUrl);
 
 // ─── PROTECTED (any logged-in user) ─────────────────────────────────

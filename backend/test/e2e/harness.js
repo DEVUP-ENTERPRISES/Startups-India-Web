@@ -68,6 +68,7 @@ async function api(method, url, { token, body, raw, headers = {} } = {}) {
       ...headers,
     },
     body: raw ?? (body !== undefined ? JSON.stringify(body) : undefined),
+    redirect: 'manual',
   });
   const text = await res.text();
   let json = null;

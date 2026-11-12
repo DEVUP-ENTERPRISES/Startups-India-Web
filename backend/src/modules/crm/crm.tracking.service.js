@@ -1,4 +1,17 @@
+const crypto = require('crypto');
+const env = require('../../config/env');
 const { CampaignRecipient, EmailCampaign, LeadContact, EmailSuppression } = require('./crm.models');
+
+// Binds a click URL to the email it was sent in, so the tracker cannot be used as an open redirect.
+function clickSignature(token, url) {
+  return crypto.createHmac('sha256', `crm-click:${env.JWT_ACCESS_SECRET}`).update(`${token}|${url}`).digest('hex').slice(0, 32);
+}
+
+function signatureMatches(token, url, sig) {
+  const expected = Buffer.from(clickSignature(token, url));
+  const given = Buffer.from(String(sig || ''));
+  return expected.length === given.length && crypto.timingSafeEqual(expected, given);
+}
 
 // 1x1 transparent GIF, served for open tracking.
 const PIXEL = Buffer.from(
@@ -28,8 +41,12 @@ async function recordOpen(token) {
  * A click implies an open, so it also fills openedAt if the pixel never loaded
  * (many clients block images but not clicks).
  */
-async function recordClick(token, url) {
+async function recordClick(token, url, sig) {
+  if (!/^https?:\/\//i.test(url)) return null;
+  // Unsigned links predate signing and are honoured only for a real recipient token.
+  if (sig && !signatureMatches(token, url, sig)) return null;
   const r = await CampaignRecipient.findOne({ trackingToken: token });
+  if (!sig && !r) return null;
   if (r) {
     const updates = {};
     if (!r.clickedAt) {
@@ -49,8 +66,7 @@ async function recordClick(token, url) {
       await EmailCampaign.updateOne({ _id: r.campaignId }, { $inc: inc });
     }
   }
-  // Only allow http(s) redirects - never javascript:/data: from a crafted link.
-  return /^https?:\/\//i.test(url) ? url : null;
+  return url;
 }
 
 /**
@@ -76,4 +92,5 @@ async function unsubscribe(token) {
   return { ok: true, email: r.email };
 }
 
-module.exports = { PIXEL, recordOpen, recordClick, unsubscribe };
+module.exports = {
+  clickSignature, PIXEL, recordOpen, recordClick, unsubscribe };

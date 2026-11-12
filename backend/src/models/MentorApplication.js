@@ -4,7 +4,7 @@ const mentorApplicationSchema = new mongoose.Schema(
   {
     fullName: { type: String, required: true, trim: true },
     email: { type: String, required: true, trim: true },
-    password: { type: String, required: true },
+    password: { type: String, required: true, select: false },
     phone: { type: String, required: true, trim: true },
     // Uploaded to S3 during the (short) application; stored as a URL only.
     profileImage: { type: String, default: null },

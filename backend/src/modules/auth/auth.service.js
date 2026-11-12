@@ -244,6 +244,7 @@ async function signupV2({ email, password, fullName, phone, role = 'startup', is
  */
 async function explainPendingMentor(email, password) {
   const application = await MentorApplication.findOne({ email: String(email).toLowerCase() })
+    .select('+password')
     .sort({ createdAt: -1 })
     .lean();
   if (!application?.password) return null;
@@ -267,6 +268,7 @@ async function explainPendingMentor(email, password) {
 // explain the state, but only when the password matches their application.
 async function explainPendingInvestor(email, password) {
   const application = await InvestorApplication.findOne({ email: String(email).toLowerCase() })
+    .select('+password')
     .sort({ createdAt: -1 })
     .lean();
   if (!application?.password) return null;

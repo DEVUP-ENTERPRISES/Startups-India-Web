@@ -1,4 +1,5 @@
 const express = require('express');
+const env = require('../../config/env');
 const { z } = require('zod');
 const { asyncHandler } = require('../../utils/asyncHandler');
 const { validateBody } = require('../../middlewares/validateBody');
@@ -31,8 +32,8 @@ router.get('/track/open/:token', asyncHandler(async (req, res) => {
 
 // Click redirect.
 router.get('/track/click/:token', asyncHandler(async (req, res) => {
-  const url = await trackingService.recordClick(req.params.token, req.query.u || '');
-  if (!url) return res.status(400).send('Invalid link');
+  const url = await trackingService.recordClick(req.params.token, String(req.query.u || ''), req.query.s);
+  if (!url) return res.redirect(env.FRONTEND_URL);
   res.redirect(url);
 }));
 

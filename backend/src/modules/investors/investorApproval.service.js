@@ -13,7 +13,7 @@ const FRONTEND_URL = env.FRONTEND_URL;
 
 // ─── APPROVE ────────────────────────────────────────────────────────
 async function approveInvestorApplication(applicationId) {
-  const application = await InvestorApplication.findById(applicationId);
+  const application = await InvestorApplication.findById(applicationId).select('+password');
   if (!application) throw new ApiError(404, 'Application not found');
   if (application.status === 'approved') throw new ApiError(400, 'Application already approved');
 

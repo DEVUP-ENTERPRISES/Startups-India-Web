@@ -14,7 +14,7 @@ const FRONTEND_URL = env.FRONTEND_URL;
 
 // ─── APPROVE ────────────────────────────────────────────────────────
 async function approveMentorApplication(applicationId) {
-  const application = await MentorApplication.findById(applicationId);
+  const application = await MentorApplication.findById(applicationId).select('+password');
   if (!application) throw new ApiError(404, 'Application not found');
   if (application.status === 'approved') throw new ApiError(400, 'Application already approved');
 

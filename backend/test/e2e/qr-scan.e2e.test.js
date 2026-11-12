@@ -51,3 +51,39 @@ test('unknown campaigns and junk input are ignored safely', async () => {
   assert.equal(junk.status, 200);
   assert.equal(junk.body.tracked, false);
 });
+
+test('CRM click tracker only redirects to URLs bound to a real email', async () => {
+  const { clickSignature } = require('../../src/modules/crm/crm.tracking.service');
+  const { CampaignRecipient } = require('../../src/modules/crm/crm.models');
+  const env = require('../../src/config/env');
+  const evil = 'https://evil.example/login';
+  const good = 'https://startupsindia.in/programs';
+  const click = (token, u, s) =>
+    h.api('GET', `/api/v1/crm/track/click/${token}?u=${encodeURIComponent(u)}${s ? `&s=${s}` : ''}`);
+
+  const anon = await click('forged-token', evil);
+  assert.equal(anon.headers.get('location'), env.FRONTEND_URL, 'unknown token falls back to the homepage');
+
+  const forgedSig = await click('forged-token', evil, '0'.repeat(32));
+  assert.equal(forgedSig.headers.get('location'), env.FRONTEND_URL);
+
+  const signed = await click('any-token', good, clickSignature('any-token', good));
+  assert.equal(signed.headers.get('location'), good, 'a correctly signed link redirects');
+
+  const swapped = await click('any-token', evil, clickSignature('any-token', good));
+  assert.equal(swapped.headers.get('location'), env.FRONTEND_URL, 'a signature for another URL is refused');
+
+  const token = `legacy-${Date.now()}`;
+  const mongoose = require('mongoose');
+  await CampaignRecipient.create({
+    campaignId: new mongoose.Types.ObjectId(),
+    contactId: new mongoose.Types.ObjectId(),
+    email: 'r@example.com',
+    trackingToken: token,
+  });
+  const legacy = await click(token, good);
+  assert.equal(legacy.headers.get('location'), good, 'unsigned links from already-sent emails keep working');
+
+  const script = await click('any-token', 'javascript:alert(1)', clickSignature('any-token', 'javascript:alert(1)'));
+  assert.equal(script.headers.get('location'), env.FRONTEND_URL);
+});

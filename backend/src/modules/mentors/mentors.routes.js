@@ -14,10 +14,20 @@ const uploadLimiter = rateLimit({
   message: { success: false, message: 'Too many upload requests, please try again later.' },
 });
 
+// Public application forms create records and notify admins; cap them against spam.
+const applyLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: 'Too many applications, please try again later.' },
+});
+
 // ─── PUBLIC ROUTES ──────────────────────────────────────────────────
-router.post('/apply', mentorsController.applyMentor);
+router.post('/apply', applyLimiter, mentorsController.applyMentor);
 router.post('/application-photo-url', uploadLimiter, mentorsController.getApplicationPhotoUploadUrl);
-router.post('/welcome', mentorsController.sendWelcomeEmail);
+// Sends mail to an arbitrary address with caller-supplied text, so only admins may trigger it.
+router.post('/welcome', authRequired, requireRole('admin'), mentorsController.sendWelcomeEmail);
 
 // ─── PROTECTED ROUTES (any logged-in user) ──────────────────────────
 router.post('/find', authRequired, mentorsController.findMentor);
