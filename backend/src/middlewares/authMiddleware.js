@@ -56,7 +56,20 @@ function requireRole(...roles) {
     if (!roles.includes(req.user.role)) {
       return next(new ApiError(403, 'Insufficient permissions'));
     }
-    return next();
+    if (req.user.role !== 'admin') return next();
+
+    // Admin claims are re-checked so a demoted or deactivated admin loses access before the token expires.
+    const { User } = require('../modules/users/user.model');
+    return User.findById(req.user.userId)
+      .select('role isActive')
+      .lean()
+      .then(user => {
+        if (!user || user.role !== 'admin' || user.isActive === false) {
+          return next(new ApiError(403, 'Insufficient permissions'));
+        }
+        return next();
+      })
+      .catch(next);
   };
 }
 
