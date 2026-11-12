@@ -1,35 +1,94 @@
 'use client';
 
+import { use } from 'react';
+
 import Link from 'next/link';
 
 const SECTOR_DATA = {
   fintech: {
-    display: 'Fintech', emoji: '💳',
+    display: 'Fintech',
+    emoji: '💳',
     tagline: 'Transforming Finance Through Technology',
-    description: 'India\'s fintech sector is the third largest in the world, with 2,100+ startups and $29B+ in total funding. From digital payments to neo-banking, lending, insurtech, and wealthtech - Indian fintech is reshaping how 1.4 billion people access financial services.',
-    stats: [{ label: 'Fintech Startups', value: '2,100+' }, { label: 'Total Funding', value: '$29B+' }, { label: 'Unicorns', value: '18+' }, { label: 'UPI Transactions/Month', value: '10B+' }],
+    description:
+      "India's fintech sector is the third largest in the world, with 2,100+ startups and $29B+ in total funding. From digital payments to neo-banking, lending, insurtech, and wealthtech - Indian fintech is reshaping how 1.4 billion people access financial services.",
+    stats: [
+      { label: 'Fintech Startups', value: '2,100+' },
+      { label: 'Total Funding', value: '$29B+' },
+      { label: 'Unicorns', value: '18+' },
+      { label: 'UPI Transactions/Month', value: '10B+' },
+    ],
     topCompanies: ['Razorpay', 'PhonePe', 'Paytm', 'Zerodha', 'Groww', 'CRED', 'BharatPe', 'Slice'],
-    opportunities: ['Digital lending for underserved', 'Insurance distribution via tech', 'CBDC and digital rupee', 'Cross-border remittance', 'B2B payments infrastructure'],
+    opportunities: [
+      'Digital lending for underserved',
+      'Insurance distribution via tech',
+      'CBDC and digital rupee',
+      'Cross-border remittance',
+      'B2B payments infrastructure',
+    ],
   },
   healthtech: {
-    display: 'Healthtech', emoji: '🏥',
+    display: 'Healthtech',
+    emoji: '🏥',
     tagline: 'Making Healthcare Accessible Across India',
-    description: 'India\'s healthtech ecosystem is booming with 5,000+ startups addressing healthcare access, telemedicine, diagnostics, mental health, and medical devices. The sector received $4B+ in funding and is poised for massive growth driven by India\'s digital health mission.',
-    stats: [{ label: 'Healthtech Startups', value: '5,000+' }, { label: 'Total Funding', value: '$4B+' }, { label: 'Unicorns', value: '7+' }, { label: 'Telemedicine Users', value: '50M+' }],
-    topCompanies: ['Practo', 'PharmEasy', 'Pristyn Care', 'MediBuddy', 'Niramai', '1mg', 'Portea', 'Mfine'],
-    opportunities: ['Rural healthcare access', 'Mental health platforms', 'Diagnostic AI tools', 'Hospital management software', 'Senior care technology'],
+    description:
+      "India's healthtech ecosystem is booming with 5,000+ startups addressing healthcare access, telemedicine, diagnostics, mental health, and medical devices. The sector received $4B+ in funding and is poised for massive growth driven by India's digital health mission.",
+    stats: [
+      { label: 'Healthtech Startups', value: '5,000+' },
+      { label: 'Total Funding', value: '$4B+' },
+      { label: 'Unicorns', value: '7+' },
+      { label: 'Telemedicine Users', value: '50M+' },
+    ],
+    topCompanies: [
+      'Practo',
+      'PharmEasy',
+      'Pristyn Care',
+      'MediBuddy',
+      'Niramai',
+      '1mg',
+      'Portea',
+      'Mfine',
+    ],
+    opportunities: [
+      'Rural healthcare access',
+      'Mental health platforms',
+      'Diagnostic AI tools',
+      'Hospital management software',
+      'Senior care technology',
+    ],
   },
   edtech: {
-    display: 'EdTech', emoji: '📚',
+    display: 'EdTech',
+    emoji: '📚',
     tagline: 'Reimagining Education for 500 Million Learners',
-    description: 'India has the world\'s largest youth population and one of the fastest-growing edtech markets. With 4,500+ edtech startups and $7B+ in funding, the sector spans K-12, higher education, upskilling, test prep, and corporate learning.',
-    stats: [{ label: 'EdTech Startups', value: '4,500+' }, { label: 'Total Funding', value: '$7B+' }, { label: 'Unicorns', value: '11+' }, { label: 'Online Learners', value: '50M+' }],
-    topCompanies: ['BYJU\'S', 'Unacademy', 'upGrad', 'Vedantu', 'Physics Wallah', 'Scaler', 'Simplilearn', 'Eruditus'],
-    opportunities: ['Vernacular language learning', 'Skilling for gig economy', 'AI-powered personalized learning', 'Vocational training tech', 'Assessment and credentialing'],
+    description:
+      "India has the world's largest youth population and one of the fastest-growing edtech markets. With 4,500+ edtech startups and $7B+ in funding, the sector spans K-12, higher education, upskilling, test prep, and corporate learning.",
+    stats: [
+      { label: 'EdTech Startups', value: '4,500+' },
+      { label: 'Total Funding', value: '$7B+' },
+      { label: 'Unicorns', value: '11+' },
+      { label: 'Online Learners', value: '50M+' },
+    ],
+    topCompanies: [
+      "BYJU'S",
+      'Unacademy',
+      'upGrad',
+      'Vedantu',
+      'Physics Wallah',
+      'Scaler',
+      'Simplilearn',
+      'Eruditus',
+    ],
+    opportunities: [
+      'Vernacular language learning',
+      'Skilling for gig economy',
+      'AI-powered personalized learning',
+      'Vocational training tech',
+      'Assessment and credentialing',
+    ],
   },
 };
 
-const DEFAULT_SECTOR = (sector) => ({
+const DEFAULT_SECTOR = sector => ({
   display: sector.charAt(0).toUpperCase() + sector.slice(1),
   emoji: '🚀',
   tagline: `Building the Future of ${sector.charAt(0).toUpperCase() + sector.slice(1)} in India`,
@@ -41,10 +100,17 @@ const DEFAULT_SECTOR = (sector) => ({
     { label: 'Job Created', value: '10,000+' },
   ],
   topCompanies: [],
-  opportunities: ['Market entry', 'Product innovation', 'Government contracts', 'Export opportunities', 'B2B partnerships'],
+  opportunities: [
+    'Market entry',
+    'Product innovation',
+    'Government contracts',
+    'Export opportunities',
+    'B2B partnerships',
+  ],
 });
 
-export default function EcosystemSectorPage({ params }) {
+export default function EcosystemSectorPage(props) {
+  const params = use(props.params);
   const sector = params?.sector || 'general';
   const data = SECTOR_DATA[sector] || DEFAULT_SECTOR(sector);
   const year = new Date().getFullYear();
@@ -91,30 +157,65 @@ export default function EcosystemSectorPage({ params }) {
       '@type': 'BreadcrumbList',
       itemListElement: [
         { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://startupsindia.in' },
-        { '@type': 'ListItem', position: 2, name: 'Startup Ecosystem', item: 'https://startupsindia.in/startup-ecosystem' },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: 'Startup Ecosystem',
+          item: 'https://startupsindia.in/startup-ecosystem',
+        },
         { '@type': 'ListItem', position: 3, name: `${data.display} Startups India` },
       ],
     },
   ];
 
   return (
-    <div style={{ maxWidth: 1100, margin: '0 auto', padding: '40px 20px', fontFamily: 'system-ui, sans-serif' }}>
+    <div
+      style={{
+        maxWidth: 1100,
+        margin: '0 auto',
+        padding: '40px 20px',
+        fontFamily: 'system-ui, sans-serif',
+      }}
+    >
       {schemas.map((s, i) => (
-        <script key={i} type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(s) }} />
+        <script
+          key={i}
+          type="application/ld+json"
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(s) }}
+        />
       ))}
 
       {/* Breadcrumb */}
       <nav style={{ fontSize: 13, color: '#64748b', marginBottom: 24 }}>
-        <Link href="/">Home</Link> › <Link href="/startup-ecosystem">Startup Ecosystem</Link> › {data.display}
+        <Link href="/">Home</Link> › <Link href="/startup-ecosystem">Startup Ecosystem</Link> ›{' '}
+        {data.display}
       </nav>
 
       {/* Hero */}
       <div style={{ marginBottom: 36 }}>
         <div style={{ fontSize: 32, marginBottom: 8 }}>{data.emoji}</div>
-        <h1 style={{ fontSize: 'clamp(28px, 4vw, 42px)', fontWeight: 800, color: '#0f172a', lineHeight: 1.2, marginBottom: 12 }}>
+        <h1
+          style={{
+            fontSize: 'clamp(28px, 4vw, 42px)',
+            fontWeight: 800,
+            color: '#0f172a',
+            lineHeight: 1.2,
+            marginBottom: 12,
+          }}
+        >
           {data.display} Startups in India {year} - Ecosystem, Funding & Opportunities
         </h1>
-        <p className="speakable" style={{ fontSize: 16, color: '#475569', lineHeight: 1.7, maxWidth: 760, marginBottom: 16 }}>
+        <p
+          className="speakable"
+          style={{
+            fontSize: 16,
+            color: '#475569',
+            lineHeight: 1.7,
+            maxWidth: 760,
+            marginBottom: 16,
+          }}
+        >
           {data.tagline}
         </p>
         <p style={{ fontSize: 15, color: '#475569', lineHeight: 1.7, maxWidth: 760 }}>
@@ -125,7 +226,18 @@ export default function EcosystemSectorPage({ params }) {
       {/* Stats */}
       <div style={{ display: 'flex', gap: 16, marginBottom: 40, flexWrap: 'wrap' }}>
         {data.stats.map((s, i) => (
-          <div key={i} style={{ flex: 1, minWidth: 130, background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: '16px 20px', textAlign: 'center' }}>
+          <div
+            key={i}
+            style={{
+              flex: 1,
+              minWidth: 130,
+              background: '#fff',
+              border: '1px solid #e2e8f0',
+              borderRadius: 12,
+              padding: '16px 20px',
+              textAlign: 'center',
+            }}
+          >
             <div style={{ fontSize: 24, fontWeight: 800, color: '#e63946' }}>{s.value}</div>
             <div style={{ fontSize: 12, color: '#64748b', marginTop: 3 }}>{s.label}</div>
           </div>
@@ -140,7 +252,18 @@ export default function EcosystemSectorPage({ params }) {
           </h2>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
             {data.topCompanies.map((c, i) => (
-              <span key={i} style={{ padding: '8px 16px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 14, fontWeight: 600, color: '#1e293b' }}>
+              <span
+                key={i}
+                style={{
+                  padding: '8px 16px',
+                  background: '#f8fafc',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: 8,
+                  fontSize: 14,
+                  fontWeight: 600,
+                  color: '#1e293b',
+                }}
+              >
                 {c}
               </span>
             ))}
@@ -154,7 +277,9 @@ export default function EcosystemSectorPage({ params }) {
           {data.display} Startup Opportunities in India
         </h2>
         <ul style={{ paddingLeft: 20, fontSize: 15, color: '#475569', lineHeight: 2 }}>
-          {data.opportunities.map((o, i) => <li key={i}>{o}</li>)}
+          {data.opportunities.map((o, i) => (
+            <li key={i}>{o}</li>
+          ))}
         </ul>
       </section>
 
@@ -164,10 +289,34 @@ export default function EcosystemSectorPage({ params }) {
           Explore Other Startup Sectors in India
         </h2>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-          {['fintech', 'healthtech', 'edtech', 'agritech', 'saas', 'd2c', 'deeptech', 'cleantech', 'spacetech', 'foodtech']
+          {[
+            'fintech',
+            'healthtech',
+            'edtech',
+            'agritech',
+            'saas',
+            'd2c',
+            'deeptech',
+            'cleantech',
+            'spacetech',
+            'foodtech',
+          ]
             .filter(s => s !== sector)
             .map(s => (
-              <Link key={s} href={`/ecosystem/${s}`} style={{ padding: '6px 14px', background: '#f1f5f9', borderRadius: 20, fontSize: 13, color: '#475569', textDecoration: 'none', border: '1px solid #e2e8f0', fontWeight: 500 }}>
+              <Link
+                key={s}
+                href={`/ecosystem/${s}`}
+                style={{
+                  padding: '6px 14px',
+                  background: '#f1f5f9',
+                  borderRadius: 20,
+                  fontSize: 13,
+                  color: '#475569',
+                  textDecoration: 'none',
+                  border: '1px solid #e2e8f0',
+                  fontWeight: 500,
+                }}
+              >
                 {s.charAt(0).toUpperCase() + s.slice(1)} Startups India
               </Link>
             ))}
@@ -175,12 +324,52 @@ export default function EcosystemSectorPage({ params }) {
       </section>
 
       {/* CTA */}
-      <div style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)', borderRadius: 16, padding: '32px', textAlign: 'center', color: '#fff' }}>
-        <h2 style={{ fontSize: 22, fontWeight: 800, marginBottom: 8 }}>Building a {data.display} Startup in India?</h2>
-        <p style={{ marginBottom: 20, opacity: 0.8, fontSize: 15 }}>Apply for incubation, find mentors, and connect with the right investors for your {data.display} startup.</p>
+      <div
+        style={{
+          background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+          borderRadius: 16,
+          padding: '32px',
+          textAlign: 'center',
+          color: '#fff',
+        }}
+      >
+        <h2 style={{ fontSize: 22, fontWeight: 800, marginBottom: 8 }}>
+          Building a {data.display} Startup in India?
+        </h2>
+        <p style={{ marginBottom: 20, opacity: 0.8, fontSize: 15 }}>
+          Apply for incubation, find mentors, and connect with the right investors for your{' '}
+          {data.display} startup.
+        </p>
         <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-          <Link href="/programs" style={{ background: '#e63946', color: '#fff', padding: '12px 24px', borderRadius: 10, fontWeight: 700, textDecoration: 'none', fontSize: 14 }}>Apply for Incubation</Link>
-          <Link href={`/mentors/${sector}`} style={{ background: 'rgba(255,255,255,0.1)', color: '#fff', padding: '12px 24px', borderRadius: 10, fontWeight: 700, textDecoration: 'none', fontSize: 14, border: '1px solid rgba(255,255,255,0.2)' }}>Find {data.display} Mentors</Link>
+          <Link
+            href="/programs"
+            style={{
+              background: '#e63946',
+              color: '#fff',
+              padding: '12px 24px',
+              borderRadius: 10,
+              fontWeight: 700,
+              textDecoration: 'none',
+              fontSize: 14,
+            }}
+          >
+            Apply for Incubation
+          </Link>
+          <Link
+            href={`/mentors/${sector}`}
+            style={{
+              background: 'rgba(255,255,255,0.1)',
+              color: '#fff',
+              padding: '12px 24px',
+              borderRadius: 10,
+              fontWeight: 700,
+              textDecoration: 'none',
+              fontSize: 14,
+              border: '1px solid rgba(255,255,255,0.2)',
+            }}
+          >
+            Find {data.display} Mentors
+          </Link>
         </div>
       </div>
     </div>

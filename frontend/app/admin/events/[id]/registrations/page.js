@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, use } from 'react';
 import { apiGet, apiPost } from '@/lib/api';
 import Link from 'next/link';
 
 const ADMIN_BASE = `/${process.env.NEXT_PUBLIC_ADMIN_SLUG || 'ctrl-x9k2m3-panel'}`;
 
-export default function AdminEventRegistrationsPage({ params }) {
+export default function AdminEventRegistrationsPage(props) {
+  const params = use(props.params);
   const id = params.id;
   const [registrations, setRegistrations] = useState([]);
   const [total, setTotal] = useState(0);
@@ -39,7 +40,7 @@ export default function AdminEventRegistrationsPage({ params }) {
 
     const [{ data: regData }, { data: eventData }] = await Promise.all([
       apiGet(`/api/v1/admin/events/${id}/registrations?${searchParams}`),
-      apiGet(`/api/v1/events/${id}`)
+      apiGet(`/api/v1/events/${id}`),
     ]);
 
     if (regData) {
@@ -59,7 +60,18 @@ export default function AdminEventRegistrationsPage({ params }) {
 
   const exportCSV = () => {
     if (registrations.length === 0) return;
-    const headers = ['Full Name', 'Email', 'Phone', 'College/Company', 'Role', 'City', 'Payment Status', 'Ticket Type', 'Attendance', 'Reg Date'];
+    const headers = [
+      'Full Name',
+      'Email',
+      'Phone',
+      'College/Company',
+      'Role',
+      'City',
+      'Payment Status',
+      'Ticket Type',
+      'Attendance',
+      'Reg Date',
+    ];
     const rows = registrations.map(r => [
       `"${r.fullName || ''}"`,
       `"${r.email || ''}"`,
@@ -70,13 +82,15 @@ export default function AdminEventRegistrationsPage({ params }) {
       `"${r.paymentStatus || ''}"`,
       `"${r.ticketType || ''}"`,
       `"${r.attendanceStatus || ''}"`,
-      `"${new Date(r.createdAt).toLocaleString()}"`
+      `"${new Date(r.createdAt).toLocaleString()}"`,
     ]);
-    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(','), ...rows.map(e => e.join(','))].join("\n");
+    const csvContent =
+      'data:text/csv;charset=utf-8,' +
+      [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
     const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `event_registrations_${id}.csv`);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `event_registrations_${id}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -111,7 +125,7 @@ export default function AdminEventRegistrationsPage({ params }) {
     setShowCsvBanner(false);
   };
 
-  const toggleDeliveryMethod = (method) => {
+  const toggleDeliveryMethod = method => {
     setNotifyForm(prev => {
       const methods = prev.deliveryMethods.includes(method)
         ? prev.deliveryMethods.filter(m => m !== method)
@@ -126,14 +140,24 @@ export default function AdminEventRegistrationsPage({ params }) {
 
     // Confirmation for large groups
     if (total > 10) {
-      const methods = notifyForm.deliveryMethods.map(m => m === 'email' ? 'Email' : 'In-App').join(' + ');
-      if (!confirm(`You are about to send ${methods} notifications to ${total} registrants. Continue?`)) return;
+      const methods = notifyForm.deliveryMethods
+        .map(m => (m === 'email' ? 'Email' : 'In-App'))
+        .join(' + ');
+      if (
+        !confirm(
+          `You are about to send ${methods} notifications to ${total} registrants. Continue?`
+        )
+      )
+        return;
     }
 
     setSending(true);
     setSendResult(null);
 
-    const { data, error } = await apiPost(`/api/v1/admin/events/${id}/notify-registrants`, notifyForm);
+    const { data, error } = await apiPost(
+      `/api/v1/admin/events/${id}/notify-registrants`,
+      notifyForm
+    );
 
     setSending(false);
 
@@ -159,7 +183,16 @@ export default function AdminEventRegistrationsPage({ params }) {
         }}
       >
         <div>
-          <Link href={`${ADMIN_BASE}/events`} style={{ fontSize: 14, color: '#64748b', textDecoration: 'none', marginBottom: 4, display: 'inline-block' }}>
+          <Link
+            href={`${ADMIN_BASE}/events`}
+            style={{
+              fontSize: 14,
+              color: '#64748b',
+              textDecoration: 'none',
+              marginBottom: 4,
+              display: 'inline-block',
+            }}
+          >
             ← Back to Events
           </Link>
           <h1 style={{ fontSize: 20, fontWeight: 800, margin: 0 }}>
@@ -167,10 +200,17 @@ export default function AdminEventRegistrationsPage({ params }) {
           </h1>
         </div>
         <div style={{ display: 'flex', gap: 12 }}>
-          <button className="btn btn-secondary" onClick={recount} disabled={recounting} title="Recalculate registration counts from actual records">
+          <button
+            className="btn btn-secondary"
+            onClick={recount}
+            disabled={recounting}
+            title="Recalculate registration counts from actual records"
+          >
             {recounting ? 'Recounting…' : 'Recount'}
           </button>
-          <button className="btn btn-secondary" onClick={exportCSV}>Export CSV</button>
+          <button className="btn btn-secondary" onClick={exportCSV}>
+            Export CSV
+          </button>
           <button className="btn btn-primary" onClick={openNotifyModal}>
             📢 Send Notification
           </button>
@@ -195,7 +235,9 @@ export default function AdminEventRegistrationsPage({ params }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <span style={{ fontSize: 22 }}>📥</span>
             <div>
-              <div style={{ fontWeight: 700, fontSize: 14, color: '#3730a3' }}>CSV Exported Successfully!</div>
+              <div style={{ fontWeight: 700, fontSize: 14, color: '#3730a3' }}>
+                CSV Exported Successfully!
+              </div>
               <div style={{ fontSize: 13, color: '#4338ca' }}>
                 Want to notify these {total} registrants via email or in-app notification?
               </div>
@@ -221,12 +263,19 @@ export default function AdminEventRegistrationsPage({ params }) {
       )}
 
       <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
-        <input 
+        <input
           placeholder="Search by name or email..."
           value={search}
           onChange={e => setSearch(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && setPage(1)}
-          style={{ padding: '8px 14px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 13, flex: 1, maxWidth: 300 }}
+          style={{
+            padding: '8px 14px',
+            border: '1px solid #e2e8f0',
+            borderRadius: 8,
+            fontSize: 13,
+            flex: 1,
+            maxWidth: 300,
+          }}
         />
         <select
           value={paymentFilter}
@@ -234,7 +283,13 @@ export default function AdminEventRegistrationsPage({ params }) {
             setPaymentFilter(e.target.value);
             setPage(1);
           }}
-          style={{ padding: '8px 14px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 13, outline: 'none' }}
+          style={{
+            padding: '8px 14px',
+            border: '1px solid #e2e8f0',
+            borderRadius: 8,
+            fontSize: 13,
+            outline: 'none',
+          }}
         >
           <option value="">All Payment Status</option>
           <option value="Free">Free</option>
@@ -243,7 +298,9 @@ export default function AdminEventRegistrationsPage({ params }) {
           <option value="Failed">Failed</option>
           <option value="Refunded">Refunded</option>
         </select>
-        <button className="btn btn-secondary" onClick={() => setPage(1)}>Apply Filters</button>
+        <button className="btn btn-secondary" onClick={() => setPage(1)}>
+          Apply Filters
+        </button>
       </div>
 
       {loading ? (
@@ -269,7 +326,9 @@ export default function AdminEventRegistrationsPage({ params }) {
                 <tr key={reg._id}>
                   <td>
                     <div style={{ fontWeight: 600 }}>{reg.fullName}</div>
-                    <div style={{ fontSize: 11, color: '#64748b' }}>{reg.roleProfession || '-'}</div>
+                    <div style={{ fontSize: 11, color: '#64748b' }}>
+                      {reg.roleProfession || '-'}
+                    </div>
                   </td>
                   <td>
                     <div style={{ fontSize: 13 }}>{reg.email}</div>
@@ -280,19 +339,21 @@ export default function AdminEventRegistrationsPage({ params }) {
                     <div style={{ fontSize: 11, color: '#64748b' }}>{reg.city || '-'}</div>
                   </td>
                   <td>
-                    <span className={`badge ${reg.paymentStatus === 'Completed' ? 'badge-green' : reg.paymentStatus === 'Free' ? 'badge-blue' : 'badge-orange'}`}>
+                    <span
+                      className={`badge ${reg.paymentStatus === 'Completed' ? 'badge-green' : reg.paymentStatus === 'Free' ? 'badge-blue' : 'badge-orange'}`}
+                    >
                       {reg.paymentStatus}
                     </span>
                   </td>
                   <td>{reg.ticketType}</td>
                   <td>
-                    <span className={`badge ${reg.attendanceStatus === 'Attended' ? 'badge-green' : 'badge-gray'}`}>
+                    <span
+                      className={`badge ${reg.attendanceStatus === 'Attended' ? 'badge-green' : 'badge-gray'}`}
+                    >
                       {reg.attendanceStatus}
                     </span>
                   </td>
-                  <td style={{ fontSize: 12 }}>
-                    {new Date(reg.createdAt).toLocaleDateString()}
-                  </td>
+                  <td style={{ fontSize: 12 }}>{new Date(reg.createdAt).toLocaleDateString()}</td>
                 </tr>
               ))}
               {registrations.length === 0 && (
@@ -325,15 +386,21 @@ export default function AdminEventRegistrationsPage({ params }) {
       {/* Notification Modal */}
       {showNotifyModal && (
         <div className="admin-modal-overlay" onClick={() => !sending && setShowNotifyModal(false)}>
-          <div
-            className="admin-modal"
-            style={{ maxWidth: 560 }}
-            onClick={e => e.stopPropagation()}
-          >
+          <div className="admin-modal" style={{ maxWidth: 560 }} onClick={e => e.stopPropagation()}>
             <div className="admin-modal-header">
               <h2>📢 Send Notification to Registrants</h2>
-              <button className="admin-modal-close" onClick={() => !sending && setShowNotifyModal(false)}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <button
+                className="admin-modal-close"
+                onClick={() => !sending && setShowNotifyModal(false)}
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
                   <line x1="18" y1="6" x2="6" y2="18" />
                   <line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
@@ -482,16 +549,14 @@ export default function AdminEventRegistrationsPage({ params }) {
                 >
                   {sendResult.success ? (
                     <div>
-                      <div style={{ fontWeight: 700, fontSize: 14, color: '#166534', marginBottom: 6 }}>
+                      <div
+                        style={{ fontWeight: 700, fontSize: 14, color: '#166534', marginBottom: 6 }}
+                      >
                         ✅ Notifications Sent Successfully!
                       </div>
                       <div style={{ fontSize: 13, color: '#15803d', display: 'flex', gap: 16 }}>
-                        {sendResult.pushed > 0 && (
-                          <span>🔔 {sendResult.pushed} in-app</span>
-                        )}
-                        {sendResult.emailed > 0 && (
-                          <span>✉️ {sendResult.emailed} emails sent</span>
-                        )}
+                        {sendResult.pushed > 0 && <span>🔔 {sendResult.pushed} in-app</span>}
+                        {sendResult.emailed > 0 && <span>✉️ {sendResult.emailed} emails sent</span>}
                         <span>👥 {sendResult.notified} total registrants</span>
                       </div>
                     </div>
@@ -516,12 +581,23 @@ export default function AdminEventRegistrationsPage({ params }) {
                 <button
                   className="btn btn-primary"
                   onClick={handleSendNotification}
-                  disabled={sending || !notifyForm.title || !notifyForm.message || notifyForm.deliveryMethods.length === 0}
+                  disabled={
+                    sending ||
+                    !notifyForm.title ||
+                    !notifyForm.message ||
+                    notifyForm.deliveryMethods.length === 0
+                  }
                   style={{
                     display: 'flex',
                     alignItems: 'center',
                     gap: 8,
-                    opacity: (sending || !notifyForm.title || !notifyForm.message || notifyForm.deliveryMethods.length === 0) ? 0.6 : 1,
+                    opacity:
+                      sending ||
+                      !notifyForm.title ||
+                      !notifyForm.message ||
+                      notifyForm.deliveryMethods.length === 0
+                        ? 0.6
+                        : 1,
                   }}
                 >
                   {sending ? (
@@ -539,7 +615,9 @@ export default function AdminEventRegistrationsPage({ params }) {
                       Sending...
                     </>
                   ) : (
-                    <>📢 Send to {total} Registrant{total !== 1 ? 's' : ''}</>
+                    <>
+                      📢 Send to {total} Registrant{total !== 1 ? 's' : ''}
+                    </>
                   )}
                 </button>
               )}
@@ -551,11 +629,19 @@ export default function AdminEventRegistrationsPage({ params }) {
       {/* Animation keyframes */}
       <style jsx>{`
         @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(-8px); }
-          to { opacity: 1; transform: translateY(0); }
+          from {
+            opacity: 0;
+            transform: translateY(-8px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
         }
         @keyframes spin {
-          to { transform: rotate(360deg); }
+          to {
+            transform: rotate(360deg);
+          }
         }
       `}</style>
     </div>

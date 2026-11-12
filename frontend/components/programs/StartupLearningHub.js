@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import Link from 'next/link';
 import { motion, useInView, AnimatePresence } from 'framer-motion';
 import { Play, Eye, ArrowRight, User, X } from 'lucide-react';
 import '../../styles/startup-learning-hub.css';
@@ -9,7 +10,8 @@ const hubVideos = [
   {
     id: 1,
     title: 'IDEA VALIDATION',
-    description: 'Learn systematic approaches to validate your startup idea before investing significant resources.',
+    description:
+      'Learn systematic approaches to validate your startup idea before investing significant resources.',
     mentorName: 'Vishwaraj Saude',
     mentorRole: 'Product & Tech Advisor',
     mentorAvatar: '/assets/images/Vishwaraj.jpg',
@@ -21,7 +23,8 @@ const hubVideos = [
   {
     id: 2,
     title: 'MARKET UNDERSTANDING',
-    description: 'Gain deep insights into your target market and competition to build a solid foundation.',
+    description:
+      'Gain deep insights into your target market and competition to build a solid foundation.',
     mentorName: 'Vishwaraj Saude',
     mentorRole: 'Product & Tech Advisor',
     mentorAvatar: '/assets/images/Vishwaraj.jpg',
@@ -33,7 +36,8 @@ const hubVideos = [
   {
     id: 3,
     title: 'MARKETING AND GO TO MARKET STRATEGY',
-    description: 'Structure your roadmap with a solid business plan that attracts investors and guides growth.',
+    description:
+      'Structure your roadmap with a solid business plan that attracts investors and guides growth.',
     mentorName: 'Vishwaraj Saude',
     mentorRole: 'Product & Tech Advisor',
     mentorAvatar: '/assets/images/Vishwaraj.jpg',
@@ -41,12 +45,12 @@ const hubVideos = [
     videoUrl: 'https://10ihs6meu0bf1qny.public.blob.vercel-storage.com/demo-3.mp4',
     tags: ['GTM Strategy', 'Marketing'],
     views: '18.7K',
-  }
+  },
 ];
 
 const VideoModal = ({ isOpen, onClose, video }) => {
   useEffect(() => {
-    const handleEsc = (e) => {
+    const handleEsc = e => {
       if (e.key === 'Escape') onClose();
     };
     window.addEventListener('keydown', handleEsc);
@@ -58,22 +62,22 @@ const VideoModal = ({ isOpen, onClose, video }) => {
   return (
     <AnimatePresence>
       {isOpen && (
-        <motion.div 
+        <motion.div
           className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
         >
-          <motion.div 
+          <motion.div
             className="relative w-full max-w-5xl aspect-video bg-[#111] rounded-2xl overflow-hidden shadow-2xl border border-white/10"
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
-            onClick={(e) => e.stopPropagation()}
+            onClick={e => e.stopPropagation()}
           >
             {/* Close Button */}
-            <button 
+            <button
               className="absolute top-4 right-4 z-10 w-10 height-10 bg-black/50 hover:bg-red-500/80 rounded-full flex items-center justify-center text-white transition-all duration-300"
               onClick={onClose}
             >
@@ -81,12 +85,7 @@ const VideoModal = ({ isOpen, onClose, video }) => {
             </button>
 
             {/* Video Player */}
-            <video 
-              className="w-full h-full object-cover"
-              controls
-              autoPlay
-              playsInline
-            >
+            <video className="w-full h-full object-cover" controls autoPlay playsInline>
               <source src={video.videoUrl} type="video/mp4" />
               Your browser does not support the video tag.
             </video>
@@ -107,7 +106,7 @@ const VideoModal = ({ isOpen, onClose, video }) => {
 
 const VideoCard = ({ video, index }) => {
   const cardRef = useRef(null);
-  const isInView = useInView(cardRef, { once: true, margin: "-50px" });
+  const isInView = useInView(cardRef, { once: true, margin: '-50px' });
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
@@ -117,7 +116,7 @@ const VideoCard = ({ video, index }) => {
         className="hub-video-card"
         initial={{ opacity: 0, y: 50 }}
         whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-50px" }}
+        viewport={{ once: true, margin: '-50px' }}
         transition={{ duration: 0.8, delay: index * 0.1, ease: [0.23, 1, 0.32, 1] }}
         whileHover={{ y: -10 }}
       >
@@ -126,20 +125,20 @@ const VideoCard = ({ video, index }) => {
 
         {/* Thumbnail Section - Full Width */}
         <div className="hub-thumbnail-wrapper" onClick={() => setIsModalOpen(true)}>
-          <motion.img 
-            src={video.thumbnail} 
-            alt={video.title} 
+          <motion.img
+            src={video.thumbnail}
+            alt={video.title}
             className="hub-thumbnail"
             whileHover={{ scale: 1.03 }}
             transition={{ duration: 0.6 }}
           />
           <div className="hub-thumbnail-overlay" />
-          
-          <motion.div 
+
+          <motion.div
             className="hub-play-button-center"
             initial={{ scale: 1 }}
             animate={{ scale: [1, 1.1, 1] }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
           >
             <Play size={24} fill="currentColor" />
           </motion.div>
@@ -148,9 +147,11 @@ const VideoCard = ({ video, index }) => {
         {/* Minimal Content Section */}
         <div className="hub-card-content">
           <h3 className="hub-card-title">{video.title}</h3>
-          
+
           <div className="hub-mentor-minimal">
-            <span className="text-red-500 font-bold text-xs uppercase tracking-widest">Masterclass</span>
+            <span className="text-red-500 font-bold text-xs uppercase tracking-widest">
+              Masterclass
+            </span>
             <span className="text-white/40 mx-2">•</span>
             <span className="text-white/60 text-xs font-medium">{video.mentorName}</span>
           </div>
@@ -168,11 +169,7 @@ const VideoCard = ({ video, index }) => {
         </div>
       </motion.div>
 
-      <VideoModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        video={video} 
-      />
+      <VideoModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} video={video} />
     </>
   );
 };
@@ -184,25 +181,25 @@ export default function StartupLearningHub() {
       <div className="hub-background-fx">
         <div className="hub-mesh-grid" />
         <div className="hub-ambient-glows">
-          <motion.div 
+          <motion.div
             className="glow-orb hub-glow-1"
-            animate={{ 
+            animate={{
               scale: [1, 1.2, 1],
               opacity: [0.1, 0.15, 0.1],
               x: [0, 50, 0],
-              y: [0, -30, 0]
+              y: [0, -30, 0],
             }}
-            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+            transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
           />
-          <motion.div 
+          <motion.div
             className="glow-orb hub-glow-2"
-            animate={{ 
+            animate={{
               scale: [1, 1.1, 1],
               opacity: [0.08, 0.12, 0.08],
               x: [0, -40, 0],
-              y: [0, 20, 0]
+              y: [0, 20, 0],
             }}
-            transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+            transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
           />
         </div>
       </div>
@@ -218,25 +215,28 @@ export default function StartupLearningHub() {
           >
             <div className="section-label-premium">Startup Academy</div>
           </motion.div>
-          
-          <motion.h2 
+
+          <motion.h2
             className="hub-title"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8, delay: 0.2 }}
           >
-            Learn From Real <span className="text-[#e53935] drop-shadow-[0_0_15px_rgba(229,57,53,0.5)]">Startup Experiences</span>
+            Learn From Real{' '}
+            <span className="text-[#e53935] drop-shadow-[0_0_15px_rgba(229,57,53,0.5)]">
+              Startup Experiences
+            </span>
           </motion.h2>
-          
-          <motion.p 
+
+          <motion.p
             className="hub-subtitle"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8, delay: 0.4 }}
           >
-            Watch startup insights, mentoring sessions, investor guidance, and innovation workshops. 
+            Watch startup insights, mentoring sessions, investor guidance, and innovation workshops.
             Direct wisdom from founders who have built and scaled successful ventures.
           </motion.p>
         </div>
@@ -249,16 +249,16 @@ export default function StartupLearningHub() {
         </div>
 
         {/* Footer Actions */}
-        <motion.div 
+        <motion.div
           className="hub-footer-actions"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8, delay: 0.6 }}
         >
-          <a href="/learn" className="btn-view-all">
+          <Link href="/learn" className="btn-view-all">
             View All Videos <ArrowRight size={20} />
-          </a>
+          </Link>
         </motion.div>
       </div>
     </section>

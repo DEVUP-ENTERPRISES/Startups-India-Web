@@ -29,15 +29,11 @@ const nextConfig = {
       },
       {
         source: '/assets/(.*)',
-        headers: [
-          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
-        ],
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
       },
       {
         source: '/_next/static/(.*)',
-        headers: [
-          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
-        ],
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
       },
     ];
   },
@@ -49,14 +45,12 @@ const nextConfig = {
     ];
   },
 
-  swcMinify: true,
   reactStrictMode: true,
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
   productionBrowserSourceMaps: false,
   poweredByHeader: false,
-  devIndicators: { appIsrStatus: false },
   compress: true,
 
   webpack(config, { dev }) {

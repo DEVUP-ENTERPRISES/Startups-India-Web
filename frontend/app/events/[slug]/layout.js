@@ -10,8 +10,8 @@
  *   3. We never read MongoDB directly here - the cache layer is owned by the backend.
  */
 
-const SITE_URL  = process.env.NEXT_PUBLIC_SITE_URL  || 'https://startupsindia.in';
-const API_BASE  = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://startupsindia.in';
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
 const SITE_NAME = 'Startups India';
 const DEFAULT_OG = `${SITE_URL}/assets/images/og-default.jpg`;
 
@@ -30,10 +30,11 @@ async function fetchEvent(slug) {
   }
 }
 
-export async function generateMetadata({ params }) {
-  const slug  = params.slug;
+export async function generateMetadata(props) {
+  const params = await props.params;
+  const slug = params.slug;
   const event = await fetchEvent(slug);
-  const url   = `${SITE_URL}/events/${slug}`;
+  const url = `${SITE_URL}/events/${slug}`;
 
   if (!event) {
     return {
@@ -53,22 +54,25 @@ export async function generateMetadata({ params }) {
     return event.price ? event.price / 100 : 0;
   })();
 
-  const priceText = lowestPrice > 0
-    ? `₹${lowestPrice.toLocaleString('en-IN')}`
-    : 'Free';
+  const priceText = lowestPrice > 0 ? `₹${lowestPrice.toLocaleString('en-IN')}` : 'Free';
 
-  const dateText = event.eventStartDate || event.date
-    ? new Date(event.eventStartDate || event.date).toLocaleDateString('en-IN', {
-        day: 'numeric', month: 'long', year: 'numeric',
-      })
-    : '';
+  const dateText =
+    event.eventStartDate || event.date
+      ? new Date(event.eventStartDate || event.date).toLocaleDateString('en-IN', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+        })
+      : '';
 
   const description = [
     event.subtitle || event.description?.slice(0, 120),
     dateText && `📅 ${dateText}`,
     priceText && `🎟 ${priceText}`,
     event.mode && `📍 ${event.mode}`,
-  ].filter(Boolean).join(' · ');
+  ]
+    .filter(Boolean)
+    .join(' · ');
 
   const ogImage = event.coverImage || DEFAULT_OG;
 
@@ -84,21 +88,23 @@ export async function generateMetadata({ params }) {
     startDate: event.eventStartDate || event.date,
     endDate: event.eventEndDate || event.endDate || event.eventStartDate || event.date,
     eventStatus: 'https://schema.org/EventScheduled',
-    eventAttendanceMode: event.mode === 'Offline'
-      ? 'https://schema.org/OfflineEventAttendanceMode'
-      : 'https://schema.org/OnlineEventAttendanceMode',
-    location: event.mode === 'Offline'
-      ? {
-          '@type': 'Place',
-          name: event.venueName || event.city || 'India',
-          address: {
-            '@type': 'PostalAddress',
-            streetAddress: event.fullAddress || '',
-            addressLocality: event.city || '',
-            addressCountry: 'IN',
-          },
-        }
-      : { '@type': 'VirtualLocation', url },
+    eventAttendanceMode:
+      event.mode === 'Offline'
+        ? 'https://schema.org/OfflineEventAttendanceMode'
+        : 'https://schema.org/OnlineEventAttendanceMode',
+    location:
+      event.mode === 'Offline'
+        ? {
+            '@type': 'Place',
+            name: event.venueName || event.city || 'India',
+            address: {
+              '@type': 'PostalAddress',
+              streetAddress: event.fullAddress || '',
+              addressLocality: event.city || '',
+              addressCountry: 'IN',
+            },
+          }
+        : { '@type': 'VirtualLocation', url },
     organizer: event.organizedBy?.[0]
       ? {
           '@type': 'Organization',
