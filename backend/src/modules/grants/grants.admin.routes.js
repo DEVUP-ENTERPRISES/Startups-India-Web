@@ -419,7 +419,7 @@ router.put(
   '/settings',
   // Keys are validated against SCHEMA inside the service; anything unknown is
   // rejected rather than silently written.
-  validateBody(z.record(z.any())),
+  validateBody(z.record(z.string(), z.any())),
   asyncHandler(async (req, res) => {
     const values = await updateGrantSettings(req.body, req.user.userId);
     res.json({ success: true, data: { values } });

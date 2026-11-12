@@ -92,7 +92,7 @@ router.post(
       phone: z.string().optional(),
       role: z.string().default('startup'),
       isVerified: z.boolean().optional(),
-      dynamicProfileData: z.record(z.any()).optional(),
+      dynamicProfileData: z.record(z.string(), z.any()).optional(),
     })
   ),
   asyncHandler(async (req, res) => {
@@ -654,7 +654,7 @@ router.patch(
       role: z.string().min(1),
       phone: z.string().optional(),
       isPhoneVerified: z.boolean().optional(),
-      dynamicProfileData: z.record(z.any()).optional(),
+      dynamicProfileData: z.record(z.string(), z.any()).optional(),
     })
   ),
   asyncHandler(async (req, res) => {

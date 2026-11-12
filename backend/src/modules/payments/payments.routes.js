@@ -24,7 +24,7 @@ router.post(
       amount: z.number().nonnegative(),
       currency: z.string().optional(),
       status: z.enum(['created', 'succeeded', 'failed', 'refunded']).optional(),
-      metadata: z.record(z.any()).optional(),
+      metadata: z.record(z.string(), z.any()).optional(),
     })
   ),
   asyncHandler(controller.createPayment)
@@ -52,8 +52,8 @@ router.post(
       receipt: z.string().optional(),
       ticketTypeName: z.string().optional(),
       couponCode: z.string().optional(),
-      notes: z.record(z.string()).optional(),
-      metadata: z.record(z.any()).optional(),
+      notes: z.record(z.string(), z.string()).optional(),
+      metadata: z.record(z.string(), z.any()).optional(),
       guest: z.object({
         fullName: z.string().min(1),
         email: z.string().email(),
@@ -90,8 +90,8 @@ router.post(
       receipt: z.string().optional(),
       ticketTypeName: z.string().optional(),
       couponCode: z.string().optional(),
-      notes: z.record(z.string()).optional(),
-      metadata: z.record(z.any()).optional(),
+      notes: z.record(z.string(), z.string()).optional(),
+      metadata: z.record(z.string(), z.any()).optional(),
     })
   ),
   asyncHandler(controller.createRazorpayOrder)

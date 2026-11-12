@@ -1,16 +1,11 @@
-const XLSX = require('xlsx');
 const { ApiError } = require('../../utils/apiError');
 const { LeadList, LeadContact } = require('./crm.models');
 
 /**
  * Spreadsheet import for lead lists.
  *
- * The flow is two-step so the admin can confirm the column mapping before
- * anything is saved:
- *   1. parseSpreadsheet()  -> headers + a few sample rows (preview)
- *   2. createListFromRows() -> maps columns to fields, dedupes, saves the list
- *
- * Accepts .xlsx and .csv (SheetJS reads both).
+ * The browser parses the file (frontend/lib/crm.js) and posts mapped rows;
+ * createListFromRows() maps columns to fields, dedupes and saves the list.
  */
 
 // Fields a spreadsheet column can map onto. email is the only required one.
@@ -19,30 +14,6 @@ const MAPPABLE_FIELDS = [
 ];
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-/**
- * Parse an uploaded file buffer into { headers, rows }.
- * @param {Buffer} buffer
- * @returns {{ headers: string[], rows: object[], totalRows: number }}
- */
-function parseSpreadsheet(buffer) {
-  let workbook;
-  try {
-    workbook = XLSX.read(buffer, { type: 'buffer' });
-  } catch {
-    throw new ApiError(400, 'Could not read that file. Please upload a valid .xlsx or .csv.');
-  }
-
-  const sheetName = workbook.SheetNames[0];
-  if (!sheetName) throw new ApiError(400, 'The file has no sheets.');
-
-  // defval:'' so blank cells become empty strings rather than being dropped.
-  const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: '', raw: false });
-  if (rows.length === 0) throw new ApiError(400, 'The file has no rows.');
-
-  const headers = Object.keys(rows[0]);
-  return { headers, rows, totalRows: rows.length };
-}
 
 /**
  * Suggest a column->field mapping by fuzzy-matching header names, so the admin
@@ -145,7 +116,6 @@ async function createListFromRows({ name, description, sourceFileName, mapping, 
 
 module.exports = {
   MAPPABLE_FIELDS,
-  parseSpreadsheet,
   suggestMapping,
   createListFromRows,
 };

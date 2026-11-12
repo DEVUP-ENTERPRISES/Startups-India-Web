@@ -83,8 +83,8 @@ router.post('/lists', bigJson, validateBody(z.object({
   name: z.string().min(1).max(160),
   description: z.string().max(500).optional().default(''),
   sourceFileName: z.string().max(260).optional().default(''),
-  mapping: z.record(z.string()),
-  rows: z.array(z.record(z.any())).min(1),
+  mapping: z.record(z.string(), z.string()),
+  rows: z.array(z.record(z.string(), z.any())).min(1),
 })), asyncHandler(async (req, res) => {
   const result = await importService.createListFromRows({ ...req.body, createdBy: req.user.userId });
   res.status(201).json({ success: true, data: result });
