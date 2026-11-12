@@ -102,21 +102,19 @@ if (env.NODE_ENV === 'production') {
   if (!env.SMTP_HOST) {
     throw new Error('SMTP_HOST must be configured in production (password reset depends on it)');
   }
-  // SMS config is only enforced when 2FA is actually switched on. While it's
-  // paused, a production box shouldn't be forced to carry MSG91 credentials for
-  // a flow that never runs.
   if (env.TWO_FACTOR_ENABLED) {
     // The console driver prints OTPs to stdout. If that ever ran in production it
     // would mean every 2FA code is sitting in the logs and no SMS is being sent.
     if (env.SMS_PROVIDER === 'console') {
       throw new Error('SMS_PROVIDER must not be "console" when TWO_FACTOR_ENABLED - set it to "msg91" or "2factor"');
     }
-    if (env.SMS_PROVIDER === 'msg91' && !env.MSG91_AUTH_KEY) {
-      throw new Error('MSG91_AUTH_KEY is required when SMS_PROVIDER=msg91');
-    }
-    if ((env.SMS_PROVIDER === '2factor' || env.SMS_PROVIDER === 'twofactor') && !env.TWOFACTOR_API_KEY) {
-      throw new Error('TWOFACTOR_API_KEY is required when SMS_PROVIDER=2factor');
-    }
+  }
+  // Phone OTP uses the provider even with 2FA paused; fail boot so the deploy health check rolls back.
+  if (env.SMS_PROVIDER === 'msg91' && !env.MSG91_AUTH_KEY) {
+    throw new Error('MSG91_AUTH_KEY is required when SMS_PROVIDER=msg91');
+  }
+  if ((env.SMS_PROVIDER === '2factor' || env.SMS_PROVIDER === 'twofactor') && !env.TWOFACTOR_API_KEY) {
+    throw new Error('TWOFACTOR_API_KEY is required when SMS_PROVIDER=2factor');
   }
 }
 

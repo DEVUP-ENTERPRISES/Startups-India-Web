@@ -130,7 +130,8 @@ jobs:
               pm2 logs --nostream --lines 50 || true
 
               # Restore the backup
-              cp -r "$BACKUP_DIR/src/" src/
+              # cp -r into an existing dir nests it as src/src and leaves the broken code live.
+              rm -rf src && cp -r "$BACKUP_DIR/src" src
               cp "$BACKUP_DIR/package.json" "$BACKUP_DIR/pnpm-lock.yaml" . 2>/dev/null || true
               pnpm install --prod --frozen-lockfile 2>/dev/null || true
 
