@@ -61,12 +61,31 @@ test('a guessed or expired reset token is rejected', async () => {
   assert.equal(expired.status, 400);
 });
 
-test('refresh tokens rotate: a used refresh token cannot be replayed', async () => {
+test('refresh tokens rotate with a short reuse window for concurrent tabs', async () => {
+  const { User } = require('../../src/modules/users/user.model');
   const user = await h.signup();
-  const login = await h.api('POST', '/api/v1/auth/login', { body: { email: user.email, password: user.password } });
-  const r1 = login.body.data.session.refresh_token;
-  const first = await h.api('POST', '/api/v1/auth/refresh', { body: { refreshToken: r1, refresh_token: r1 } });
+  const r1 = user.refresh;
+  const refresh = t => h.api('POST', '/api/v1/auth/refresh', { body: { refreshToken: t } });
+
+  const first = await refresh(r1);
   assert.equal(first.status, 200);
-  const replay = await h.api('POST', '/api/v1/auth/refresh', { body: { refreshToken: r1, refresh_token: r1 } });
-  assert.equal(replay.status, 401);
+  const r2 = first.body.data.session.refresh_token;
+  assert.notEqual(r2, r1);
+
+  assert.equal((await refresh(r1)).status, 200, 'a second tab racing with the old token is tolerated');
+
+  await User.updateOne({ _id: user.id }, { refreshTokenRotatedAt: new Date(Date.now() - 5 * 60 * 1000) });
+  assert.equal((await refresh(r1)).status, 401, 'outside the window the old token is dead');
+  assert.equal((await refresh(r2)).status, 401, 'a token two rotations old is dead');
+});
+
+test('logout ends the session even inside the reuse window', async () => {
+  const user = await h.signup();
+  const { refresh: r1, token: access } = user;
+  const rotated = await h.api('POST', '/api/v1/auth/refresh', { body: { refreshToken: r1 } });
+  const r2 = rotated.body.data.session.refresh_token;
+
+  await h.api('POST', '/api/v1/auth/logout', { token: access, body: {} });
+  assert.equal((await h.api('POST', '/api/v1/auth/refresh', { body: { refreshToken: r1 } })).status, 401);
+  assert.equal((await h.api('POST', '/api/v1/auth/refresh', { body: { refreshToken: r2 } })).status, 401);
 });

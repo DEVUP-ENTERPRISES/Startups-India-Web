@@ -182,7 +182,17 @@ app.use('/api/v1/auth/forgot-password', authLimiter);
 // Caps brute-forcing of reset tokens. The token is 256-bit so guessing is
 // hopeless anyway, but this keeps the attempt cheap to absorb.
 app.use('/api/v1/auth/reset-password', authLimiter);
-app.use('/api/v1/auth/refresh', authLimiter);
+// Refresh needs a signed token (nothing to brute-force), and campus NAT puts many users behind one IP.
+app.use(
+  '/api/v1/auth/refresh',
+  rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 600,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { success: false, message: 'Too many attempts, please try again later' },
+  })
+);
 
 // Every OTP send costs real money and rings a real phone, so these are capped
 // harder than the rest of auth. The per-user/per-challenge caps live in the

@@ -90,7 +90,8 @@ async function signup(overrides = {}) {
   };
   const res = await api('POST', '/api/v1/auth/signup', { body: creds });
   if (res.status !== 201) throw new Error(`signup failed ${res.status} ${JSON.stringify(res.body)}`);
-  return { ...creds, id: res.body.data.user.id, token: res.body.data.session.access_token, res };
+  const { access_token: token, refresh_token: refresh } = res.body.data.session;
+  return { ...creds, id: res.body.data.user.id, token, refresh, res };
 }
 
 async function makeAdmin(user) {

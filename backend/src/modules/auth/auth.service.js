@@ -34,7 +34,16 @@ async function generateAndStoreTokens(user) {
     jwtid: crypto.randomBytes(16).toString('hex'),
   });
 
-  await User.updateOne({ _id: user._id }, { $set: { refreshTokenHash: hashRefreshToken(refreshToken) } });
+  await User.updateOne(
+    { _id: user._id },
+    {
+      $set: {
+        refreshTokenHash: hashRefreshToken(refreshToken),
+        refreshTokenPrevHash: user.refreshTokenHash || null,
+        refreshTokenRotatedAt: new Date(),
+      },
+    }
+  );
 
   return { accessToken, refreshToken };
 }
@@ -420,14 +429,19 @@ async function refresh(token, envConfig) {
     throw new ApiError(401, 'Invalid or expired refresh token');
   }
 
-  const user = await User.findById(payload.sub);
+  const user = await User.findById(payload.sub).select('+refreshTokenPrevHash +refreshTokenRotatedAt');
   if (!user || !user.isActive) throw new ApiError(401, 'User not found');
 
   // Validate stored hash - prevents replay of stolen/old refresh tokens
   if (!user.refreshTokenHash) {
     throw new ApiError(401, 'Session invalidated. Please log in again.');
   }
-  if (!refreshTokenMatches(token, user.refreshTokenHash)) {
+  const withinReuseWindow =
+    user.refreshTokenPrevHash &&
+    user.refreshTokenRotatedAt &&
+    Date.now() - new Date(user.refreshTokenRotatedAt).getTime() < REFRESH_REUSE_WINDOW_MS &&
+    refreshTokenMatches(token, user.refreshTokenPrevHash);
+  if (!refreshTokenMatches(token, user.refreshTokenHash) && !withinReuseWindow) {
     throw new ApiError(401, 'Session expired or already rotated. Please log in again.');
   }
 
@@ -437,6 +451,8 @@ async function refresh(token, envConfig) {
 }
 
 // bcrypt reads only the first 72 bytes, and every JWT for a user shares that prefix, so it matched any old token.
+const REFRESH_REUSE_WINDOW_MS = 60 * 1000;
+
 function hashRefreshToken(token) {
   return crypto.createHash('sha256').update(token).digest('hex');
 }
@@ -449,7 +465,7 @@ function refreshTokenMatches(token, storedHash) {
 
 async function logout(userId) {
   // Invalidate refresh token so it can never be reused
-  await User.updateOne({ _id: userId }, { $set: { refreshTokenHash: null } });
+  await User.updateOne({ _id: userId }, { $set: { refreshTokenHash: null, refreshTokenPrevHash: null } });
   return true;
 }
 
@@ -629,6 +645,7 @@ async function resetPassword({ token, password }, req) {
         resetPasswordSentAt: null,
         // Kill every existing session: a reset is how a user evicts an intruder.
         refreshTokenHash: null,
+        refreshTokenPrevHash: null,
       },
     },
     { new: true }

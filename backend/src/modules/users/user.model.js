@@ -45,6 +45,9 @@ const userSchema = new mongoose.Schema(
     isPhoneVerified: { type: Boolean, default: false },
     wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Course' }],
     refreshTokenHash: { type: String, default: null },
+    // Previous token stays valid briefly so two tabs refreshing at once don't log each other out.
+    refreshTokenPrevHash: { type: String, default: null, select: false },
+    refreshTokenRotatedAt: { type: Date, default: null, select: false },
     fcmTokens: [{ type: String }], // push notification device tokens (one per device)
 
     // ─── PHONE / TWO-FACTOR ────────────────────────────────────────────
