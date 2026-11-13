@@ -68,8 +68,10 @@ Shipped: images 43.6 → 13.8 MB (`frontend/scripts/optimize-images.js`); hero v
 
 Why LCP and the score did not improve: the LCP breakdown is about 9 s of *render delay* (not download), because the main thread is saturated by hydrating the whole homepage as one client component (`HomeClient`: about 1,400 DOM nodes, framer-motion everywhere; React plus framer chunks ≈ 2.5 s of script). With 3 MB less image traffic, that JavaScript now arrives earlier, so the same work falls inside the TBT window, which explains the lower score.
 
-Next (architectural, not yet done):
-1. Make `app/page.js` render the sections as **server components**, with small client islands only for interactive or animated parts; replace scroll-reveal `motion.div` wrappers with CSS.
+Round 3b (`c85d6aa`): the homepage shell is now a server component (sections hydrate as separate islands; CSS scroll-reveal replaces eight framer wrappers). Local median of 5: score 43 → 73, TBT 2382 → 64 ms. Production (`www`, 2 runs): score 58 / 69, observed LCP 2.7 / 2.2 s, simulated LCP 8.4 / 2.2 s. `experimental.inlineCss` was tried and rejected: it inlined about 600 KB of CSS and dropped the score to 25.
+
+Remaining (not yet done):
+1. Convert the interactive sections' static markup to server components (the shell is done).
 2. Use framer-motion `LazyMotion` + `m` in the islands that remain.
 3. In Vercel → Domains, make the address users actually type (`startupsindia.in`) primary, or switch every link, QR code and canonical URL to `www`. Each visit currently pays about 1.4 s for the redirect, and canonical URLs point at a redirecting host.
 4. Remove the 7 stylesheets loaded globally that only the homepage uses (9 render-blocking CSS files today).
