@@ -63,8 +63,6 @@ frontend/public/videos/
 
 # ── Misc tooling ─────────────────────────────────────────────
 .vercel
-.playwright-mcp/
-.kiro/
 tmp/
 temp/
 scratch/

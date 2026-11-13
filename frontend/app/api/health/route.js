@@ -1,14 +1,3 @@
-/**
- * Health Check Endpoint
- * FAANG-Level: Used by all major companies for monitoring
- * 
- * Features:
- * - App status check
- * - Database connectivity
- * - External service status
- * - Response time tracking
- */
-
 import { NextResponse } from 'next/server';
 
 const backendBaseUrl = process.env.BACKEND_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
