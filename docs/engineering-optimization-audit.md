@@ -51,6 +51,29 @@ Reviewed without changes needed: media uploads and signed URLs, grant documents,
 
 Closed in `3a7399c`: `zod` → v4; `xlsx` removed (backend parser was dead code; the frontend uses exceljs + papaparse); six dead Next.js API routes removed, including a second public mailer branded `noreply@startupindia.com`. **Audits: backend 0 critical / 0 high (1 low); frontend no known vulnerabilities. CI fully green.**
 
+## Round 3 — performance (2026-11-13)
+
+Lighthouse, mobile, throttled, live `https://startupsindia.in` (includes the apex→www redirect). After = two runs.
+
+| Metric | Before | After |
+|---|---|---|
+| Page weight | 4.32 MB | **1.38–1.43 MB (−68%)** |
+| First Contentful Paint | 6.1 s | 4.8–5.8 s |
+| Time to Interactive | 15.0 s | 11.5–13.1 s |
+| Largest Contentful Paint | 10.7 s | 10.2–10.9 s (unchanged) |
+| Total Blocking Time | 0.1 s | 0.8–0.9 s (worse) |
+| Score | 54 | 36–38 (worse) |
+
+Shipped: images 43.6 → 13.8 MB (`frontend/scripts/optimize-images.js`); hero visible from first paint; parallax and cursor glow on motion values (no React re-render per mouse move); `content-visibility` on below-fold sections; idle custom-cursor loop; reduced-motion support; API gzip (production nginx was not compressing JSON); `/events/featured` deadlock fixed (production calls timed out after 40 s); branded `error.js`, `global-error.js`, `loading.js`.
+
+Why LCP and the score did not improve: the LCP breakdown is about 9 s of *render delay* (not download), because the main thread is saturated by hydrating the whole homepage as one client component (`HomeClient`: about 1,400 DOM nodes, framer-motion everywhere; React plus framer chunks ≈ 2.5 s of script). With 3 MB less image traffic, that JavaScript now arrives earlier, so the same work falls inside the TBT window, which explains the lower score.
+
+Next (architectural, not yet done):
+1. Make `app/page.js` render the sections as **server components**, with small client islands only for interactive or animated parts; replace scroll-reveal `motion.div` wrappers with CSS.
+2. Use framer-motion `LazyMotion` + `m` in the islands that remain.
+3. In Vercel → Domains, make the address users actually type (`startupsindia.in`) primary, or switch every link, QR code and canonical URL to `www`. Each visit currently pays about 1.4 s for the redirect, and canonical URLs point at a redirecting host.
+4. Remove the 7 stylesheets loaded globally that only the homepage uses (9 render-blocking CSS files today).
+
 ## Final readiness assessment (2026-11-13)
 
 **Code: Ready with minor issues. Production: Not ready — offline.** The EC2 host, MongoDB Atlas and Redis Cloud are currently unreachable, so nothing below is live until the restore and deploy in §1b are done.
