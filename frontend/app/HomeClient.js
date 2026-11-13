@@ -35,35 +35,83 @@ export default function Home() {
 
       <NetworkHero />
 
-      <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-100px' }} variants={sectionVariants}>
+      <motion.div
+        className="home-deferred"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: '-100px' }}
+        variants={sectionVariants}
+      >
         <HowItWorksSection />
       </motion.div>
 
-      <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-100px' }} variants={sectionVariants}>
+      <motion.div
+        className="home-deferred"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: '-100px' }}
+        variants={sectionVariants}
+      >
         <EcosystemFeaturesSection />
       </motion.div>
 
-      <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-100px' }} variants={sectionVariants}>
+      <motion.div
+        className="home-deferred"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: '-100px' }}
+        variants={sectionVariants}
+      >
         <AchievementsSection />
       </motion.div>
 
-      <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-100px' }} variants={sectionVariants}>
+      <motion.div
+        className="home-deferred"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: '-100px' }}
+        variants={sectionVariants}
+      >
         <ImpactSection />
       </motion.div>
 
-      <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-100px' }} variants={sectionVariants}>
+      <motion.div
+        className="home-deferred"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: '-100px' }}
+        variants={sectionVariants}
+      >
         <TrustedPartners />
       </motion.div>
 
-      <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-100px' }} variants={sectionVariants}>
+      <motion.div
+        className="home-deferred"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: '-100px' }}
+        variants={sectionVariants}
+      >
         <TrainingSection />
       </motion.div>
 
-      <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-100px' }} variants={sectionVariants}>
+      <motion.div
+        className="home-deferred"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: '-100px' }}
+        variants={sectionVariants}
+      >
         <CollaborationFrameworkSection />
       </motion.div>
 
-      <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-100px' }} variants={sectionVariants}>
+      <motion.div
+        className="home-deferred"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: '-100px' }}
+        variants={sectionVariants}
+      >
         <ApplyDarkSection />
       </motion.div>
 

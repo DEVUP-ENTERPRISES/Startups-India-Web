@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
+const compression = require('compression');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const crypto = require('crypto');
@@ -89,6 +90,9 @@ app.use(
 );
 
 app.disable('x-powered-by');
+
+// Production nginx does not gzip JSON, so compress here; responses under 1 KB are not worth the CPU.
+app.use(compression({ threshold: 1024 }));
 
 app.use(cookieParser());
 app.use((req, res, next) => {

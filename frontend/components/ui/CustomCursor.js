@@ -30,7 +30,7 @@ export default function CustomCursor() {
 
   useEffect(() => {
     const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-    // In development with devtools open, touch might be simulated. 
+    // In development with devtools open, touch might be simulated.
     // We enable the cursor if it's not a touch device OR if screen is large enough (desktop).
     if (!isTouchDevice || window.innerWidth > 1024) {
       setIsMobile(false);
@@ -60,9 +60,16 @@ export default function CustomCursor() {
         iconRef.current.style.transform = `rotate(${pos.angle}deg)`;
       }
 
+      // Idle when settled; the next mousemove restarts the loop instead of burning every frame.
+      if (Math.abs(dx) < 0.1 && Math.abs(dy) < 0.1 && Math.abs(pos.angle) < 0.1) {
+        animFrameId.current = null;
+        return;
+      }
       animFrameId.current = requestAnimationFrame(render);
     };
-    animFrameId.current = requestAnimationFrame(render);
+    const wake = () => {
+      if (animFrameId.current === null) animFrameId.current = requestAnimationFrame(render);
+    };
 
     const onMouseMove = e => {
       let targetX = e.clientX;
@@ -105,6 +112,7 @@ export default function CustomCursor() {
 
       pos.targetX = targetX;
       pos.targetY = targetY;
+      wake();
 
       if (!isMovingRef.current) {
         pos.x = targetX;
@@ -144,7 +152,7 @@ export default function CustomCursor() {
     document.documentElement.addEventListener('mouseenter', onMouseEnter);
 
     return () => {
-      cancelAnimationFrame(animFrameId.current);
+      if (animFrameId.current !== null) cancelAnimationFrame(animFrameId.current);
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mousedown', onMouseDown);
       window.removeEventListener('mouseup', onMouseUp);

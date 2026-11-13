@@ -585,3 +585,9 @@
   transform: translateY(-2px);
   box-shadow: 0 15px 35px rgba(229, 57, 53, 0.4);
 }
+
+/* Below-the-fold sections skip layout, paint and their looping animations until scrolled near. */
+.home-deferred {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 900px;
+}

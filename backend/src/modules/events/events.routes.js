@@ -17,7 +17,8 @@ const router = express.Router();
 router.get('/', cacheMiddleware(req => `events:all:${JSON.stringify(req.query)}`, 300), asyncHandler(controller.listEvents));
 
 // GET /api/v1/events/featured - Get featured events
-router.get('/featured', cacheMiddleware('events:featured', 300), asyncHandler(controller.getFeaturedEvents));
+// Cached in the service; a route cache under the same key deadlocked on its own in-flight lock.
+router.get('/featured', asyncHandler(controller.getFeaturedEvents));
 
 // GET /api/v1/events/my-events - Get user's registered events (requires auth)
 router.get('/my-events', authRequired, asyncHandler(controller.getUserEvents));

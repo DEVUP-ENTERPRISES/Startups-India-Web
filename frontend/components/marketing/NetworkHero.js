@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useRef, useState, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useEffect, useRef, useState } from 'react';
+import { motion, AnimatePresence, useMotionValue, useSpring } from 'framer-motion';
 import Link from 'next/link';
 import { Rocket, ArrowRight, Lightbulb, DollarSign, Users } from 'lucide-react';
 import '../../styles/network-hero.css';
@@ -17,18 +17,18 @@ const FEATURES = [
   {
     title: 'Idea Validation & Mentorship',
     desc: 'Validate your ideas and get guidance from industry experts.',
-    icon: <Lightbulb className="text-red-500" size={24} />
+    icon: <Lightbulb className="text-red-500" size={24} />,
   },
   {
     title: 'Funding & Investor Access',
     desc: 'Connect with investors and secure the funding you need to grow.',
-    icon: <DollarSign className="text-red-500" size={24} />
+    icon: <DollarSign className="text-red-500" size={24} />,
   },
   {
     title: 'Incubation & Market Growth',
     desc: 'Scale your startup with incubation support and go-to-market help.',
-    icon: <Users className="text-red-500" size={24} />
-  }
+    icon: <Users className="text-red-500" size={24} />,
+  },
 ];
 
 // Stable random values computed once per mount, not on every re-render
@@ -44,28 +44,33 @@ const PARTICLES = Array.from({ length: PARTICLE_COUNT }, () => ({
 export default function NetworkHero() {
   const sectionRef = useRef(null);
   const [textIndex, setTextIndex] = useState(0);
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const rafRef = useRef(null);
+  // Motion values move the parallax layer without re-rendering React on every mouse move.
+  const parallaxX = useMotionValue(0);
+  const parallaxY = useMotionValue(0);
+  const x = useSpring(parallaxX, { stiffness: 60, damping: 20 });
+  const y = useSpring(parallaxY, { stiffness: 60, damping: 20 });
+  const glowX = useMotionValue(-600);
+  const glowY = useMotionValue(-600);
 
-  const [isClient, setIsClient] = useState(false);
+  // Decorative particles only where they are cheap: desktop, motion allowed.
+  const [showParticles, setShowParticles] = useState(false);
 
   useEffect(() => {
-    setIsClient(true);
-    const handleMouseMove = (e) => {
-      if (rafRef.current) return;
-      rafRef.current = requestAnimationFrame(() => {
-        const moveX = (e.clientX - window.innerWidth / 2) / 50;
-        const moveY = (e.clientY - window.innerHeight / 2) / 50;
-        setMousePosition({ x: moveX, y: moveY });
-        rafRef.current = null;
-      });
+    setShowParticles(
+      window.matchMedia('(min-width: 769px) and (prefers-reduced-motion: no-preference)').matches
+    );
+    const handleMouseMove = e => {
+      parallaxX.set((e.clientX - window.innerWidth / 2) / 100);
+      parallaxY.set((e.clientY - window.innerHeight / 2) / 100);
+      const rect = sectionRef.current?.getBoundingClientRect();
+      if (rect) {
+        glowX.set(e.clientX - rect.left - 300);
+        glowY.set(e.clientY - rect.top - 300);
+      }
     };
     window.addEventListener('mousemove', handleMouseMove, { passive: true });
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    };
-  }, []);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, [parallaxX, parallaxY, glowX, glowY]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -84,44 +89,44 @@ export default function NetworkHero() {
           <div className="glow-2" />
         </div>
         <div className="particles-container">
-          {isClient && PARTICLES.map((p, i) => (
-            <motion.div
-              key={i}
-              className="hero-particle"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: [0, 0.15, 0] }}
-              transition={{ duration: p.duration, repeat: Infinity, ease: 'linear' }}
-              style={{ width: p.width + 'px', height: p.height + 'px', left: p.left + '%', top: p.top + '%' }}
-            />
-          ))}
+          {showParticles &&
+            PARTICLES.map((p, i) => (
+              <motion.div
+                key={i}
+                className="hero-particle"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: [0, 0.15, 0] }}
+                transition={{ duration: p.duration, repeat: Infinity, ease: 'linear' }}
+                style={{
+                  width: p.width + 'px',
+                  height: p.height + 'px',
+                  left: p.left + '%',
+                  top: p.top + '%',
+                }}
+              />
+            ))}
         </div>
         <div className="bottom-glow-arc" />
       </div>
 
       {/* Hero Content Wrapper */}
-      <motion.div
-        className="hero-content-wrapper"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{
-          opacity: 1,
-          y: mousePosition.y * 0.5,  /* no duplicate key - single y */
-          x: mousePosition.x * 0.5,
-        }}
-        transition={{ duration: 1 }}
-      >
+      {/* Visible from first paint: this block holds the LCP heading. */}
+      <motion.div className="hero-content-wrapper" style={{ x, y }}>
         {/* Top Badge */}
-        <motion.div 
+        <motion.div
           className="hero-tag-pill"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.8 }}
         >
           <Rocket size={14} className="text-red-500" />
-          <span>WELCOME TO <span className="text-red-500">STARTUPSINDIA</span></span>
+          <span>
+            WELCOME TO <span className="text-red-500">STARTUPSINDIA</span>
+          </span>
         </motion.div>
 
         {/* Subtitle Divider */}
-        <motion.div 
+        <motion.div
           className="hero-subtitle-container"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -134,17 +139,10 @@ export default function NetworkHero() {
 
         {/* Main Heading */}
         <div className="hero-title-premium">
-          <motion.h1 
-            className="hero-static-line"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5, duration: 0.8 }}
-          >
-            Where Founders Transform
-          </motion.h1>
+          <h1 className="hero-static-line">Where Founders Transform</h1>
           <div className="rotating-text-container">
             <AnimatePresence mode="wait">
-              <motion.div 
+              <motion.div
                 key={textIndex}
                 className="dynamic-rotating-line"
                 initial={{ opacity: 0, y: 20 }}
@@ -161,16 +159,14 @@ export default function NetworkHero() {
         {/* Feature Cards Grid */}
         <div className="hero-feature-grid">
           {FEATURES.map((feature, i) => (
-            <motion.div 
+            <motion.div
               key={i}
               className="feature-card-minimal"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.8 + (i * 0.1), duration: 0.8 }}
+              transition={{ delay: 0.8 + i * 0.1, duration: 0.8 }}
             >
-              <div className="feature-icon-circle">
-                {feature.icon}
-              </div>
+              <div className="feature-icon-circle">{feature.icon}</div>
               <div className="feature-text-stack">
                 <h3>{feature.title}</h3>
                 <p>{feature.desc}</p>
@@ -180,7 +176,7 @@ export default function NetworkHero() {
         </div>
 
         {/* Action Buttons */}
-        <motion.div 
+        <motion.div
           className="hero-actions-container"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -200,14 +196,7 @@ export default function NetworkHero() {
       </motion.div>
 
       {/* Cursor Responsive Glow */}
-      <motion.div 
-        className="hero-cursor-glow"
-        animate={{ 
-          left: mousePosition.rawX,
-          top: mousePosition.rawY
-        }}
-        transition={{ type: "tween", ease: "linear", duration: 0 }}
-      />
+      <motion.div className="hero-cursor-glow" style={{ x: glowX, y: glowY }} />
     </section>
   );
 }

@@ -575,3 +575,15 @@ div[style*="text-align: center"] svg,
   margin-right: auto;
   display: block;
 }
+
+/* Respect the OS "reduce motion" setting: stop looping and decorative animation site-wide. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -102,3 +102,34 @@ test('without a database the API answers 503 fast instead of hanging', async () 
     app.locals.requireDatabase = false;
   }
 });
+
+test('featured events answer on a cold cache instead of hanging', async () => {
+  const { Event } = require('../src/models/Event');
+  const { cacheDel } = require('../src/infrastructure/cache/redis');
+  await cacheDel('events:featured');
+  const q = { sort: () => q, limit: () => q, populate: () => q, lean: async () => [] };
+  mock.method(Event, 'find', () => q);
+  const res = await fetch(`${base}/api/v1/events/featured`, { signal: AbortSignal.timeout(5000) });
+  assert.equal(res.status, 200);
+  assert.deepEqual((await res.json()).data, []);
+});
+
+test('JSON responses are compressed for clients that accept gzip', async () => {
+  const { Course } = require('../src/modules/courses/course.model');
+  const { cacheFlushPattern } = require('../src/infrastructure/cache/redis');
+  await cacheFlushPattern('courses:*');
+  const big = Array.from({ length: 40 }, (_, i) => ({ _id: String(i).padStart(24, '0'), title: `Course ${i}`, description: 'x'.repeat(200) }));
+  const q = { select: () => q, sort: () => q, skip: () => q, limit: () => q, populate: () => q, lean: async () => big };
+  mock.method(Course, 'find', () => q);
+  mock.method(Course, 'countDocuments', async () => big.length);
+  const http = require('http');
+  const encoding = await new Promise((resolve, reject) => {
+    http
+      .get(`${base}/api/v1/courses`, { headers: { 'Accept-Encoding': 'gzip' } }, res => {
+        res.resume();
+        resolve(res.headers['content-encoding']);
+      })
+      .on('error', reject);
+  });
+  assert.equal(encoding, 'gzip');
+});
