@@ -3,7 +3,7 @@
 // eliminating the dangerouslySetInnerHTML hydration mismatch.
 
 import { webPageSchema, faqSchema, itemListSchema } from '@/lib/seo';
-import HomeClient from './HomeClient';
+import HomeSections from './HomeSections';
 
 const SITE_URL = 'https://startupsindia.in';
 
@@ -19,39 +19,69 @@ const services = itemListSchema({
   description: 'Core services and programs offered by Startups India',
   url: SITE_URL,
   items: [
-    { name: 'Startup Incubation Program',   url: `${SITE_URL}/programs`,  description: 'Structured incubation program for early-stage startups in India' },
-    { name: 'Pre-Incubation Cohort (SINPC)', url: `${SITE_URL}/programs`,  description: 'Pre-incubation program for idea-stage founders in India' },
-    { name: 'Startup Mentorship',           url: `${SITE_URL}/mentors`,   description: 'Connect with expert startup mentors and advisors across India' },
-    { name: 'Startup Events',              url: `${SITE_URL}/events`,    description: 'Discover startup events, hackathons, and pitch competitions in India' },
-    { name: 'Startup Courses',             url: `${SITE_URL}/courses`,   description: 'Learn startup building, fundraising, and growth with online courses' },
-    { name: 'Startup Community',           url: `${SITE_URL}/community`, description: "Join India's most active startup founder community" },
+    {
+      name: 'Startup Incubation Program',
+      url: `${SITE_URL}/programs`,
+      description: 'Structured incubation program for early-stage startups in India',
+    },
+    {
+      name: 'Pre-Incubation Cohort (SINPC)',
+      url: `${SITE_URL}/programs`,
+      description: 'Pre-incubation program for idea-stage founders in India',
+    },
+    {
+      name: 'Startup Mentorship',
+      url: `${SITE_URL}/mentors`,
+      description: 'Connect with expert startup mentors and advisors across India',
+    },
+    {
+      name: 'Startup Events',
+      url: `${SITE_URL}/events`,
+      description: 'Discover startup events, hackathons, and pitch competitions in India',
+    },
+    {
+      name: 'Startup Courses',
+      url: `${SITE_URL}/courses`,
+      description: 'Learn startup building, fundraising, and growth with online courses',
+    },
+    {
+      name: 'Startup Community',
+      url: `${SITE_URL}/community`,
+      description: "Join India's most active startup founder community",
+    },
   ],
 });
 
 const faqs = faqSchema([
   {
     question: 'What is Startups India?',
-    answer: "Startups India (startupsindia.in) is India's most comprehensive startup ecosystem platform offering incubation programs, pre-incubation cohorts, startup funding resources, mentorship from serial founders, startup events, online courses, and a community of entrepreneurs across India.",
+    answer:
+      "Startups India (startupsindia.in) is India's most comprehensive startup ecosystem platform offering incubation programs, pre-incubation cohorts, startup funding resources, mentorship from serial founders, startup events, online courses, and a community of entrepreneurs across India.",
   },
   {
     question: 'How do I apply for the startup incubation program in India?',
-    answer: 'To apply for the Startups India incubation program, visit startupsindia.in/programs, review eligibility criteria, and submit your startup application. The program is open to early-stage founders, students, and innovators with a validated or idea-stage startup.',
+    answer:
+      'To apply for the Startups India incubation program, visit startupsindia.in/programs, review eligibility criteria, and submit your startup application. The program is open to early-stage founders, students, and innovators with a validated or idea-stage startup.',
   },
   {
     question: 'Is the Startups India program free?',
-    answer: 'Startups India offers both free and paid programs. The pre-incubation cohort (SINPC) is accessible to all eligible applicants. Visit startupsindia.in/programs for current program fees and scholarship details.',
+    answer:
+      'Startups India offers both free and paid programs. The pre-incubation cohort (SINPC) is accessible to all eligible applicants. Visit startupsindia.in/programs for current program fees and scholarship details.',
   },
   {
     question: 'What is the difference between incubation and pre-incubation?',
-    answer: 'Pre-incubation is designed for idea-stage founders who need validation, mentorship, and early-stage support before formal incubation. Incubation is for startups with a validated idea or early product that are ready for structured business development, investor access, and scaling support.',
+    answer:
+      'Pre-incubation is designed for idea-stage founders who need validation, mentorship, and early-stage support before formal incubation. Incubation is for startups with a validated idea or early product that are ready for structured business development, investor access, and scaling support.',
   },
   {
     question: 'Who can join Startups India?',
-    answer: 'Startups India is open to students, first-time founders, serial entrepreneurs, mentors, investors, and anyone passionate about the Indian startup ecosystem. Whether you have a startup idea or a funded company, there are programs and resources for every stage.',
+    answer:
+      'Startups India is open to students, first-time founders, serial entrepreneurs, mentors, investors, and anyone passionate about the Indian startup ecosystem. Whether you have a startup idea or a funded company, there are programs and resources for every stage.',
   },
   {
     question: 'Which cities does Startups India operate in?',
-    answer: 'Startups India operates across all major Indian cities including Bangalore, Mumbai, Delhi, Hyderabad, Chennai, Pune, Ahmedabad, Jaipur, Kolkata, Kochi, and 50+ more cities. Our online programs are accessible from anywhere in India.',
+    answer:
+      'Startups India operates across all major Indian cities including Bangalore, Mumbai, Delhi, Hyderabad, Chennai, Pune, Ahmedabad, Jaipur, Kolkata, Kochi, and 50+ more cities. Our online programs are accessible from anywhere in India.',
   },
 ]);
 
@@ -67,7 +97,7 @@ export default function Page() {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
         />
       ))}
-      <HomeClient />
+      <HomeSections />
     </>
   );
 }

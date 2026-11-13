@@ -1,3 +1,5 @@
+'use client';
+
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Award, Calendar, ExternalLink } from 'lucide-react';
@@ -24,8 +26,7 @@ const achievementsData = [
     year: '2026',
     category: 'Awareness',
     index: '02',
-    image:
-      '/assets/images/event-images/Startup-Ecosystem-Awareness-Program.jpg',
+    image: '/assets/images/event-images/Startup-Ecosystem-Awareness-Program.jpg',
   },
   {
     id: 'hackathon',
@@ -47,8 +48,7 @@ const achievementsData = [
     year: '2026',
     category: 'Program',
     index: '04',
-    image:
-      '/assets/images/event-images/Pitching-Competition.jpg',
+    image: '/assets/images/event-images/Pitching-Competition.jpg',
   },
   {
     id: 'funding',
@@ -103,7 +103,7 @@ export default function AchievementsSection() {
       <div className="iec-container relative z-10">
         {/* Adjusted gap between header and content */}
         <div className="achievements-header text-center" style={{ marginBottom: '40px' }}>
-          <motion.span 
+          <motion.span
             className="section-label-premium mb-6 bg-gradient-to-r from-[#e53935]/20 to-red-600/10 backdrop-blur-md border-red-500/30 text-red-500 shadow-[0_0_20px_rgba(229,57,53,0.15)]"
             initial={{ opacity: 0, y: 10 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -112,23 +112,28 @@ export default function AchievementsSection() {
             <Award size={14} className="mr-2" />
             Our Journey
           </motion.span>
-          <motion.h2 
+          <motion.h2
             className="section-title-premium !text-white mt-8"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
           >
-            Empowering <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#e53935] to-[#ff7b72] drop-shadow-[0_0_15px_rgba(229,57,53,0.3)]">The Next Era</span> of Innovation
+            Empowering{' '}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#e53935] to-[#ff7b72] drop-shadow-[0_0_15px_rgba(229,57,53,0.3)]">
+              The Next Era
+            </span>{' '}
+            of Innovation
           </motion.h2>
-          <motion.p 
+          <motion.p
             className="!text-[#9ca3af] max-w-2xl mx-auto mt-6"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.2 }}
           >
-            A journey of excellence, recognition, and transformative impact in the startup ecosystem.
+            A journey of excellence, recognition, and transformative impact in the startup
+            ecosystem.
           </motion.p>
         </div>
 
@@ -153,7 +158,7 @@ export default function AchievementsSection() {
                       alt={activeItem.title}
                       className="w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700"
                     />
-                    
+
                     <div className="absolute bottom-8 left-8 right-8 flex flex-wrap gap-4 z-20">
                       {/* Premium Glass Pills */}
                       <div className="event-pill-premium">
@@ -175,10 +180,8 @@ export default function AchievementsSection() {
                 <div className="absolute -top-20 -left-10 md:-left-16 text-[180px] md:text-[220px] font-black leading-none text-transparent bg-clip-text bg-gradient-to-b from-white/[0.08] to-transparent select-none z-0 pointer-events-none tracking-tighter">
                   {activeItem.index}
                 </div>
-                
-                <div 
-                  className="relative z-10 flex flex-col gap-10 achievements-content-block"
-                >
+
+                <div className="relative z-10 flex flex-col gap-10 achievements-content-block">
                   <motion.div
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -195,7 +198,7 @@ export default function AchievementsSection() {
 
                   <div className="flex items-center">
                     <button className="event-cta-premium">
-                      EXPLORE EVENT 
+                      EXPLORE EVENT
                       <ExternalLink size={20} className="cta-icon" />
                     </button>
                   </div>
@@ -203,31 +206,28 @@ export default function AchievementsSection() {
                   {/* Controls */}
                   <div className="flex items-center gap-3 mt-4">
                     <div className="flex gap-3">
-                      <button 
-                        onClick={handlePrev}
-                        className="nav-btn-premium"
-                      >
+                      <button onClick={handlePrev} className="nav-btn-premium">
                         <ChevronLeft size={24} className="nav-icon" />
                       </button>
-                      <button 
-                        onClick={handleNext}
-                        className="nav-btn-premium"
-                      >
+                      <button onClick={handleNext} className="nav-btn-premium">
                         <ChevronRight size={24} className="nav-icon" />
                       </button>
                     </div>
-                    
+
                     <div className="flex-1 h-[4px] bg-white/10 relative overflow-hidden rounded-full max-w-[120px]">
-                      <motion.div 
+                      <motion.div
                         className="absolute inset-y-0 left-0 bg-gradient-to-r from-[#e53935] to-[#ff7b72] shadow-[0_0_10px_#e53935]"
                         initial={{ width: 0 }}
-                        animate={{ width: `${((activeIndex + 1) / achievementsData.length) * 100}%` }}
-                        transition={{ duration: 0.6, ease: "easeOut" }}
+                        animate={{
+                          width: `${((activeIndex + 1) / achievementsData.length) * 100}%`,
+                        }}
+                        transition={{ duration: 0.6, ease: 'easeOut' }}
                       />
                     </div>
-                    
+
                     <span className="!text-white/80 font-mono text-sm font-bold tracking-widest">
-                      {activeItem.index} <span className="!text-white/30">/</span> 0{achievementsData.length}
+                      {activeItem.index} <span className="!text-white/30">/</span> 0
+                      {achievementsData.length}
                     </span>
                   </div>
                 </div>

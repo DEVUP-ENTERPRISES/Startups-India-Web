@@ -1,3 +1,5 @@
+'use client';
+
 import { useRef, useState, useEffect } from 'react';
 import { Play, ChevronLeft, ChevronRight } from 'lucide-react';
 import '../../styles/training.css';
@@ -14,7 +16,8 @@ const trainingData = [
     tags: ['Idea Validation', 'Audience', 'Market'],
     views: '12.5K Views',
     image: '/thumbnails/demo-1.jpg',
-    videoUrl: 'https://drive.google.com/file/d/1lKCjQY8BX6Fud1KcfJjp5ZT2vHBn01LO/view?usp=drive_link',
+    videoUrl:
+      'https://drive.google.com/file/d/1lKCjQY8BX6Fud1KcfJjp5ZT2vHBn01LO/view?usp=drive_link',
   },
   {
     id: 2,
@@ -27,7 +30,8 @@ const trainingData = [
     tags: ['Market', 'Audience', 'Research'],
     views: '15.2K Views',
     image: '/thumbnails/demo-2.jpg',
-    videoUrl: 'https://drive.google.com/file/d/1PTcaoaKlN7IOJrcHmfd35j18WTdyJNQ2/view?usp=drive_link',
+    videoUrl:
+      'https://drive.google.com/file/d/1PTcaoaKlN7IOJrcHmfd35j18WTdyJNQ2/view?usp=drive_link',
   },
   {
     id: 3,
@@ -40,7 +44,8 @@ const trainingData = [
     tags: ['Marketing', 'Strategy', 'Go To Market'],
     views: '18.7K Views',
     image: '/thumbnails/demo-3.jpg',
-    videoUrl: 'https://drive.google.com/file/d/1mQUJSxCDhPa3mvDjqSyuWqo9oImsWYkW/view?usp=drive_link',
+    videoUrl:
+      'https://drive.google.com/file/d/1mQUJSxCDhPa3mvDjqSyuWqo9oImsWYkW/view?usp=drive_link',
   },
 ];
 
@@ -56,11 +61,11 @@ export default function TrainingSection() {
     if (scrollRef.current) {
       const containerRect = scrollRef.current.getBoundingClientRect();
       const center = containerRect.left + containerRect.width / 2;
-      
+
       const cards = scrollRef.current.querySelectorAll('.training-card');
       let closestIndex = 0;
       let minDistance = Infinity;
-      
+
       cards.forEach((card, index) => {
         const rect = card.getBoundingClientRect();
         const cardCenter = rect.left + rect.width / 2;
@@ -70,12 +75,12 @@ export default function TrainingSection() {
           closestIndex = index;
         }
       });
-      
+
       setActiveIndex(closestIndex);
     }
   };
 
-  const scrollToIndex = (index) => {
+  const scrollToIndex = index => {
     if (scrollRef.current) {
       const cards = scrollRef.current.querySelectorAll('.training-card');
       if (cards[index]) {
@@ -145,12 +150,15 @@ export default function TrainingSection() {
           <button className="carousel-arrow left" onClick={scrollPrev} aria-label="Previous">
             <ChevronLeft size={24} />
           </button>
-          
+
           <div className="training-grid" ref={scrollRef}>
             {trainingData.map(course => (
               <div key={course.id} className="training-card">
                 {/* Top - Video Thumbnail */}
-                <div className="training-thumbnail-container" onClick={() => openVideo(course.videoUrl)}>
+                <div
+                  className="training-thumbnail-container"
+                  onClick={() => openVideo(course.videoUrl)}
+                >
                   <img src={course.image} alt={course.title} className="training-thumbnail" />
                   <div className="training-overlay"></div>
                   <div className="play-button">
@@ -188,7 +196,9 @@ export default function TrainingSection() {
                 {/* Footer */}
                 <div className="training-footer">
                   <span className="training-views">{course.views}</span>
-                  <button className="training-cta" onClick={() => openVideo(course.videoUrl)}>Watch Demo</button>
+                  <button className="training-cta" onClick={() => openVideo(course.videoUrl)}>
+                    Watch Demo
+                  </button>
                 </div>
               </div>
             ))}

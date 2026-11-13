@@ -1,14 +1,12 @@
-'use client';
-
 import '../../styles/trusted-partners.css';
 
 const partners = [
   { src: '/assets/images/partners-logo/TSIC-NewLogo-Website.png', alt: 'TSIC' },
-  { src: '/assets/images/partners-logo/t-hub-logo.png',           alt: 'T-Hub' },
-  { src: '/assets/images/partners-logo/We-hub.png',               alt: 'WE Hub' },
-  { src: '/assets/images/partners-logo/MSME_Logo.png',            alt: 'MSME' },
-  { src: '/assets/images/partners-logo/nitiaayog-logo.png',       alt: 'NITI Aayog' },
-  { src: '/assets/images/partners-logo/Google-logo.png',          alt: 'Google' },
+  { src: '/assets/images/partners-logo/t-hub-logo.png', alt: 'T-Hub' },
+  { src: '/assets/images/partners-logo/We-hub.png', alt: 'WE Hub' },
+  { src: '/assets/images/partners-logo/MSME_Logo.png', alt: 'MSME' },
+  { src: '/assets/images/partners-logo/nitiaayog-logo.png', alt: 'NITI Aayog' },
+  { src: '/assets/images/partners-logo/Google-logo.png', alt: 'Google' },
 ];
 
 // Duplicate for seamless infinite scroll
@@ -18,17 +16,17 @@ export default function TrustedPartners() {
   return (
     <section className="tp-section">
       {/* Background layers */}
-      <div className="tp-grid"       aria-hidden="true" />
-      <div className="tp-rgb-glow"   aria-hidden="true" />
-      <div className="tp-orb"        aria-hidden="true" />
-      <div className="tp-rgb-orb"    aria-hidden="true" />
+      <div className="tp-grid" aria-hidden="true" />
+      <div className="tp-rgb-glow" aria-hidden="true" />
+      <div className="tp-orb" aria-hidden="true" />
+      <div className="tp-rgb-orb" aria-hidden="true" />
 
       <div className="tp-container">
         {/* Badge */}
         <div className="tp-badge-wrap">
           <div className="tp-badge">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
             </svg>
             ECOSYSTEM PARTNERS
           </div>
