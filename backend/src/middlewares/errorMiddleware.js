@@ -50,16 +50,22 @@ function errorMiddleware(err, req, res, next) {
 
   const normalized = normalizeDatabaseError(err);
   const statusCode = normalized.statusCode || 500;
+  const isProduction = process.env.NODE_ENV === 'production';
+  // Server-side failures are never the user's fault: show a calm message and a reference, log the detail.
+  const hideInternals = isProduction && statusCode >= 500;
   const payload = {
     success: false,
-    message: normalized.message || 'Internal server error',
+    message: hideInternals
+      ? 'Something went wrong on our side. Please try again in a moment.'
+      : normalized.message || 'Internal server error',
   };
+  if (hideInternals) payload.reference = req.requestId;
 
-  if (normalized.details) {
+  if (normalized.details && !hideInternals) {
     payload.details = normalized.details;
   }
 
-  if (process.env.NODE_ENV !== 'production' && normalized.stack) {
+  if (!isProduction && normalized.stack) {
     payload.stack = normalized.stack;
   }
 

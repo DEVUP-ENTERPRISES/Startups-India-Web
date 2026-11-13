@@ -47,7 +47,10 @@ function OnboardingContent() {
 
   // Guard: must be logged in, and must not have already completed onboarding.
   useEffect(() => {
-    if (!isLoggedIn()) { router.replace('/signup'); return; }
+    if (!isLoggedIn()) {
+      router.replace('/signup');
+      return;
+    }
 
     // If already onboarded, send to the right dashboard
     const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
@@ -56,8 +59,8 @@ function OnboardingContent() {
       credentials: 'include',
       headers: meToken ? { Authorization: `Bearer ${meToken}` } : {},
     })
-      .then((r) => r.json())
-      .then((data) => {
+      .then(r => r.json())
+      .then(data => {
         const user = data?.data?.user;
         if (user?.onboarding_completed) {
           router.replace(getPostAuthRedirect({ user }));
@@ -75,7 +78,7 @@ function OnboardingContent() {
 
   // ── Phone OTP helpers ─────────────────────────────────────────────────
 
-  const sendPhoneOtp = async (fullPhone) => {
+  const sendPhoneOtp = async fullPhone => {
     setOtpError('');
     try {
       const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
@@ -93,7 +96,9 @@ function OnboardingContent() {
         setOtpError(data.message || `Failed to send code (${res.status}). Please try again.`);
       }
     } catch (err) {
-      setOtpError('Network error - could not send verification code. Please try again.');
+      setOtpError(
+        "We couldn't send the code just now. Please check your internet connection and try again."
+      );
     }
   };
 
@@ -125,47 +130,65 @@ function OnboardingContent() {
 
   const isPhoneValid = phone.length === 10;
 
-  const canProceed = (step) => {
+  const canProceed = step => {
     switch (step) {
-      case 1: return !!selectedRole;
-      case 2: return isPhoneVerified;
+      case 1:
+        return !!selectedRole;
+      case 2:
+        return isPhoneVerified;
       case 3: {
-        const words = (str) => (str || '').trim().split(/\s+/).filter(Boolean).length;
+        const words = str => (str || '').trim().split(/\s+/).filter(Boolean).length;
         // 'startup' is the only non-approval role - uses the founder/student profile form
         if (selectedRole === 'startup') {
           const isStudent = profileData.isStudent === 'Yes';
           return (
-            !!profileData.designation && !!profileData.startupName &&
-            (isStudent || !!profileData.startupStage) && !!profileData.industry &&
-            !!profileData.yearsOfExperience && !!profileData.domainExpertise &&
-            !!profileData.stateId && !!profileData.cityId &&
-            !!profileData.linkedin && words(profileData.bio) >= 20
+            !!profileData.designation &&
+            !!profileData.startupName &&
+            (isStudent || !!profileData.startupStage) &&
+            !!profileData.industry &&
+            !!profileData.yearsOfExperience &&
+            !!profileData.domainExpertise &&
+            !!profileData.stateId &&
+            !!profileData.cityId &&
+            !!profileData.linkedin &&
+            words(profileData.bio) >= 20
           );
         }
         if (selectedRole === 'mentor') {
           return (
-            !!profileData.currentCompany && !!profileData.designation && !!profileData.industry &&
-            !!profileData.yearsOfExperience && !!profileData.weeklyAvailability &&
-            !!profileData.availabilityMode && !!profileData.linkedin && words(profileData.bio) >= 20
+            !!profileData.currentCompany &&
+            !!profileData.designation &&
+            !!profileData.industry &&
+            !!profileData.yearsOfExperience &&
+            !!profileData.weeklyAvailability &&
+            !!profileData.availabilityMode &&
+            !!profileData.linkedin &&
+            words(profileData.bio) >= 20
           );
         }
         if (selectedRole === 'investor') {
           return (
-            !!profileData.organizationName && !!profileData.investorType &&
-            !!profileData.investmentStage && !!profileData.preferredIndustries &&
-            !!profileData.ticketSize && !!profileData.geography && !!profileData.linkedin
+            !!profileData.organizationName &&
+            !!profileData.investorType &&
+            !!profileData.investmentStage &&
+            !!profileData.preferredIndustries &&
+            !!profileData.ticketSize &&
+            !!profileData.geography &&
+            !!profileData.linkedin
           );
         }
         return true;
       }
-      case 4: return termsAccepted && privacyAccepted;
-      default: return false;
+      case 4:
+        return termsAccepted && privacyAccepted;
+      default:
+        return false;
     }
   };
 
   // ── Navigation ────────────────────────────────────────────────────────
 
-  const go = (step) => {
+  const go = step => {
     setDirection(step > currentStep ? 1 : -1);
     setCurrentStep(step);
     setError('');
@@ -236,13 +259,18 @@ function OnboardingContent() {
 
       if (raw.includes('E11000') || raw.includes('duplicate key')) {
         if (raw.includes('phone')) {
-          friendly = 'An account with this phone number already exists. Please use a different number or log in.';
+          friendly =
+            'An account with this phone number already exists. Please use a different number or log in.';
         } else if (raw.includes('email')) {
           friendly = 'An account with this email already exists. Try logging in instead.';
         } else {
           friendly = 'Some of your details are already registered. Please review and try again.';
         }
-      } else if (!raw || raw.toLowerCase().includes('networkerror') || raw.toLowerCase().includes('fetch')) {
+      } else if (
+        !raw ||
+        raw.toLowerCase().includes('networkerror') ||
+        raw.toLowerCase().includes('fetch')
+      ) {
         friendly = 'Could not reach the server. Please check your connection and try again.';
       }
 
@@ -255,16 +283,24 @@ function OnboardingContent() {
   // ── Slide variants ────────────────────────────────────────────────────
 
   const slide = {
-    enter: (dir) => ({ x: dir > 0 ? 30 : -30, opacity: 0 }),
+    enter: dir => ({ x: dir > 0 ? 30 : -30, opacity: 0 }),
     center: { x: 0, opacity: 1 },
-    exit: (dir) => ({ x: dir < 0 ? 30 : -30, opacity: 0 }),
+    exit: dir => ({ x: dir < 0 ? 30 : -30, opacity: 0 }),
   };
 
   // ── Done screen ───────────────────────────────────────────────────────
 
   if (isDone) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc' }}>
+      <div
+        style={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: '#f8fafc',
+        }}
+      >
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -273,23 +309,46 @@ function OnboardingContent() {
           {requiresApproval ? (
             <>
               <div style={{ fontSize: '68px', marginBottom: '20px' }}>⏳</div>
-              <h2 style={{ fontSize: '26px', fontWeight: 800, color: '#0f172a', marginBottom: '12px' }}>
+              <h2
+                style={{
+                  fontSize: '26px',
+                  fontWeight: 800,
+                  color: '#0f172a',
+                  marginBottom: '12px',
+                }}
+              >
                 Profile Submitted - <span style={{ color: '#dc2626' }}>Under Review</span>
               </h2>
-              <p style={{ fontSize: '14px', color: '#475569', lineHeight: 1.7, marginBottom: '20px' }}>
+              <p
+                style={{
+                  fontSize: '14px',
+                  color: '#475569',
+                  lineHeight: 1.7,
+                  marginBottom: '20px',
+                }}
+              >
                 Thank you for registering as a{' '}
                 <strong style={{ color: '#dc2626', textTransform: 'capitalize' }}>
                   {selectedRole === 'startup' ? 'Student / Startup' : selectedRole}
-                </strong>!{' '}
-                Our team will review your details and notify you by email once approved.
-                Direct login is disabled until permission is granted.
+                </strong>
+                ! Our team will review your details and notify you by email once approved. Direct
+                login is disabled until permission is granted.
               </p>
-              <p style={{ fontSize: '13px', color: '#94a3b8' }}>Redirecting you to the home page...</p>
+              <p style={{ fontSize: '13px', color: '#94a3b8' }}>
+                Redirecting you to the home page...
+              </p>
             </>
           ) : (
             <>
               <div style={{ fontSize: '68px', marginBottom: '20px' }}>🎉</div>
-              <h2 style={{ fontSize: '26px', fontWeight: 800, color: '#0f172a', marginBottom: '12px' }}>
+              <h2
+                style={{
+                  fontSize: '26px',
+                  fontWeight: 800,
+                  color: '#0f172a',
+                  marginBottom: '12px',
+                }}
+              >
                 Welcome to <span style={{ color: '#dc2626' }}>Startups India!</span>
               </h2>
               <p style={{ fontSize: '14px', color: '#475569', lineHeight: 1.7 }}>
@@ -312,7 +371,9 @@ function OnboardingContent() {
         <ProgressStepper
           currentStep={currentStep}
           steps={steps}
-          onStepClick={(s) => { if (s < currentStep) go(s); }}
+          onStepClick={s => {
+            if (s < currentStep) go(s);
+          }}
         />
 
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative' }}>
@@ -331,7 +392,10 @@ function OnboardingContent() {
               {currentStep === 1 && (
                 <Step1RoleSelection
                   selectedRole={selectedRole}
-                  onSelectRole={(r) => { setSelectedRole(r); setError(''); }}
+                  onSelectRole={r => {
+                    setSelectedRole(r);
+                    setError('');
+                  }}
                 />
               )}
 
@@ -339,7 +403,9 @@ function OnboardingContent() {
               {currentStep === 2 && (
                 <div>
                   <div className="reg-v2-content-header">
-                    <h2 className="reg-v2-content-title">Verify Your <span>Mobile Number</span></h2>
+                    <h2 className="reg-v2-content-title">
+                      Verify Your <span>Mobile Number</span>
+                    </h2>
                     <p className="reg-v2-content-subtitle">
                       Enter your phone number to receive a 6-digit verification code.
                     </p>
@@ -349,14 +415,21 @@ function OnboardingContent() {
                     {/* Phone number entry */}
                     {!isPhoneVerified && (
                       <div style={{ width: '100%' }}>
-                        <label className="reg-v2-label" style={{ marginBottom: '6px', display: 'block' }}>
+                        <label
+                          className="reg-v2-label"
+                          style={{ marginBottom: '6px', display: 'block' }}
+                        >
                           Phone Number *
                         </label>
                         <div className="reg-v2-phone-group">
                           <select
                             className="reg-v2-country-code"
                             value={countryCode}
-                            onChange={(e) => { setCountryCode(e.target.value); setOtpSent(false); setIsPhoneVerified(false); }}
+                            onChange={e => {
+                              setCountryCode(e.target.value);
+                              setOtpSent(false);
+                              setIsPhoneVerified(false);
+                            }}
                           >
                             <option value="+91">🇮🇳 +91</option>
                             <option value="+1">🇺🇸 +1</option>
@@ -371,7 +444,7 @@ function OnboardingContent() {
                               placeholder="10-digit mobile number"
                               value={phone}
                               maxLength={10}
-                              onChange={(e) => {
+                              onChange={e => {
                                 const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
                                 setPhone(digits);
                                 setOtpSent(false);
@@ -381,8 +454,17 @@ function OnboardingContent() {
                           </div>
                         </div>
                         {phone && (
-                          <p style={{ fontSize: '12px', marginTop: '4px', color: isPhoneValid ? '#059669' : '#ef4444', fontWeight: 500 }}>
-                            {isPhoneValid ? '✓ Valid 10-digit number' : `✕ Must be 10 digits (${phone.length}/10)`}
+                          <p
+                            style={{
+                              fontSize: '12px',
+                              marginTop: '4px',
+                              color: isPhoneValid ? '#059669' : '#ef4444',
+                              fontWeight: 500,
+                            }}
+                          >
+                            {isPhoneValid
+                              ? '✓ Valid 10-digit number'
+                              : `✕ Must be 10 digits (${phone.length}/10)`}
                           </p>
                         )}
 
@@ -399,8 +481,18 @@ function OnboardingContent() {
                         )}
 
                         {otpSent && (
-                          <p style={{ textAlign: 'center', fontSize: '12px', color: '#64748b', marginTop: '10px' }}>
-                            Code sent to <strong>{countryCode} {phone}</strong>
+                          <p
+                            style={{
+                              textAlign: 'center',
+                              fontSize: '12px',
+                              color: '#64748b',
+                              marginTop: '10px',
+                            }}
+                          >
+                            Code sent to{' '}
+                            <strong>
+                              {countryCode} {phone}
+                            </strong>
                           </p>
                         )}
                       </div>
@@ -428,33 +520,57 @@ function OnboardingContent() {
                         style={{ width: '100%', textAlign: 'center' }}
                       >
                         {/* Checkmark circle */}
-                        <div style={{
-                          width: '72px', height: '72px', borderRadius: '50%',
-                          background: 'linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)',
-                          border: '3px solid #16a34a',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          margin: '0 auto 16px',
-                          boxShadow: '0 8px 24px rgba(22, 163, 74, 0.2)',
-                          fontSize: '32px',
-                        }}>
+                        <div
+                          style={{
+                            width: '72px',
+                            height: '72px',
+                            borderRadius: '50%',
+                            background: 'linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)',
+                            border: '3px solid #16a34a',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            margin: '0 auto 16px',
+                            boxShadow: '0 8px 24px rgba(22, 163, 74, 0.2)',
+                            fontSize: '32px',
+                          }}
+                        >
                           ✓
                         </div>
 
-                        <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#166534', marginBottom: '6px' }}>
+                        <h3
+                          style={{
+                            fontSize: '18px',
+                            fontWeight: 800,
+                            color: '#166534',
+                            marginBottom: '6px',
+                          }}
+                        >
                           Number Verified!
                         </h3>
 
                         <p style={{ fontSize: '13px', color: '#4b7c59', marginBottom: '16px' }}>
-                          <strong>{countryCode} {phone}</strong> has been verified successfully.
+                          <strong>
+                            {countryCode} {phone}
+                          </strong>{' '}
+                          has been verified successfully.
                         </p>
 
                         {/* Verified badge pill */}
-                        <div style={{
-                          display: 'inline-flex', alignItems: 'center', gap: '6px',
-                          background: '#f0fdf4', border: '1.5px solid #86efac',
-                          borderRadius: '20px', padding: '6px 16px',
-                          fontSize: '12px', fontWeight: 700, color: '#15803d',
-                        }}>
+                        <div
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            background: '#f0fdf4',
+                            border: '1.5px solid #86efac',
+                            borderRadius: '20px',
+                            padding: '6px 16px',
+                            fontSize: '12px',
+                            fontWeight: 700,
+                            color: '#15803d',
+                          }}
+                        >
                           Secured &amp; Verified
                         </div>
 
@@ -472,7 +588,10 @@ function OnboardingContent() {
                 <DynamicProfile
                   role="founder"
                   profileData={profileData}
-                  onChange={(field, val) => { setProfileData((p) => ({ ...p, [field]: val })); setError(''); }}
+                  onChange={(field, val) => {
+                    setProfileData(p => ({ ...p, [field]: val }));
+                    setError('');
+                  }}
                 />
               )}
 
@@ -497,18 +616,32 @@ function OnboardingContent() {
 
         {/* Global error banner */}
         {error && (
-          <div style={{
-            padding: '12px 16px', background: '#fef2f2', border: '1.5px solid #fca5a5',
-            borderRadius: '12px', color: '#ef4444', fontSize: '13px', fontWeight: 600,
-            marginTop: '16px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px',
-          }}>
+          <div
+            style={{
+              padding: '12px 16px',
+              background: '#fef2f2',
+              border: '1.5px solid #fca5a5',
+              borderRadius: '12px',
+              color: '#ef4444',
+              fontSize: '13px',
+              fontWeight: 600,
+              marginTop: '16px',
+              marginBottom: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+            }}
+          >
             <ShieldAlert size={18} />
             <span style={{ flex: 1 }}>{error}</span>
           </div>
         )}
 
         {/* Footer navigation */}
-        <div className="reg-v2-footer-actions" style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+        <div
+          className="reg-v2-footer-actions"
+          style={{ display: 'flex', gap: '10px', alignItems: 'center' }}
+        >
           <div>
             {currentStep > 1 && (
               <button className="reg-v2-btn-back" onClick={handleBack} disabled={isLoading}>
@@ -532,11 +665,20 @@ function OnboardingContent() {
 
 export default function OnboardingPage() {
   return (
-    <Suspense fallback={
-      <div style={{ display: 'flex', height: '100vh', justifyContent: 'center', alignItems: 'center' }}>
-        Loading...
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div
+          style={{
+            display: 'flex',
+            height: '100vh',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          Loading...
+        </div>
+      }
+    >
       <OnboardingContent />
     </Suspense>
   );

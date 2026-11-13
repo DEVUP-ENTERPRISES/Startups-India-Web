@@ -207,6 +207,12 @@ jobs:
         run: pnpm install --frozen-lockfile
         working-directory: backend
 
+      - name: Cache MongoDB test binary
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/mongodb-binaries
+          key: mongodb-binaries-${{ runner.os }}-v1
+
       # Catches Windows→Linux case-sensitivity bugs (e.g. ApiError vs apiError)
       # that work on Windows but crash on EC2 (Linux).
       - name: Check case-sensitive imports

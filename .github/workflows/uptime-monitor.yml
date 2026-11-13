@@ -1,0 +1,38 @@
+name: Uptime & TLS monitor
+
+# Fails (and GitHub emails the repo admins) when the API is unreachable over
+# valid HTTPS or its certificate is within 14 days of expiry.
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: API health over verified HTTPS
+        run: |
+          for i in 1 2 3; do
+            body=$(curl -fsS --max-time 15 https://api.startupsindia.in/health) && { echo "API: $body"; exit 0; }
+            sleep 20
+          done
+          echo "::error::api.startupsindia.in/health is unreachable or its TLS certificate is invalid"
+          exit 1
+
+      - name: Website responds
+        run: curl -fsS -o /dev/null --max-time 20 -L https://startupsindia.in && echo "Website OK"
+
+      - name: Certificate expiry
+        run: |
+          end=$(echo | openssl s_client -connect api.startupsindia.in:443 -servername api.startupsindia.in 2>/dev/null | openssl x509 -noout -enddate | cut -d= -f2)
+          days=$(( ( $(date -d "$end" +%s) - $(date +%s) ) / 86400 ))
+          echo "Certificate expires $end ($days days)"
+          if [ "$days" -lt 14 ]; then
+            echo "::error::TLS certificate for api.startupsindia.in expires in $days days - run: sudo certbot renew && sudo systemctl reload nginx"
+            exit 1
+          fi

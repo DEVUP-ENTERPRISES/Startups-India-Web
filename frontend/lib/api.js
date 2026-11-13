@@ -6,7 +6,9 @@ const API_BASE =
   'http://localhost:5000';
 
 if (typeof window !== 'undefined' && !API_BASE.startsWith('http')) {
-  console.error('[api.js] NEXT_PUBLIC_API_BASE_URL is not set or invalid. All API calls will fail.');
+  console.error(
+    '[api.js] NEXT_PUBLIC_API_BASE_URL is not set or invalid. All API calls will fail.'
+  );
 }
 
 const ADMIN_SLUG = process.env.NEXT_PUBLIC_ADMIN_SLUG || 'ctrl-x9k2m3-panel';
@@ -32,8 +34,12 @@ export function setMemToken(token) {
     else sessionStorage.removeItem('_at');
   }
 }
-export function clearMemToken() { setMemToken(null); }
-export function getMemToken() { return _memToken; }
+export function clearMemToken() {
+  setMemToken(null);
+}
+export function getMemToken() {
+  return _memToken;
+}
 
 // ── Auth signal ──────────────────────────────────────────────────────────────
 // localStorage stores ONLY a presence flag - not a usable secret.
@@ -76,7 +82,11 @@ async function tryRefresh() {
       });
 
       let json;
-      try { json = await res.json(); } catch { return false; }
+      try {
+        json = await res.json();
+      } catch {
+        return false;
+      }
 
       if (res.ok && json.data?.session?.access_token) {
         setMemToken(json.data.session.access_token);
@@ -102,6 +112,53 @@ function redirectToLogin() {
   window.location.href = isAdminPage ? `/${ADMIN_SLUG}/login` : '/login';
 }
 
+// One place decides what users read when something fails: calm, actionable, never blaming them.
+const FRIENDLY = {
+  network: "We couldn't reach Startups India. Please check your internet connection and try again.",
+  server: 'Something went wrong on our side. Please try again in a moment.',
+  maintenance: "We're making a quick update. Please try again in a minute.",
+  rateLimited: 'Too many attempts in a short time. Please wait a moment and try again.',
+  invalidInput: 'Please check the details you entered and try again.',
+  signIn: 'Please sign in to continue.',
+};
+
+const TECHNICAL_MESSAGES =
+  /invalid request body|request failed|cast to objectid|validation failed|internal server error|unexpected token|econn|timeout|failed to fetch/i;
+
+export function friendlyErrorMessage(status, serverMessage) {
+  if (!status) return FRIENDLY.network;
+  if (status === 503) return FRIENDLY.maintenance;
+  if (status >= 500) return FRIENDLY.server;
+  if (status === 429) return FRIENDLY.rateLimited;
+  if (status === 401 && !serverMessage) return FRIENDLY.signIn;
+  if (!serverMessage || TECHNICAL_MESSAGES.test(serverMessage)) {
+    return status === 400 || status === 422 ? FRIENDLY.invalidInput : FRIENDLY.server;
+  }
+  return serverMessage;
+}
+
+const RETRYABLE_STATUS = new Set([502, 503, 504]);
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+// GETs are safe to repeat, so a brief network blip or gateway restart is retried before the user sees anything.
+async function fetchWithRetry(url, init) {
+  const method = String(init.method || 'GET').toUpperCase();
+  const attempts = method === 'GET' ? 3 : 1;
+  for (let attempt = 1; ; attempt += 1) {
+    try {
+      const res = await fetch(url, init);
+      if (attempt < attempts && RETRYABLE_STATUS.has(res.status)) {
+        await sleep(attempt * 800);
+        continue;
+      }
+      return res;
+    } catch (err) {
+      if (attempt >= attempts) throw err;
+      await sleep(attempt * 800);
+    }
+  }
+}
+
 export async function apiFetch(path, options = {}) {
   const token = _memToken; // in-memory only - never localStorage
   const headers = {
@@ -114,14 +171,14 @@ export async function apiFetch(path, options = {}) {
 
   let res;
   try {
-    res = await fetch(`${API_BASE}${resolvedPath}`, {
+    res = await fetchWithRetry(`${API_BASE}${resolvedPath}`, {
       ...options,
       headers,
       // httpOnly cookie is sent automatically - this is the actual auth mechanism
       credentials: 'include',
     });
   } catch {
-    return { data: null, error: { message: 'Network error - server may be down', status: 0 } };
+    return { data: null, error: { message: FRIENDLY.network, status: 0 } };
   }
 
   // Auth endpoints (login, register, etc.) return 401 for bad credentials -
@@ -133,22 +190,22 @@ export async function apiFetch(path, options = {}) {
     const refreshed = await tryRefresh();
     if (refreshed) {
       try {
-        res = await fetch(`${API_BASE}${resolvedPath}`, {
+        res = await fetchWithRetry(`${API_BASE}${resolvedPath}`, {
           ...options,
           _retried: true,
           headers,
           credentials: 'include',
         });
       } catch {
-        return { data: null, error: { message: 'Network error - server may be down', status: 0 } };
+        return { data: null, error: { message: FRIENDLY.network, status: 0 } };
       }
     } else {
       redirectToLogin();
-      return { data: null, error: { message: 'Session expired', status: 401 } };
+      return { data: null, error: { message: FRIENDLY.signIn, status: 401 } };
     }
   } else if (res.status === 401 && !isAuthEndpoint) {
     redirectToLogin();
-    return { data: null, error: { message: 'Session expired', status: 401 } };
+    return { data: null, error: { message: FRIENDLY.signIn, status: 401 } };
   }
 
   try {
@@ -156,16 +213,34 @@ export async function apiFetch(path, options = {}) {
     if (!res.ok) {
       return {
         data: null,
-        error: { message: json.message || json.error || 'Request failed', status: res.status },
+        error: {
+          message: friendlyErrorMessage(res.status, json.message || json.error),
+          status: res.status,
+          reference: json.reference,
+        },
       };
     }
     return { data: json.data !== undefined ? json.data : json, error: null };
   } catch {
-    return { data: null, error: { message: 'Invalid response from server', status: res.status } };
+    return {
+      data: null,
+      error: {
+        message: friendlyErrorMessage(res.status >= 400 ? res.status : 500),
+        status: res.status,
+      },
+    };
   }
 }
 
-export async function apiGet(path) { return apiFetch(path); }
-export async function apiPost(path, body) { return apiFetch(path, { method: 'POST', body: JSON.stringify(body) }); }
-export async function apiPatch(path, body) { return apiFetch(path, { method: 'PATCH', body: JSON.stringify(body) }); }
-export async function apiDelete(path) { return apiFetch(path, { method: 'DELETE' }); }
+export async function apiGet(path) {
+  return apiFetch(path);
+}
+export async function apiPost(path, body) {
+  return apiFetch(path, { method: 'POST', body: JSON.stringify(body) });
+}
+export async function apiPatch(path, body) {
+  return apiFetch(path, { method: 'PATCH', body: JSON.stringify(body) });
+}
+export async function apiDelete(path) {
+  return apiFetch(path, { method: 'DELETE' });
+}
