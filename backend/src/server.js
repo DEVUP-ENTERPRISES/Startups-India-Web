@@ -19,6 +19,32 @@ const { reconcileOrphanedPayments } = require('./modules/enrollments/enrollments
 const isPM2 = !!process.env.PM2_HOME || !!process.env.pm_id;
 let server = null;
 
+async function connectDatabaseWithRetry() {
+  for (let attempt = 1; ; attempt += 1) {
+    try {
+      await connectDatabase(env.MONGODB_URI);
+      return;
+    } catch (error) {
+      const delayMs = Math.min(2000 * attempt, 30000);
+      logger.error('MongoDB connection failed - retrying, API answers 503 meanwhile', {
+        attempt,
+        retryInMs: delayMs,
+        message: error.message,
+      });
+      await new Promise(resolve => setTimeout(resolve, delayMs));
+    }
+  }
+}
+
+// A failing optional startup task is logged, never fatal.
+async function runStartupTask(name, fn) {
+  try {
+    await fn();
+  } catch (error) {
+    logger.error(`Startup task failed: ${name}`, { message: error.message });
+  }
+}
+
 async function bootstrap() {
   const workerId = process.env.pm_id || process.pid;
 
@@ -29,23 +55,8 @@ async function bootstrap() {
     pid: process.pid,
   });
 
-  await connectDatabase(env.MONGODB_URI);
-  await connectRedis();
-  await seedAdmin();
-  await warmCache();
-  await reconcileOrphanedPayments();
-
-  // Report-unlock job: every 5 minutes, unlock the evaluation report 2 hours
-  // before a booked 1:1 slot and send the "your report is ready" email + push.
-  // Persisted dedup (report.emailSentAt) makes it safe across restarts and PM2
-  // workers; it also catches up on missed slots.
-  require('./modules/grants/grant.reportUnlock.job').start();
-
-  // CRM: seed the ready-to-send templates (idempotent) and start the drain
-  // worker (resumes any campaign left 'sending' by a restart; enforces the cap).
-  await require('./modules/crm/crm.templates.seed').seedDefaultTemplates().catch(() => {});
-  await require('./modules/crm/crm.campaign.service').startWorker();
-
+  // Listen first so nginx gets a fast 503 instead of a 502 while dependencies come up.
+  app.locals.requireDatabase = true;
   server = app.listen(env.PORT, '0.0.0.0', () => {
     logger.info('Backend listening', {
       port: env.PORT,
@@ -62,6 +73,23 @@ async function bootstrap() {
   // Keep-alive and header timeouts (must exceed Nginx proxy_read_timeout)
   server.keepAliveTimeout = 65000; // 65s (Nginx default keepalive is 60s)
   server.headersTimeout = 66000;
+
+  await connectDatabaseWithRetry();
+  await runStartupTask('redis', connectRedis);
+  await runStartupTask('seed admin', seedAdmin);
+  await runStartupTask('warm cache', warmCache);
+  await runStartupTask('reconcile payments', reconcileOrphanedPayments);
+
+  // Report-unlock job: every 5 minutes, unlock the evaluation report 2 hours
+  // before a booked 1:1 slot and send the "your report is ready" email + push.
+  await runStartupTask('report unlock job', () => require('./modules/grants/grant.reportUnlock.job').start());
+
+  // CRM: seed the ready-to-send templates (idempotent) and start the drain
+  // worker (resumes any campaign left 'sending' by a restart; enforces the cap).
+  await runStartupTask('crm templates', () => require('./modules/crm/crm.templates.seed').seedDefaultTemplates());
+  await runStartupTask('crm worker', () => require('./modules/crm/crm.campaign.service').startWorker());
+
+  logger.info('Backend bootstrap complete', { worker: workerId });
 }
 
 // ─── GRACEFUL SHUTDOWN ────────────────────────────────────────
@@ -99,6 +127,21 @@ process.on('message', msg => {
   if (msg === 'shutdown') {
     gracefulShutdown('PM2_SHUTDOWN');
   }
+});
+
+// A stray rejected promise must not take the API down (Node exits on these by default).
+process.on('unhandledRejection', reason => {
+  logger.error('Unhandled promise rejection', {
+    message: reason instanceof Error ? reason.message : String(reason),
+    stack: reason instanceof Error ? reason.stack : undefined,
+  });
+});
+
+// After an uncaught exception the process state is unknown; exit and let PM2 restart a clean one.
+process.on('uncaughtException', error => {
+  logger.error('Uncaught exception - restarting', { message: error.message, stack: error.stack });
+  gracefulShutdown('uncaughtException').finally(() => process.exit(1));
+  setTimeout(() => process.exit(1), 10000).unref();
 });
 
 bootstrap().catch(error => {

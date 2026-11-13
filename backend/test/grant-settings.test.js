@@ -6,7 +6,13 @@ const { Settings } = require('../src/models/Settings');
 const { computeEvaluationFee } = require('../src/modules/grants/grant.settings');
 const adminService = require('../src/modules/admin/admin.service');
 
-afterEach(() => mock.restoreAll());
+const { cacheDel } = require('../src/infrastructure/cache/redis');
+const { GRANT_SETTINGS_CACHE_KEY } = require('../src/modules/grants/grant.settings');
+
+afterEach(async () => {
+  mock.restoreAll();
+  await cacheDel(GRANT_SETTINGS_CACHE_KEY);
+});
 
 test('fee stored as a string is summed numerically, not concatenated', async () => {
   mock.method(Settings, 'find', () => leanResult([{ key: 'grant.evaluation.fee', value: '149900' }]));

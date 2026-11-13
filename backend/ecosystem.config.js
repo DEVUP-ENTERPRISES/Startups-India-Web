@@ -21,8 +21,7 @@ module.exports = {
       // ─── RESTART POLICIES ──────────────────────────────
       max_memory_restart: '400M',
       autorestart: true,
-      max_restarts: 25,                // was 10 - give more chances before giving up
-      restart_delay: 3000,             // 3s delay between restarts (was 1s)
+      max_restarts: 1000000, // never stop restarting; exp backoff below spaces the attempts out
       min_uptime: '30s',               // consider stable after 30s (was 10s)
       exp_backoff_restart_delay: 100,  // exponential backoff: 100ms → 200ms → 400ms → …
       // ^ Prevents crash-loop storms: if the app keeps dying, PM2 waits
@@ -31,7 +30,7 @@ module.exports = {
 
       // ─── GRACEFUL SHUTDOWN ─────────────────────────────
       kill_timeout: 5000, // 5s to finish in-flight requests
-      listen_timeout: 8000, // 8s to start listening
+      listen_timeout: 30000, // module load alone can take >8s on a cold disk
       shutdown_with_message: true,
       wait_ready: true, // wait for process.send('ready')
 

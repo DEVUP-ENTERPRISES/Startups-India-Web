@@ -149,7 +149,8 @@ app.get('/health', (req, res) => {
         heap: Math.round(process.memoryUsage().heapUsed / 1024 / 1024) + 'MB',
       },
       mongo: mongoStatus,
-      redis: isRedisReady() ? 'connected' : 'disconnected',
+      redis: isRedisReady() ? 'connected' : 'disconnected (in-memory cache fallback)',
+      configProblems: env.CONFIG_PROBLEMS || [],
       cache: getCacheStats(),
     });
   }
@@ -218,6 +219,13 @@ app.use(
     message: { success: false, message: 'Too many admin requests, please slow down' },
   })
 );
+
+// Without MongoDB, fail fast with 503 (Razorpay retries webhooks on it) rather than hang until buffer timeout.
+app.use('/api', (req, res, next) => {
+  if (!app.locals.requireDatabase || mongoose.connection.readyState === 1) return next();
+  res.setHeader('Retry-After', '10');
+  return res.status(503).json({ success: false, message: 'Service temporarily unavailable, please retry shortly.' });
+});
 
 registerRoutes(app);
 app.use(errorMiddleware);

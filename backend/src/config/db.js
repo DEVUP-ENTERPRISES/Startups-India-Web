@@ -18,8 +18,8 @@ async function connectDatabase(uri) {
     minPoolSize: 2,
     // Avoid building indexes in production - run migrations separately
     autoIndex: !isProduction,
-    // Read from secondaries when available (Atlas read replicas)
-    readPreference: isProduction ? 'secondaryPreferred' : 'primary',
+    // Primary reads: payment and enrollment checks must see their own writes, which lagging secondaries may not.
+    readPreference: 'primary',
     // How long to wait for a connection from the pool
     waitQueueTimeoutMS: 10000,
     // Socket timeout for operations
@@ -33,7 +33,7 @@ async function connectDatabase(uri) {
     dbName: connection.connection.name,
     port: connection.connection.port,
     poolSize,
-    readPreference: isProduction ? 'secondaryPreferred' : 'primary',
+    readPreference: 'primary',
   });
 
   mongoose.connection.on('disconnected', () => {

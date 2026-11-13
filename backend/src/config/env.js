@@ -93,29 +93,30 @@ for (const key of required) {
   }
 }
 
-// In production a reset link that points at localhost is a silent, user-facing
-// breakage - fail fast at boot instead of mailing dead links.
+// Production misconfiguration disables the affected feature loudly instead of taking the whole API down.
+// Only MONGODB_URI and the JWT secrets (checked above) are fatal.
 if (env.NODE_ENV === 'production') {
+  const problems = [];
   if (env.FRONTEND_URL.includes('localhost')) {
-    throw new Error('FRONTEND_URL must be set to the public site origin in production');
+    problems.push('FRONTEND_URL points at localhost - password-reset and email links will be broken');
   }
   if (!env.SMTP_HOST) {
-    throw new Error('SMTP_HOST must be configured in production (password reset depends on it)');
+    problems.push('SMTP_HOST is not set - transactional email (password reset, receipts) is disabled');
   }
-  if (env.TWO_FACTOR_ENABLED) {
-    // The console driver prints OTPs to stdout. If that ever ran in production it
-    // would mean every 2FA code is sitting in the logs and no SMS is being sent.
-    if (env.SMS_PROVIDER === 'console') {
-      throw new Error('SMS_PROVIDER must not be "console" when TWO_FACTOR_ENABLED - set it to "msg91" or "2factor"');
-    }
+  const smsKeyMissing =
+    (env.SMS_PROVIDER === 'msg91' && !env.MSG91_AUTH_KEY) ||
+    ((env.SMS_PROVIDER === '2factor' || env.SMS_PROVIDER === 'twofactor') && !env.TWOFACTOR_API_KEY);
+  // The console driver prints OTPs to stdout, so it must never run in production.
+  if (env.SMS_PROVIDER === 'console' || smsKeyMissing) {
+    problems.push(
+      `SMS is unavailable (SMS_PROVIDER=${env.SMS_PROVIDER}${smsKeyMissing ? ', API key missing' : ''}) - phone OTP and 2FA are disabled`
+    );
+    env.SMS_PROVIDER = 'disabled';
+    // Without SMS a 2FA user could never receive a code, so 2FA is paused rather than locking them out.
+    env.TWO_FACTOR_ENABLED = false;
   }
-  // Phone OTP uses the provider even with 2FA paused; fail boot so the deploy health check rolls back.
-  if (env.SMS_PROVIDER === 'msg91' && !env.MSG91_AUTH_KEY) {
-    throw new Error('MSG91_AUTH_KEY is required when SMS_PROVIDER=msg91');
-  }
-  if ((env.SMS_PROVIDER === '2factor' || env.SMS_PROVIDER === 'twofactor') && !env.TWOFACTOR_API_KEY) {
-    throw new Error('TWOFACTOR_API_KEY is required when SMS_PROVIDER=2factor');
-  }
+  for (const problem of problems) console.error(`[config] PRODUCTION MISCONFIGURATION: ${problem}`);
+  env.CONFIG_PROBLEMS = problems;
 }
 
 module.exports = env;

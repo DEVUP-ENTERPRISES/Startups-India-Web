@@ -89,3 +89,16 @@ test('admin routes get the stricter admin rate limit', async () => {
   assert.equal(res.status, 401);
   assert.equal(res.headers.get('ratelimit-limit'), '120');
 });
+
+test('without a database the API answers 503 fast instead of hanging', async () => {
+  const { app } = require('../src/app');
+  app.locals.requireDatabase = true;
+  try {
+    const res = await fetch(`${base}/api/v1/courses`, { signal: AbortSignal.timeout(3000) });
+    assert.equal(res.status, 503);
+    assert.equal(res.headers.get('retry-after'), '10');
+    assert.equal((await fetch(`${base}/health`)).status, 503);
+  } finally {
+    app.locals.requireDatabase = false;
+  }
+});
